@@ -7,20 +7,16 @@ public class Profile {
     private String email;
     private String password;
     private String fullName;
-    private String studentCode;
-    private StudentType studentType;
     private Role role;
     private Status status = Status.ACTIVE; // TODO: work on this
 
-    public Profile() {
-    }
-
-    public Profile(String email, String password, String fullName, String studentCode, StudentType studentType) {
+    // This class is not intended to be instantiated by outsiders. Use
+    // a specific inherited class instead (Student, Judge, etc.)
+    protected Profile(String email, String password, String fullName, Role role) {
         this.email = email;
         this.password = password;
         this.fullName = fullName;
-        this.studentCode = studentCode;
-        this.studentType = studentType;
+        this.role = role;
     }
 
     public String getEmail() {
@@ -45,22 +41,6 @@ public class Profile {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
-    }
-
-    public String getStudentCode() {
-        return studentCode;
-    }
-
-    public void setStudentCode(String studentCode) {
-        this.studentCode = studentCode;
-    }
-
-    public StudentType getStudentType() {
-        return studentType;
-    }
-
-    public void setStudentType(StudentType studentType) {
-        this.studentType = studentType;
     }
 
     public Role getRole() {
