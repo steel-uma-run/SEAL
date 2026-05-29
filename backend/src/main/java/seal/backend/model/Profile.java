@@ -6,12 +6,12 @@ public class Profile {
     private String fullName;
     private String studentCode;
     private StudentType studentType;
-    private String role = "student";
-    private String status = "active";
+    private Role role;
+    private Status status = Status.ACTIVE; // TODO: work on this
 
     public Profile() {
     }
- 
+
     public Profile(String email, String password, String fullName, String studentCode, StudentType studentType) {
         this.email = email;
         this.password = password;
@@ -60,19 +60,19 @@ public class Profile {
         this.studentType = studentType;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 }

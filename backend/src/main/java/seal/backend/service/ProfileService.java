@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
 import seal.backend.model.Profile;
+import seal.backend.model.Status;
 import seal.backend.model.StudentType;
 
 @Service
@@ -41,8 +42,9 @@ public class ProfileService {
     public Profile login(String email, String password) {
         Profile profile = mockDatabase.get(email);
         if (profile != null && profile.getPassword().equals(password)) {
-            if ("banned".equals(profile.getStatus()))
+            if (profile.getStatus() == Status.BANNED) {
                 return null;
+            }
             return profile;
         }
         return null;
