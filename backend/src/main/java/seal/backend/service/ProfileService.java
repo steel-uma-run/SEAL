@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
 import seal.backend.model.Profile;
+import seal.backend.model.Student;
 import seal.backend.enums.Status;
 import seal.backend.enums.StudentType;
 
@@ -14,7 +15,7 @@ public class ProfileService {
     private static final Map<String, Profile> mockDatabase = new ConcurrentHashMap<>();
 
     static {
-        Profile testUser = new Profile("hao@fpt.edu.vn", "seal123", "Trương Hoàng Mỹ Xuân", "SE180000",
+        Profile testUser = new Student("hao@fpt.edu.vn", "seal123", "Trương Hoàng Mỹ Xuân", "SE180000",
                 StudentType.FPT);
         mockDatabase.put(testUser.getEmail(), testUser);
     }
@@ -34,8 +35,9 @@ public class ProfileService {
             return "Email này đã tồn tại trên hệ thống SEAL!";
         }
 
-        Profile newProfile = new Profile(email, password, fullName, studentCode, studentType);
+        Profile newProfile = new Student(email, password, fullName, studentCode, studentType);
         mockDatabase.put(email, newProfile);
+
         return "SUCCESS";
     }
 
