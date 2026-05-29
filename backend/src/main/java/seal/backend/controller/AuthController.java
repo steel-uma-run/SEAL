@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import seal.backend.enums.StudentType;
 import seal.backend.model.Profile;
-import seal.backend.model.StudentType;
 import seal.backend.service.ProfileService;
 
 @RestController

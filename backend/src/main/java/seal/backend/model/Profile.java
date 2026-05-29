@@ -1,5 +1,8 @@
 package seal.backend.model;
 
+import seal.backend.enums.Role;
+import seal.backend.enums.Status;
+
 public class Profile {
     private String email;
     private String password;

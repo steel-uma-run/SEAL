@@ -1,4 +1,4 @@
-package seal.backend.model;
+package seal.backend.enums;
 
 public enum StudentType {
     FPT,

@@ -1,8 +1,7 @@
-package seal.backend.model;
+package seal.backend.enums;
 
 public enum Role {
     STUDENT,
-    MENTOR,
     JUDGE,
     COORDINATOR,
     SYSADMIN,
