@@ -1,11 +1,18 @@
 package seal.backend.controller;
 
-import seal.backend.model.Profile;
-import seal.backend.service.ProfileService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import seal.backend.model.Profile;
+import seal.backend.model.StudentType;
+import seal.backend.service.ProfileService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -20,10 +27,10 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@RequestParam String email,
-                                                        @RequestParam String password,
-                                                        @RequestParam String fullName,
-                                                        @RequestParam String studentCode,
-                                                        @RequestParam String studentType) {
+            @RequestParam String password,
+            @RequestParam String fullName,
+            @RequestParam String studentCode,
+            @RequestParam StudentType studentType) {
         String result = profileService.register(email, password, fullName, studentCode, studentType);
         Map<String, String> response = new HashMap<>();
 

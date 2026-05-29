@@ -5,14 +5,14 @@ public class Profile {
     private String password;
     private String fullName;
     private String studentCode;
-    private String studentType;
+    private StudentType studentType;
     private String role = "student";
     private String status = "active";
 
     public Profile() {
     }
-
-    public Profile(String email, String password, String fullName, String studentCode, String studentType) {
+ 
+    public Profile(String email, String password, String fullName, String studentCode, StudentType studentType) {
         this.email = email;
         this.password = password;
         this.fullName = fullName;
@@ -52,11 +52,11 @@ public class Profile {
         this.studentCode = studentCode;
     }
 
-    public String getStudentType() {
+    public StudentType getStudentType() {
         return studentType;
     }
 
-    public void setStudentType(String studentType) {
+    public void setStudentType(StudentType studentType) {
         this.studentType = studentType;
     }
 
