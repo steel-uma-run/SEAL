@@ -1,6 +1,6 @@
 package seal.backend.enums;
 
-public enum Status {
+public enum StudentStatus {
     PENDING,
     ACTIVE,
     BANNED
