@@ -6,8 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
 import seal.backend.model.Profile;
-import seal.backend.model.Status;
-import seal.backend.model.StudentType;
+import seal.backend.enums.Status;
+import seal.backend.enums.StudentType;
 
 @Service
 public class ProfileService {
