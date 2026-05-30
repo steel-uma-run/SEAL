@@ -1,6 +1,8 @@
 <script lang="ts">
   import { login } from '../api';
   import { authState } from '../auth.svelte';
+  import { goto } from '$app/navigation';
+  import { toast } from '$lib/components/toast.svelte';
   
   let email = $state('');
   let password = $state('');
@@ -16,9 +18,10 @@
     try {
       const data = await login(params);
       authState.login(data.user, data.token);
-      alert("Đăng nhập thành công! Xin chào " + data.user.fullName);
+      toast.success("Đăng nhập thành công! Xin chào " + data.user.fullName);
+      goto('/dashboard');
     } catch (error: any) {
-      alert("Lỗi: " + error.message);
+      toast.error("Lỗi: " + error.message);
     }
   }
 </script>

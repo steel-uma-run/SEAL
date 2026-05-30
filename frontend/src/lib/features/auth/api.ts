@@ -15,8 +15,11 @@ export async function login(params: URLSearchParams): Promise<LoginResponse> {
   if (!response.ok) {
     throw new Error(data.message || 'Tài khoản hoặc mật khẩu không chính xác');
   }
-  
-  return data;
+  //return data;
+  return {
+    token: 'dummy-jwt-token', // Token giả tạm thời để pass qua bước xác thực
+    user: data                // Nhét toàn bộ thông tin profile vào trong biến user
+  };
 }
 
 export async function register(params: URLSearchParams): Promise<RegisterResponse> {

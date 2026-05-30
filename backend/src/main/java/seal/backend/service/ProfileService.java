@@ -14,7 +14,7 @@ public class ProfileService {
     private static final Map<String, Profile> mockDatabase = new ConcurrentHashMap<>();
 
     static {
-        Profile testUser = new Profile("hao@fpt.edu.vn", "seal123", "Trương Hoàng Mỹ Xuân", "SE180000",
+        Profile testUser = new Profile("hao@fpt.edu.vn", "seal123", "Trương Hoàng Mỹ Xuân ăn cức", "SE180000",
                 StudentType.FPT);
         mockDatabase.put(testUser.getEmail(), testUser);
     }
