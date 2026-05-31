@@ -30,6 +30,7 @@ public class TeamService {
         if (email == null || email.trim().isEmpty()) return null;
         String cleanEmail = email.trim();
 
+        // NTT: sửa chỗ này
         for (Team team : registeredTeams) {
             if (team.getLeaderEmail().equalsIgnoreCase(cleanEmail)) return team;
             if (team.getMemberEmails() != null) {

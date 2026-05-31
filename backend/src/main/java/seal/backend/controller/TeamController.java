@@ -38,7 +38,7 @@ public class TeamController {
         String status = teamService.registerNewTeam(teamName, leaderEmail, memberEmails, memberNames, trackName, projectIdea);
         Map<String, String> response = new HashMap<>();
 
-        if ("SUCCESS".equals(status)) {
+        if (status.equals("SUCCESS")) {
             response.put("status", "SUCCESS");
             response.put("message", "🚀 Chúc mừng đội đã đăng ký giải đấu SEAL thành công!");
             return ResponseEntity.ok(response);
