@@ -34,12 +34,13 @@ public class AuthController {
         String result = profileService.register(email, password, fullName, studentCode, studentType);
         Map<String, String> response = new HashMap<>();
 
-        if ("SUCCESS".equals(result)) {
+        if (result.equals("SUCCESS")) {
             response.put("status", "SUCCESS");
             response.put("message", "Đăng ký tài khoản thành công!");
             return ResponseEntity.ok(response);
         }
 
+        // NTT: đổi thành class cho khỏi tùm lum String
         response.put("status", "ERROR");
         response.put("message", result);
         return ResponseEntity.badRequest().body(response);

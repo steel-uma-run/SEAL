@@ -9,6 +9,7 @@ public class Team {
     private String leaderEmail;
     private List<String> memberEmails;
     private List<String> memberNames;
+    // private Profile[] members;               NTT: thêm vào, sửa constructor, get set, một số chỗ khác
     private String trackName;
     private String projectIdea;
 
