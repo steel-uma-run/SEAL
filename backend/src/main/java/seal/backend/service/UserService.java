@@ -5,17 +5,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Service;
 
-import seal.backend.model.Profile;
+import seal.backend.model.User;
 import seal.backend.model.Student;
 import seal.backend.enums.Status;
 import seal.backend.enums.StudentType;
 
 @Service
-public class ProfileService {
-    private static final Map<String, Profile> mockDatabase = new ConcurrentHashMap<>();
+public class UserService {
+    private static final Map<String, User> mockDatabase = new ConcurrentHashMap<>();
 
     static {
-        Profile testUser = new Student("hao@fpt.edu.vn", "seal123", "Trương Hoàng Mỹ Xuân", "SE180000",
+        User testUser = new Student("hao@fpt.edu.vn", "seal123", "Trương Hoàng Mỹ Xuân", "SE180000",
                 StudentType.FPT);
         mockDatabase.put(testUser.getEmail(), testUser);
     }
@@ -35,19 +35,19 @@ public class ProfileService {
             return "Email này đã tồn tại trên hệ thống SEAL!";
         }
 
-        Profile newProfile = new Student(email, password, fullName, studentCode, studentType);
-        mockDatabase.put(email, newProfile);
+        User newUser = new Student(email, password, fullName, studentCode, studentType);
+        mockDatabase.put(email, newUser);
 
         return "SUCCESS";
     }
 
-    public Profile login(String email, String password) {
-        Profile profile = mockDatabase.get(email);
-        if (profile != null && profile.getPassword().equals(password)) {
-            if (profile.getStatus() == Status.BANNED) {
+    public User login(String email, String password) {
+        User user = mockDatabase.get(email);
+        if (user != null && user.getPassword().equals(password)) {
+            if (user.getStatus() == Status.BANNED) {
                 return null;
             }
-            return profile;
+            return user;
         }
         return null;
     }

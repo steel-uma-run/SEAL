@@ -3,7 +3,7 @@ package seal.backend.model;
 import seal.backend.enums.Role;
 import seal.backend.enums.StudentType;
 
-public class Student extends Profile {
+public class Student extends User {
     private String studentCode;
     private StudentType studentType;
 

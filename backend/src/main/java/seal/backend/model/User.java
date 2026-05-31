@@ -3,7 +3,7 @@ package seal.backend.model;
 import seal.backend.enums.Role;
 import seal.backend.enums.Status;
 
-public class Profile {
+public class User {
     private String email;
     private String password;
     private String fullName;
@@ -12,7 +12,7 @@ public class Profile {
 
     // This class is not intended to be instantiated by outsiders. Use
     // a specific inherited class instead (Student, Judge, etc.)
-    protected Profile(String email, String password, String fullName, Role role) {
+    protected User(String email, String password, String fullName, Role role) {
         this.email = email;
         this.password = password;
         this.fullName = fullName;

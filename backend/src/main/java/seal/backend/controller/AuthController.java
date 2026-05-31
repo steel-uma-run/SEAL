@@ -11,18 +11,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import seal.backend.enums.StudentType;
-import seal.backend.model.Profile;
-import seal.backend.service.ProfileService;
+import seal.backend.model.User;
+import seal.backend.service.UserService;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
 
-    private final ProfileService profileService;
+    private final UserService userService;
+    private ResponseEntity<Map<String, String>> ok;
 
-    public AuthController(ProfileService profileService) {
-        this.profileService = profileService;
+    public AuthController(UserService userService) {
+        this.userService = userService;
     }
 
     @PostMapping("/register")
@@ -31,16 +32,15 @@ public class AuthController {
             @RequestParam String fullName,
             @RequestParam String studentCode,
             @RequestParam StudentType studentType) {
-        String result = profileService.register(email, password, fullName, studentCode, studentType);
+        String result = userService.register(email, password, fullName, studentCode, studentType);
         Map<String, String> response = new HashMap<>();
 
         if (result.equals("SUCCESS")) {
             response.put("status", "SUCCESS");
             response.put("message", "Đăng ký tài khoản thành công!");
-            return ResponseEntity.ok(response);
+            return ok;
         }
 
-        // NTT: đổi thành class cho khỏi tùm lum String
         response.put("status", "ERROR");
         response.put("message", result);
         return ResponseEntity.badRequest().body(response);
@@ -48,9 +48,9 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestParam String email, @RequestParam String password) {
-        Profile profile = profileService.login(email, password);
-        if (profile != null) {
-            return ResponseEntity.ok(profile);
+        User user = userService.login(email, password);
+        if (user != null) {
+            return ResponseEntity.ok(user);
         }
 
         Map<String, String> errorResponse = new HashMap<>();
