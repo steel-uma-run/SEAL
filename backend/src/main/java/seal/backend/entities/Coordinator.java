@@ -7,11 +7,10 @@ import seal.backend.enums.Role;
 @Entity
 @Table(name = "coordinators")
 public class Coordinator extends User {
-    public Coordinator() {
-    }
+  public Coordinator() {}
 
-    public Coordinator(User user) {
-        super(user.getFullName(), user.getEmail(), user.getPasswordHash());
-        setRole(Role.COORDINATOR);
-    }
+  public Coordinator(User user) {
+    super(user.getFullName(), user.getEmail(), user.getPasswordHash());
+    setRole(Role.COORDINATOR);
+  }
 }
