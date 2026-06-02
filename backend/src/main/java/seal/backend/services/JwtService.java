@@ -1,4 +1,4 @@
-package seal.backend;
+package seal.backend.services;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
