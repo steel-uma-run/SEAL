@@ -1,4 +1,3 @@
 package seal.backend.repositories;
 
-public interface StudentRepository extends UserRepository {
-}
+public interface StudentRepository extends UserRepository {}
