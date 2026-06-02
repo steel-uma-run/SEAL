@@ -1,0 +1,15 @@
+fail-on-change = true
+
+[formatter.java]
+# Command to execute
+command = "google-java-format"
+# Command-line arguments for the command
+options = ["--replace"]
+# Glob pattern of files to include
+includes = ["*.java"]
+# Glob patterns of files to exclude
+excludes = []
+# Controls the order of application when multiple formatters match the same file
+# Lower the number, the higher the precedence
+# Default is 0
+priority = 0
