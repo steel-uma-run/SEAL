@@ -1,13 +1,13 @@
 package seal.backend.controllers;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import seal.backend.entities.User;
 import seal.backend.exceptions.EmailExistsException;
 import seal.backend.services.AuthService;
 
@@ -35,4 +35,14 @@ public class AuthController {
       @RequestParam("email") String email, @RequestParam("password") String password) {
     return ResponseEntity.ok(authService.login(email, password));
   }
+
+  @GetMapping("/me")
+  public ResponseEntity<?> me(Authentication auth) {
+    UserDetails principal = (UserDetails) auth.getPrincipal();
+
+    User user = authService.getCurrentUser(principal.getUsername());
+
+    return ResponseEntity.ok(user);
+  }
+
 }
