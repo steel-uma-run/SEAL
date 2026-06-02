@@ -9,6 +9,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import seal.backend.enums.Role;
 
 @Entity
 @Table(name = "users")
@@ -27,6 +28,9 @@ public class User {
   @Column(nullable = false, columnDefinition = "TEXT")
   private String passwordHash;
 
+  @Column(nullable = false)
+  private Role role;
+
   public User() {}
 
   public User(String fullName, String email, String passwordHash) {
@@ -35,7 +39,7 @@ public class User {
     this.passwordHash = passwordHash;
   }
 
-  public java.util.UUID getId() {
+  public UUID getId() {
     return id;
   }
 
@@ -61,5 +65,13 @@ public class User {
 
   public void setPasswordHash(String passwordHash) {
     this.passwordHash = passwordHash;
+  }
+
+  public Role getRole() {
+    return role;
+  }
+
+  public void setRole(Role role) {
+    this.role = role;
   }
 }

@@ -3,6 +3,7 @@ package seal.backend.entities;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import seal.backend.enums.Role;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
 
@@ -19,8 +20,11 @@ public class Student extends User {
 
   public Student(User user, StudentType studentType) {
     super(user.getFullName(), user.getEmail(), user.getPasswordHash());
+
     this.studentType = studentType;
     this.studentStatus = StudentStatus.PENDING;
+
+    setRole(Role.STUDENT);
   }
 
   public StudentType getStudentType() {
