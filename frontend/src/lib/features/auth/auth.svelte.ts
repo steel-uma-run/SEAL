@@ -1,20 +1,43 @@
 import type { UserProfile } from './types';
 
+import { browser } from '$app/environment';
+
 class AuthState {
   user = $state<UserProfile | null>(null);
   token = $state<string | null>(null);
   isAuthenticated = $derived(!!this.user && !!this.token);
 
+  constructor() {
+    if (browser) {
+      const storedUser = localStorage.getItem('auth_user');
+      const storedToken = localStorage.getItem('auth_token');
+      if (storedUser && storedToken) {
+        try {
+          this.user = JSON.parse(storedUser);
+          this.token = storedToken;
+        } catch (e) {
+          // ignore parsing error
+        }
+      }
+    }
+  }
+
   login(userData: UserProfile, authToken: string) {
     this.user = userData;
     this.token = authToken;
-    // TODO: Lưu token vào localStorage hoặc cookie nếu cần
+    if (browser) {
+      localStorage.setItem('auth_user', JSON.stringify(userData));
+      localStorage.setItem('auth_token', authToken);
+    }
   }
 
   logout() {
     this.user = null;
     this.token = null;
-    // TODO: Xóa token khỏi localStorage hoặc cookie
+    if (browser) {
+      localStorage.removeItem('auth_user');
+      localStorage.removeItem('auth_token');
+    }
   }
 }
 
