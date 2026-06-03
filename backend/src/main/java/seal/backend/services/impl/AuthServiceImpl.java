@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import seal.backend.entities.Student;
 import seal.backend.entities.User;
-import seal.backend.enums.Role;
 import seal.backend.enums.StudentType;
 import seal.backend.exceptions.EmailExistsException;
 import seal.backend.repositories.StudentRepository;
@@ -34,7 +34,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     User newUser = new User(name, email, passwordEncoder.encode(password));
-    newUser.setRole(Role.STUDENT);
     Student newStudent = new Student(newUser, isExternal ? StudentType.EXTERNAL : StudentType.FPT);
 
     studentRepository.save(newStudent);
@@ -50,7 +49,9 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public User getCurrentUser(String email) {
-    return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+  public User getCurrentUser(String email) throws UsernameNotFoundException {
+    return userRepository
+        .findByEmail(email)
+        .orElseThrow(() -> new RuntimeException("User not found"));
   }
 }

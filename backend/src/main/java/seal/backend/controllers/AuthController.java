@@ -4,7 +4,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.User;
@@ -38,11 +38,12 @@ public class AuthController {
 
   @GetMapping("/me")
   public ResponseEntity<?> me(Authentication auth) {
-    UserDetails principal = (UserDetails) auth.getPrincipal();
-
-    User user = authService.getCurrentUser(principal.getUsername());
-
-    return ResponseEntity.ok(user);
+    try {
+      User user = authService.getCurrentUser(auth.getName());
+      return ResponseEntity.ok(user);
+    } catch (UsernameNotFoundException ex) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
   }
 
 }
