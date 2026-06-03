@@ -5,8 +5,8 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import javax.crypto.SecretKey;
 import java.util.Date;
+import javax.crypto.SecretKey;
 
 public class JwtService {
   // TODO: don't hardcode this
@@ -18,7 +18,12 @@ public class JwtService {
     Date currentTime = new Date(now);
     Date expTime = new Date(now + EXPIRATION_TIME);
 
-    return Jwts.builder().subject(email).issuedAt(currentTime).expiration(expTime).signWith(getSignKey()).compact();
+    return Jwts.builder()
+        .subject(email)
+        .issuedAt(currentTime)
+        .expiration(expTime)
+        .signWith(getSignKey())
+        .compact();
   }
 
   public static String extractEmail(String token) {
