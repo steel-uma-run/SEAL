@@ -12,8 +12,6 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import seal.backend.enums.Role;
-import seal.backend.enums.StudentStatus;
-import seal.backend.enums.StudentType;
 
 @Entity
 @Table(name = "users")
@@ -27,19 +25,14 @@ public class User {
   private String fullName;
 
   @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
   private Role role;
-
-  @Enumerated(EnumType.STRING)
-  private StudentType studentType;
 
   @Column(nullable = false, columnDefinition = "TEXT")
   private String email;
 
   @Column(nullable = false, columnDefinition = "TEXT")
   private String passwordHash;
-
-  @Enumerated(EnumType.STRING)
-  private StudentStatus studentStatus;
 
   public User() {}
 
@@ -49,11 +42,11 @@ public class User {
     this.passwordHash = passwordHash;
   }
 
-  public java.util.UUID getId() {
+  public UUID getId() {
     return id;
   }
 
-  public void setId(java.util.UUID id) {
+  public void setId(UUID id) {
     this.id = id;
   }
 
@@ -73,14 +66,6 @@ public class User {
     this.role = role;
   }
 
-  public StudentType getStudentType() {
-    return studentType;
-  }
-
-  public void setStudentType(StudentType studentType) {
-    this.studentType = studentType;
-  }
-
   public String getEmail() {
     return email;
   }
@@ -95,13 +80,5 @@ public class User {
 
   public void setPasswordHash(String passwordHash) {
     this.passwordHash = passwordHash;
-  }
-
-  public StudentStatus getStudentStatus() {
-    return studentStatus;
-  }
-
-  public void setStudentStatus(StudentStatus studentStatus) {
-    this.studentStatus = studentStatus;
   }
 }
