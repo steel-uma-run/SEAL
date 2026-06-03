@@ -8,52 +8,50 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import seal.backend.enums.TeamStatus;
-
 import java.util.UUID;
+import seal.backend.enums.TeamStatus;
 
 @Entity
 @Table(name = "teams")
 public class Team {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String name;
+  @Column(nullable = false, columnDefinition = "TEXT")
+  private String name;
 
-    @Column(nullable = true, columnDefinition = "TEXT")
-    private String description;
+  @Column(nullable = true, columnDefinition = "TEXT")
+  private String description;
 
-    @Enumerated(EnumType.STRING)
-    private TeamStatus teamStatus;
+  @Enumerated(EnumType.STRING)
+  private TeamStatus teamStatus;
 
-    public UUID getId() {
-        return id;
-    }
+  public UUID getId() {
+    return id;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public TeamStatus getTeamStatus() {
-        return teamStatus;
-    }
+  public TeamStatus getTeamStatus() {
+    return teamStatus;
+  }
 
-    public void setTeamStatus(TeamStatus teamStatus) {
-        this.teamStatus = teamStatus;
-    }
+  public void setTeamStatus(TeamStatus teamStatus) {
+    this.teamStatus = teamStatus;
+  }
 }
