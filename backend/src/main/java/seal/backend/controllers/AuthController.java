@@ -3,11 +3,8 @@ package seal.backend.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import seal.backend.entities.User;
 import seal.backend.exceptions.EmailExistsException;
 import seal.backend.services.AuthService;
 
@@ -34,15 +31,5 @@ public class AuthController {
   public ResponseEntity<?> login(
       @RequestParam("email") String email, @RequestParam("password") String password) {
     return ResponseEntity.ok(authService.login(email, password));
-  }
-
-  @GetMapping("/me")
-  public ResponseEntity<?> me(Authentication auth) {
-    try {
-      User user = authService.getCurrentUser(auth.getName());
-      return ResponseEntity.ok(user);
-    } catch (UsernameNotFoundException ex) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
   }
 }
