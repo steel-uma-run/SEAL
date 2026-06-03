@@ -10,8 +10,8 @@ import java.util.Date;
 
 public class JwtService {
   // TODO: don't hardcode this
-  private static String SECRET = "m9F8oBeNdrHHd7Y2VbSsJGPC6cOV1HUj7pKzNh7be+w=";
-  private static final long EXPIRATION_TIME = 40000L;
+  private static final String SECRET = "m9F8oBeNdrHHd7Y2VbSsJGPC6cOV1HUj7pKzNh7be+w=";
+  private static final long EXPIRATION_TIME = 3600000L;
 
   public static String sign(String email) {
     long now = System.currentTimeMillis();
@@ -23,9 +23,7 @@ public class JwtService {
 
   public static String extractEmail(String token) {
     Jws<Claims> jws = Jwts.parser().verifyWith(getSignKey()).build().parseSignedClaims(token);
-    String subject = jws.getPayload().getSubject();
-
-    return subject;
+    return jws.getPayload().getSubject();
   }
 
   private static SecretKey getSignKey() {
