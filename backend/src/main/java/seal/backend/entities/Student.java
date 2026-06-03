@@ -2,6 +2,8 @@ package seal.backend.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import seal.backend.enums.Role;
 import seal.backend.enums.StudentStatus;
@@ -13,6 +15,7 @@ public class Student extends User {
   @Column(nullable = false)
   private StudentType studentType;
 
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private StudentStatus studentStatus;
 
