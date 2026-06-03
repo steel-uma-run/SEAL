@@ -3,12 +3,12 @@
   import { fade, slide } from 'svelte/transition';
 </script>
 
-<div class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+<div class="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
   {#each toast.toasts as t (t.id)}
     <div
       in:slide={{ duration: 200 }}
       out:fade={{ duration: 200 }}
-      class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border backdrop-blur-md w-max min-w-[250px] max-w-sm"
+      class="pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-sm border w-max min-w-[250px] max-w-sm"
       class:bg-green-500:20={t.type === 'success'}
       class:border-green-500:30={t.type === 'success'}
       class:text-green-900={t.type === 'success'}
