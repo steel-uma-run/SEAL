@@ -20,10 +20,9 @@
 
     const params = new URLSearchParams();
     params.append('email', email);
+    params.append('name', fullName);
     params.append('password', password);
-    params.append('fullName', fullName);
-    params.append('studentCode', studentCode);
-    params.append('studentType', studentType); 
+    params.append('external', String(studentType === 'EXTERNAL')); 
 
     try {
       await register(params);
