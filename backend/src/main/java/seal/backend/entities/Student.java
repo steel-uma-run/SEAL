@@ -12,10 +12,11 @@ import seal.backend.enums.StudentType;
 @Entity
 @Table(name = "students")
 public class Student extends User {
+  @Enumerated(EnumType.ORDINAL)
   @Column(nullable = false)
   private StudentType studentType;
 
-  @Enumerated(EnumType.STRING)
+  @Enumerated(EnumType.ORDINAL)
   @Column(nullable = false)
   private StudentStatus studentStatus;
 

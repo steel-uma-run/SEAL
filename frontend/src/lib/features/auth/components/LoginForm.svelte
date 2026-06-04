@@ -9,6 +9,7 @@
 
   async function handleSubmit(event: Event) {
     event.preventDefault();
+
     const params = new URLSearchParams();
     params.append('email', email);
     params.append('password', password);
