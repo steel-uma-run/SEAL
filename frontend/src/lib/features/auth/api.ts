@@ -11,12 +11,23 @@ export async function login(params: URLSearchParams): Promise<LoginResponse> {
     body: params
   });
 
-  const data = await response.json();
+  // Kiểm tra lỗi HTTP TRƯỚC KHI parse JSON
   if (!response.ok) {
-    throw new Error(data.message || 'Tài khoản hoặc mật khẩu không chính xác');
+    const text = await response.text();
+    let errorMessage = 'Tài khoản hoặc mật khẩu không chính xác';
+    if (text) {
+      try {
+        const errorData = JSON.parse(text);
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // Rơi vào đây nếu server trả về chuỗi rỗng hoặc HTML (không phải JSON)
+        errorMessage = `Lỗi hệ thống từ server (Status: ${response.status})`;
+      }
+    }
+    throw new Error(errorMessage);
   }
   
-  return data;
+  return await response.json();
 }
 
 export async function register(params: URLSearchParams): Promise<RegisterResponse> {
