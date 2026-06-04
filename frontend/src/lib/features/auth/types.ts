@@ -4,11 +4,11 @@ export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
 export interface UserProfile {
   id: string;
   email: string;
-  fullName: string;
+  full_name: string;
   role: UserRole;
   status: UserStatus;
-  studentCode?: string;
-  studentType?: 'FPT' | 'EXTERNAL';
+  student_code?: string;
+  student_type?: 'FPT' | 'EXTERNAL';
 }
 
 export interface LoginResponse {

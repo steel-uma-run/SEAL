@@ -1,10 +1,16 @@
 package seal.backend.controllers;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import seal.backend.entities.User;
 import seal.backend.exceptions.EmailExistsException;
 import seal.backend.services.AuthService;
 
@@ -30,6 +36,13 @@ public class AuthController {
   @PostMapping("/login")
   public ResponseEntity<?> login(
       @RequestParam("email") String email, @RequestParam("password") String password) {
-    return ResponseEntity.ok(authService.login(email, password));
+    String token = authService.login(email, password);
+    User user = authService.getCurrentUser(email);
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("token", token);
+    response.put("user", user);
+
+    return ResponseEntity.ok(response);
   }
 }

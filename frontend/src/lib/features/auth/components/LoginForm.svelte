@@ -16,7 +16,7 @@
     try {
       const data = await login(params);
       authState.login(data.user, data.token);
-      alert("Đăng nhập thành công! Xin chào " + data.user.fullName);
+      alert("Đăng nhập thành công! Xin chào " + data.user.full_name);
     } catch (error: any) {
       alert("Lỗi: " + error.message);
     }

@@ -28,10 +28,10 @@ export async function register(params: URLSearchParams): Promise<RegisterRespons
     body: params
   });
 
-  const data = await response.json();
   if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
     throw new Error(data.message || 'Lỗi đăng ký');
   }
 
-  return { success: true, message: data.message };
+  return { success: true, message: 'Đăng ký thành công' };
 }
