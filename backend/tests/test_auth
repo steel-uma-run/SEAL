@@ -1,0 +1,9 @@
+test_login() {
+	jwt=$(http --check-status POST localhost:8080/api/auth/login email==nhc@fpt.edu.vn password==hunter2)
+	assert_equals 0 $? "Failed login"
+	assert_status_code 0 'jq -e .token <<< "$jwt"' "Bad login response"
+}
+
+test_register() {
+	assert_status_code 0 "http --check-status POST localhost:8080/api/auth/register email==nhc@fpt.edu.vn name==NHC external==1 password==hunter2"
+}
