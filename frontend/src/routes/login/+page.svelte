@@ -1,9 +1,7 @@
 <main class="w-screen h-screen justify-center content-center">
 	<div class="max-w-md w-full m-auto flex flex-col items-center rounded-md p-4">
 		<h1 class="text-xl font-bold">Welcome back</h1>
-		<p class="mb-6" style="color: var(--md-sys-color-on-surface-variant)">
-			Login with your account
-		</p>
+		<p class="mb-6" style="color: var(--md-on-surface-variant)">Login with your account</p>
 
 		<form class="w-full flex flex-col gap-6">
 			<label>
@@ -22,7 +20,7 @@
 			<input
 				value="Login"
 				type="submit"
-				style="background-color: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container)"
+				style="background-color: var(--md-primary-container); color: var(--md-on-primary-container)"
 				class="rounded-md p-2 font-semibold hover:cursor-pointer hover:brightness-75 transition-all"
 			/>
 		</form>
@@ -37,10 +35,10 @@
 
 <style>
 	main {
-		background-color: var(--md-sys-color-surface);
+		background-color: var(--md-surface);
 	}
 
 	input {
-		border-color: var(--md-sys-color-outline);
+		border-color: var(--md-outline);
 	}
 </style>

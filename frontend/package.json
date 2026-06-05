@@ -13,6 +13,7 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
+		"@lucide/svelte": "1.17.0",
 		"@poupe/material-color-utilities": "0.4.1",
 		"@sveltejs/adapter-static": "3.0.10",
 		"@sveltejs/kit": "2.61.1",
