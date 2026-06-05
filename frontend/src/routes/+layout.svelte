@@ -8,7 +8,7 @@
 
 	// The things one would do to reduce reliance on JavaScript
 	const styleElem = $derived(() => {
-		const scheme = new SchemeVibrant(Hct.fromInt(argbFromHex(primaryColor)), false, 0)
+		const scheme = new SchemeVibrant(Hct.fromInt(argbFromHex(primaryColor)), false, 0.3)
 		const entries = new Array<string>()
 
 		for (const dynamicColor of scheme.colors.allColors) {
