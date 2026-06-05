@@ -3,7 +3,7 @@
 	import { Checkbox } from "bits-ui"
 </script>
 
-<main class="min-w-screen min-h-screen justify-center content-center">
+<main class="min-w-screen min-h-screen justify-center content-center bg-(--md-surface)">
 	<div class="max-w-md w-full m-auto flex flex-col items-center rounded-md p-4">
 		<h1 class="text-xl font-bold mb-6">Create an account</h1>
 
@@ -18,6 +18,7 @@
 				<input class="w-full rounded-md" type="email" placeholder="Enter email" required />
 			</label>
 
+			<!-- TODO: reveal password -->
 			<div class="flex gap-4">
 				<label>
 					<p>Password</p>
@@ -63,11 +64,19 @@
 </main>
 
 <style>
-	main {
-		background-color: var(--md-surface);
-	}
-
 	input {
 		border-color: var(--md-outline);
+	}
+
+	input[type="email"],
+	input[type="text"],
+	input[type="password"] {
+		background-color: var(--md-surface-bright);
+		color: var(--md-on-surface);
+	}
+
+	input::placeholder {
+		color: var(--md-on-surface);
+		opacity: 0.5;
 	}
 </style>
