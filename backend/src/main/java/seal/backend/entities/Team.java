@@ -1,13 +1,6 @@
 package seal.backend.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import java.util.UUID;
 import seal.backend.enums.TeamStatus;
 
@@ -26,6 +19,18 @@ public class Team {
 
   @Enumerated(EnumType.STRING)
   private TeamStatus teamStatus;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "season_id", nullable = false)
+  private Season season;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "leader_id", nullable = false)
+  private Student leader;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "mentor_id", nullable = true) // tam thoi de null vi chua duoc phan cong nhe
+  private Lecturer mentor;
 
   public UUID getId() {
     return id;
@@ -53,5 +58,29 @@ public class Team {
 
   public void setTeamStatus(TeamStatus teamStatus) {
     this.teamStatus = teamStatus;
+  }
+
+  public Season getSeason() {
+    return season;
+  }
+
+  public void setSeason(Season season) {
+    this.season = season;
+  }
+
+  public Student getLeader() {
+    return leader;
+  }
+
+  public void setLeader(Student leader) {
+    this.leader = leader;
+  }
+
+  public Lecturer getMentor() {
+    return mentor;
+  }
+
+  public void setMentor(Lecturer mentor) {
+    this.mentor = mentor;
   }
 }
