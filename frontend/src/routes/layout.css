@@ -1,3 +1,2 @@
-@import 'tailwindcss';
-@plugin '@tailwindcss/forms';
-@variant dark (&:where(.dark, .dark *));
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
