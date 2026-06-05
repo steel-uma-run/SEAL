@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { authState } from "$lib/features/auth/auth.svelte"
-
-	// Lấy thông tin user hiện tại từ state
+	
 	let user = $derived({
 		name: authState.user?.full_name || "Người dùng",
-		studentId: authState.user?.student_code || "Chưa có"
+		studentId: authState.user?.student_code || "Chưa có",
+		studentType: authState.user?.student_type === 'EXTERNAL' ? 'External' : 'FPTU'
 	})
 
-	// Mock dữ liệu Seasons hiện có
+	// Mock seasons
 	const seasons = [
 		{
 			id: 1,
@@ -27,22 +27,21 @@
 </script>
 
 <div class="space-y-8">
-	<!-- Thẻ Welcome -->
+	<!--Welcome-->
 	<div
 		class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700"
 	>
 		<h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">
 			Chào mừng sinh viên <span class="text-orange-700 dark:text-orange-400">{user.name}</span>
 		</h1>
-		<p class="text-lg text-gray-700 dark:text-white mt-3 font-medium">
-			Mã số sinh viên: <span
-				class="font-bold text-black dark:text-white bg-gray-100 dark:bg-gray-700 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg"
-				>{user.studentId}</span
-			>
-		</p>
+		<div class="mt-4">
+			<span class="font-bold text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 border border-blue-200 dark:border-blue-800 rounded-lg text-sm uppercase tracking-wide shadow-sm">
+				Student: {user.studentType}
+			</span>
+		</div>
 	</div>
 
-	<!-- Danh sách Mùa giải (Seasons) -->
+	<!--(Seasons) -->
 	<div>
 		<h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider">
 			Các sự kiện (Seasons) hiện có

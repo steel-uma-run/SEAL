@@ -4,7 +4,7 @@
 </script>
 
 <div
-	class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0a0a0a] px-4 sm:px-6 lg:px-8 py-12 relative transition-colors duration-300"
+	class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8 py-12 relative transition-colors duration-300"
 >
 	<div class="absolute top-4 right-4 z-50">
 		<ThemeToggle />
