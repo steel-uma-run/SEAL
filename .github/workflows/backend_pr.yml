@@ -7,8 +7,8 @@ on:
 permissions: {}
 
 jobs:
-  run-test:
-    name: Test that it runs
+  integ-tests:
+    name: Very professional enterprise tests
     runs-on: ubuntu-latest
 
     steps:
@@ -21,8 +21,7 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Install tools
-        run: |
-          nix profile add nixpkgs#postgresql_18
+        run: nix profile add nixpkgs#postgresql_18 nixpkgs#bash_unit nixpkgs#httpie nixpkgs#jq
 
       - name: Setup Postgres
         run: |
@@ -34,19 +33,12 @@ jobs:
 
           psql --dbname postgres --command "CREATE DATABASE seal;"
 
-      - name: Download dependencies
+      - name: Run app
         run: |
           cd backend
+          JAVA_HOME=$JAVA_HOME_21_X64 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/seal mvn spring-boot:run &
+          sleep 30
 
-          # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
-          JAVA_HOME=$JAVA_HOME_21_X64 mvn dependency:resolve
-
-      - name: Run
+      - name: Test
         run: |
-          cd backend
-
-          # Surely 30s ought to be enough for startup?
-          JAVA_HOME=$JAVA_HOME_21_X64 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/seal timeout \
-            --preserve-status \
-            --signal SIGINT \
-            30s mvn spring-boot:run
+          bash_unit backend/tests/*
