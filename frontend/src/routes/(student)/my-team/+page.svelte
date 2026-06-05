@@ -49,7 +49,7 @@
 		<h1 class="text-3xl font-extrabold text-gray-900 dark:text-white">Đội của tôi</h1>
 		<a
 			href="/dashboard"
-			class="px-4 py-2 text-sm font-bold border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+			class="px-4 py-2 text-sm font-bold border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-200 transition-colors"
 		>
 			&larr; Về Dashboard
 		</a>

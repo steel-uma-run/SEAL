@@ -2,7 +2,7 @@
 	import ThemeToggle from "$lib/components/ThemeToggle.svelte"
 </script>
 
-<div class="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
 	<header
 		class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-40"
 	>
