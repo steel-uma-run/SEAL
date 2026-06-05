@@ -1,7 +1,7 @@
-<main class="w-screen h-screen justify-center content-center">
+<main class="w-screen h-screen justify-center content-center bg-(--md-surface)">
 	<div class="max-w-md w-full m-auto flex flex-col items-center rounded-md p-4">
 		<h1 class="text-xl font-bold">Welcome back</h1>
-		<p class="mb-6" style="color: var(--md-on-surface-variant)">Login with your account</p>
+		<p class="mb-6 text-(--md-surface-variant)">Login with your account</p>
 
 		<form class="w-full flex flex-col gap-6">
 			<label>
@@ -20,25 +20,32 @@
 			<input
 				value="Login"
 				type="submit"
-				style="background-color: var(--md-primary-container); color: var(--md-on-primary-container)"
-				class="rounded-md p-2 font-semibold hover:cursor-pointer hover:brightness-75 transition-all"
+				class="rounded-md p-2 font-semibold transition-all bg-(--md-primary-container) text-(--md-on-primary-container) hover:cursor-pointer hover:brightness-75"
 			/>
 		</form>
 
 		<span class="mt-4"
 			>Don't have an account yet? <a href="/register" class="text-blue-500 underline"
-				>Register now.</a
+				>Register now</a
 			></span
 		>
 	</div>
 </main>
 
 <style>
-	main {
-		background-color: var(--md-surface);
-	}
-
 	input {
 		border-color: var(--md-outline);
+	}
+
+	input[type="email"],
+	input[type="text"],
+	input[type="password"] {
+		background-color: var(--md-surface-bright);
+		color: var(--md-on-surface);
+	}
+
+	input::placeholder {
+		color: var(--md-on-surface);
+		opacity: 0.5;
 	}
 </style>

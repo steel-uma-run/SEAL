@@ -1,7 +1,1 @@
-<main class="w-screen h-screen"></main>
-
-<style>
-	main {
-		background-color: var(--md-sys-color-surface);
-	}
-</style>
+<main class="min-w-screen min-h-screen bg-(--md-surface)"></main>
