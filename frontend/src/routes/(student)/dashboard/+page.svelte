@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { authState } from "$lib/features/auth/auth.svelte"
-	
+
 	let user = $derived({
 		name: authState.user?.full_name || "Người dùng",
 		studentId: authState.user?.student_code || "Chưa có",
-		studentType: authState.user?.student_type === 'EXTERNAL' ? 'External' : 'FPTU'
+		studentType: authState.user?.student_type === "EXTERNAL" ? "External" : "FPTU"
 	})
 
 	// Mock seasons
@@ -35,7 +35,9 @@
 			Chào mừng sinh viên <span class="text-orange-700 dark:text-orange-400">{user.name}</span>
 		</h1>
 		<div class="mt-4">
-			<span class="font-bold text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 border border-blue-200 dark:border-blue-800 rounded-lg text-sm uppercase tracking-wide shadow-sm">
+			<span
+				class="font-bold text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 border border-blue-200 dark:border-blue-800 rounded-lg text-sm uppercase tracking-wide shadow-sm"
+			>
 				Student: {user.studentType}
 			</span>
 		</div>
