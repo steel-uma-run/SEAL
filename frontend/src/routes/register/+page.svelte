@@ -1,6 +1,17 @@
 <script>
+	import { register } from "$lib/api/auth"
 	import { Check } from "@lucide/svelte"
 	import { Checkbox } from "bits-ui"
+
+	let email = $state("")
+	let name = $state("")
+	let password = $state("")
+	let isExternal = $state(true)
+	let studentId = $state("")
+
+	async function handleSubmit() {
+		console.log(await (await register(email, password, name, studentId, isExternal)).text())
+	}
 </script>
 
 <main class="min-w-screen min-h-screen justify-center content-center bg-(--md-surface)">
@@ -10,19 +21,31 @@
 		<form class="w-full flex flex-col gap-6">
 			<label>
 				<p>Name</p>
-				<input class="w-full rounded-md" type="text" placeholder="Enter your name" required />
+				<input
+					class="w-full rounded-md"
+					type="text"
+					placeholder="Enter your name"
+					required
+					bind:value={name}
+				/>
 			</label>
 
 			<label>
 				<p>Email</p>
-				<input class="w-full rounded-md" type="email" placeholder="Enter email" required />
+				<input
+					class="w-full rounded-md"
+					type="email"
+					placeholder="Enter email"
+					required
+					bind:value={email}
+				/>
 			</label>
 
 			<!-- TODO: reveal password -->
 			<div class="flex gap-4">
 				<label>
 					<p>Password</p>
-					<input class="w-full rounded-md" type="password" required />
+					<input class="w-full rounded-md" type="password" required bind:value={password} />
 				</label>
 
 				<label>
@@ -33,12 +56,12 @@
 
 			<label>
 				<p>Student ID</p>
-				<input class="w-full rounded-md" type="text" required />
+				<input class="w-full rounded-md" type="text" required bind:value={studentId} />
 			</label>
 
 			<label class="flex gap-2">
 				<Checkbox.Root
-					checked={true}
+					bind:checked={isExternal}
 					class="rounded-md size-6 inline-flex justify-center transition-all data-[state=checked]:bg-(--md-surface-container) border border-(--md-outline-variant) active:scale-95 hover:cursor-pointer"
 				>
 					{#snippet children({ checked })}
@@ -54,6 +77,7 @@
 				value="Register"
 				type="submit"
 				class="rounded-md p-2 font-semibold transition-all bg-(--md-primary-container) text-(--md-on-primary-container) hover:cursor-pointer hover:brightness-75"
+				onclick={handleSubmit}
 			/>
 		</form>
 
