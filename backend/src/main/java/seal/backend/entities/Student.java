@@ -25,7 +25,7 @@ public class Student extends User {
 
   public Student() {}
 
-  public Student(User user, StudentType studentType, String studentId) {
+  public Student(User user, String studentId, StudentType studentType) {
     super(user.getFullName(), user.getEmail(), user.getPasswordHash());
 
     this.studentType = studentType;

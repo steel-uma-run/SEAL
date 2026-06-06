@@ -22,11 +22,12 @@ public class AuthController {
   @PostMapping("/register")
   public ResponseEntity<?> register(
       @RequestParam("email") String email,
+      @RequestParam("studentId") String studentId,
       @RequestParam("name") String name,
       @RequestParam("password") String password,
       @RequestParam("external") boolean external) {
     try {
-      authService.register(email, name, password, external);
+      authService.register(email, studentId, name, password, external);
       return ResponseEntity.ok().build();
     } catch (EmailExistsException ex) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
