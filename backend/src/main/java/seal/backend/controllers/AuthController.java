@@ -2,36 +2,29 @@ package seal.backend.controllers;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.User;
 import seal.backend.exceptions.EmailExistsException;
+import seal.backend.requests.RegisterRequest;
 import seal.backend.services.AuthService;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
-  @Autowired private AuthService authService;
+  private final AuthService authService;
 
-  @PostMapping("/register")
-  public ResponseEntity<?> register(
-      @RequestParam("email") String email,
-      @RequestParam("studentId") String studentId,
-      @RequestParam("name") String name,
-      @RequestParam("password") String password,
-      @RequestParam("external") boolean external) {
-    try {
-      authService.register(email, studentId, name, password, external);
-      return ResponseEntity.ok().build();
-    } catch (EmailExistsException ex) {
-      throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage());
-    }
+  @PostMapping(value = {"", "/"})
+  public ResponseEntity<?> register(@RequestBody RegisterRequest request)
+      throws EmailExistsException {
+    authService.register(request);
+    return ResponseEntity.ok().build();
   }
 
   @PostMapping("/login")
