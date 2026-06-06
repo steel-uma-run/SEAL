@@ -35,7 +35,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     User newUser = new User(name, email, passwordEncoder.encode(password));
-    Student newStudent = new Student(newUser, isExternal ? StudentType.EXTERNAL : StudentType.FPT);
+    Student newStudent =
+        new Student(newUser, studentId, isExternal ? StudentType.EXTERNAL : StudentType.FPT);
 
     studentRepository.save(newStudent);
   }
