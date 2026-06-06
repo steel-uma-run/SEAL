@@ -7,6 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
 import seal.backend.entities.Team;
+import seal.backend.enums.StudentStatus;
 import seal.backend.enums.TeamStatus;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
@@ -25,19 +26,23 @@ public class TeamServiceImpl implements TeamService {
   public Team createTeam(CreateTeamRequest request) {
     Season season =
         seasonRepository
-            .findById(request.getSeasonId())
+            .findById(request.seasonId())
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season not found"));
     Student leader =
         (Student)
             studentRepository
-                .findById(request.getLeaderId())
+                .findById(request.leaderId())
                 .orElseThrow(
                     () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Leader not found"));
 
+    if (leader.getStudentStatus() != StudentStatus.ACTIVE) {
+      throw new IllegalStateException("Only ACTIVE students are allowed to create team");
+    }
+
     Team team = new Team();
-    team.setName(request.getName());
-    team.setDescription(request.getDescription());
+    team.setName(request.name());
+    team.setDescription(request.description());
     team.setTeamStatus(TeamStatus.PENDING);
     team.setSeason(season);
     team.setLeader(leader);
