@@ -20,13 +20,17 @@ public class Student extends User {
   @Column(nullable = false)
   private StudentStatus studentStatus;
 
+  @Column(nullable = false)
+  private String studentId;
+
   public Student() {}
 
-  public Student(User user, StudentType studentType) {
+  public Student(User user, StudentType studentType, String studentId) {
     super(user.getFullName(), user.getEmail(), user.getPasswordHash());
 
     this.studentType = studentType;
     this.studentStatus = StudentStatus.PENDING;
+    this.studentId = studentId;
 
     setRole(Role.STUDENT);
   }
@@ -45,5 +49,13 @@ public class Student extends User {
 
   public void setStudentStatus(StudentStatus studentStatus) {
     this.studentStatus = studentStatus;
+  }
+
+  public String getStudentId() {
+    return studentId;
+  }
+
+  public void setStudentId(String studentId) {
+    this.studentId = studentId;
   }
 }
