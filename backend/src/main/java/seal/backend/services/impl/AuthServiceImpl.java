@@ -27,7 +27,8 @@ public class AuthServiceImpl implements AuthService {
   @Autowired private AuthenticationManager authenticationManager;
 
   @Override
-  public void register(String email, String name, String password, boolean isExternal)
+  public void register(
+      String email, String studentId, String name, String password, boolean isExternal)
       throws EmailExistsException {
     if (studentRepository.findByEmail(email).isPresent()) {
       throw new EmailExistsException("This email is already registered.");
