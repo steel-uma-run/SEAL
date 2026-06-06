@@ -4,12 +4,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import seal.backend.entities.User;
 import seal.backend.exceptions.EmailExistsException;
+import seal.backend.requests.RegisterRequest;
 
 @Service
 public interface AuthService {
-  public void register(
-      String email, String studentId, String name, String password, boolean isExternal)
-      throws EmailExistsException;
+  public void register(RegisterRequest registerRequest) throws EmailExistsException;
 
   public String login(String email, String password);
 
