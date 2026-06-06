@@ -7,7 +7,7 @@
 	let { children } = $props()
 
 	// The things one would do to reduce reliance on JavaScript
-	const styleElem = $derived(() => {
+	const styleElem = $derived.by(() => {
 		const scheme = new SchemeNeutral(
 			Hct.fromInt(argbFromHex(theme.primaryColor)),
 			theme.darkMode,
@@ -21,14 +21,10 @@
 			entries.push(`--md-${token}: ${value};`)
 		}
 
-		const str = `<style>:root {${entries.join("\n")}}`
+		const str = `<style>:root {${entries.join("\n")}}</style>`
 		return str
 	})
 </script>
-
-<button onclick={() => (theme.darkMode = !theme.darkMode)}>Fuck</button>
-
-{@render children()}
 
 <svelte:head>
 	<link rel="preconnect" href="https://rsms.me/" />
@@ -40,5 +36,9 @@
 		}
 	</style>
 
-	{@html styleElem()}
+	{@html styleElem}
 </svelte:head>
+
+<button onclick={() => (theme.darkMode = !theme.darkMode)}>Fuck</button>
+
+{@render children()}
