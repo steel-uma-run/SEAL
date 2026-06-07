@@ -20,7 +20,7 @@ import seal.backend.services.AuthService;
 public class AuthController {
   private final AuthService authService;
 
-  @PostMapping(value = {"", "/"})
+  @PostMapping("/register")
   public ResponseEntity<?> register(@RequestBody RegisterRequest request)
       throws EmailExistsException {
     authService.register(request);
