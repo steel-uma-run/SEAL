@@ -1,5 +1,6 @@
 package seal.backend.entities;
 
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,49 +9,25 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import org.jspecify.annotations.Nullable;
+import lombok.Data;
 
 @Entity
 @Table(name = "seasons")
+@Data
 public class Season {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
   @Column(columnDefinition = "timestamptz", nullable = false)
+  @Nonnull
   private OffsetDateTime startTime;
 
   @Column(columnDefinition = "timestamptz", nullable = false)
+  @Nonnull
   private OffsetDateTime endTime;
 
-  @Column(columnDefinition = "TEXT", nullable = true)
+  @Column(columnDefinition = "TEXT", nullable = false)
+  @Nonnull
   private String description;
-
-  public UUID getId() {
-    return id;
-  }
-
-  public OffsetDateTime getStartTime() {
-    return startTime;
-  }
-
-  public void setStartTime(OffsetDateTime startTime) {
-    this.startTime = startTime;
-  }
-
-  public OffsetDateTime getEndTime() {
-    return endTime;
-  }
-
-  public void setEndTime(OffsetDateTime endTime) {
-    this.endTime = endTime;
-  }
-
-  public @Nullable String getDescription() {
-    return description;
-  }
-
-  public void setDescription(@Nullable String description) {
-    this.description = description;
-  }
 }
