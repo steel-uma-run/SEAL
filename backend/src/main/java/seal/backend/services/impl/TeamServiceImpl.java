@@ -40,12 +40,7 @@ public class TeamServiceImpl implements TeamService {
       throw new IllegalStateException("Only ACTIVE students are allowed to create team");
     }
 
-    Team team = new Team();
-    team.setName(request.name());
-    team.setDescription(request.description());
-    team.setTeamStatus(TeamStatus.PENDING);
-    team.setSeason(season);
-    team.setLeader(leader);
+    Team team = new Team(request.name(), request.description(), TeamStatus.PENDING, season, leader);
 
     return teamRepository.save(team);
   }
