@@ -4,6 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import seal.backend.enums.Role;
 import seal.backend.enums.StudentStatus;
@@ -22,6 +25,10 @@ public class Student extends User {
 
   @Column(nullable = false)
   private String studentId;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "team_id", nullable = true)
+  private Team team;
 
   public Student() {}
 
@@ -57,5 +64,13 @@ public class Student extends User {
 
   public void setStudentId(String studentId) {
     this.studentId = studentId;
+  }
+
+  public Team getTeam() {
+    return team;
+  }
+
+  public void setTeam(Team team) {
+    this.team = team;
   }
 }
