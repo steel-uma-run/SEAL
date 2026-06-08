@@ -12,3 +12,14 @@
 		font-family: InterVariable, sans-serif;
 	}
 }
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    /* overflow-x: hidden; có thể giữ lại để phòng hờ, nhưng có box-sizing thường là đủ */
+    overflow-x: hidden; 
+}
