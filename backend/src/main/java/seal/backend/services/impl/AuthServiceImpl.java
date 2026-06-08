@@ -1,5 +1,6 @@
 package seal.backend.services.impl;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,7 +14,9 @@ import seal.backend.enums.StudentType;
 import seal.backend.exceptions.EmailExistsException;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.UserRepository;
+import seal.backend.requests.LoginRequest;
 import seal.backend.requests.RegisterRequest;
+import seal.backend.responses.LoginResponse;
 import seal.backend.services.AuthService;
 import seal.backend.services.JwtService;
 
@@ -46,12 +49,16 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public String login(String email, String password) {
+  public LoginResponse login(LoginRequest request) {
     UsernamePasswordAuthenticationToken token =
-        new UsernamePasswordAuthenticationToken(email, password);
+        new UsernamePasswordAuthenticationToken(request.email(), request.password());
     Authentication auth = authenticationManager.authenticate(token);
 
-    return JwtService.sign(email);
+    String jwt = JwtService.sign(request.email());
+    Optional<User> user = userRepository.findByEmail(request.email());
+    LoginResponse resp = new LoginResponse(jwt, user.get());
+
+    return resp;
   }
 
   @Override
