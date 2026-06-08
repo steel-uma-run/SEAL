@@ -4,7 +4,9 @@
 
 <div class="startpage-content">
     <section class="hero-section">
-        <div class="hero-bg"></div>
+        <div class="hero-bg">
+            <img src="https://img.freepik.com/free-vector/futuristic-white-technology-background_23-2148390336.jpg" alt="Background họa tiết" class="bg-img" />
+        </div>
         
         <div class="hero-content">
             <div class="badge">Khởi nguồn sáng tạo, kiến tạo tương lai</div>
@@ -126,11 +128,28 @@
         text-align: center;
         padding: 4rem 1rem;
         background-color: #ffffff;
+    }
 
-        background-image: url('src/image/37b363bc-8b90-469e-b18c-c07e2b8b116a.jpg');
-        background-size: cover;       
-        background-position: center;  
-        background-repeat: no-repeat;      
+    .bg-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.7;
+        transition: all 0.3s ease;
+    }
+
+    :global([data-theme='dark']) .bg-img {
+        filter: invert(1) hue-rotate(180deg);
+        opacity: 0.2; 
+    }
+
+    .hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
     }
 
     .hero-section::after {
@@ -251,9 +270,9 @@
         padding-bottom: 56.25%; 
         height: 0;
         overflow: hidden;
-        border-radius: 16px; /* Bo góc video cho mềm mại */
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08); /* Đổ bóng nhẹ */
-        z-index: 2; /* Đảm bảo video nằm trên lớp backdrop */
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        z-index: 2;
         background-color: #000;
     }
 
@@ -266,7 +285,6 @@
         border: none;
     }
 
-    /* Responsive cho điện thoại */
     @media (max-width: 768px) {
         .feature-container {
             grid-template-columns: 1fr;
