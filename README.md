@@ -89,6 +89,8 @@ reduce manual work and human errors.
 Frontend: [Svelte](https://svelte.dev) (framework) +
 [TailwindCSS](https://tailwindcss.com) + JavaScript/TypeScript
 
-Backend: Java 21+ + Spring Boot
+Backend: Java 21 + Spring Boot
 
 Database: [PostgreSQL](https://www.postgresql.org)
+
+For development documentation, see [docs/](docs/).
