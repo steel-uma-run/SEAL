@@ -1,151 +1,51 @@
 <script lang="ts">
-    import { createTeam } from "$lib/api/teams";
 
     let { profile, seasons } = $props<{ profile: any, seasons: any[] }>();
 
-    let teamName = $state("");
-    let teamDescription = $state("");
-    let selectedSeasonId = $state("");
-    let isLoading = $state(false);
-    let message = $state("");
-    let isError = $state(false);
-
-    async function handleCreateTeam(e: Event) {
-        e.preventDefault();
-        isLoading = true;
-        message = "";
-        isError = false;
-
-        try {
-            const res = await createTeam(teamName, teamDescription, selectedSeasonId, profile.id);
-            if (res.ok) {
-                message = "Team created successfully!";
-                teamName = "";
-                teamDescription = "";
-                selectedSeasonId = "";
-            } else {
-                isError = true;
-                message = "Failed to create team. Please try again.";
-            }
-        } catch (err) {
-            isError = true;
-            message = "Error connecting to the server.";
-        } finally {
-            isLoading = false;
-        }
-    }
-
-    // Dummy functions for Submit (no API available yet)
-    let submitLink = $state("");
-    let submitMessage = $state("");
-    function handleSubmit(e: Event) {
-        e.preventDefault();
-        submitMessage = "Submission simulated! (API not implemented in backend)";
-    }
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
     <!-- Create Team Section -->
-    <div class="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="p-2 bg-orange-100 rounded-lg text-orange-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+    <a 
+        href="/student/create-team" 
+        class="group block bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-orange-300 hover:-translate-y-1 transition-all cursor-pointer"
+    >
+        <div class="flex items-center gap-4 mb-4">
+            <div class="p-3 bg-orange-100 rounded-xl text-orange-600 group-hover:scale-110 transition-transform">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             </div>
-            <h2 class="text-xl font-bold text-gray-800">Create a Team</h2>
+            <h2 class="text-xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">Create a Team</h2>
         </div>
         
-        <form onsubmit={handleCreateTeam} class="flex flex-col gap-5">
-            <div class="space-y-1">
-                <label class="text-sm font-semibold text-gray-700">Season</label>
-                <select bind:value={selectedSeasonId} required class="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none">
-                    <option value="" disabled>Select a season</option>
-                    {#each seasons as season}
-                        <option value={season.id}>{season.name}</option>
-                    {/each}
-                </select>
-            </div>
-
-            <div class="space-y-1">
-                <label class="text-sm font-semibold text-gray-700">Team Name</label>
-                <input type="text" bind:value={teamName} required placeholder="Enter team name" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none" />
-            </div>
-            
-            <div class="space-y-1">
-                <label class="text-sm font-semibold text-gray-700">Description</label>
-                <textarea bind:value={teamDescription} rows="3" placeholder="Describe your team's project" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none resize-none"></textarea>
-            </div>
-            
-            {#if message}
-                <div class="p-3 rounded-lg text-sm font-medium {isError ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'} flex items-center gap-2">
-                    {#if !isError}
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    {/if}
-                    {message}
-                </div>
-            {/if}
-
-            <button type="submit" disabled={isLoading} class="mt-2 w-full bg-orange-500 text-white rounded-xl py-3 font-semibold shadow-sm hover:bg-orange-600 hover:shadow disabled:opacity-50 transition-all flex justify-center items-center gap-2">
-                {#if isLoading}
-                    <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                {/if}
-                {isLoading ? 'Creating...' : 'Create Team'}
-            </button>
-        </form>
-    </div>
+        <p class="text-gray-500 mb-6 text-sm md:text-base">
+            Form a new team, select a hackathon season, and invite members to collaborate on your innovative idea.
+        </p>
+        
+        <div class="inline-flex items-center gap-2 text-orange-600 font-semibold group-hover:gap-3 transition-all">
+            Go to Create Team
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </div>
+    </a>
 
     <!-- Submit Section -->
-    <div class="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+    <a 
+        href="/student/submit-project" 
+        class="group block bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-300 hover:-translate-y-1 transition-all cursor-pointer"
+    >
+        <div class="flex items-center gap-4 mb-4">
+            <div class="p-3 bg-blue-100 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
             </div>
-            <h2 class="text-xl font-bold text-gray-800">Submit Project</h2>
+            <h2 class="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">Submit Project</h2>
         </div>
-
-        <form onsubmit={handleSubmit} class="flex flex-col gap-5">
-            <div class="space-y-1">
-                <label class="text-sm font-semibold text-gray-700">Git Link</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" /></svg>
-                    </div>
-                    <input type="url" bind:value={submitLink} required placeholder="https://github.com/..." class="pl-10 w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" />
-                </div>
-            </div>
-            
-            <div class="space-y-1">
-                <label class="text-sm font-semibold text-gray-700">YouTube Link</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                    </div>
-                    <input type="url" placeholder="https://youtube.com/..." class="pl-10 w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" />
-                </div>
-            </div>
-            
-            <div class="space-y-1">
-                <label class="text-sm font-semibold text-gray-700">Slide Link</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
-                    </div>
-                    <input type="url" placeholder="Google Slides or PPT link" class="pl-10 w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none" />
-                </div>
-            </div>
-            
-            {#if submitMessage}
-                <div class="p-3 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 border border-blue-100 flex items-start gap-2">
-                    <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    {submitMessage}
-                </div>
-            {/if}
-
-            <button type="submit" class="mt-2 w-full bg-blue-600 text-white rounded-xl py-3 font-semibold shadow-sm hover:bg-blue-700 hover:shadow transition-all">
-                Submit Project
-            </button>
-        </form>
-    </div>
+        
+        <p class="text-gray-500 mb-6 text-sm md:text-base">
+            Ready for judging? Submit your project repository, video pitch, and presentation materials here.
+        </p>
+        
+        <div class="inline-flex items-center gap-2 text-blue-600 font-semibold group-hover:gap-3 transition-all">
+            Go to Submission
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </div>
+    </a>
 </div>
