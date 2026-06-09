@@ -1,10 +1,15 @@
 <script lang="ts">
+    import { onMount } from "svelte";
+    import { goto } from "$app/navigation";
     import { createTeam } from "$lib/api/teams";
+    import { getSeasons } from "$lib/api/seasons";
+    import { getProfile } from "$lib/api/profile";
     import { theme } from "$lib/theme.svelte";
 
-    let { data } = $props<{ data: { profile: any, seasons: any[] } }>();
-    let profile = data?.profile || { id: "dummy" }; 
-    let seasons = data?.seasons || [];
+    let profile = $state<any>(null);
+    let seasons = $state<any[]>([]);
+    let seasonsError = $state("");
+    let isPageLoading = $state(true);
 
     let teamName = $state("");
     let teamDescription = $state("");
@@ -13,8 +18,45 @@
     let message = $state("");
     let isError = $state(false);
 
+    onMount(async () => {
+        // Load profile first — redirect to login if not authenticated
+        try {
+            const profileRes = await getProfile();
+            if (!profileRes.ok) {
+                goto("/auth/login");
+                return;
+            }
+            profile = await profileRes.json();
+        } catch (err) {
+            goto("/auth/login");
+            return;
+        }
+
+        // Load seasons
+        try {
+            const seasonsRes = await getSeasons();
+            if (seasonsRes.ok) {
+                seasons = await seasonsRes.json();
+            } else {
+                const errText = await seasonsRes.text();
+                seasonsError = `Could not load seasons (${seasonsRes.status}). ${errText || ""}`;
+                console.error("getSeasons failed:", seasonsRes.status, errText);
+            }
+        } catch (err) {
+            seasonsError = "Could not connect to the server to load seasons.";
+            console.error("getSeasons error:", err);
+        } finally {
+            isPageLoading = false;
+        }
+    });
+
     async function handleCreateTeam(e: Event) {
         e.preventDefault();
+        if (!selectedSeasonId) {
+            isError = true;
+            message = "Please select a season.";
+            return;
+        }
         isLoading = true;
         message = "";
         isError = false;
@@ -27,8 +69,9 @@
                 teamDescription = "";
                 selectedSeasonId = "";
             } else {
+                const errText = await res.text();
                 isError = true;
-                message = "Failed to create team. Please try again.";
+                message = `Failed to create team: ${errText || "Please try again."}`;
             }
         } catch (err) {
             isError = true;
@@ -69,11 +112,19 @@
                 <label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">Season</label>
                 <select bind:value={selectedSeasonId} required class="w-full rounded-xl p-3.5 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none border
                     {theme.darkMode ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-gray-50 border-gray-200 text-gray-900'}">
-                    <option value="" disabled class="{theme.darkMode ? 'bg-zinc-950' : ''}">Select a season</option>
+                    <option value="" disabled class="{theme.darkMode ? 'bg-zinc-950' : ''}">
+                        {isPageLoading ? 'Loading seasons...' : 'Select a season'}
+                    </option>
                     {#each seasons as season}
                         <option value={season.id} class="{theme.darkMode ? 'bg-zinc-950' : ''}">{season.name}</option>
                     {/each}
                 </select>
+                {#if seasonsError}
+                    <p class="text-sm text-red-500 flex items-center gap-1.5 mt-1">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        {seasonsError}
+                    </p>
+                {/if}
             </div>
             <!-- Field 2: Team Name -->
             <div class="space-y-2">

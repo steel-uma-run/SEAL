@@ -5,13 +5,13 @@ export async function getSeasons() {
 	return fetch(`${API_BASE}/seasons`, {
 		method: "GET",
 		headers: {
-            "Authorization": `Bearer ${getToken()}`,
+			"Authorization": `Bearer ${getToken()}`,
 			"Content-Type": "application/json"
 		}
 	})
 }
 
-export async function createSeason(name: string, description: string) {
+export async function createSeason(name: string, description: string, startTime: string, endTime: string) {
     return fetch(`${API_BASE}/seasons`, {
         method: "POST",
         headers: {
@@ -20,7 +20,9 @@ export async function createSeason(name: string, description: string) {
         },
         body: JSON.stringify({
             name,
-            description
+            description,
+            start_time: startTime,
+            end_time: endTime
         })
     })
 }

@@ -7,22 +7,46 @@
     // Season Creation
     let seasonName = $state("");
     let seasonDescription = $state("");
+    let seasonStartTime = $state("");
+    let seasonEndTime = $state("");
     let seasonMessage = $state("");
     let isSeasonLoading = $state(false);
 
     async function handleCreateSeason(e: Event) {
         e.preventDefault();
+
+        if (!seasonStartTime || !seasonEndTime) {
+            seasonMessage = "Start time and end time are required.";
+            return;
+        }
+
+        const start = new Date(seasonStartTime);
+        const end = new Date(seasonEndTime);
+
+        if (start >= end) {
+            seasonMessage = "Start time must be before end time.";
+            return;
+        }
+
         isSeasonLoading = true;
         seasonMessage = "";
         try {
-            const res = await createSeason(seasonName, seasonDescription);
+            const res = await createSeason(
+                seasonName,
+                seasonDescription,
+                start.toISOString(),
+                end.toISOString()
+            );
             if (res.ok) {
                 seasonMessage = "Season created successfully!";
                 seasonName = "";
                 seasonDescription = "";
+                seasonStartTime = "";
+                seasonEndTime = "";
                 refreshSeasons();
             } else {
-                seasonMessage = "Failed to create season.";
+                const errText = await res.text();
+                seasonMessage = `Failed to create season: ${errText || 'Unknown error'}`;
             }
         } catch (err) {
             seasonMessage = "Error connecting to server.";
@@ -84,6 +108,17 @@
                 <div class="space-y-1">
                     <label class="text-sm font-semibold text-gray-700">Season Name</label>
                     <input type="text" bind:value={seasonName} required placeholder="Spring 2026" class="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:ring-orange-500 outline-none transition-all" />
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-sm font-semibold text-gray-700">Start Time</label>
+                        <input type="datetime-local" bind:value={seasonStartTime} required class="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:ring-orange-500 outline-none transition-all" />
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-semibold text-gray-700">End Time</label>
+                        <input type="datetime-local" bind:value={seasonEndTime} required class="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 focus:ring-2 focus:ring-orange-500 outline-none transition-all" />
+                    </div>
                 </div>
                 
                 <div class="space-y-1">
