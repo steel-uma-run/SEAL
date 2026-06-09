@@ -19,6 +19,14 @@ public class Season {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
+  @Column(columnDefinition = "TEXT", nullable = false)
+  @Nonnull
+  private String name;
+
+  @Column(columnDefinition = "TEXT", nullable = false)
+  @Nonnull
+  private String description;
+
   @Column(columnDefinition = "timestamptz", nullable = false)
   @Nonnull
   private OffsetDateTime startTime;
@@ -26,12 +34,4 @@ public class Season {
   @Column(columnDefinition = "timestamptz", nullable = false)
   @Nonnull
   private OffsetDateTime endTime;
-
-  @Column(columnDefinition = "TEXT", nullable = false)
-  @Nonnull
-  private String description;
-
-  @Column(columnDefinition = "TEXT", nullable = false)
-  @Nonnull
-  private String name;
 }
