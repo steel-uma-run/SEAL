@@ -44,7 +44,7 @@
 <div class="app-container" data-theme={theme.darkMode ? 'dark' : 'light'}>
     <header class="app-header">
         <div class="logo">
-				<a href="/home">
+				<a href="/">
 					<img src="https://upload.wikimedia.org/wikipedia/commons/1/11/FPT_logo_2010.svg" alt="Logo" class="logo-img" />
 					<p>SEAL</p>
 				</a>
@@ -54,8 +54,8 @@
         	<button class="theme-btn" onclick={() => (theme.darkMode = !theme.darkMode)}>
             	{theme.darkMode ? 'Light Mode' : 'Dark Mode'}
     		</button>
-			<a href="/register" class="btn btn-login">Đăng kí</a>
-			<a href="/login" class="btn btn-register">Đăng nhập</a>
+			<a href="/auth/register" class="btn btn-login">Đăng kí</a>
+			<a href="/auth/login" class="btn btn-register">Đăng nhập</a>
 		</div>
     </header>
 
