@@ -13,6 +13,7 @@
 
 	let profile: any = $state(null)
 	let seasons: any[] = $state([])
+	let seasonsError = $state("")
 	let isLoading = $state(true)
 	let errorMessage = $state("")
 
@@ -37,9 +38,19 @@
 	}
 
 	async function fetchSeasons() {
-		const seasonsRes = await getSeasons()
-		if (seasonsRes.ok) {
-			seasons = await seasonsRes.json()
+		try {
+			seasonsError = ""
+			const seasonsRes = await getSeasons()
+			if (seasonsRes.ok) {
+				seasons = await seasonsRes.json()
+			} else {
+				const errText = await seasonsRes.text()
+				console.error("Failed to fetch seasons:", seasonsRes.status, errText)
+				seasonsError = `Failed to load seasons (${seasonsRes.status}). Is the backend running?`
+			}
+		} catch (err) {
+			console.error("Error fetching seasons:", err)
+			seasonsError = "Cannot connect to server. Is the backend running?"
 		}
 	}
 
@@ -195,7 +206,7 @@
 					</div>
 				</div>
 
-				<SeasonsList />
+				<SeasonsList {seasons} errorMessage={seasonsError} />
 			</div>
 		</div>
 	{/if}
