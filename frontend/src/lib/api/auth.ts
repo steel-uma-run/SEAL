@@ -23,14 +23,14 @@ export async function register(
 	return fetch(`${API_BASE}/auth/register`, {
 		method: "POST",
 		headers: {
-			"Content-Type": "application/x-www-form-urlencoded"
+			"Content-Type": "application/json"
 		},
-		body: new URLSearchParams({
+		body: JSON.stringify({
 			email: email,
 			password: password,
 			name: name,
-			studentId: studentId,
-			external: String(isExternal)
+			student_id: studentId,
+			is_external: isExternal
 		})
 	})
 }

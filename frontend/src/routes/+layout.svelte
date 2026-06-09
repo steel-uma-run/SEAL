@@ -54,8 +54,8 @@
         	<button class="theme-btn" onclick={() => (theme.darkMode = !theme.darkMode)}>
             	{theme.darkMode ? 'Light Mode' : 'Dark Mode'}
     		</button>
-			<a href="/auth/register" class="btn btn-login">Đăng kí</a>
-			<a href="/auth/login" class="btn btn-register">Đăng nhập</a>
+			<a href="/auth/register" class="btn btn-register">Đăng kí</a>
+			<a href="/auth/login" class="btn btn-login">Đăng nhập</a>
 		</div>
     </header>
 
