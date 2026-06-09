@@ -5,8 +5,6 @@ import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import seal.backend.entities.Coordinator;
-import seal.backend.entities.Student;
 import seal.backend.entities.User;
 
 public class UserDetailsImpl implements UserDetails {
@@ -20,12 +18,8 @@ public class UserDetailsImpl implements UserDetails {
   public Collection<? extends GrantedAuthority> getAuthorities() {
     ArrayList<GrantedAuthority> authorities = new ArrayList<>();
 
-    if (user instanceof Student) {
-      authorities.add(new SimpleGrantedAuthority("STUDENT"));
-    }
-
-    if (user instanceof Coordinator) {
-      authorities.add(new SimpleGrantedAuthority("COORDINATOR"));
+    if (user.getRole() != null) {
+      authorities.add(new SimpleGrantedAuthority(user.getRole().name()));
     }
 
     return authorities;

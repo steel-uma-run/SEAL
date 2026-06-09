@@ -11,9 +11,11 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import lombok.Data;
 import seal.backend.enums.Role;
 
 @Entity
+@Data
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User {
