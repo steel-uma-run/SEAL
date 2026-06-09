@@ -30,4 +30,8 @@ public class Season {
   @Column(columnDefinition = "TEXT", nullable = false)
   @Nonnull
   private String description;
+
+  @Column(columnDefinition = "TEXT", nullable = false)
+  @Nonnull
+  private String name;
 }
