@@ -34,11 +34,11 @@ public class AuthServiceImpl implements AuthService {
       throw new EmailExistsException("This email is already registered.");
     }
 
-    User newUser =
-        new User(
-            registerRequest.name(),
-            registerRequest.email(),
-            passwordEncoder.encode(registerRequest.password()));
+    User newUser = new User();
+    newUser.setFullName(registerRequest.name());
+    newUser.setEmail(registerRequest.email());
+    newUser.setPasswordHash(passwordEncoder.encode(registerRequest.password()));
+
     Student newStudent =
         new Student(
             newUser,

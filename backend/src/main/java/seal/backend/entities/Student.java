@@ -8,11 +8,15 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import seal.backend.enums.Role;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "students")
 public class Student extends User {
   @Enumerated(EnumType.ORDINAL)
@@ -33,44 +37,16 @@ public class Student extends User {
   public Student() {}
 
   public Student(User user, String studentId, StudentType studentType) {
-    super(user.getFullName(), user.getEmail(), user.getPasswordHash());
+    super();
+
+    this.setFullName(user.getFullName());
+    this.setEmail(user.getEmail());
+    this.setPasswordHash(user.getPasswordHash());
 
     this.studentType = studentType;
     this.studentStatus = StudentStatus.PENDING;
     this.studentId = studentId;
 
     setRole(Role.STUDENT);
-  }
-
-  public StudentType getStudentType() {
-    return studentType;
-  }
-
-  public void setStudentType(StudentType studentType) {
-    this.studentType = studentType;
-  }
-
-  public StudentStatus getStudentStatus() {
-    return studentStatus;
-  }
-
-  public void setStudentStatus(StudentStatus studentStatus) {
-    this.studentStatus = studentStatus;
-  }
-
-  public String getStudentId() {
-    return studentId;
-  }
-
-  public void setStudentId(String studentId) {
-    this.studentId = studentId;
-  }
-
-  public Team getTeam() {
-    return team;
-  }
-
-  public void setTeam(Team team) {
-    this.team = team;
   }
 }
