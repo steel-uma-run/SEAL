@@ -4,9 +4,9 @@ export async function login(email: string, password: string) {
 	return fetch(`${API_BASE}/auth/login`, {
 		method: "POST",
 		headers: {
-			"Content-Type": "application/x-www-form-urlencoded"
+			"Content-Type": "application/json"
 		},
-		body: new URLSearchParams({
+		body: JSON.stringify({
 			email: email,
 			password: password
 		})
@@ -36,16 +36,16 @@ export async function register(
 }
 
 export function getToken(): string {
-    if (typeof window !== "undefined") {
-        const data = localStorage.getItem("auth_data");
-        if (data) {
-            try {
-                const parsed = JSON.parse(data);
-                return parsed.token || parsed; // handles if it's an object or just a string
-            } catch {
-                return data; // if it's just a raw string
-            }
-        }
-    }
-    return "";
+	if (typeof window !== "undefined") {
+		const data = localStorage.getItem("auth_data")
+		if (data) {
+			try {
+				const parsed = JSON.parse(data)
+				return parsed.token || parsed // handles if it's an object or just a string
+			} catch {
+				return data // if it's just a raw string
+			}
+		}
+	}
+	return ""
 }
