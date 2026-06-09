@@ -28,8 +28,8 @@ public class TrackServiceImpl implements TrackService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season not found."));
     Track track =
         Track.builder()
-            .name(request.getName())
-            .description(request.getDescription())
+            .name(request.name())
+            .description(request.description())
             .season(season)
             .build();
     Track savedTrack = trackRepository.save(track);
