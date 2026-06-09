@@ -25,7 +25,8 @@ public class SeasonsServiceImpl implements SeasonsService {
       throw new IllegalArgumentException("End time must be after start time");
     }
 
-    Season season = new Season(request.startTime(), request.endTime(), request.description());
+    Season season =
+        new Season(request.name(), request.description(), request.startTime(), request.endTime());
     return seasonRepository.save(season);
   }
 }
