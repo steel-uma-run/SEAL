@@ -1,0 +1,14 @@
+package seal.backend.responses;
+
+import java.util.UUID;
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class CreateTrackResponse {
+  private UUID id;
+  private String name;
+  private String description;
+  private UUID seasonId;
+}
