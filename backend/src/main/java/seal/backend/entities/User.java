@@ -28,7 +28,7 @@ public class User {
   @Column(nullable = false)
   private Role role;
 
-  @Column(nullable = false, columnDefinition = "TEXT")
+  @Column(nullable = false, columnDefinition = "TEXT", unique = true)
   private String email;
 
   @Column(nullable = false, columnDefinition = "TEXT")
