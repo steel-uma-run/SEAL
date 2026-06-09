@@ -10,16 +10,12 @@
     let confirmPassword = $state("")
     let isFptuStudent = $state(false)
     let studentId = $state("")
+    let schoolName = $state("")
 
     let showPassword = $state(false)
     let showConfirmPassword = $state(false)
     let isLoading = $state(false)
     let errorMessage = $state("")
-    $effect(() => {
-        if (!isFptuStudent) {
-            studentId = "";
-        }
-    });
     function togglePassword() {
         showPassword = !showPassword
     }
@@ -37,7 +33,10 @@
         }
         let isExternal = !isFptuStudent
         isLoading = true
-        let finalStudentId = isFptuStudent ? studentId.trim():"";
+        let finalStudentId = studentId.trim();
+        if (isExternal && schoolName.trim() !== "") {
+            finalStudentId = `${finalStudentId} - ${schoolName.trim()}`;
+        }
         try {
             const response = await register(email, password, name, finalStudentId, isExternal)
             if (response.ok) {
@@ -135,9 +134,9 @@
                     <input
                         type="text"
                         id="studentId"
-                        class="w-full rounded-md border border-gray-400 px-3 py-2 disabled:bg-gray-200 disabled:cursor-not-allowed"
+                        class="w-full rounded-md border border-gray-400 px-3 py-2"
                         placeholder="Enter Student ID"
-                        disabled={!isFptuStudent}
+                        required
                         bind:value={studentId}
                     />
                 </div>
@@ -150,6 +149,19 @@
                     I am a student of FPTU
                 </label>
             </div>
+            {#if !isFptuStudent}
+                <div class="mb-4">
+                    <label for="schoolName" class="mb-1 block text-sm">School Name</label>
+                    <input
+                        type="text"
+                        id="schoolName"
+                        class="w-full rounded-md border border-gray-400 px-3 py-2"
+                        placeholder="Enter your school name"
+                        required
+                        bind:value={schoolName}
+                    />
+                </div>
+            {/if}
             {#if errorMessage}
                 <span class="text-red-500 text-sm">{errorMessage}</span>
             {/if}
