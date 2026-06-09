@@ -1,34 +1,32 @@
 <script>
-    // Trang chủ
+    // Homepage
 </script>
 
 <div class="startpage-content">
     <section class="hero-section">
         <div class="hero-bg">
-            <img src="https://img.freepik.com/free-vector/futuristic-white-technology-background_23-2148390336.jpg" alt="Background họa tiết" class="bg-img" />
+            <img src="https://img.freepik.com/free-vector/futuristic-white-technology-background_23-2148390336.jpg" alt="Background pattern" class="bg-img" />
         </div>
         
         <div class="hero-content">
-            <div class="badge">Khởi nguồn sáng tạo, kiến tạo tương lai</div>
+            <div class="badge">Inspiring Innovation, Shaping the Future</div>
             
             <h1 class="hero-title">
                 <span class="text-orange">SEAL</span> HACKATHON
             </h1>
             
             <p class="hero-desc">
-                Hệ thống quản lý sự kiện và hỗ trợ sinh viên trường Đại học FPT. Đăng ký ngay để thành lập đội thi, nộp sản phẩm và trải nghiệm nền tảng!
+                The official event management and student support platform for FPT University. Register now to form your team, submit your project, and experience the platform!
             </p>
             
             <div class="button-group">
                 <a href="/auth/register" class="btn btn-solid">
-                    Tham gia ngay
+                    Join Now
                 </a>
                 <a href="/auth/login" class="btn btn-outline">
-                    Dành cho sinh viên đã có đội
+                    For Registered Teams
                 </a>
             </div>
-            
-
         </div>
     </section>
 
@@ -36,20 +34,20 @@
         <div class="feature-container">
             <div class="feature-text">
                 <h2>
-                    Kiến tạo tương lai<br/>
-                    <span class="text-orange">Dẫn đầu công nghệ</span>
+                    Shaping the Future<br/>
+                    <span class="text-orange">Leading in Technology</span>
                 </h2>
                 <div class="divider"></div>
                 
                 <p>
-                    SEAL Hackathon không chỉ là một cuộc thi lập trình, mà là bệ phóng để các bạn sinh viên FPT University biến những ý tưởng điên rồ nhất thành sản phẩm thực tế. Xuyên suốt hành trình, bạn sẽ được dẫn dắt bởi đội ngũ mentor dày dặn kinh nghiệm, trải nghiệm áp lực thời gian thực, và học cách làm việc nhóm hiệu quả.
+                    SEAL Hackathon is more than just a coding competition; it's a launchpad for FPT University students to turn their boldest ideas into tangible solutions. Throughout this journey, you will be guided by experienced mentors, experience real-time pressure, and learn effective teamwork and collaboration.
                 </p>
                 <p>
-                    Bước ra khỏi cuộc thi, mỗi thí sinh không chỉ mang theo một "chiến tích" ấn tượng trong CV, mà còn tích lũy được tư duy giải quyết vấn đề sắc bén, sẵn sàng chinh phục thế giới công nghệ không ngừng đổi mới.
+                    Beyond the competition, every participant not only gains an impressive milestone for their resume but also develops sharp problem-solving skills, ready to conquer the ever-evolving tech industry.
                 </p>
 
                 <a href="https://www.facebook.com/FPTHackathon" class="btn btn-solid btn-learn-more mt-4">
-                    Tìm hiểu ngay <span class="arrow">&rarr;</span>
+                    Learn More <span class="arrow">&rarr;</span>
                 </a>
             
             </div>
@@ -66,8 +64,6 @@
                 </div>
             </div>
         </div>
-
-
     </section>
 </div>
 

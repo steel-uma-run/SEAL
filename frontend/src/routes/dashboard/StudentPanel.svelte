@@ -1,5 +1,5 @@
 <script lang="ts">
-
+    import { theme } from "$lib/theme.svelte";
     let { profile, seasons } = $props<{ profile: any, seasons: any[] }>();
 
 </script>
