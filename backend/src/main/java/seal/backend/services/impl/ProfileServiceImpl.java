@@ -25,7 +25,7 @@ public class ProfileServiceImpl implements ProfileService {
   public ProfileResponse get(String email) {
     User user = userRepository.findByEmail(email).get();
     ProfileResponse profile =
-        new ProfileResponse(user.getEmail(), user.getFullName(), user.getRole());
+        new ProfileResponse(user.getId(), user.getEmail(), user.getFullName(), user.getRole());
 
     return profile;
   }
