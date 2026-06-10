@@ -1,5 +1,6 @@
 package seal.backend.responses;
 
+import java.util.UUID;
 import seal.backend.enums.Role;
 
-public record ProfileResponse(String email, String name, Role role) {}
+public record ProfileResponse(UUID id, String email, String name, Role role) {}

@@ -10,10 +10,14 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Entity
 @Table(name = "seasons")
 @Data
+@NoArgsConstructor
+@RequiredArgsConstructor
 public class Season {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

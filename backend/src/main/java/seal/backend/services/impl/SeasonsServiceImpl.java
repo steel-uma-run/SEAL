@@ -27,6 +27,7 @@ public class SeasonsServiceImpl implements SeasonsService {
 
     Season season =
         new Season(request.name(), request.description(), request.startTime(), request.endTime());
+
     return seasonRepository.save(season);
   }
 }
