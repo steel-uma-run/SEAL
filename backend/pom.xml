@@ -82,8 +82,45 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+
+			<plugin>
+				<groupId>io.openapiprocessor</groupId>
+				<artifactId>openapi-processor-maven-plugin</artifactId>
+				<version>2026.1</version>
+
+				<configuration>
+					<id>processor-api</id>
+					<apiPath>${project.basedir}/../openapi.json</apiPath>
+				</configuration>
+
+				<executions>
+					<execution>
+						<id>spring-interfaces</id>
+						<phase>generate-sources</phase>
+
+						<configuration>
+							<id>spring</id>
+							<options>
+								<values>
+									<mapping>${project.basedir}/../mapping.yaml</mapping>
+								</values>
+							</options>
+						</configuration>
+
+						<goals>
+							<goal>process</goal>
+						</goals>
+					</execution>
+				</executions>
+
+				<dependencies>
+					<dependency>
+						<groupId>io.openapiprocessor</groupId>
+						<artifactId>openapi-processor-spring</artifactId>
+						<version>2026.3</version>
+					</dependency>
+				</dependencies>
+			</plugin>
 		</plugins>
 	</build>
-
 </project>
-

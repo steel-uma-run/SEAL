@@ -1,0 +1,626 @@
+{
+  "openapi": "3.2.0",
+  "info": {
+    "title": "SEAL",
+    "summary": "SEAL API",
+    "license": {
+      "name": "GNU Affero General Public License v3.0 only",
+      "identifier": "AGPL-3.0-only"
+    },
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api/v0"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["auth"],
+        "operationId": "login",
+        "description": "Login and obtain a JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully logged in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponsePayload"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["auth"],
+        "operationId": "register",
+        "description": "Register a new account",
+        "requestBody": {
+          "description": "Information to register a new account",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequestPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account registered successfully"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/seasons": {
+      "get": {
+        "tags": ["seasons"],
+        "operationId": "get_all_seasons",
+        "description": "Get all seasons",
+        "responses": {
+          "200": {
+            "description": "Season data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Season"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/seasons/{seasonId}": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "description": "ID of the season",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["seasons"],
+        "operationId": "get_season",
+        "description": "Returns info of a specific season",
+        "responses": {
+          "200": {
+            "description": "Season data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Season"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/seasons/{seasonId}/events": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "description": "ID of the season",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["events", "seasons"],
+        "operationId": "get_events_in_season",
+        "description": "Returns all events in a season",
+        "responses": {
+          "200": {
+            "description": "Events data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HackathonEvent"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/seasons/{seasonId}/events/{eventId}": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "description": "ID of the season",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "eventId",
+          "description": "ID of the event",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["events", "seasons"],
+        "operationId": "get_event",
+        "description": "Returns info on a specific event",
+        "responses": {
+          "200": {
+            "description": "Event data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HackathonEvent"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/seasons/{seasonId}/events/{eventId}/tracks": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "description": "ID of the season",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "eventId",
+          "description": "ID of the event",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["tracks", "events", "seasons"],
+        "operationId": "get_all_tracks_of_event",
+        "description": "Returns all tracks belonging to an event",
+        "responses": {
+          "200": {
+            "description": "Tracks data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/seasons/{seasonId}/events/{eventId}/teams": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "description": "ID of the season",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "eventId",
+          "description": "ID of the event",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["teams", "events", "seasons"],
+        "operationId": "get_all_teams_of_events",
+        "description": "Returns all teams participating in an event",
+        "responses": {
+          "200": {
+            "description": "Teams data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Team"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/fake-user": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Return a fake user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Student"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Email": {
+        "description": "Email of the user",
+        "type": "string",
+        "format": "email"
+      },
+      "HackathonEvent": {
+        "description": "A hackathon event",
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "status",
+          "start_time",
+          "end_time",
+          "season_id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "FINALIZED"]
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "season_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Track": {
+        "description": "A track within an event",
+        "type": "object",
+        "required": ["id", "name", "description", "event_id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "event_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Season": {
+        "description": "A hackathon season. There are 3 of these a year",
+        "type": "object",
+        "required": ["id", "season", "year"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "semester": {
+            "type": "string",
+            "enum": ["SPRING", "SUMMER", "FALL"]
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 1990,
+            "maximum": 9999
+          }
+        }
+      },
+      "User": {
+        "description": "A user account",
+        "type": "object",
+        "required": ["id", "email", "role"],
+        "discriminator": {
+          "propertyName": "role",
+          "mapping": {
+            "COORDINATOR": "#/components/schemas/Coordinator",
+            "LECTURER": "#/components/schemas/Lecturer",
+            "STUDENT": "#/components/schemas/Student"
+          }
+        },
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["COORDINATOR", "STUDENT", "LECTURER"]
+          }
+        }
+      },
+      "Coordinator": {
+        "description": "Coordinator account",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          }
+        ]
+      },
+      "Lecturer": {
+        "description": "Lecturer account",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          }
+        ]
+      },
+      "Student": {
+        "description": "Student account",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          },
+          {
+            "type": "object",
+            "required": ["student_id", "is_external", "interested_in_events"],
+            "if": {
+              "properties": {
+                "is_external": { "const": true }
+              },
+              "required": ["is_external"]
+            },
+            "then": {
+              "required": ["school_name"]
+            },
+            "properties": {
+              "student_id": {
+                "type": "string"
+              },
+              "is_external": {
+                "type": "boolean"
+              },
+              "school_name": {
+                "type": "string"
+              },
+              "team_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "interested_in_events": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Team": {
+        "type": "object",
+        "required": ["id", "name", "status", "members", "leader_id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "APPROVED"]
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "leader_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "track_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+
+      "LoginRequestPayload": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          },
+          "password": {
+            "description": "Password of the user",
+            "type": "string"
+          }
+        }
+      },
+      "RegisterRequestPayload": {
+        "type": "object",
+        "required": ["email", "password", "name", "student_id", "is_external"],
+        "if": {
+          "properties": {
+            "is_external": {
+              "const": true
+            }
+          },
+          "required": ["is_external"]
+        },
+        "then": {
+          "required": ["school_name"]
+        },
+        "properties": {
+          "email": {
+            "$ref": "#/components/schemas/Email"
+          },
+          "password": {
+            "description": "Password of the user",
+            "type": "string"
+          },
+          "name": {
+            "description": "Full name of the user",
+            "type": "string"
+          },
+          "student_id": {
+            "type": "string"
+          },
+          "is_external": {
+            "description": "Whether the user is an external student",
+            "type": "boolean"
+          },
+          "school_name": {
+            "description": "Name of the user's school. MUST be present if isExternal == true",
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponsePayload": {
+        "type": "object",
+        "required": ["token", "user"],
+        "properties": {
+          "token": {
+            "description": "The JWT that can be used to authenticate",
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "required": ["email"],
+            "properties": {
+              "email": {
+                "$ref": "#/components/schemas/Email"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "ClientErrorResponse": {
+        "description": "RFC 7807 Problem Details",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": ["status", "title", "detail"],
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "number"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
