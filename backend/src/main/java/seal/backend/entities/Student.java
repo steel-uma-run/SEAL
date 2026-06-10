@@ -44,7 +44,7 @@ public class Student extends User {
     this.setPasswordHash(user.getPasswordHash());
 
     this.studentType = studentType;
-    this.studentStatus = StudentStatus.PENDING;
+    this.studentStatus = StudentStatus.ACTIVE; // TODO: TEMPORARY until coord can approve
     this.studentId = studentId;
 
     setRole(Role.STUDENT);
