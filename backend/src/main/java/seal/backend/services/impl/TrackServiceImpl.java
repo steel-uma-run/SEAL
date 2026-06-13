@@ -38,7 +38,7 @@ public class TrackServiceImpl implements TrackService {
         .id(savedTrack.getId())
         .name(savedTrack.getName())
         .description(savedTrack.getDescription())
-        .seasonId(hackathonEvent.getId())
+        .eventId(hackathonEvent.getId())
         .build();
   }
 }
