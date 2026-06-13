@@ -32,14 +32,14 @@ public class Team {
   @Nonnull
   private String description;
 
-  @Enumerated(EnumType.ORDINAL)
+  @Enumerated(EnumType.STRING)
   @Nonnull
   private TeamStatus teamStatus;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "season_id", nullable = false)
   @Nonnull
-  private Season season;
+  private HackathonEvent hackathonEvent;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "leader_id", nullable = false)

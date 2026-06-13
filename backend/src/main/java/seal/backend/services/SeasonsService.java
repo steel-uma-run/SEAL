@@ -1,11 +1,11 @@
 package seal.backend.services;
 
 import java.util.List;
-import seal.backend.entities.Season;
+import seal.backend.entities.HackathonEvent;
 import seal.backend.requests.CreateSeasonRequest;
 
 public interface SeasonsService {
-  public List<Season> getAll();
+  public List<HackathonEvent> getAll();
 
-  public Season create(CreateSeasonRequest request);
+  public HackathonEvent create(CreateSeasonRequest request);
 }

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import seal.backend.entities.Season;
+import seal.backend.entities.HackathonEvent;
 import seal.backend.requests.CreateSeasonRequest;
 import seal.backend.services.SeasonsService;
 
@@ -21,7 +21,7 @@ public class SeasonsController {
   private final SeasonsService seasonsService;
 
   @GetMapping(value = {"", "/"})
-  public ResponseEntity<List<Season>> getAll() {
+  public ResponseEntity<List<HackathonEvent>> getAll() {
     return ResponseEntity.ok(seasonsService.getAll());
   }
 

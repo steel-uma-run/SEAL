@@ -3,6 +3,8 @@ package seal.backend.entities;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,13 +14,14 @@ import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import seal.backend.enums.EventStatus;
 
 @Entity
 @Table(name = "seasons")
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
-public class Season {
+public class HackathonEvent {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -38,4 +41,9 @@ public class Season {
   @Column(columnDefinition = "timestamptz", nullable = false)
   @Nonnull
   private OffsetDateTime endTime;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  @Nonnull
+  private EventStatus status;
 }
