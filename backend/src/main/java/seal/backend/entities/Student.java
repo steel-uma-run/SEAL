@@ -19,11 +19,11 @@ import seal.backend.enums.StudentType;
 @Setter
 @Table(name = "students")
 public class Student extends User {
-  @Enumerated(EnumType.ORDINAL)
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private StudentType studentType;
 
-  @Enumerated(EnumType.ORDINAL)
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private StudentStatus studentStatus;
 
