@@ -5,5 +5,5 @@ import seal.backend.requests.CreateTrackRequest;
 import seal.backend.responses.CreateTrackResponse;
 
 public interface TrackService {
-  CreateTrackResponse createTrack(UUID seasonId, CreateTrackRequest request);
+  CreateTrackResponse createTrack(UUID eventId, CreateTrackRequest request);
 }

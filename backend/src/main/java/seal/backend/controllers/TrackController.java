@@ -17,16 +17,16 @@ import seal.backend.services.TrackService;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/seasons")
+@RequestMapping("/api/events")
 class TrackController {
   private final TrackService trackService;
 
   @PreAuthorize("hasAuthority('COORDINATOR')")
-  @PostMapping("/{season_id}/tracks")
+  @PostMapping("/{event_id}/tracks")
   public ResponseEntity<CreateTrackResponse> createTrack(
-      @PathVariable("season_id") UUID seasonId, @Valid @RequestBody CreateTrackRequest request) {
+      @PathVariable("event_id") UUID eventId, @Valid @RequestBody CreateTrackRequest request) {
 
-    CreateTrackResponse response = trackService.createTrack(seasonId, request);
+    CreateTrackResponse response = trackService.createTrack(eventId, request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 }
