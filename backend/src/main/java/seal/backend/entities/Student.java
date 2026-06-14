@@ -1,52 +1,55 @@
 package seal.backend.entities;
 
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
-import seal.backend.enums.Role;
+import java.util.UUID;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
 
 @Entity
-@Getter
-@Setter
 @Table(name = "students")
-public class Student extends User {
+@NoArgsConstructor
+@RequiredArgsConstructor
+@Data
+public class Student {
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
+
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "id", nullable = false)
+  @Nonnull
+  private User user;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
+  @Nonnull
   private StudentType studentType;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
+  @Nonnull
   private StudentStatus studentStatus;
 
   @Column(nullable = false)
+  @Nonnull
   private String studentId;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "team_id", nullable = true)
   private Team team;
-
-  public Student() {}
-
-  public Student(User user, String studentId, StudentType studentType) {
-    super();
-
-    this.setFullName(user.getFullName());
-    this.setEmail(user.getEmail());
-    this.setPasswordHash(user.getPasswordHash());
-
-    this.studentType = studentType;
-    this.studentStatus = StudentStatus.ACTIVE; // TODO: TEMPORARY until coord can approve
-    this.studentId = studentId;
-
-    setRole(Role.STUDENT);
-  }
 }
