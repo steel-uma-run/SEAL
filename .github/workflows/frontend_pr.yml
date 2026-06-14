@@ -1,10 +1,13 @@
-name: PR
-on: pull_request
+name: Frontend
+on:
+  pull_request:
+    paths:
+      - "frontend/**"
 
 permissions: {}
 
 jobs:
-  format:
+  check-formatting:
     name: Check formatting
     runs-on: ubuntu-slim
 
@@ -18,16 +21,12 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Install tools
-        run: |
-          nix profile add nixpkgs#google-java-format nixpkgs#prettier nixpkgs#treefmt nixpkgs#pnpm
+        run: nix profile add nixpkgs#treefmt nixpkgs#google-java-format nixpkgs#prettier nixpkgs#pnpm
 
-      - name: Check formatting (backend)
-        run: treefmt --tree-root backend
-
-      - name: Install dependencies (frontend)
+      - name: Install dependencies
         run: |
           cd frontend
           pnpm i
 
-      - name: Check formatting (frontend)
+      - name: Check formatting
         run: treefmt --tree-root frontend
