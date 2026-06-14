@@ -22,6 +22,7 @@ import seal.backend.services.JwtService;
 import seal.openapi.model.LoginRequestPayloadDto;
 import seal.openapi.model.LoginResponsePayloadDto;
 import seal.openapi.model.LoginResponsePayloadUserDto;
+import seal.openapi.model.LoginResponsePayloadUserRoleDto;
 import seal.openapi.model.RegisterRequestPayloadDto;
 
 @Service
@@ -70,7 +71,13 @@ public class AuthServiceImpl implements AuthService {
 
     User user = maybeUser.get();
 
-    LoginResponsePayloadUserDto userDto = new LoginResponsePayloadUserDto(user.getEmail());
+    LoginResponsePayloadUserDto userDto =
+        new LoginResponsePayloadUserDto(
+            user.getId(),
+            user.getEmail(),
+            user.getFullName(),
+            LoginResponsePayloadUserRoleDto.fromValue(user.getRole().name()));
+
     LoginResponsePayloadDto resp = new LoginResponsePayloadDto(jwt, userDto);
 
     return resp;
