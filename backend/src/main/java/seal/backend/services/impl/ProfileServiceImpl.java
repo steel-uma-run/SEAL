@@ -1,20 +1,14 @@
 package seal.backend.services.impl;
 
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import seal.backend.entities.Student;
 import seal.backend.entities.User;
-import seal.backend.enums.Role;
-import seal.backend.enums.StudentStatus;
-import seal.backend.exceptions.StudentNotPendingException;
-import seal.backend.exceptions.UserNotStudentException;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.UserRepository;
-import seal.backend.responses.ProfileResponse;
 import seal.backend.services.ProfileService;
+import seal.openapi.model.UserDto;
+import seal.openapi.model.UserRoleDto;
 
 @Service
 @RequiredArgsConstructor
@@ -22,33 +16,36 @@ public class ProfileServiceImpl implements ProfileService {
   private final UserRepository userRepository;
   private final StudentRepository studentRepository;
 
-  public ProfileResponse get(String email) {
+  @Override
+  public UserDto getSelfProfile(Authentication auth) {
+    String email = auth.getName();
+
+    // EXPLANATION: this method should never be invoked by an unauthenticated
+    // user. Therefore user should never be null.
     User user = userRepository.findByEmail(email).get();
-    ProfileResponse profile =
-        new ProfileResponse(user.getId(), user.getEmail(), user.getFullName(), user.getRole());
 
-    return profile;
+    return new UserDto(user.getId(), user.getEmail(), UserRoleDto.fromValue(user.getRole().name()));
   }
 
-  public void approve(UUID id)
-      throws UsernameNotFoundException, UserNotStudentException, StudentNotPendingException {
-    Optional<User> maybeUser = userRepository.findById(id);
+  // public void approve(UUID id)
+  //     throws UsernameNotFoundException, UserNotStudentException, StudentNotPendingException {
+  //   Optional<User> maybeUser = userRepository.findById(id);
 
-    if (maybeUser.isEmpty()) {
-      throw new UsernameNotFoundException("User with ID not found.");
-    }
+  //   if (maybeUser.isEmpty()) {
+  //     throw new UsernameNotFoundException("User with ID not found.");
+  //   }
 
-    User user = maybeUser.get();
-    if (user.getRole() != Role.STUDENT) {
-      throw new UserNotStudentException("This user is not a student.");
-    }
+  //   User user = maybeUser.get();
+  //   if (user.getRole() != Role.STUDENT) {
+  //     throw new UserNotStudentException("This user is not a student.");
+  //   }
 
-    Student student = studentRepository.findByUserId(user.getId()).get();
-    if (student.getStudentStatus() != StudentStatus.PENDING) {
-      throw new StudentNotPendingException("This student is not pending approval.");
-    }
+  //   Student student = studentRepository.findByUserId(user.getId()).get();
+  //   if (student.getStudentStatus() != StudentStatus.PENDING) {
+  //     throw new StudentNotPendingException("This student is not pending approval.");
+  //   }
 
-    student.setStudentStatus(StudentStatus.ACTIVE);
-    studentRepository.save(student);
-  }
+  //   student.setStudentStatus(StudentStatus.ACTIVE);
+  //   studentRepository.save(student);
+  // }
 }

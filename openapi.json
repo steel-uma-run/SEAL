@@ -329,18 +329,52 @@
         }
       }
     },
-    "/fake-user": {
+    "/profile": {
       "get": {
+        "tags": ["profile"],
+        "operationId": "get_self_profile",
+        "description": "Return the profile of the logged-in user",
+        "security": [{"bearerAuthentication": []}],
         "responses": {
           "200": {
-            "description": "Return a fake user",
+            "description": "The user profile",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Student"
+                  "$ref": "#/components/schemas/User"
                 }
               }
             }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/account/{accountId}/approve": {
+      "parameters": [
+        {
+          "name": "accountId",
+          "description": "ID of the account to approve",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["account", "profile"],
+        "operationId": "approve_account",
+        "description": "Approve a student account",
+        "responses": {
+          "200": {
+            "content": {}
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
           }
         }
       }
@@ -647,10 +681,21 @@
           },
           "user": {
             "type": "object",
-            "required": ["email"],
+            "required": ["id", "email", "name"],
             "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
               "email": {
                 "$ref": "#/components/schemas/Email"
+              },
+              "name": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": ["STUDENT", "COORDINATOR", "LECTURER"]
               }
             }
           }
@@ -682,6 +727,14 @@
             }
           }
         }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuthentication": {
+        "description": "Bearer token using a JWT",
+        "type": "http",
+        "scheme": "Bearer",
+        "bearerFormat": "JWT"
       }
     }
   }
