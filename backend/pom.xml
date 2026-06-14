@@ -100,9 +100,11 @@
 
 						<configuration>
 							<id>spring</id>
+							<addSourceRoot>true</addSourceRoot>
+
 							<options>
 								<values>
-									<mapping>${project.basedir}/../mapping.yaml</mapping>
+									<mapping>${project.basedir}/mapping.yaml</mapping>
 								</values>
 							</options>
 						</configuration>
