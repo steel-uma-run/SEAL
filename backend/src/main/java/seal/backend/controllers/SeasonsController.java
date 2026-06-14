@@ -1,33 +1,31 @@
 package seal.backend.controllers;
 
-import jakarta.validation.Valid;
-import java.util.List;
+import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import seal.backend.entities.Season;
-import seal.backend.requests.CreateSeasonRequest;
-import seal.backend.services.SeasonService;
+import seal.backend.config.GlobalConfig;
+import seal.backend.services.SeasonsService;
+import seal.openapi.api.SeasonsApi;
+import seal.openapi.model.SeasonDto;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/seasons")
-public class SeasonsController {
-  private final SeasonService seasonService;
+@RequestMapping(GlobalConfig.API_BASE)
+public class SeasonsController implements SeasonsApi {
+  private final SeasonsService seasonsService;
 
-  @PostMapping(value = {"", "/"})
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<?> create(@Valid @RequestBody CreateSeasonRequest request) {
-    return ResponseEntity.ok(seasonService.createSeason(request));
+  @Override
+  public ResponseEntity<SeasonDto[]> getAllSeasons() {
+    return ResponseEntity.ok(seasonsService.getAllSeasons());
   }
 
-  @GetMapping
-  public ResponseEntity<List<Season>> getAllSeasons() {
-    return ResponseEntity.ok(seasonService.getAllSeasons());
+  @Override
+  public ResponseEntity<SeasonDto> getSeason(
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId) {
+    return ResponseEntity.ok(seasonsService.getSeason(seasonId));
   }
 }
