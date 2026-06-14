@@ -30,14 +30,14 @@ public class TeamServiceImpl implements TeamService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season not found"));
     Student leader =
-        (Student)
-            studentRepository
-                .findById(request.leaderId())
-                .orElseThrow(
-                    () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Leader not found"));
+        studentRepository
+            .findById(request.leaderId())
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Leader not found"));
 
     if (leader.getStudentStatus() != StudentStatus.ACTIVE) {
-      throw new IllegalStateException("Only ACTIVE students are allowed to create team");
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Only ACTIVE students are allowed to create team");
     }
 
     Team team =

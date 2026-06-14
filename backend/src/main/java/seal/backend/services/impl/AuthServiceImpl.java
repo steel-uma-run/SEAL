@@ -65,7 +65,7 @@ public class AuthServiceImpl implements AuthService {
     String jwt = JwtService.sign(request.email());
     Optional<User> maybeUser = userRepository.findByEmail(request.email());
     if (maybeUser.isEmpty()) {
-      throw new IllegalArgumentException("This email does not exist");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This email does not exist");
     }
 
     User user = maybeUser.get();
