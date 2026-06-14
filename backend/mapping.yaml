@@ -3,6 +3,7 @@ openapi-processor-mapping: v18
 options:
   package-name: seal.openapi
   model-type: record
+  model-name-suffix: Dto
   bean-validation: jakarta
 
 map:

@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import seal.backend.config.GlobalConfig;
 import seal.backend.services.AuthService;
 import seal.openapi.api.AuthApi;
-import seal.openapi.model.LoginRequestPayload;
-import seal.openapi.model.LoginResponsePayload;
-import seal.openapi.model.RegisterRequestPayload;
+import seal.openapi.model.LoginRequestPayloadDto;
+import seal.openapi.model.LoginResponsePayloadDto;
+import seal.openapi.model.RegisterRequestPayloadDto;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,14 +21,14 @@ public class AuthController implements AuthApi {
   private final AuthService authService;
 
   @Override
-  public ResponseEntity<LoginResponsePayload> login(
-      @Valid @RequestBody @NotNull LoginRequestPayload request) {
+  public ResponseEntity<LoginResponsePayloadDto> login(
+      @Valid @RequestBody @NotNull LoginRequestPayloadDto request) {
     return ResponseEntity.ok(authService.login(request));
   }
 
   @Override
   public ResponseEntity<Void> register(
-      @Valid @RequestBody @NotNull RegisterRequestPayload request) {
+      @Valid @RequestBody @NotNull RegisterRequestPayloadDto request) {
     authService.register(request);
     return ResponseEntity.ok().build();
   }
