@@ -28,7 +28,8 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   public HackathonEvent createEvent(CreateEventRequest request) {
     if (request.endTime().isEqual(request.startTime())
         || request.endTime().isBefore(request.startTime())) {
-      throw new IllegalArgumentException("End time must be after start time");
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "End time must be after start time");
     }
 
     Season season =
