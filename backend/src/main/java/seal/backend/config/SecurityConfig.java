@@ -58,11 +58,14 @@ public class SecurityConfig {
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/api/auth/register", "/api/auth/login")
+                auth.requestMatchers(
+                        GlobalConfig.API_BASE + "/auth/register",
+                        GlobalConfig.API_BASE + "/auth/login")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/seasons/**")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/events/**")
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        GlobalConfig.API_BASE + "/seasons/**",
+                        GlobalConfig.API_BASE + "/events/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
