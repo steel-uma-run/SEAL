@@ -27,13 +27,9 @@ public class TrackServiceImpl implements TrackService {
             .findById(seasonId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
-    Track track =
-        Track.builder()
-            .name(request.name())
-            .description(request.description())
-            .event(hackathonEvent)
-            .build();
-    Track savedTrack = trackRepository.save(track);
+
+    Track newTrack = new Track(request.name(), request.description(), hackathonEvent);
+    Track savedTrack = trackRepository.save(newTrack);
 
     return new CreateTrackResponse(
         savedTrack.getId(),
