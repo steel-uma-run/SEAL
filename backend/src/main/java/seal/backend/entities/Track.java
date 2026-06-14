@@ -31,6 +31,6 @@ public class Track {
   private String description;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "season_id", nullable = false)
-  private HackathonEvent hackathonEvent;
+  @JoinColumn(name = "event_id", nullable = false)
+  private HackathonEvent event;
 }

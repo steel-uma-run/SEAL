@@ -60,7 +60,9 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers("/api/auth/register", "/api/auth/login")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/seasons")
+                    .requestMatchers(HttpMethod.GET, "/api/seasons/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/events/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

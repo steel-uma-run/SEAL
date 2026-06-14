@@ -1,5 +1,6 @@
 package seal.backend.services.impl;
 
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,20 +26,29 @@ public class TrackServiceImpl implements TrackService {
         hackathonEventRepository
             .findById(seasonId)
             .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season not found."));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
     Track track =
         Track.builder()
             .name(request.name())
             .description(request.description())
-            .hackathonEvent(hackathonEvent)
+            .event(hackathonEvent)
             .build();
     Track savedTrack = trackRepository.save(track);
 
-    return CreateTrackResponse.builder()
-        .id(savedTrack.getId())
-        .name(savedTrack.getName())
-        .description(savedTrack.getDescription())
-        .eventId(hackathonEvent.getId())
-        .build();
+    return new CreateTrackResponse(
+        savedTrack.getId(),
+        savedTrack.getName(),
+        savedTrack.getDescription(),
+        hackathonEvent.getId());
+  }
+
+  @Override
+  public List<Track> getTracksByEventId(UUID eventId) {
+    boolean eventExists = hackathonEventRepository.existsById(eventId);
+    if (!eventExists) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found.");
+    }
+
+    return trackRepository.findByEventId(eventId);
   }
 }
