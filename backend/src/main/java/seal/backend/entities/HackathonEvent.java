@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 import seal.backend.enums.EventStatus;
 
 @Entity
-@Table(name = "seasons")
+@Table(name = "events")
 @Data
 @NoArgsConstructor
 @RequiredArgsConstructor
