@@ -19,10 +19,10 @@ import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.AuthService;
 import seal.backend.services.JwtService;
-import seal.openapi.model.LoginRequestPayload;
-import seal.openapi.model.LoginResponsePayload;
-import seal.openapi.model.LoginResponsePayloadUser;
-import seal.openapi.model.RegisterRequestPayload;
+import seal.openapi.model.LoginRequestPayloadDto;
+import seal.openapi.model.LoginResponsePayloadDto;
+import seal.openapi.model.LoginResponsePayloadUserDto;
+import seal.openapi.model.RegisterRequestPayloadDto;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
   private final AuthenticationManager authenticationManager;
 
   @Override
-  public void register(RegisterRequestPayload request) {
+  public void register(RegisterRequestPayloadDto request) {
     if (userRepository.findByEmail(request.email()).isPresent()) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "This email is already registered.");
     }
@@ -57,7 +57,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public LoginResponsePayload login(LoginRequestPayload request) {
+  public LoginResponsePayloadDto login(LoginRequestPayloadDto request) {
     UsernamePasswordAuthenticationToken token =
         new UsernamePasswordAuthenticationToken(request.email(), request.password());
     Authentication auth = authenticationManager.authenticate(token);
@@ -70,8 +70,8 @@ public class AuthServiceImpl implements AuthService {
 
     User user = maybeUser.get();
 
-    LoginResponsePayloadUser userDto = new LoginResponsePayloadUser(user.getEmail());
-    LoginResponsePayload resp = new LoginResponsePayload(jwt, userDto);
+    LoginResponsePayloadUserDto userDto = new LoginResponsePayloadUserDto(user.getEmail());
+    LoginResponsePayloadDto resp = new LoginResponsePayloadDto(jwt, userDto);
 
     return resp;
   }

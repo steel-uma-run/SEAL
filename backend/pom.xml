@@ -105,6 +105,7 @@
 							<options>
 								<values>
 									<mapping>${project.basedir}/mapping.yaml</mapping>
+									<targetDir>${project.basedir}/target/generated-sources</targetDir>
 								</values>
 							</options>
 						</configuration>
