@@ -31,7 +31,7 @@ public class Student {
   private UUID id;
 
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "id", nullable = false)
+  @JoinColumn(name = "user_id", nullable = false)
   @Nonnull
   private User user;
 
