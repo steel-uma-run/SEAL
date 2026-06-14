@@ -43,7 +43,7 @@ public class ProfileServiceImpl implements ProfileService {
       throw new UserNotStudentException("This user is not a student.");
     }
 
-    Student student = (Student) user;
+    Student student = studentRepository.findByUserId(user.getId()).get();
     if (student.getStudentStatus() != StudentStatus.PENDING) {
       throw new StudentNotPendingException("This student is not pending approval.");
     }

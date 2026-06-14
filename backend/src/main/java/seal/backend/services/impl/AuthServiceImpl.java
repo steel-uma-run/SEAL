@@ -2,14 +2,18 @@ package seal.backend.services.impl;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.Student;
 import seal.backend.entities.User;
+import seal.backend.enums.Role;
+import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.UserRepository;
@@ -30,21 +34,25 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public void register(RegisterRequestPayload request) {
-    if (studentRepository.findByEmail(request.email()).isPresent()) {
-      throw new IllegalArgumentException("This email is already registered.");
+    if (userRepository.findByEmail(request.email()).isPresent()) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "This email is already registered.");
     }
 
-    User newUser = new User();
-    newUser.setFullName(request.name());
-    newUser.setEmail(request.email());
-    newUser.setPasswordHash(passwordEncoder.encode(request.password()));
+    User newUser =
+        new User(
+            request.name(),
+            Role.STUDENT,
+            request.email(),
+            passwordEncoder.encode(request.password()));
 
     Student newStudent =
         new Student(
             newUser,
-            request.studentId(),
-            request.isExternal() ? StudentType.EXTERNAL : StudentType.FPT);
+            request.isExternal() ? StudentType.EXTERNAL : StudentType.FPT,
+            StudentStatus.PENDING,
+            request.studentId());
 
+    userRepository.save(newUser);
     studentRepository.save(newStudent);
   }
 
