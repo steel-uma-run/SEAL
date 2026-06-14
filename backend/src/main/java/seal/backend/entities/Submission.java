@@ -10,9 +10,13 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Entity
 @Table(name = "submissions")
+@NoArgsConstructor
+@RequiredArgsConstructor
 @Data
 public class Submission {
   @Id

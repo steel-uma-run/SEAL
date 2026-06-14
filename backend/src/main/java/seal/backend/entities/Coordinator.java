@@ -1,23 +1,31 @@
 package seal.backend.entities;
 
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
-import seal.backend.enums.Role;
+import java.util.UUID;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Entity
-@Getter
-@Setter
 @Table(name = "coordinators")
-public class Coordinator extends User {
-  public Coordinator() {}
+@NoArgsConstructor
+@RequiredArgsConstructor
+@Data
+public class Coordinator {
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-  public Coordinator(User user) {
-    super();
-    this.setFullName(user.getFullName());
-    this.setEmail(user.getEmail());
-    this.setPasswordHash(user.getPasswordHash());
-    setRole(Role.COORDINATOR);
-  }
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "id", nullable = false)
+  @Nonnull
+  private User user;
 }

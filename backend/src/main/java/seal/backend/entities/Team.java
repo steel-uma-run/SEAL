@@ -14,10 +14,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import seal.backend.enums.TeamStatus;
 
 @Entity
 @Table(name = "teams")
+@NoArgsConstructor
+@RequiredArgsConstructor
 @Data
 public class Team {
   @Id

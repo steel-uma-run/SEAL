@@ -11,12 +11,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
-import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Entity
 @Table(name = "tracks")
-@Builder
+@NoArgsConstructor
+@RequiredArgsConstructor
 @Data
 public class Track {
   @Id
@@ -24,6 +26,7 @@ public class Track {
   private UUID id;
 
   @Column(nullable = false, columnDefinition = "TEXT")
+  @Nonnull
   private String name;
 
   @Column(columnDefinition = "TEXT", nullable = false)
@@ -32,5 +35,6 @@ public class Track {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "event_id", nullable = false)
+  @Nonnull
   private HackathonEvent event;
 }
