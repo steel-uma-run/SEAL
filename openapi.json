@@ -93,6 +93,37 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": ["seasons"],
+        "operationId": "create_season",
+        "description": "Create a new season",
+        "requestBody": {
+          "description": "Data to create a new season",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSeasonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Season created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Season"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Only Coordinator can perform this action"
+          }
+        }
       }
     },
     "/seasons/{seasonId}": {
@@ -401,6 +432,37 @@
             "type": "integer",
             "minimum": 1990,
             "maximum": 9999
+          }
+        }
+      },
+      "CreateSeasonRequest": {
+        "type": "object",
+        "required": [
+          "semester",
+          "year",
+          "startTime",
+          "endTime"
+        ],
+        "properties": {
+          "semester": {
+            "type": "string",
+            "enum": [
+              "SPRING",
+              "SUMMER",
+              "FALL"
+            ]
+          },
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
