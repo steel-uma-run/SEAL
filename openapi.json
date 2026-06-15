@@ -440,8 +440,8 @@
         "required": [
           "semester",
           "year",
-          "startTime",
-          "endTime"
+          "start_time",
+          "end_time"
         ],
         "properties": {
           "semester": {
@@ -456,11 +456,11 @@
             "type": "integer",
             "format": "int32"
           },
-          "startTime": {
+          "start_time": {
             "type": "string",
             "format": "date-time"
           },
-          "endTime": {
+          "end_time": {
             "type": "string",
             "format": "date-time"
           }
