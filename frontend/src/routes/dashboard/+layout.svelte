@@ -1,6 +1,16 @@
 <script lang="ts">
     import { page } from "$app/stores";
+    import { goto } from "$app/navigation";
+
     let { children } = $props();
+
+    function handleLogout(event: Event) {
+        event.preventDefault();
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("auth_data");
+        }
+        goto("/auth/login");
+    }
 </script>
 
 <div class="flex h-screen bg-[#f8f9fa] overflow-hidden font-sans">
@@ -33,7 +43,7 @@
 
         <!-- Logout -->
         <div class="p-6 border-t border-[#ffe8d6]/50">
-            <a href="/auth/login" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-[#ef4444] font-medium hover:bg-red-50">
+            <a href="/auth/login" onclick={handleLogout} class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-[#ef4444] font-medium hover:bg-red-50">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 Logout
             </a>

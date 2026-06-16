@@ -1,166 +1,106 @@
 <script lang="ts">
-	import "./layout.css"
+    import "./layout.css"
 
-	import { theme } from "$lib/theme.svelte"
-	import { argbFromHex, Hct, hexFromArgb, SchemeNeutral } from "@poupe/material-color-utilities"
+    import { theme } from "$lib/theme.svelte"
+    import { argbFromHex, Hct, hexFromArgb, SchemeNeutral } from "@poupe/material-color-utilities"
+    import { page } from "$app/stores"
+    import { goto } from "$app/navigation"
 
-	let { children } = $props()
+    let { children } = $props()
 
-	// The things one would do to reduce reliance on JavaScript
-	const styleElem = $derived.by(() => {
-		const scheme = new SchemeNeutral(
-			Hct.fromInt(argbFromHex(theme.primaryColor)),
-			theme.darkMode,
-			0
-		)
-		const entries = new Array<string>()
+    let isLoggedIn = $state(false)
 
-		for (const dynamicColor of scheme.colors.allColors) {
-			const token = dynamicColor.name.replaceAll("_", "-")
-			const value = hexFromArgb(dynamicColor.getArgb(scheme))
-			entries.push(`--md-${token}: ${value};`)
-		}
+    $effect(() => {
+        // Track page changes to check if auth_data is present in localStorage
+        const _url = $page.url
+        if (typeof window !== "undefined") {
+            isLoggedIn = !!localStorage.getItem("auth_data")
+        }
+    })
 
-		const str = `<style>:root {${entries.join("\n")}}</style>`
-		return str
-	})
+    function handleLogout() {
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("auth_data")
+            isLoggedIn = false
+            goto("/")
+        }
+    }
+
+    // The things one would do to reduce reliance on JavaScript
+    const styleElem = $derived.by(() => {
+        const scheme = new SchemeNeutral(
+            Hct.fromInt(argbFromHex(theme.primaryColor)),
+            theme.darkMode,
+            0
+        )
+        const entries = new Array<string>()
+
+        for (const dynamicColor of scheme.colors.allColors) {
+            const token = dynamicColor.name.replaceAll("_", "-")
+            const value = hexFromArgb(dynamicColor.getArgb(scheme))
+            entries.push(`--md-${token}: ${value};`)
+        }
+
+        const str = `<style>:root {${entries.join("\n")}}</style>`
+        return str
+    })
 </script>
 
 <svelte:head>
-	<link rel="preconnect" href="https://rsms.me/" />
-	<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
 
-	<style>
-		:root {
-			color: var(--md-on-surface);
-		}
-	</style>
+    <style>
+        :root {
+            color: var(--md-on-surface);
+        }
+    </style>
 
-	{@html styleElem}
+    {@html styleElem}
 </svelte:head>
 
-<div class="app-container" data-theme={theme.darkMode ? "dark" : "light"}>
-	<header class="app-header">
-		<div class="logo">
-			<a href="/">
-				<img
-					src="https://upload.wikimedia.org/wikipedia/commons/1/11/FPT_logo_2010.svg"
-					alt="Logo"
-					class="logo-img"
-				/>
-				<p>SEAL</p>
-			</a>
-		</div>
+<div class="flex flex-col min-h-screen bg-[var(--md-surface)] transition-colors duration-300 ease-in-out" data-theme={theme.darkMode ? "dark" : "light"}>
+    <header class="fixed top-0 left-0 w-full z-[1000] flex justify-between items-center px-8 py-4 bg-[var(--md-surface-container)] border-b border-[var(--md-outline-variant)] transition-colors duration-300 ease-in-out">
+        <div class="text-2xl font-bold text-[var(--md-primary)]">
+            <a href="/" class="flex items-center gap-2.5 no-underline">
+                <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/1/11/FPT_logo_2010.svg"
+                    alt="Logo"
+                    class="h-9 w-auto object-contain block"
+                />
+                <p class="text-[#f54901] text-[2rem] font-bold m-0">SEAL</p>
+            </a>
+        </div>
 
-		<div class="regis-log-btn">
-			<button
-				class="px-4 py-2 font-semibold rounded-lg bg-[var(--md-primary)] text-[var(--md-on-primary)] transition-opacity duration-200 hover:opacity-80"
-				onclick={() => (theme.darkMode = !theme.darkMode)}
-			>
-				{theme.darkMode ? "Light Mode" : "Dark Mode"}
-			</button>
-			<a href="/auth/register" class="btn btn-register">Register</a>
-			<a href="/auth/login" class="btn btn-login">Login</a>
-		</div>
-	</header>
+        <div class="flex items-center gap-5">
+            <button
+                class="px-4 py-2 font-semibold rounded-lg bg-[var(--md-primary)] text-[var(--md-on-primary)] transition-opacity duration-200 hover:opacity-80"
+                onclick={() => (theme.darkMode = !theme.darkMode)}
+            >
+                {theme.darkMode ? "Light Mode" : "Dark Mode"}
+            </button>
+            {#if isLoggedIn}
+                <a href="/dashboard" class="px-5 py-2 rounded-lg font-semibold text-[0.95rem] transition-all duration-200 ease-in-out bg-white text-[#f26f21] border-2 border-[#f26f21] hover:bg-[#fff0e8]">
+                    Dashboard
+                </a>
+                <button
+                    onclick={handleLogout}
+                    class="px-5 py-2 rounded-lg font-semibold text-[0.95rem] transition-all duration-200 ease-in-out bg-[#ef4444] text-white border-2 border-[#ef4444] shadow-[0_2px_4px_rgba(239,68,68,0.2)] hover:bg-[#dc2626] hover:border-[#dc2626] cursor-pointer"
+                >
+                    Logout
+                </button>
+            {:else}
+                <a href="/auth/register" class="px-5 py-2 rounded-lg font-semibold text-[0.95rem] transition-all duration-200 ease-in-out bg-[#f26f21] text-white border-2 border-[#f26f21] shadow-[0_2px_4px_rgba(242,111,33,0.2)] hover:bg-[#d85c14] hover:border-[#d85c14]">
+                    Register
+                </a>
+                <a href="/auth/login" class="px-5 py-2 rounded-lg font-semibold text-[0.95rem] transition-all duration-200 ease-in-out bg-white text-[#f26f21] border-2 border-[#f26f21] hover:bg-[#fff0e8]">
+                    Login
+                </a>
+            {/if}
+        </div>
+    </header>
 
-	<main class="app-main">
-		{@render children()}
-	</main>
+    <main class="pt-[70px] flex-1">
+        {@render children()}
+    </main>
 </div>
-
-<style>
-	.app-container {
-		display: flex;
-		flex-direction: column;
-		min-height: 100vh;
-		background-color: var(--md-surface);
-		transition: background-color 0.3s ease;
-	}
-
-	.logo {
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: var(--md-primary);
-	}
-
-	.logo > a {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-
-	.logo > a > p {
-		color: #f54901;
-		font-size: 2rem;
-		font-weight: 700;
-		margin: 0;
-	}
-
-	.logo-img {
-		height: 36px;
-		width: auto;
-		object-fit: contain;
-		display: block;
-	}
-
-	.regis-log-btn {
-		display: flex;
-		align-items: center;
-		gap: 20px;
-	}
-
-	.btn {
-		padding: 0.5rem 1.25rem;
-		border-radius: 8px;
-		text-decoration: none;
-		font-weight: 600;
-		font-size: 0.95rem;
-		transition: all 0.2s ease;
-	}
-
-	.btn-login {
-		background-color: #ffffff;
-		color: #f26f21;
-		border: 2px solid #f26f21;
-	}
-
-	.btn-login:hover {
-		background-color: #fff0e8;
-	}
-
-	.btn-register {
-		background-color: #f26f21;
-		color: #ffffff;
-		border: 2px solid #f26f21;
-		box-shadow: 0 2px 4px rgba(242, 111, 33, 0.2);
-	}
-
-	.btn-register:hover {
-		background-color: #d85c14;
-		border-color: #d85c14;
-	}
-
-	.app-header {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		box-sizing: border-box;
-		z-index: 1000;
-
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1rem 2rem;
-		background-color: var(--md-surface-container);
-		border-bottom: 1px solid var(--md-outline-variant);
-		transition: background-color 0.3s ease;
-	}
-
-	.app-main {
-		padding-top: 70px;
-		flex: 1;
-	}
-
-</style>
