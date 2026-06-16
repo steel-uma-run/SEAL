@@ -3,6 +3,7 @@
 	import { goto } from "$app/navigation"
 	import { getProfile } from "$lib/api/profile"
 	import { getSeasons } from "$lib/api/seasons"
+	import { theme } from "$lib/theme.svelte"
 
 	// Components
 	import SeasonsList from "./SeasonsList.svelte"
@@ -78,24 +79,24 @@
 	{:else if profile}
 		<!-- Top Header -->
 		<header
-			class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b border-gray-100 pb-6"
+			class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 {theme.darkMode ? 'border-zinc-800' : 'border-gray-100'}"
 		>
 			<div>
-				<h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 tracking-tight">
+				<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
 					Welcome back, {profile.name}!
 				</h1>
-				<p class="text-gray-500 mt-1 text-sm md:text-base">Here is what's happening today.</p>
+				<p class="mt-1 text-sm md:text-base {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">Here is what's happening today.</p>
 			</div>
 
 			<div class="flex items-center gap-4 mt-4 md:mt-0">
 				<div class="text-right hidden sm:block">
-					<p class="font-bold text-gray-800 leading-tight">{profile.name}</p>
+					<p class="font-bold leading-tight {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">{profile.name}</p>
 					<p class="text-xs font-semibold text-[#ea580c] uppercase tracking-wider">
 						{profile.role}
 					</p>
 				</div>
 				<div
-					class="w-12 h-12 rounded-full bg-[#ffedd5] border border-[#fed7aa] flex items-center justify-center text-[#ea580c] font-bold text-xl shadow-sm"
+					class="w-12 h-12 rounded-full flex items-center justify-center text-[#ea580c] font-bold text-xl shadow-sm {theme.darkMode ? 'bg-orange-950/40 border border-orange-900/50' : 'bg-[#ffedd5] border border-[#fed7aa]'}"
 				>
 					{profile.name.charAt(0).toUpperCase()}
 				</div>
@@ -114,11 +115,11 @@
 					<CoordinatorPanel {profile} {seasons} refreshSeasons={fetchSeasons} />
 				{:else}
 					<div
-						class="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center"
+						class="backdrop-blur-md p-8 rounded-2xl shadow-sm border flex flex-col items-center justify-center text-center {theme.darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white/80 border-gray-100'}"
 					>
-						<div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+						<div class="w-16 h-16 rounded-full flex items-center justify-center mb-4 {theme.darkMode ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-100 text-gray-400'}">
 							<svg
-								class="w-8 h-8 text-gray-400"
+								class="w-8 h-8"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -130,8 +131,8 @@
 								></path></svg
 							>
 						</div>
-						<h3 class="text-lg font-semibold text-gray-900">No specific tools available</h3>
-						<p class="text-gray-500 mt-2">
+						<h3 class="text-lg font-semibold {theme.darkMode ? 'text-zinc-100' : 'text-gray-900'}">No specific tools available</h3>
+						<p class="mt-2 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
 							Your role doesn't have any specific dashboard tools configured yet.
 						</p>
 					</div>
@@ -140,16 +141,16 @@
 
 			<div class="xl:col-span-1 space-y-8">
 				<div
-					class="bg-white p-8 rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100"
+					class="p-8 rounded-3xl border transition-all {theme.darkMode ? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]' : 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
 				>
-					<h2 class="text-xl font-bold text-gray-800 mb-8">Hackathon Timeline</h2>
+					<h2 class="text-xl font-bold mb-8 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Hackathon Timeline</h2>
 
 					<div
-						class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-200 before:to-transparent"
+						class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent {theme.darkMode ? 'before:via-zinc-800' : 'before:via-gray-200'} before:to-transparent"
 					>
 						<div class="relative flex items-center gap-4">
 							<div
-								class="w-10 h-10 rounded-full bg-white border-2 border-[#ea580c] text-[#ea580c] flex items-center justify-center shrink-0 z-10 shadow-sm"
+								class="w-10 h-10 rounded-full border-2 border-[#ea580c] text-[#ea580c] flex items-center justify-center shrink-0 z-10 shadow-sm {theme.darkMode ? 'bg-zinc-900' : 'bg-white'}"
 							>
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
 									><path
@@ -161,14 +162,14 @@
 								>
 							</div>
 							<div>
-								<h4 class="font-bold text-gray-800 text-sm">Team Formation Deadline</h4>
-								<p class="text-xs text-gray-500 mt-0.5">June 10, 2026</p>
+								<h4 class="font-bold text-sm {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Team Formation Deadline</h4>
+								<p class="text-xs mt-0.5 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">June 10, 2026</p>
 							</div>
 						</div>
 
 						<div class="relative flex items-center gap-4">
 							<div
-								class="w-10 h-10 rounded-full bg-white border-2 border-[#ea580c] text-[#ea580c] flex items-center justify-center shrink-0 z-10 shadow-sm"
+								class="w-10 h-10 rounded-full border-2 border-[#ea580c] text-[#ea580c] flex items-center justify-center shrink-0 z-10 shadow-sm {theme.darkMode ? 'bg-zinc-900' : 'bg-white'}"
 							>
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
 									><path
@@ -180,14 +181,14 @@
 								>
 							</div>
 							<div>
-								<h4 class="font-bold text-gray-800 text-sm">Project Submission</h4>
-								<p class="text-xs text-gray-500 mt-0.5">June 13, 2026 - 11:59 PM</p>
+								<h4 class="font-bold text-sm {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Project Submission</h4>
+								<p class="text-xs mt-0.5 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">June 13, 2026 - 11:59 PM</p>
 							</div>
 						</div>
 
 						<div class="relative flex items-center gap-4">
 							<div
-								class="w-10 h-10 rounded-full bg-white border-2 border-gray-200 text-gray-400 flex items-center justify-center shrink-0 z-10"
+								class="w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 z-10 {theme.darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-500' : 'bg-white border-gray-200 text-gray-400'}"
 							>
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
 									><path
@@ -199,8 +200,8 @@
 								>
 							</div>
 							<div>
-								<h4 class="font-bold text-gray-800 text-sm">Pitching & Judging</h4>
-								<p class="text-xs text-gray-500 mt-0.5">June 15, 2026</p>
+								<h4 class="font-bold text-sm {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Pitching & Judging</h4>
+								<p class="text-xs mt-0.5 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">June 15, 2026</p>
 							</div>
 						</div>
 					</div>
