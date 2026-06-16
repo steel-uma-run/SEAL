@@ -79,17 +79,7 @@
             >
                 {theme.darkMode ? "Light Mode" : "Dark Mode"}
             </button>
-            {#if isLoggedIn}
-                <a href="/dashboard" class="px-5 py-2 rounded-lg font-semibold text-[0.95rem] transition-all duration-200 ease-in-out bg-white text-[#f26f21] border-2 border-[#f26f21] hover:bg-[#fff0e8]">
-                    Dashboard
-                </a>
-                <button
-                    onclick={handleLogout}
-                    class="px-5 py-2 rounded-lg font-semibold text-[0.95rem] transition-all duration-200 ease-in-out bg-[#ef4444] text-white border-2 border-[#ef4444] shadow-[0_2px_4px_rgba(239,68,68,0.2)] hover:bg-[#dc2626] hover:border-[#dc2626] cursor-pointer"
-                >
-                    Logout
-                </button>
-            {:else}
+            {#if !isLoggedIn}
                 <a href="/auth/register" class="px-5 py-2 rounded-lg font-semibold text-[0.95rem] transition-all duration-200 ease-in-out bg-[#f26f21] text-white border-2 border-[#f26f21] shadow-[0_2px_4px_rgba(242,111,33,0.2)] hover:bg-[#d85c14] hover:border-[#d85c14]">
                     Register
                 </a>
