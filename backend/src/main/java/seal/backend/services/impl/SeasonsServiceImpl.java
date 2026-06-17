@@ -1,5 +1,6 @@
 package seal.backend.services.impl;
 
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -9,8 +10,6 @@ import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.Season;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.services.SeasonsService;
-import seal.openapi.model.SeasonDto;
-import seal.openapi.model.SeasonSemesterDto;
 
 @Service
 @RequiredArgsConstructor
@@ -18,26 +17,29 @@ public class SeasonsServiceImpl implements SeasonsService {
   private final SeasonRepository seasonRepository;
 
   @Override
-  public SeasonDto[] getAllSeasons() {
-    List<Season> seasonEntities = seasonRepository.findAll();
-
-    return seasonEntities.stream()
-        .map(
-            entity -> {
-              return new SeasonDto(entity.getId(), SeasonSemesterDto.SPRING, 2000);
-            })
-        .toArray(SeasonDto[]::new);
+  public List<Season> getAllSeasons() {
+    return seasonRepository.findAll();
   }
 
   @Override
-  public SeasonDto getSeason(UUID seasonId) {
-    Season season =
-        seasonRepository
-            .findById(seasonId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season does not exist"));
+  public Season getSeason(UUID seasonId) {
+    return seasonRepository
+        .findById(seasonId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season does not exist"));
+  }
 
-    // TODO: complete
-    return new SeasonDto(season.getId(), SeasonSemesterDto.SPRING, 2026);
+  @Override
+  @Transactional
+  public Season createSeason(Season newSeason) {
+    boolean isDuplicate =
+        seasonRepository.existsBySemesterAndYear(newSeason.getSemester(), newSeason.getYear());
+    if (isDuplicate) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "The " + newSeason.getSemester() + newSeason.getYear() + " season already exists.");
+    }
+
+    return seasonRepository.save(newSeason);
   }
 }

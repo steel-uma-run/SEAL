@@ -1,10 +1,13 @@
 package seal.backend.services;
 
+import java.util.List;
 import java.util.UUID;
-import seal.openapi.model.SeasonDto;
+import seal.backend.entities.Season;
 
 public interface SeasonsService {
-  public SeasonDto[] getAllSeasons();
+  List<Season> getAllSeasons();
 
-  public SeasonDto getSeason(UUID seasonId);
+  Season getSeason(UUID seasonId);
+
+  Season createSeason(Season newSeason);
 }
