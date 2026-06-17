@@ -103,112 +103,114 @@
 			</div>
 		</header>
         
-		<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-			<div class="xl:col-span-2 space-y-8">
-				{#if profile.role === "STUDENT"}
-					<StudentPanel {profile} {seasons} />
-				{:else if profile.role === "JUDGE"}
-					<JudgePanel />
-				{:else if profile.role === "MENTOR"}
-					<MentorPanel />
-				{:else if profile.role === "COORDINATOR"}
-					<CoordinatorPanel {profile} {seasons} refreshSeasons={fetchSeasons} />
-				{:else}
-					<div
-						class="backdrop-blur-md p-8 rounded-2xl shadow-sm border flex flex-col items-center justify-center text-center {theme.darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white/80 border-gray-100'}"
-					>
-						<div class="w-16 h-16 rounded-full flex items-center justify-center mb-4 {theme.darkMode ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-100 text-gray-400'}">
-							<svg
-								class="w-8 h-8"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								><path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-								></path></svg
-							>
-						</div>
-						<h3 class="text-lg font-semibold {theme.darkMode ? 'text-zinc-100' : 'text-gray-900'}">No specific tools available</h3>
-						<p class="mt-2 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-							Your role doesn't have any specific dashboard tools configured yet.
-						</p>
-					</div>
-				{/if}
-			</div>
-
-			<div class="xl:col-span-1 space-y-8">
-				<div
-					class="p-8 rounded-3xl border transition-all {theme.darkMode ? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]' : 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
-				>
-					<h2 class="text-xl font-bold mb-8 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Hackathon Timeline</h2>
-
-					<div
-						class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent {theme.darkMode ? 'before:via-zinc-800' : 'before:via-gray-200'} before:to-transparent"
-					>
-						<div class="relative flex items-center gap-4">
-							<div
-								class="w-10 h-10 rounded-full border-2 border-[#ea580c] text-[#ea580c] flex items-center justify-center shrink-0 z-10 shadow-sm {theme.darkMode ? 'bg-zinc-900' : 'bg-white'}"
-							>
-								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+		{#if profile.role === "COORDINATOR"}
+			<CoordinatorPanel {profile} {seasons} refreshSeasons={fetchSeasons} />
+		{:else}
+			<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+				<div class="xl:col-span-2 space-y-8">
+					{#if profile.role === "STUDENT"}
+						<StudentPanel {profile} {seasons} />
+					{:else if profile.role === "JUDGE"}
+						<JudgePanel />
+					{:else if profile.role === "MENTOR"}
+						<MentorPanel />
+					{:else}
+						<div
+							class="backdrop-blur-md p-8 rounded-2xl shadow-sm border flex flex-col items-center justify-center text-center {theme.darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white/80 border-gray-100'}"
+						>
+							<div class="w-16 h-16 rounded-full flex items-center justify-center mb-4 {theme.darkMode ? 'bg-zinc-800 text-zinc-400' : 'bg-gray-100 text-gray-400'}">
+								<svg
+									class="w-8 h-8"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
 									><path
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+										d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 									></path></svg
 								>
 							</div>
-							<div>
-								<h4 class="font-bold text-sm {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Team Formation Deadline</h4>
-								<p class="text-xs mt-0.5 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">June 10, 2026</p>
-							</div>
+							<h3 class="text-lg font-semibold {theme.darkMode ? 'text-zinc-100' : 'text-gray-900'}">No specific tools available</h3>
+							<p class="mt-2 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+								Your role doesn't have any specific dashboard tools configured yet.
+							</p>
 						</div>
-
-						<div class="relative flex items-center gap-4">
-							<div
-								class="w-10 h-10 rounded-full border-2 border-[#ea580c] text-[#ea580c] flex items-center justify-center shrink-0 z-10 shadow-sm {theme.darkMode ? 'bg-zinc-900' : 'bg-white'}"
-							>
-								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-									><path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-									></path></svg
-								>
-							</div>
-							<div>
-								<h4 class="font-bold text-sm {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Project Submission</h4>
-								<p class="text-xs mt-0.5 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">June 13, 2026 - 11:59 PM</p>
-							</div>
-						</div>
-
-						<div class="relative flex items-center gap-4">
-							<div
-								class="w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 z-10 {theme.darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-500' : 'bg-white border-gray-200 text-gray-400'}"
-							>
-								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-									><path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-									></path></svg
-								>
-							</div>
-							<div>
-								<h4 class="font-bold text-sm {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Pitching & Judging</h4>
-								<p class="text-xs mt-0.5 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">June 15, 2026</p>
-							</div>
-						</div>
-					</div>
+					{/if}
 				</div>
 
-				<SeasonsList {seasons} errorMessage={seasonsError} />
+				<div class="xl:col-span-1 space-y-8">
+					<div
+						class="p-8 rounded-3xl border transition-all {theme.darkMode ? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]' : 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
+					>
+						<h2 class="text-xl font-bold mb-8 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Hackathon Timeline</h2>
+
+						<div
+							class="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent {theme.darkMode ? 'before:via-zinc-800' : 'before:via-gray-200'} before:to-transparent"
+						>
+							<div class="relative flex items-center gap-4">
+								<div
+									class="w-10 h-10 rounded-full border-2 border-[#ea580c] text-[#ea580c] flex items-center justify-center shrink-0 z-10 shadow-sm {theme.darkMode ? 'bg-zinc-900' : 'bg-white'}"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+										><path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+										></path></svg
+									>
+								</div>
+								<div>
+									<h4 class="font-bold text-sm {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Team Formation Deadline</h4>
+									<p class="text-xs mt-0.5 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">June 10, 2026</p>
+								</div>
+							</div>
+
+							<div class="relative flex items-center gap-4">
+								<div
+									class="w-10 h-10 rounded-full border-2 border-[#ea580c] text-[#ea580c] flex items-center justify-center shrink-0 z-10 shadow-sm {theme.darkMode ? 'bg-zinc-900' : 'bg-white'}"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+										><path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+										></path></svg
+									>
+								</div>
+								<div>
+									<h4 class="font-bold text-sm {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Project Submission</h4>
+									<p class="text-xs mt-0.5 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">June 13, 2026 - 11:59 PM</p>
+								</div>
+							</div>
+
+							<div class="relative flex items-center gap-4">
+								<div
+									class="w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 z-10 {theme.darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-500' : 'bg-white border-gray-200 text-gray-400'}"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+										><path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+										></path></svg
+									>
+								</div>
+								<div>
+									<h4 class="font-bold text-sm {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Pitching & Judging</h4>
+									<p class="text-xs mt-0.5 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">June 15, 2026</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<SeasonsList {seasons} errorMessage={seasonsError} />
+				</div>
 			</div>
-		</div>
+		{/if}
 	{/if}
 </div>
