@@ -7,14 +7,13 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.config.GlobalConfig;
-import seal.backend.entities.Season;
-import seal.backend.mapper.SeasonMapper;
 import seal.backend.services.SeasonsService;
 import seal.openapi.api.SeasonsApi;
 import seal.openapi.model.CreateSeasonRequestDto;
@@ -25,36 +24,26 @@ import seal.openapi.model.SeasonDto;
 @RequestMapping(GlobalConfig.API_BASE)
 public class SeasonsController implements SeasonsApi {
   private final SeasonsService seasonsService;
-  private final SeasonMapper seasonMapper;
 
   @Override
   public ResponseEntity<SeasonDto[]> getAllSeasons() {
-    // Lấy list Entity từ DB
-    List<Season> seasons = seasonsService.getAllSeasons();
-
-    // Dùng stream() kết hợp MapStruct để dịch toàn bộ list sang DTO Array
-    SeasonDto[] dtos = seasons.stream().map(seasonMapper::toDto).toArray(SeasonDto[]::new);
-
-    return ResponseEntity.ok(dtos);
+    List<SeasonDto> dtos = seasonsService.getAllSeasons();
+    return ResponseEntity.ok(dtos.toArray(SeasonDto[]::new));
   }
 
   @Override
   public ResponseEntity<SeasonDto> getSeason(
       @PathVariable(name = "seasonId") @NotNull UUID seasonId) {
-
-    Season season = seasonsService.getSeason(seasonId);
-    return ResponseEntity.ok(seasonMapper.toDto(season));
+    SeasonDto seasonDto = seasonsService.getSeason(seasonId);
+    return ResponseEntity.ok(seasonDto);
   }
 
   @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<SeasonDto> createSeason(
       @RequestBody @Valid @NotNull CreateSeasonRequestDto request) {
-
-    Season entityToSave = seasonMapper.toEntity(request);
-
-    Season savedEntity = seasonsService.createSeason(entityToSave);
-
-    return ResponseEntity.status(HttpStatus.CREATED).body(seasonMapper.toDto(savedEntity));
+    SeasonDto responseDto = seasonsService.createSeason(request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
   }
 
   // TODO: implement
