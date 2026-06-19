@@ -65,7 +65,8 @@ public class SecurityConfig {
                     .requestMatchers(
                         HttpMethod.GET,
                         GlobalConfig.API_BASE + "/seasons/**",
-                        GlobalConfig.API_BASE + "/events/**")
+                        GlobalConfig.API_BASE + "/events/**",
+                        GlobalConfig.API_BASE + "/tracks/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
