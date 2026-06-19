@@ -1,7 +1,6 @@
 package seal.backend.repositories;
 
 import jakarta.validation.constraints.NotNull;
-
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
