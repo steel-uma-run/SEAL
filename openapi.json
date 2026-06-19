@@ -241,50 +241,6 @@
         }
       }
     },
-    "/seasons/{seasonId}/events/{eventId}/tracks": {
-      "parameters": [
-        {
-          "name": "seasonId",
-          "description": "ID of the season",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          }
-        },
-        {
-          "name": "eventId",
-          "description": "ID of the event",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      ],
-      "get": {
-        "tags": ["tracks", "events", "seasons"],
-        "operationId": "get_all_tracks_of_event",
-        "description": "Returns all tracks belonging to an event",
-        "responses": {
-          "200": {
-            "description": "Tracks data",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Track"
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/ClientErrorResponse"
-          }
-        }
-      }
-    },
     "/seasons/{seasonId}/events/{eventId}/teams": {
       "parameters": [
         {
@@ -319,6 +275,107 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Team"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/tracks/{trackId}": {
+      "parameters": [
+        {
+          "name": "trackId",
+          "description": "ID of the track to retrieve",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["tracks"],
+        "operationId": "get_track",
+        "description": "Get details of a specific track",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/tracks": {
+      "parameters": [
+        {
+          "name": "eventId",
+          "description": "ID of the event",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["tracks", "events"],
+        "operationId": "get_all_tracks_of_event",
+        "description": "Get a list of all tracks for a specific event",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Track"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      },
+      "post": {
+        "tags": ["tracks", "events"],
+        "operationId": "create_track",
+        "description": "Create a new track for an event",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTrackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track"
                 }
               }
             }
@@ -446,6 +503,21 @@
           "event_id": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "CreateTrackRequest": {
+        "description": "Payload to create a new track",
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the track"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the track"
           }
         }
       },
