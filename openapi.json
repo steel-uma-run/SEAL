@@ -466,6 +466,13 @@
             "type": "integer",
             "minimum": 1990,
             "maximum": 9999
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "FINALIZED"
+            ]
           }
         }
       },
@@ -473,9 +480,7 @@
         "type": "object",
         "required": [
           "semester",
-          "year",
-          "start_time",
-          "end_time"
+          "year"
         ],
         "properties": {
           "semester": {
@@ -489,14 +494,6 @@
           "year": {
             "type": "integer",
             "format": "int32"
-          },
-          "start_time": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "end_time": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
