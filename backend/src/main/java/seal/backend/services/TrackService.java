@@ -2,12 +2,13 @@ package seal.backend.services;
 
 import java.util.List;
 import java.util.UUID;
-import seal.backend.entities.Track;
-import seal.backend.requests.CreateTrackRequest;
-import seal.backend.responses.CreateTrackResponse;
+import seal.openapi.model.CreateTrackRequestDto;
+import seal.openapi.model.TrackDto;
 
 public interface TrackService {
-  CreateTrackResponse createTrack(UUID eventId, CreateTrackRequest request);
+  List<TrackDto> getAllTracksOfEvent(UUID eventId);
 
-  List<Track> getTracksByEventId(UUID eventId);
+  TrackDto getTrack(UUID trackId);
+
+  TrackDto createTrack(CreateTrackRequestDto request, UUID eventId);
 }

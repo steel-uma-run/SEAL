@@ -1,40 +1,47 @@
 package seal.backend.controllers;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import seal.backend.entities.Track;
-import seal.backend.requests.CreateTrackRequest;
-import seal.backend.responses.CreateTrackResponse;
+import seal.backend.config.GlobalConfig;
 import seal.backend.services.TrackService;
+import seal.openapi.api.TracksApi;
+import seal.openapi.model.CreateTrackRequestDto;
+import seal.openapi.model.TrackDto;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/events")
-class TrackController {
+@RequestMapping(GlobalConfig.API_BASE)
+public class TrackController implements TracksApi {
   private final TrackService trackService;
 
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  @PostMapping("/{event_id}/tracks")
-  public ResponseEntity<CreateTrackResponse> createTrack(
-      @PathVariable("event_id") UUID eventId, @Valid @RequestBody CreateTrackRequest request) {
-
-    CreateTrackResponse response = trackService.createTrack(eventId, request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+  @Override
+  public ResponseEntity<TrackDto[]> getAllTracksOfEvent(
+      @PathVariable(name = "eventId") @NotNull UUID eventId) {
+    List<TrackDto> dtos = trackService.getAllTracksOfEvent(eventId);
+    return ResponseEntity.ok(dtos.toArray(TrackDto[]::new));
   }
 
-  @GetMapping("/{event_id}/tracks")
-  public ResponseEntity<List<Track>> getTracksByEventId(@PathVariable("event_id") UUID eventId) {
-    return ResponseEntity.ok(trackService.getTracksByEventId(eventId));
+  @Override
+  public ResponseEntity<TrackDto> getTrack(@PathVariable(name = "trackId") @NotNull UUID trackId) {
+    TrackDto trackDto = trackService.getTrack(trackId);
+    return ResponseEntity.ok(trackDto);
+  }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<TrackDto> createTrack(
+      @PathVariable(name = "eventId") @NotNull UUID eventId,
+      @RequestBody @Valid @NotNull CreateTrackRequestDto request) {
+    TrackDto responseDto = trackService.createTrack(request, eventId);
+    return ResponseEntity.ok(responseDto);
   }
 }
