@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import seal.backend.config.GlobalConfig;
 import seal.backend.services.SeasonsService;
 import seal.openapi.api.SeasonsApi;
@@ -44,12 +43,5 @@ public class SeasonsController implements SeasonsApi {
       @RequestBody @Valid @NotNull CreateSeasonRequestDto request) {
     SeasonDto responseDto = seasonsService.createSeason(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
-  }
-
-  // TODO: implement
-  @Override
-  public ResponseEntity<SeasonDto> createSeason(
-      @RequestBody @Valid @NotNull CreateSeasonRequestDto body) {
-    throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
   }
 }
