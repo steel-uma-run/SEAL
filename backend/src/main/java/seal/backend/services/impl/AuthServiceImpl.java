@@ -1,5 +1,6 @@
 package seal.backend.services.impl;
 
+import jakarta.transaction.Transactional;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,9 +35,15 @@ public class AuthServiceImpl implements AuthService {
   private final AuthenticationManager authenticationManager;
 
   @Override
+  @Transactional
   public void register(RegisterRequestPayloadDto request) {
     if (userRepository.findByEmail(request.email()).isPresent()) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "This email is already registered.");
+    }
+
+    if (studentRepository.existsByStudentId(request.studentId())) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "This Student ID is already registered.");
     }
 
     User newUser =
@@ -51,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
             newUser,
             request.isExternal() ? StudentType.EXTERNAL : StudentType.FPT,
             StudentStatus.PENDING,
-            request.studentId());
+            request.studentId().toUpperCase());
 
     userRepository.save(newUser);
     studentRepository.save(newStudent);
