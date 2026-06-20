@@ -26,7 +26,7 @@
 
 <div class="max-w-2xl mx-auto w-full p-6 md:p-10">
     <a
-        href="/dashboard"
+        href="/student"
         class="inline-flex items-center gap-2 transition-colors mb-8 font-medium
         {theme.darkMode ? 'text-zinc-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-600'}"
     >

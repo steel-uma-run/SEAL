@@ -1,5 +1,6 @@
 <script lang="ts">
     import { login } from "$lib/api/auth"
+    import { getProfile } from "$lib/api/profile"
     import { goto } from "$app/navigation"
     import { Eye, EyeOff } from "@lucide/svelte"
 
@@ -22,7 +23,23 @@
             if (response.ok) {
                 const data = await response.json()
                 localStorage.setItem("auth_data", JSON.stringify(data))
-                goto("/dashboard")
+                
+                // Fetch profile to determine role and redirect
+                const profileRes = await getProfile()
+                if (profileRes.ok) {
+                    const profile = await profileRes.json()
+                    if (profile.role === "COORDINATOR") {
+                        goto("/coordinator")
+                    } else if (profile.role === "STUDENT") {
+                        goto("/student")
+                    } else if (profile.role === "MENTOR" || profile.role === "JUDGE") {
+                        goto("/mentor")
+                    } else {
+                        goto("/")
+                    }
+                } else {
+                    goto("/")
+                }
             } else {
                 errorMessage = "Invalid email or password"
             }
@@ -30,7 +47,7 @@
             console.error("Login failed:", error)
             errorMessage = "An error occurred. Please try again later."
         } finally {
-            isLoading = false
+            isLoading = false;
         }
     }
 </script>
@@ -72,7 +89,7 @@
                     {/if}
                 </button>
             </div>
-            <a href="/forgot-password" class="mt-2 self-end text-sm text-blue-600 hover:underline">
+            <a href="/auth/forgot-password" class="mt-2 self-end text-sm text-blue-600 hover:underline">
                 Forgot password?
             </a>
 
