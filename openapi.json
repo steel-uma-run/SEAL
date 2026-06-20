@@ -73,6 +73,39 @@
         }
       }
     },
+    "/teams": {
+      "post": {
+        "tags": ["teams"],
+        "operationId": "create_team",
+        "description": "Create a new team",
+        "security": [{"bearerAuthentication": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Team created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Team"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/seasons": {
       "get": {
         "tags": ["seasons"],
@@ -274,7 +307,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Team"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Team"
+                  }
                 }
               }
             }
@@ -443,6 +479,23 @@
         "description": "Email of the user",
         "type": "string",
         "format": "email"
+      },
+      "CreateTeamRequest": {
+        "type": "object",
+        "required": ["name", "description", "event_id"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the Event"
+          }
+        }
       },
       "HackathonEvent": {
         "description": "A hackathon event",
