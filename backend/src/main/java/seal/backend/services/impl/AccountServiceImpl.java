@@ -31,5 +31,6 @@ public class AccountServiceImpl implements AccountService {
     }
 
     student.setStudentStatus(StudentStatus.ACTIVE);
+    studentRepository.save(student);
   }
 }
