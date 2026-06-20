@@ -5,10 +5,11 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import seal.backend.entities.Student;
+import seal.backend.entities.User;
 import seal.backend.enums.StudentStatus;
 
 public interface StudentRepository extends JpaRepository<Student, UUID> {
-  Optional<Student> findByUserId(UUID id);
+  Optional<Student> findByUser(User user);
 
   List<Student> findByStudentStatus(StudentStatus studentStatus);
 }

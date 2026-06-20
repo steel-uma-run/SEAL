@@ -1,8 +1,12 @@
 package seal.backend.services;
 
-import seal.backend.entities.Team;
-import seal.backend.requests.CreateTeamRequest;
+import java.util.List;
+import java.util.UUID;
+import seal.openapi.model.CreateTeamRequestDto;
+import seal.openapi.model.TeamDto;
 
 public interface TeamService {
-  Team createTeam(CreateTeamRequest request);
+  TeamDto createTeam(CreateTeamRequestDto request);
+
+  List<TeamDto> getAllTeamsOfEvent(UUID eventId);
 }
