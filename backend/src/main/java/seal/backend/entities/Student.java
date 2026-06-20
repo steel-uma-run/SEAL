@@ -45,7 +45,7 @@ public class Student {
   @Nonnull
   private StudentStatus studentStatus;
 
-  @Column(nullable = false)
+  @Column(nullable = false, unique = true)
   @Nonnull
   private String studentId;
 
