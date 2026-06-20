@@ -8,7 +8,6 @@
         Search, 
         Filter, 
         Plus, 
-        Upload, 
         Edit3, 
         Eye, 
         Trash2, 
@@ -36,7 +35,6 @@
 
     // Modal Control State
     let showAddModal = $state(false);
-    let showImportModal = $state(false);
     let showEditModal = $state(false);
     let showViewModal = $state(false);
     let showDeleteModal = $state(false);
@@ -55,15 +53,12 @@
     let successMessage = $state("");
     let errorMessage = $state("");
 
-    // CSV input for import simulation
-    let csvData = $state("");
-
     // Derived filtered users list
     let filteredUsers = $derived(
         users.filter(u => {
             const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                  u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                  u.id.includes(searchQuery);
+                                   u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                   u.id.includes(searchQuery);
             const matchesRole = roleFilter === "ALL" || u.role === roleFilter;
             const matchesStatus = statusFilter === "ALL" || u.status === statusFilter;
             return matchesSearch && matchesRole && matchesStatus;
@@ -104,7 +99,6 @@
             return;
         }
 
-        // Check if email already exists
         if (users.some(u => u.email.toLowerCase() === formEmail.toLowerCase())) {
             showNotification("Email already registered.", "error");
             return;
@@ -172,65 +166,7 @@
         showDeleteModal = false;
         showNotification("User deleted successfully!");
     }
-
-    function handleImportCSV(e: Event) {
-        e.preventDefault();
-        if (!csvData.trim()) {
-            showNotification("Please paste some CSV data first.", "error");
-            return;
-        }
-
-        // Simple CSV parsing simulation: Full Name, Email, Role
-        const lines = csvData.trim().split("\n");
-        let addedCount = 0;
-        let errors = 0;
-
-        lines.forEach((line, index) => {
-            // Skip header if detected
-            if (index === 0 && line.toLowerCase().includes("email")) return;
-
-            const parts = line.split(",");
-            if (parts.length >= 2) {
-                const name = parts[0].trim();
-                const email = parts[1].trim();
-                let role = parts[2]?.trim().toUpperCase() || "STUDENT";
-                
-                if (role !== "STUDENT" && role !== "LECTURER" && role !== "COORDINATOR") {
-                    role = "STUDENT";
-                }
-
-                if (name && email && !users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-                    const newId = String(100000 + users.length + 1);
-                    users.push({
-                        id: newId,
-                        name,
-                        email,
-                        role,
-                        status: "ACTIVE"
-                    });
-                    addedCount++;
-                } else {
-                    errors++;
-                }
-            }
-        });
-
-        // Trigger reactivity for users array
-        users = [...users];
-        showImportModal = false;
-        csvData = "";
-        
-        if (addedCount > 0) {
-            showNotification(`Imported ${addedCount} users successfully! ${errors > 0 ? `${errors} skipped.` : ""}`);
-        } else {
-            showNotification("No new users imported. Check formatting or duplicates.", "error");
-        }
-    }
 </script>
-
-<svelte:head>
-    <title>User Management - SEAL</title>
-</svelte:head>
 
 <div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full">
     <!-- Success & Error Banners -->
@@ -334,8 +270,13 @@
                     type="text" 
                     bind:value={searchQuery}
                     placeholder="Search by ID, name, or email..." 
-                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none transition-all text-sm {theme.darkMode ? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-650 focus:ring-2 focus:ring-orange-500' : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none transition-all text-sm {theme.darkMode ? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500' : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
                 />
+                {#if searchQuery}
+                    <button type="button" onclick={() => searchQuery = ""} class="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-xs font-bold text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer border-0 bg-transparent">
+                        Clear
+                    </button>
+                {/if}
             </div>
 
             <!-- Role & Status selectors -->
@@ -509,7 +450,7 @@
                     {#if formRole === "STUDENT"}
                         <div class="space-y-1">
                             <label for="add-student-id" class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">Student ID</label>
-                            <input id="add-student-id" type="text" bind:value={formStudentId} placeholder="SE160000" class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode ? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-650 focus:ring-2 focus:ring-orange-500' : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}" />
+                            <input id="add-student-id" type="text" bind:value={formStudentId} placeholder="SE160000" class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode ? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500' : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}" />
                         </div>
                     {/if}
                 </div>
@@ -554,7 +495,7 @@
             <form onsubmit={handleEditUser} class="flex flex-col gap-4">
                 <div class="space-y-1">
                     <label for="edit-user-id" class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">User ID</label>
-                    <input id="edit-user-id" type="text" value="#{selectedUser.id}" disabled class="w-full rounded-xl border p-3 bg-gray-100 dark:bg-zinc-950/40 text-gray-500 cursor-not-allowed outline-none border-gray-200 dark:border-zinc-800" />
+                    <input id="edit-user-id" type="text" value="#{selectedUser.id}" disabled class="w-full rounded-xl border p-3 bg-gray-100 dark:bg-zinc-950/40 text-gray-500 cursor-not-allowed outline-none border-gray-250 dark:border-zinc-800" />
                 </div>
 
                 <div class="space-y-1">
@@ -564,7 +505,7 @@
 
                 <div class="space-y-1">
                     <label for="edit-email" class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">Email (Cannot be modified)</label>
-                    <input id="edit-email" type="email" value={formEmail} disabled class="w-full rounded-xl border p-3 bg-gray-100 dark:bg-zinc-950/40 text-gray-500 cursor-not-allowed outline-none border-gray-200 dark:border-zinc-800" />
+                    <input id="edit-email" type="email" value={formEmail} disabled class="w-full rounded-xl border p-3 bg-gray-100 dark:bg-zinc-950/40 text-gray-500 cursor-not-allowed outline-none border-gray-250 dark:border-zinc-800" />
                 </div>
 
                 <div class="space-y-1">
@@ -644,7 +585,7 @@
                 </div>
             </div>
 
-            <button onclick={() => showViewModal = false} class="mt-8 bg-zinc-500 hover:bg-zinc-650 text-white rounded-xl py-3 font-semibold transition-all w-full cursor-pointer border-0">
+            <button onclick={() => showViewModal = false} class="mt-8 bg-zinc-500 hover:bg-zinc-600 text-white rounded-xl py-3 font-semibold transition-all w-full cursor-pointer border-0">
                 Close Profile
             </button>
         </div>

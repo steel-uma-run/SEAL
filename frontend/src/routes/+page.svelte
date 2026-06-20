@@ -1,54 +1,54 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { getSeasons } from '$lib/api/seasons';
+    import { formatDate, formatFullDate } from '$lib/utils/formatters.js';
 
     let activeSeasons: any[] = $state([]);
     let selectedSeason: any = $state(null); 
     let isLoading: boolean = $state(true);
 
-    onMount(async () => {
-        try {
-            const response = await getSeasons();
-            if (response.ok) {
-                const data = await response.json();
+    const mockSeasons = [
+        {
+            id: "ss-01",
+            name: "SEAL Hackathon 2026: AI for Good",
+            description: "Tham gia mùa hackathon mới nhất để thử thách bản thân, gặp gỡ những người cùng chí hướng và xây dựng các giải pháp đột phá sử dụng Trí tuệ Nhân tạo (AI). Đội ngũ Mentor xịn xò đang chờ đón bạn!",
+            imageUrl: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1000&auto=format&fit=crop",
+            start_time: "2026-06-03T08:00:00Z",
+            end_time: "2026-06-05T17:00:00Z"
+        },
+        {
+            id: "ss-02",
+            name: "SEAL Hackathon: Green Tech Revolution",
+            description: "Tập trung vào phát triển bền vững và bảo vệ môi trường. Hãy xây dựng các giải pháp phần mềm hoặc phần cứng giúp giảm thiểu rác thải, tối ưu năng lượng và kiến tạo tương lai xanh.",
+            imageUrl: "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?q=80&w=1000&auto=format&fit=crop",
+            start_time: "2026-08-15T08:00:00Z",
+            end_time: "2026-08-17T17:00:00Z"
+        },
+        {
+            id: "ss-03",
+            name: "SEAL Mini-Hack: FinTech Disruptors",
+            description: "Đột phá lĩnh vực tài chính trong 48 giờ. Tạo ra các ứng dụng cho tài chính phi tập trung (DeFi), hợp đồng thông minh, hoặc công cụ quản lý tài chính cá nhân dành cho sinh viên.",
+            imageUrl: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=1000&auto=format&fit=crop",
+            start_time: "2026-11-10T08:00:00Z",
+            end_time: "2026-11-12T17:00:00Z"
+        }
+    ];
+
+    onMount(() => {
+        setTimeout(() => {
+            try {
+                const data = mockSeasons; 
                 if (data && data.length > 0) {
                     activeSeasons = data; 
-                    selectedSeason = data[0]; // Mặc định chọn season đầu tiên
+                    selectedSeason = data[0];
                 }
+            } catch (error) {
+                console.error("Lỗi khi tải dữ liệu Season:", error);
+            } finally {
+                isLoading = false; 
             }
-        } catch (error) {
-            console.error("Lỗi khi tải dữ liệu Season:", error);
-        } finally {
-            isLoading = false; 
-        }
+        }, 1500);
     });
-
-    // Format ngày cho phần Master (VD: 03 JUN)
-    function formatDate(dateString: string) {
-        if (!dateString) return { day: '--', month: '---' };
-        const date = new Date(dateString);
-        return {
-            day: String(date.getDate()).padStart(2, '0'),
-            month: date.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase()
-        };
-    }
-
-    // Format ngày cho phần Detail (VD: 1st June 2026)
-    function formatFullDate(dateString: string) {
-        if (!dateString) return 'TBA';
-        const date = new Date(dateString);
-        const day = date.getDate();
-        
-        let suffix = 'th';
-        if (day % 10 === 1 && day !== 11) suffix = 'st';
-        else if (day % 10 === 2 && day !== 12) suffix = 'nd';
-        else if (day % 10 === 3 && day !== 13) suffix = 'rd';
-        
-        const month = date.toLocaleDateString('en-GB', { month: 'short' });
-        const year = date.getFullYear();
-        
-        return `${day}${suffix} ${month} ${year}`;
-    }
 </script>
 
 <div class="startpage-content">
