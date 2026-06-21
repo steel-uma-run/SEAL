@@ -44,4 +44,13 @@ public class TrackController implements TracksApi {
     TrackDto responseDto = trackService.createTrack(request, eventId);
     return ResponseEntity.ok(responseDto);
   }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<TrackDto> assignMentor(
+      @PathVariable(name = "trackId") @NotNull UUID trackId,
+      @RequestBody @Valid @NotNull seal.openapi.model.AssignMentorRequestDto request) {
+    TrackDto updatedTrack = trackService.assignMentor(trackId, request);
+    return ResponseEntity.ok(updatedTrack);
+  }
 }

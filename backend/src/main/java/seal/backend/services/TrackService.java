@@ -11,4 +11,6 @@ public interface TrackService {
   TrackDto getTrack(UUID trackId);
 
   TrackDto createTrack(CreateTrackRequestDto request, UUID eventId);
+
+  TrackDto assignMentor(UUID trackId, seal.openapi.model.AssignMentorRequestDto request);
 }

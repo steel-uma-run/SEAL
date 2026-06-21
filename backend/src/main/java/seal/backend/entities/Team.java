@@ -44,7 +44,7 @@ public class Team {
   private TeamStatus teamStatus;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "season_id", nullable = false)
+  @JoinColumn(name = "event_id", nullable = false)
   @Nonnull
   private HackathonEvent hackathonEvent;
 

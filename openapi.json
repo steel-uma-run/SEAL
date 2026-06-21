@@ -519,7 +519,14 @@
         },
         "responses": {
           "200": {
-            "description": "Successfully assigned mentor"
+            "description": "Successfully assigned mentor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad Request - Lecturer is already a Judge for this track"
@@ -731,6 +738,11 @@
           "event_id": {
             "type": "string",
             "format": "uuid"
+          },
+          "mentor_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           }
         }
       },

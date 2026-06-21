@@ -9,7 +9,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.List;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,4 +40,12 @@ public class Track {
   @JoinColumn(name = "event_id", nullable = false)
   @Nonnull
   private HackathonEvent event;
+
+  // 1-1 hay 1-N?
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "mentor_id", nullable = true)
+  private Lecturer mentor;
+
+  @OneToMany(mappedBy = "track", fetch = FetchType.LAZY)
+  private List<Lecturer> judges;
 }
