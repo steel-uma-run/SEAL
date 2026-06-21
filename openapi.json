@@ -489,6 +489,47 @@
         }
       }
     },
+    "/tracks/{trackId}/assign-mentor": {
+      "parameters": [
+        {
+          "name": "trackId",
+          "description": "ID of the track to assign mentor",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["tracks"],
+        "operationId": "assign_mentor",
+        "description": "Assign a mentor to a specific track (Coordinator only)",
+        "security": [{"bearerAuthentication": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignMentorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully assigned mentor"
+          },
+          "400": {
+            "description": "Bad Request - Lecturer is already a Judge for this track"
+          },
+          "404": {
+            "description": "Track or Lecturer not found"
+          }
+        }
+      }
+    },
     "/events/{eventId}/tracks": {
       "parameters": [
         {
@@ -753,6 +794,17 @@
           "year": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "AssignMentorRequest": {
+        "type": "object",
+        "required": ["mentor_id"],
+        "properties": {
+          "mentor_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the Lecturer to be assigned as Mentor"
           }
         }
       },
