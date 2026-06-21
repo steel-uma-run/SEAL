@@ -1,6 +1,7 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -10,13 +11,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Lecturer;
+import seal.backend.entities.Student;
+import seal.backend.entities.Team;
 import seal.backend.entities.Track;
+import seal.backend.enums.EventStatus;
+import seal.backend.enums.TeamStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
+import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.TrackRepository;
 import seal.backend.services.TrackService;
 import seal.openapi.model.AssignMentorRequestDto;
+import seal.openapi.model.AssignTeamRequestDto;
 import seal.openapi.model.CreateTrackRequestDto;
+import seal.openapi.model.TeamDto;
+import seal.openapi.model.TeamStatusDto;
 import seal.openapi.model.TrackDto;
 
 @Service
@@ -25,6 +34,7 @@ public class TrackServiceImpl implements TrackService {
   private final TrackRepository trackRepository;
   private final HackathonEventRepository hackathonEventRepository;
   private final LecturerRepository lecturerRepository;
+  private final TeamRepository teamRepository;
 
   @Override
   public List<TrackDto> getAllTracksOfEvent(UUID eventId) {
@@ -115,5 +125,54 @@ public class TrackServiceImpl implements TrackService {
         savedTrack.getDescription(),
         savedTrack.getEvent().getId(),
         savedTrack.getMentor() != null ? savedTrack.getMentor().getId() : null);
+  }
+
+  @Override
+  @Transactional
+  public TeamDto assignTeam(UUID trackId, AssignTeamRequestDto request) {
+    Track track =
+        trackRepository
+            .findById(trackId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track not found."));
+    HackathonEvent event = track.getEvent();
+
+    Team team =
+        teamRepository
+            .findById(request.teamId())
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
+
+    if (!team.getHackathonEvent().getId().equals(event.getId())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Team and Track do not belong to the same Hackathon Event.");
+    }
+
+    if (team.getTeamStatus() != TeamStatus.ACTIVE) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Team has not been approved yet.");
+    }
+
+    if (event.getStatus() != EventStatus.FINALIZED) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot assign team. The event is not finalized yet.");
+    }
+
+    if (event.getStartTime().isBefore(OffsetDateTime.now())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot assign team. The event has already started.");
+    }
+
+    team.setTrack(track);
+    Team savedTeam = teamRepository.save(team);
+
+    UUID[] memberIds = savedTeam.getMembers().stream().map(Student::getId).toArray(UUID[]::new);
+
+    return new TeamDto(
+        savedTeam.getId(),
+        savedTeam.getName(),
+        TeamStatusDto.APPROVED,
+        memberIds,
+        savedTeam.getLeader().getId(),
+        savedTeam.getTrack().getId());
   }
 }

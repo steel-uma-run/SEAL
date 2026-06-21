@@ -537,6 +537,53 @@
         }
       }
     },
+    "/tracks/{trackId}/assign-team": {
+      "parameters": [
+        {
+          "name": "trackId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["tracks", "teams"],
+        "operationId": "assign_team_to_track",
+        "description": "Assign a team to a specific track (Coordinator only)",
+        "security": [{"bearerAuthentication": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignTeamRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully assigned team to track",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Team"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Event started, team not approved, or track mismatch"
+          },
+          "404": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/events/{eventId}/tracks": {
       "parameters": [
         {
@@ -817,6 +864,17 @@
             "type": "string",
             "format": "uuid",
             "description": "ID of the Lecturer to be assigned as Mentor"
+          }
+        }
+      },
+      "AssignTeamRequest": {
+        "type": "object",
+        "required": ["team_id"],
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the Team to assign"
           }
         }
       },
