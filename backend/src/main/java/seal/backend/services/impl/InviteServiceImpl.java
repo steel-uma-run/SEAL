@@ -71,4 +71,21 @@ public class InviteServiceImpl implements InviteService {
     inviteRepository.save(invite);
     studentRepository.save(invite.getInvitee());
   }
+
+  @Override
+  public void declineInvite(UUID inviteId) {
+    TeamInvite invite =
+        inviteRepository
+            .findById(inviteId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invite does not exist."));
+
+    if (invite.getStatus() != InviteStatus.PENDING) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invite is already used.");
+    }
+
+    invite.setStatus(InviteStatus.DECLINED);
+    inviteRepository.save(invite);
+  }
 }

@@ -216,6 +216,30 @@
         }
       }
     },
+    "/invites/{inviteId}/decline": {
+      "parameters": [
+        {
+          "name": "inviteId",
+          "description": "ID of the invite",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["invites"],
+        "operationId": "decline_invite",
+        "description": "Decline a team invite",
+        "responses": {
+          "200": {
+            "description": "Successfully declined invite"
+          }
+        }
+      }
+    },
     "/seasons": {
       "get": {
         "tags": ["seasons"],
