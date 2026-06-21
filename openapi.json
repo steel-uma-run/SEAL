@@ -192,6 +192,30 @@
         }
       }
     },
+    "/invites/{inviteId}/accept": {
+      "parameters": [
+        {
+          "name": "inviteId",
+          "description": "ID of the invite",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["invites"],
+        "operationId": "accept_invite",
+        "description": "Accept a team invite",
+        "responses": {
+          "200": {
+            "description": "Successfully accepted invite"
+          }
+        }
+      }
+    },
     "/seasons": {
       "get": {
         "tags": ["seasons"],

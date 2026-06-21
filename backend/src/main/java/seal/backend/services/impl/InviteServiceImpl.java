@@ -46,4 +46,29 @@ public class InviteServiceImpl implements InviteService {
                     inviteEntity.getInvitingTeam().getId()))
         .toList();
   }
+
+  @Override
+  public void acceptInvite(UUID inviteId) {
+    TeamInvite invite =
+        inviteRepository
+            .findById(inviteId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invite does not exist."));
+
+    if (invite.getStatus() != InviteStatus.PENDING) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invite is already used.");
+    }
+
+    Team team = invite.getInvitingTeam();
+    if (team.getMembers().size() >= 5) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Team is already full.");
+    }
+
+    invite.setStatus(InviteStatus.ACCEPTED);
+    invite.getInvitee().setTeam(team);
+
+    inviteRepository.save(invite);
+    studentRepository.save(invite.getInvitee());
+  }
 }
