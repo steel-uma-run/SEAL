@@ -15,7 +15,9 @@ import seal.backend.config.GlobalConfig;
 import seal.backend.services.TrackService;
 import seal.openapi.api.TracksApi;
 import seal.openapi.model.AssignMentorRequestDto;
+import seal.openapi.model.AssignTeamRequestDto;
 import seal.openapi.model.CreateTrackRequestDto;
+import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
 
 @RestController
@@ -53,5 +55,15 @@ public class TrackController implements TracksApi {
       @RequestBody @Valid @NotNull AssignMentorRequestDto request) {
     TrackDto updatedTrack = trackService.assignMentor(trackId, request);
     return ResponseEntity.ok(updatedTrack);
+  }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<TeamDto> assignTeamToTrack(
+      @PathVariable(name = "trackId") @NotNull UUID trackId,
+      @RequestBody @Valid @NotNull AssignTeamRequestDto request) {
+
+    TeamDto updatedTeam = trackService.assignTeam(trackId, request);
+    return ResponseEntity.ok(updatedTeam);
   }
 }
