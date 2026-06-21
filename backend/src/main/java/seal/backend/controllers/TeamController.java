@@ -42,4 +42,13 @@ public class TeamController implements TeamsApi {
     teamService.approveTeam(teamId);
     return ResponseEntity.ok().build();
   }
+
+  @Override
+  @PreAuthorize("hasAuthority('STUDENT')")
+  public ResponseEntity<Void> inviteToTeam(
+      @PathVariable(name = "teamId") @NotNull UUID teamId,
+      @PathVariable(name = "studentId") @NotNull UUID studentId) {
+    teamService.inviteToTeam(teamId, studentId);
+    return ResponseEntity.ok().build();
+  }
 }

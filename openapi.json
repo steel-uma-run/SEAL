@@ -133,6 +133,43 @@
         }
       }
     },
+    "/teams/{teamId}/invite/{studentId}": {
+      "parameters": [
+        {
+          "name": "teamId",
+          "description": "ID of the team",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "studentId",
+          "description": "ID of the invitee",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["teams"],
+        "operationId": "invite_to_team",
+        "description": "Invite another student to team",
+        "responses": {
+          "200": {
+            "description": "Invite sent successfully"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/seasons": {
       "get": {
         "tags": ["seasons"],
