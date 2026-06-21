@@ -100,7 +100,7 @@ public class TrackServiceImpl implements TrackService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecturer not found."));
 
-    if (track.getJudges() != null && track.getJudges().contains(mentor)) {
+    if (track.getJudges().contains(mentor)) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
           "This lecturer has been assigned as a judge for this track and cannot be a mentor");

@@ -32,5 +32,5 @@ public class Lecturer {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "track_id", nullable = true)
-  private Track track;
+  private Track track; // for Judge
 }

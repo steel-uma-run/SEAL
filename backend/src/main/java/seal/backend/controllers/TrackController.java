@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import seal.backend.config.GlobalConfig;
 import seal.backend.services.TrackService;
 import seal.openapi.api.TracksApi;
+import seal.openapi.model.AssignMentorRequestDto;
 import seal.openapi.model.CreateTrackRequestDto;
 import seal.openapi.model.TrackDto;
 
@@ -49,7 +50,7 @@ public class TrackController implements TracksApi {
   @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<TrackDto> assignMentor(
       @PathVariable(name = "trackId") @NotNull UUID trackId,
-      @RequestBody @Valid @NotNull seal.openapi.model.AssignMentorRequestDto request) {
+      @RequestBody @Valid @NotNull AssignMentorRequestDto request) {
     TrackDto updatedTrack = trackService.assignMentor(trackId, request);
     return ResponseEntity.ok(updatedTrack);
   }
