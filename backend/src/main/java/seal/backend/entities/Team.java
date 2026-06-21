@@ -53,15 +53,9 @@ public class Team {
   @Nonnull
   private Student leader;
 
-  // team can have no track if coord did not assign
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "track_id", nullable = true)
   private Track track;
-
-  // tam thoi de null vi chua duoc phan cong nhe
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "mentor_id", nullable = true)
-  private Lecturer mentor;
 
   @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
   private List<Student> members = new ArrayList<>();
