@@ -44,7 +44,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
             request.description(),
             request.startTime(),
             request.endTime(),
-            EventStatus.UPCOMING,
+            EventStatus.DRAFT,
             season);
 
     return hackathonEventRepository.save(hackathonEvent);
