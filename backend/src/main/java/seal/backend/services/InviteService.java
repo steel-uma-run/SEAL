@@ -6,4 +6,6 @@ import seal.openapi.model.TeamInviteDto;
 
 public interface InviteService {
   List<TeamInviteDto> getAllInvites();
+
+  void acceptInvite(UUID inviteId);
 }

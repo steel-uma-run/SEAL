@@ -11,6 +11,8 @@ import seal.backend.enums.StudentStatus;
 public interface StudentRepository extends JpaRepository<Student, UUID> {
   Optional<Student> findByUser(User user);
 
+  Optional<Student> findByUserEmail(String email);
+
   List<Student> findByStudentStatus(StudentStatus studentStatus);
 
   boolean existsByStudentId(String studentId);

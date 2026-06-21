@@ -24,4 +24,12 @@ public class InviteController implements InvitesApi {
   public ResponseEntity<TeamInviteDto[]> getAllInvites() {
     return ResponseEntity.ok(inviteService.getAllInvites().toArray(TeamInviteDto[]::new));
   }
+
+  @Override
+  @PreAuthorize("hasAuthority('STUDENT')")
+  public ResponseEntity<Void> acceptInvite(
+      @PathVariable(name = "inviteId") @NotNull UUID inviteId) {
+    inviteService.acceptInvite(inviteId);
+    return ResponseEntity.ok().build();
+  }
 }
