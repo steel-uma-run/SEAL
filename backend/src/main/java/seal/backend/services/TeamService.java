@@ -11,4 +11,6 @@ public interface TeamService {
   List<TeamDto> getAllTeamsOfEvent(UUID eventId);
 
   void approveTeam(UUID teamId);
+
+  void inviteToTeam(UUID teamId, UUID studenUuid);
 }

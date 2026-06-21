@@ -52,4 +52,14 @@ public class Student {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "team_id", nullable = true)
   private Team team;
+
+  // Returns whether this Student is the leader of their team.
+  public boolean isTeamLeader() {
+    return team != null && isTeamLeaderOf(team);
+  }
+
+  // Returns whether this Student is the leader of a specific team.
+  public boolean isTeamLeaderOf(Team team) {
+    return team.getLeader().getId().equals(id);
+  }
 }
