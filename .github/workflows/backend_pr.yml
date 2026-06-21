@@ -7,8 +7,8 @@ on:
 permissions: {}
 
 jobs:
-  run-test:
-    name: Test that it runs
+  test:
+    name: Run tests
     runs-on: ubuntu-latest
 
     steps:
@@ -33,22 +33,12 @@ jobs:
 
           psql --dbname postgres --command "CREATE DATABASE seal;"
 
-      - name: Download dependencies
-        run: |
-          cd backend
-
-          # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
-          JAVA_HOME=$JAVA_HOME_21_X64 mvn dependency:resolve
-
       - name: Run
         run: |
           cd backend
 
-          # Surely 30s ought to be enough for startup?
-          JAVA_HOME=$JAVA_HOME_21_X64 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/seal timeout \
-            --preserve-status \
-            --signal SIGINT \
-            30s mvn spring-boot:run
+          JAVA_HOME=$JAVA_HOME_21_X64 SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/seal \
+            mvn clean test
 
   check-formatting:
     name: Check formatting
