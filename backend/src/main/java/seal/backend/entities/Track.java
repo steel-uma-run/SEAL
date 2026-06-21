@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.Data;
@@ -47,5 +48,5 @@ public class Track {
   private Lecturer mentor;
 
   @OneToMany(mappedBy = "track", fetch = FetchType.LAZY)
-  private List<Lecturer> judges;
+  private List<Lecturer> judges = new ArrayList<>();
 }
