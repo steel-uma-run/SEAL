@@ -32,4 +32,12 @@ public class InviteController implements InvitesApi {
     inviteService.acceptInvite(inviteId);
     return ResponseEntity.ok().build();
   }
+
+  @Override
+  @PreAuthorize("hasAuthority('STUDENT')")
+  public ResponseEntity<Void> declineInvite(
+      @PathVariable(name = "inviteId") @NotNull UUID inviteId) {
+    inviteService.declineInvite(inviteId);
+    return ResponseEntity.ok().build();
+  }
 }
