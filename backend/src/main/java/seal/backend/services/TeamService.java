@@ -9,4 +9,6 @@ public interface TeamService {
   TeamDto createTeam(CreateTeamRequestDto request);
 
   List<TeamDto> getAllTeamsOfEvent(UUID eventId);
+
+  void approveTeam(UUID teamId);
 }

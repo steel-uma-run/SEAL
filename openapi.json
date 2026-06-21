@@ -106,6 +106,33 @@
         }
       }
     },
+    "/teams/{teamId}/approve": {
+      "parameters": [
+        {
+          "name": "teamId",
+          "description": "ID of the team",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["teams"],
+        "operationId": "approve_team",
+        "description": "Approve a pending team",
+        "responses": {
+          "200": {
+            "description": "Team approved successfully"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/seasons": {
       "get": {
         "tags": ["seasons"],

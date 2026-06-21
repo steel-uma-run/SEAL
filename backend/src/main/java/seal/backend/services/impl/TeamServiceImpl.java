@@ -118,4 +118,20 @@ public class TeamServiceImpl implements TeamService {
 
     return resultList;
   }
+
+  @Override
+  public void approveTeam(UUID teamId) {
+    Team team =
+        teamRepository
+            .findById(teamId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Team does not exist."));
+
+    if (team.getTeamStatus() != TeamStatus.PENDING) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Team is not in PENDING status.");
+    }
+
+    team.setTeamStatus(TeamStatus.ACTIVE);
+    teamRepository.save(team);
+  }
 }
