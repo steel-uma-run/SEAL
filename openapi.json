@@ -881,7 +881,7 @@
       "User": {
         "description": "A user account",
         "type": "object",
-        "required": ["id", "email", "role"],
+        "required": ["id", "email", "role", "name"],
         "discriminator": {
           "propertyName": "role",
           "mapping": {
@@ -902,6 +902,9 @@
           "role": {
             "type": "string",
             "enum": ["COORDINATOR", "STUDENT", "LECTURER"]
+          },
+          "name": {
+            "type": "string"
           }
         }
       },

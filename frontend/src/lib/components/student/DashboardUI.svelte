@@ -65,18 +65,6 @@
             </div>
         </a>
 
-        <a href="/student/submit-project" class="group block p-8 rounded-2xl shadow-sm border hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer {theme.darkMode ? 'bg-zinc-900 border-zinc-800 hover:border-blue-900' : 'bg-white/80 border-gray-100 hover:border-blue-300'}">
-            <div class="flex items-center gap-4 mb-4">
-                <div class="p-3 rounded-xl transition-transform group-hover:scale-110 {theme.darkMode ? 'bg-blue-950/40 text-blue-400' : 'bg-blue-100 text-blue-600'}">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                </div>
-                <h2 class="text-xl font-bold transition-colors {theme.darkMode ? 'text-zinc-100 group-hover:text-blue-400' : 'text-gray-800 group-hover:text-blue-600'}">Submit Project</h2>
-            </div>
-            <p class="mb-6 text-sm md:text-base {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">Ready for judging? Submit your project repository, video pitch, and presentation materials here.</p>
-            <div class="inline-flex items-center gap-2 font-semibold group-hover:gap-3 transition-all {theme.darkMode ? 'text-blue-400' : 'text-blue-600'}">
-                Go to Submission
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </div>
-        </a>
+        
     </div>
 </div>
