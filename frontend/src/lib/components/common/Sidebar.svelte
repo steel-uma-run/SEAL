@@ -34,7 +34,14 @@
 <aside class="fixed top-0 left-0 z-40 w-64 flex flex-col hidden md:flex h-screen shrink-0 shadow-[2px_0_15px_rgba(0,0,0,0.02)] transition-colors duration-300 {theme.darkMode ? 'bg-zinc-900 border-r border-zinc-800' : 'bg-[#fff9f4] border-r border-[#ffe8d6]'}">
     
     <div class="p-6 pt-8 mb-2 shrink-0">
-        <h1 class="text-3xl font-black tracking-tight text-[#f97316]">SEAL</h1>
+        <a href={$page.url.pathname.startsWith('/coordinator') ? '/coordinator' : '/lecturer'} class="flex items-center gap-2.5 no-underline hover:opacity-80 transition-opacity">
+            <img
+                src="https://upload.wikimedia.org/wikipedia/commons/1/11/FPT_logo_2010.svg"
+                alt="Logo"
+                class="h-8 w-auto object-contain block"
+            />
+            <h1 class="text-3xl font-black tracking-tight text-[#f97316] m-0">SEAL</h1>
+        </a>
     </div>
 
     <nav class="px-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar pb-4">

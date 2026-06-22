@@ -32,8 +32,8 @@
                         goto("/coordinator")
                     } else if (profile.role === "STUDENT") {
                         goto("/student")
-                    } else if (profile.role === "MENTOR" || profile.role === "JUDGE") {
-                        goto("/mentor")
+                    } else if (profile.role === "LECTURER" || profile.role === "JUDGE") {
+                        goto("/lecturer")
                     } else {
                         goto("/")
                     }

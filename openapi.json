@@ -886,7 +886,9 @@
           "propertyName": "role",
           "mapping": {
             "COORDINATOR": "#/components/schemas/Coordinator",
+            "SYSADMIN": "#/components/schemas/Coordinator",
             "LECTURER": "#/components/schemas/Lecturer",
+            "JUDGE": "#/components/schemas/Lecturer",
             "STUDENT": "#/components/schemas/Student"
           }
         },
@@ -901,7 +903,7 @@
           },
           "role": {
             "type": "string",
-            "enum": ["COORDINATOR", "STUDENT", "LECTURER"]
+            "enum": ["COORDINATOR", "STUDENT", "LECTURER", "JUDGE", "SYSADMIN"]
           },
           "name": {
             "type": "string"
@@ -1102,7 +1104,7 @@
               },
               "role": {
                 "type": "string",
-                "enum": ["STUDENT", "COORDINATOR", "LECTURER"]
+                "enum": ["STUDENT", "COORDINATOR", "LECTURER", "JUDGE", "SYSADMIN"]
               }
             }
           }
