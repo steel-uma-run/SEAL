@@ -2,7 +2,6 @@ package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -33,63 +32,17 @@ import seal.openapi.model.UpdateTrackRequestDto;
 @RequiredArgsConstructor
 public class TrackServiceImpl implements TrackService {
   private final TrackRepository trackRepository;
-  private final HackathonEventRepository hackathonEventRepository;
+  private final HackathonEventRepository eventRepo;
   private final LecturerRepository lecturerRepository;
   private final TeamRepository teamRepository;
 
-  private HackathonEvent validateAndGetEvent(UUID seasonId, UUID eventId) {
-    HackathonEvent event =
-        hackathonEventRepository
-            .findById(eventId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
-
-    if (!event.getSeason().getId().equals(seasonId)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Event does not belong to the specified Season.");
-    }
-    return event;
-  }
-
-  private Track validateAndGetTrack(UUID seasonId, UUID eventId, UUID trackId) {
-    validateAndGetEvent(seasonId, eventId);
+  @Override
+  public TrackDto getTrack(UUID trackId) {
     Track track =
         trackRepository
             .findById(trackId)
             .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track does not exist."));
-
-    if (!track.getEvent().getId().equals(eventId)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Track does not belong to the specified Event.");
-    }
-    return track;
-  }
-
-  @Override
-  public List<TrackDto> getAllTracksOfEvent(UUID seasonId, UUID eventId) {
-    validateAndGetEvent(seasonId, eventId);
-
-    List<Track> trackEntities = trackRepository.findByEventId(eventId);
-    List<TrackDto> resultList = new ArrayList<>();
-
-    for (Track track : trackEntities) {
-      TrackDto dto =
-          new TrackDto(
-              track.getId(),
-              track.getName(),
-              track.getDescription(),
-              track.getEvent().getId(),
-              track.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
-      resultList.add(dto);
-    }
-
-    return resultList;
-  }
-
-  @Override
-  public TrackDto getTrack(UUID seasonId, UUID eventId, UUID trackId) {
-    Track track = validateAndGetTrack(seasonId, eventId, trackId);
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
 
     return new TrackDto(
         track.getId(),
@@ -101,8 +54,12 @@ public class TrackServiceImpl implements TrackService {
 
   @Override
   @Transactional
-  public TrackDto createTrack(CreateTrackRequestDto request, UUID seasonId, UUID eventId) {
-    HackathonEvent hackathonEvent = validateAndGetEvent(seasonId, eventId);
+  public TrackDto createTrack(CreateTrackRequestDto request, UUID eventId) {
+    HackathonEvent hackathonEvent =
+        eventRepo
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event does not exist."));
 
     Track newTrack = new Track(request.name(), request.description(), hackathonEvent);
     Track savedTrack = trackRepository.save(newTrack);
@@ -117,9 +74,12 @@ public class TrackServiceImpl implements TrackService {
 
   @Override
   @Transactional
-  public TrackDto updateTrack(
-      UUID seasonId, UUID eventId, UUID trackId, UpdateTrackRequestDto request) {
-    Track track = validateAndGetTrack(seasonId, eventId, trackId);
+  public TrackDto updateTrack(UUID trackId, UpdateTrackRequestDto request) {
+    Track track =
+        trackRepository
+            .findById(trackId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track does not exist."));
 
     if (request.name() != null) {
       track.setName(request.name());
@@ -141,9 +101,12 @@ public class TrackServiceImpl implements TrackService {
 
   @Override
   @Transactional
-  public TrackDto assignMentor(
-      UUID seasonId, UUID eventId, UUID trackId, AssignMentorRequestDto request) {
-    Track track = validateAndGetTrack(seasonId, eventId, trackId);
+  public TrackDto assignMentor(UUID trackId, AssignMentorRequestDto request) {
+    Track track =
+        trackRepository
+            .findById(trackId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
 
     Lecturer mentor =
         lecturerRepository
@@ -163,7 +126,7 @@ public class TrackServiceImpl implements TrackService {
           "Cannot assign more mentors. This track already has the maximum of 3 mentors.");
     }
 
-    List<Track> allTracksInEvent = trackRepository.findByEventId(eventId);
+    List<Track> allTracksInEvent = trackRepository.findByEventId(track.getEvent().getId());
     for (Track currentTrack : allTracksInEvent) {
       if (currentTrack.getMentors().contains(mentor)) {
         if (currentTrack.getId().equals(trackId)) {
@@ -190,9 +153,12 @@ public class TrackServiceImpl implements TrackService {
 
   @Override
   @Transactional
-  public TeamDto assignTeam(
-      UUID seasonId, UUID eventId, UUID trackId, AssignTeamRequestDto request) {
-    Track track = validateAndGetTrack(seasonId, eventId, trackId);
+  public TeamDto assignTeam(UUID trackId, AssignTeamRequestDto request) {
+    Track track =
+        trackRepository
+            .findById(trackId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
     HackathonEvent event = track.getEvent();
 
     Team team =
