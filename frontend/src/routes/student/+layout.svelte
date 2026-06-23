@@ -11,7 +11,7 @@
 
 	const menuItems = [
 		{ href: "/student", label: "Dashboard", icon: LayoutDashboard },
-		{ href: "#", label: "Profile", icon: User },
+		{ href: "/student/profile", label: "Profile", icon: User },
 		{ href: "#", label: "Settings", icon: Settings }
 	]
 
