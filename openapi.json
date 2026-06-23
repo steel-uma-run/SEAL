@@ -105,6 +105,37 @@
         }
       }
     },
+    "/events/{eventId}/interested-participants": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "Get all interested students for an event",
+        "operationId": "getInterestedParticipants",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of interested students",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Student" }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/events/{eventId}/mark-interested": {
       "post": {
         "tags": ["Events"],

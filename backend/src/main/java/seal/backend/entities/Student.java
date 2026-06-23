@@ -57,12 +57,19 @@ public class Student {
   @JoinColumn(name = "team_id", nullable = true)
   private Team team;
 
+  // TODO
+  // Add schoolName
+
   @ManyToMany
   @JoinTable(
       name = "events_interest",
       joinColumns = @JoinColumn(name = "students_id"),
       inverseJoinColumns = @JoinColumn(name = "events_id"))
   private Set<HackathonEvent> events = new HashSet<>();
+
+  public boolean isExternal() {
+    return studentType != StudentType.FPT;
+  }
 
   // Returns whether this Student is the leader of their team.
   public boolean isTeamLeader() {
