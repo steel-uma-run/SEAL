@@ -78,7 +78,6 @@
         "tags": ["teams"],
         "operationId": "create_team",
         "description": "Create a new team",
-        "security": [{"bearerAuthentication": []}],
         "requestBody": {
           "required": true,
           "content": {
@@ -584,7 +583,6 @@
         "tags": ["tracks", "events", "seasons"],
         "operationId": "update_track",
         "description": "Partially update a track's info",
-        "security": [{"bearerAuthentication": []}],
         "requestBody": {
           "required": true,
           "content": {
@@ -646,7 +644,6 @@
         "tags": ["tracks", "events", "seasons"],
         "operationId": "assign_mentor",
         "description": "Assign a mentor to a specific track (Coordinator only)",
-        "security": [{"bearerAuthentication": []}],
         "requestBody": {
           "required": true,
           "content": {
@@ -711,7 +708,6 @@
         "tags": ["tracks", "teams", "events", "seasons"],
         "operationId": "assign_team_to_track",
         "description": "Assign a team to a specific track (Coordinator only)",
-        "security": [{"bearerAuthentication": []}],
         "requestBody": {
           "required": true,
           "content": {
@@ -747,7 +743,6 @@
         "tags": ["profile"],
         "operationId": "get_self_profile",
         "description": "Return the profile of the logged-in user",
-        "security": [{"bearerAuthentication": []}],
         "responses": {
           "200": {
             "description": "The user profile",
@@ -1236,14 +1231,6 @@
             }
           }
         }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuthentication": {
-        "description": "Bearer token using a JWT",
-        "type": "http",
-        "scheme": "Bearer",
-        "bearerFormat": "JWT"
       }
     }
   }
