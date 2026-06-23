@@ -326,6 +326,43 @@
         }
       }
     },
+    "/seasons/{seasonId}/finalize": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "description": "ID of the season to finalize",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["seasons"],
+        "operationId": "finalize_season",
+        "description": "Finalize a season",
+        "responses": {
+          "200": {
+            "description": "Successfully finalized the season",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Season"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Season is not in DRAFT status"
+          },
+          "404": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/seasons/{seasonId}/events": {
       "parameters": [
         {
