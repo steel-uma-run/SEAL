@@ -6,7 +6,8 @@
     "github_link",
     "youtube_link",
     "slide_link",
-    "submitted_at"
+    "submitted_at",
+    "scores"
   ],
   "properties": {
     "title": {
@@ -27,6 +28,12 @@
     "submitted_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "scores": {
+      "type": "array",
+      "items": {
+        "$ref": "./Score.json"
+      }
     }
   }
 }
