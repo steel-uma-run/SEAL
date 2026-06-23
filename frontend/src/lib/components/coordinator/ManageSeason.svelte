@@ -2,15 +2,14 @@
 	import { createSeason } from "$lib/api/seasons"
 	import { theme } from "$lib/theme.svelte"
 	import { Calendar, Plus, X } from "@lucide/svelte"
+	import { goto } from "$app/navigation"
 
 	let { seasons = [], refreshSeasons } = $props<{ seasons: any[]; refreshSeasons: () => void }>()
 
 	// Season Creation Modal State
 	let showSeasonModal = $state(false)
-	let seasonName = $state("")
-	let seasonDescription = $state("")
-	let seasonStartTime = $state("")
-	let seasonEndTime = $state("")
+	let seasonSemester = $state("")
+	let seasonYear = $state(new Date().getFullYear())
 	let seasonMessage = $state("")
 	let isSeasonLoading = $state(false)
 
@@ -19,19 +18,20 @@
 		seasonMessage = ""
 	}
 
+	function formatSemester(semester: string) {
+		if (!semester) return ""
+		return semester.charAt(0).toUpperCase() + semester.slice(1).toLowerCase()
+	}
+
 	async function handleCreateSeason(e: Event) {
 		e.preventDefault()
 
-		if (!seasonStartTime || !seasonEndTime) {
-			seasonMessage = "Start time and end time are required."
+		if (!seasonSemester) {
+			seasonMessage = "Semester is required."
 			return
 		}
-
-		const start = new Date(seasonStartTime)
-		const end = new Date(seasonEndTime)
-
-		if (start >= end) {
-			seasonMessage = "Start time must be before end time."
+		if (!seasonYear || seasonYear < 1990 || seasonYear > 9999) {
+			seasonMessage = "Please enter a valid year."
 			return
 		}
 
@@ -39,17 +39,13 @@
 		seasonMessage = ""
 		try {
 			const res = await createSeason(
-				seasonName,
-				seasonDescription,
-				start.toISOString(),
-				end.toISOString()
+				seasonSemester,
+				seasonYear
 			)
 			if (res.ok) {
 				seasonMessage = "Season created successfully!"
-				seasonName = ""
-				seasonDescription = ""
-				seasonStartTime = ""
-				seasonEndTime = ""
+				seasonSemester = ""
+				seasonYear = new Date().getFullYear()
 				setTimeout(() => {
 					showSeasonModal = false
 					seasonMessage = ""
@@ -117,8 +113,7 @@
 								: 'border-gray-100 text-gray-400'} text-xs font-bold uppercase tracking-wider"
 						>
 							<th class="py-3.5 px-4">Season Name</th>
-							<th class="py-3.5 px-4">Duration</th>
-							<th class="py-3.5 px-4">Teams</th>
+							<th class="py-3.5 px-4">Time</th>
 							<th class="py-3.5 px-4">Status</th>
 						</tr>
 					</thead>
@@ -126,57 +121,38 @@
 						{#if seasons.length > 0}
 							{#each seasons as season}
 								<tr
-									class="border-b transition-colors {theme.darkMode
-										? 'border-zinc-800/50 hover:bg-zinc-800/20 text-zinc-100'
-										: 'border-gray-50 hover:bg-gray-50/50 text-gray-700'}"
+									onclick={() => goto(`/coordinator/seasons/${season.id}`)}
+									class="border-b transition-colors cursor-pointer {theme.darkMode
+										? 'border-zinc-800/50 hover:bg-zinc-800/30 text-zinc-100'
+										: 'border-gray-50 hover:bg-gray-100/50 text-gray-700'}"
 								>
-									<td class="py-4 px-4 font-bold">{season.name}</td>
+									<td class="py-4 px-4 font-bold text-orange-500 hover:text-orange-600 transition-colors">
+										{formatSemester(season.semester)} {season.year}
+									</td>
 									<td
 										class="py-4 px-4 text-xs font-medium {theme.darkMode
 											? 'text-zinc-400'
 											: 'text-gray-500'}"
 									>
-										{season.start_time
-											? new Date(season.start_time).toLocaleDateString()
-											: "dd/mm/yyyy"} - {season.end_time
-											? new Date(season.end_time).toLocaleDateString()
-											: "dd/mm/yyyy"}
+										{season.year}
 									</td>
-									<td class="py-4 px-4 font-semibold">12</td>
 									<td class="py-4 px-4">
 										<span
-											class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/10 text-green-500 border border-green-500/20"
+											class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {season.status === 'FINALIZED'
+												? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+												: 'bg-green-500/10 text-green-500 border border-green-500/20'}"
 										>
-											Active
+											{season.status || 'DRAFT'}
 										</span>
 									</td>
 								</tr>
 							{/each}
 						{:else}
-							{#each [1, 2, 3, 4] as item}
-								<tr
-									class="border-b transition-colors {theme.darkMode
-										? 'border-zinc-800/50 hover:bg-zinc-800/20 text-zinc-100'
-										: 'border-gray-50 hover:bg-gray-50/50 text-gray-700'}"
-								>
-									<td class="py-4 px-4 font-bold">Spring 2026</td>
-									<td
-										class="py-4 px-4 text-xs font-medium {theme.darkMode
-											? 'text-zinc-400'
-											: 'text-gray-500'}">dd/mm/yyyy --:-- - --:--</td
-									>
-									<td class="py-4 px-4 font-semibold"
-										>{item === 1 ? "32" : item === 2 ? "11" : item === 3 ? "9" : "4"}</td
-									>
-									<td class="py-4 px-4">
-										<span
-											class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold bg-green-500/10 text-green-500 border border-green-500/20"
-										>
-											Active
-										</span>
-									</td>
-								</tr>
-							{/each}
+							<tr>
+								<td colspan="4" class="py-8 px-4 text-center {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">
+									No active seasons found. Click "New Season" to create one.
+								</td>
+							</tr>
 						{/if}
 					</tbody>
 				</table>
@@ -202,8 +178,7 @@
 								: 'border-gray-100 text-gray-400'} text-xs font-bold uppercase tracking-wider"
 						>
 							<th class="py-2.5 px-2">Season Name</th>
-							<th class="py-2.5 px-2">Duration</th>
-							<th class="py-2.5 px-2">Teams</th>
+							<th class="py-2.5 px-2">Time</th>
 							<th class="py-2.5 px-2">Status</th>
 						</tr>
 					</thead>
@@ -219,7 +194,6 @@
 									class="py-3 px-2 text-[10px] {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}"
 									>{row.dur}</td
 								>
-								<td class="py-3 px-2 font-semibold">{row.teams}</td>
 								<td class="py-3 px-2">
 									<span
 										class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/10 text-green-500 border border-green-500/20"
@@ -260,62 +234,37 @@
 			<form onsubmit={handleCreateSeason} class="flex flex-col gap-4">
 				<div class="space-y-1">
 					<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-						>Season Name *</label
+						>Semester *</label
 					>
-					<input
-						type="text"
-						bind:value={seasonName}
+					<select
+						bind:value={seasonSemester}
 						required
-						placeholder="Spring 2026"
 						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500'
+							? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
 							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
-					/>
-				</div>
-
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-					<div class="space-y-1">
-						<label
-							class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-							>Start Time *</label
-						>
-						<input
-							type="datetime-local"
-							bind:value={seasonStartTime}
-							required
-							class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-								? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-								: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
-						/>
-					</div>
-					<div class="space-y-1">
-						<label
-							class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-							>End Time *</label
-						>
-						<input
-							type="datetime-local"
-							bind:value={seasonEndTime}
-							required
-							class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-								? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-								: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
-						/>
-					</div>
+					>
+						<option value="" disabled selected>Select Semester</option>
+						<option value="SPRING">SPRING</option>
+						<option value="SUMMER">SUMMER</option>
+						<option value="FALL">FALL</option>
+					</select>
 				</div>
 
 				<div class="space-y-1">
 					<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-						>Description</label
+						>Year *</label
 					>
-					<textarea
-						bind:value={seasonDescription}
-						rows="3"
-						placeholder="Description..."
-						class="w-full rounded-xl border p-3 outline-none transition-all resize-none {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500'
+					<input
+						type="number"
+						bind:value={seasonYear}
+						required
+						min="1990"
+						max="9999"
+						placeholder="2026"
+						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
+							? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
 							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
-					></textarea>
+					/>
 				</div>
 
 				{#if seasonMessage}

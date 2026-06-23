@@ -7,11 +7,15 @@ export async function getSeasons() {
 	})
 }
 
+export async function getSeason(seasonId: string) {
+	return fetch(`${API_BASE}/seasons/${seasonId}`, {
+		method: "GET"
+	})
+}
+
 export async function createSeason(
-	name: string,
-	description: string,
-	startTime: string,
-	endTime: string
+	semester: string,
+	year: number
 ) {
 	return fetch(`${API_BASE}/seasons`, {
 		method: "POST",
@@ -20,10 +24,8 @@ export async function createSeason(
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify({
-			name,
-			description,
-			start_time: startTime,
-			end_time: endTime
+			semester,
+			year
 		})
 	})
 }
