@@ -10,9 +10,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -52,6 +56,13 @@ public class Student {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "team_id", nullable = true)
   private Team team;
+
+  @ManyToMany
+  @JoinTable(
+      name = "events_interest",
+      joinColumns = @JoinColumn(name = "students_id"),
+      inverseJoinColumns = @JoinColumn(name = "events_id"))
+  private Set<HackathonEvent> events = new HashSet<>();
 
   // Returns whether this Student is the leader of their team.
   public boolean isTeamLeader() {
