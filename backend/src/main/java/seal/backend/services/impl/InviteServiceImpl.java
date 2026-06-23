@@ -30,7 +30,7 @@ public class InviteServiceImpl implements InviteService {
 
     Student actor =
         studentRepository
-            .findByUserEmail(auth.getName())
+            .findByEmail(auth.getName())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
 
     List<TeamInvite> invites = inviteRepository.findAllByInviteeId(actor.getId());
