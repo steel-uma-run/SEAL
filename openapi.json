@@ -73,12 +73,44 @@
         }
       }
     },
+    "/events": {
+      "post": {
+        "tags": ["events"],
+        "operationId": "create_event",
+        "description": "Create a new event (status starts as DRAFT).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HackathonEvent"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/teams": {
       "post": {
         "tags": ["teams"],
         "operationId": "create_team",
         "description": "Create a new team",
-        "security": [{"bearerAuthentication": []}],
+        "security": [{ "bearerAuthentication": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -506,7 +538,7 @@
         "tags": ["tracks"],
         "operationId": "assign_mentor",
         "description": "Assign a mentor to a specific track (Coordinator only)",
-        "security": [{"bearerAuthentication": []}],
+        "security": [{ "bearerAuthentication": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -553,7 +585,7 @@
         "tags": ["tracks", "teams"],
         "operationId": "assign_team_to_track",
         "description": "Assign a team to a specific track (Coordinator only)",
-        "security": [{"bearerAuthentication": []}],
+        "security": [{ "bearerAuthentication": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -656,7 +688,7 @@
         "tags": ["profile"],
         "operationId": "get_self_profile",
         "description": "Return the profile of the logged-in user",
-        "security": [{"bearerAuthentication": []}],
+        "security": [{ "bearerAuthentication": [] }],
         "responses": {
           "200": {
             "description": "The user profile",
@@ -724,6 +756,17 @@
             "format": "uuid",
             "description": "ID of the Event"
           }
+        }
+      },
+      "CreateEventRequest": {
+        "type": "object",
+        "required": ["seasonId", "name", "description", "startTime", "endTime"],
+        "properties": {
+          "seasonId": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "startTime": { "type": "string", "format": "date-time" },
+          "endTime": { "type": "string", "format": "date-time" }
         }
       },
       "HackathonEvent": {
@@ -828,27 +871,17 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "DRAFT",
-              "FINALIZED"
-            ]
+            "enum": ["DRAFT", "FINALIZED"]
           }
         }
       },
       "CreateSeasonRequest": {
         "type": "object",
-        "required": [
-          "semester",
-          "year"
-        ],
+        "required": ["semester", "year"],
         "properties": {
           "semester": {
             "type": "string",
-            "enum": [
-              "SPRING",
-              "SUMMER",
-              "FALL"
-            ]
+            "enum": ["SPRING", "SUMMER", "FALL"]
           },
           "year": {
             "type": "integer",

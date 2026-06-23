@@ -1,11 +1,14 @@
 package seal.backend.services;
 
 import java.util.List;
-import seal.backend.entities.HackathonEvent;
-import seal.backend.requests.CreateEventRequest;
+import java.util.UUID;
+import seal.openapi.model.CreateEventRequestDto;
+import seal.openapi.model.HackathonEventDto;
 
 public interface HackathonEventService {
-  public List<HackathonEvent> getAllEvents();
+  List<HackathonEventDto> getAllEvents();
 
-  public HackathonEvent createEvent(CreateEventRequest request);
+  HackathonEventDto getEvent(UUID seasonId, UUID eventId);
+
+  HackathonEventDto createEvent(CreateEventRequestDto request);
 }

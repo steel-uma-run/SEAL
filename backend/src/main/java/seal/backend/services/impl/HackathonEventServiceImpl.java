@@ -1,6 +1,9 @@
 package seal.backend.services.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -12,8 +15,10 @@ import seal.backend.entities.Season;
 import seal.backend.enums.EventStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.SeasonRepository;
-import seal.backend.requests.CreateEventRequest;
 import seal.backend.services.HackathonEventService;
+import seal.openapi.model.CreateEventRequestDto;
+import seal.openapi.model.HackathonEventDto;
+import seal.openapi.model.HackathonEventStatusDto;
 
 @Service
 @RequiredArgsConstructor
@@ -22,22 +27,57 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   private final SeasonRepository seasonRepository;
 
   @Override
-  public List<HackathonEvent> getAllEvents() {
+  public HackathonEventDto getEvent(UUID seasonId, UUID eventId) {
+    Optional<HackathonEvent> result = hackathonEventRepository.findById(eventId);
+
+    HackathonEventDto dto =
+        new HackathonEventDto(
+            result.get().getId(),
+            result.get().getName(),
+            result.get().getDescription(),
+            HackathonEventStatusDto.fromValue(result.get().getStatus().name()),
+            result.get().getStartTime(),
+            result.get().getEndTime(),
+            result.get().getSeason().getId());
+
+    return dto;
+  }
+
+  @Override
+  public List<HackathonEventDto> getAllEvents() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
     boolean isCoordinator =
         auth != null
             && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("COORDINATOR"));
 
+    List<HackathonEvent> found = new ArrayList<>();
+    List<HackathonEventDto> resultList = new ArrayList<>();
+
     if (isCoordinator) {
-      return hackathonEventRepository.findAll();
+      found = hackathonEventRepository.findAll();
+    } else {
+      found = hackathonEventRepository.findByStatus(EventStatus.FINALIZED);
     }
 
-    return hackathonEventRepository.findByStatus(EventStatus.FINALIZED);
+    for (HackathonEvent event : found) {
+      HackathonEventDto dto =
+          new HackathonEventDto(
+              event.getId(),
+              event.getName(),
+              event.getDescription(),
+              HackathonEventStatusDto.fromValue(event.getStatus().name()),
+              event.getStartTime(),
+              event.getEndTime(),
+              event.getSeason().getId());
+      resultList.add(dto);
+    }
+
+    return resultList;
   }
 
   @Override
-  public HackathonEvent createEvent(CreateEventRequest request) {
+  public HackathonEventDto createEvent(CreateEventRequestDto request) {
     if (request.endTime().isEqual(request.startTime())
         || request.endTime().isBefore(request.startTime())) {
       throw new ResponseStatusException(
@@ -59,6 +99,13 @@ public class HackathonEventServiceImpl implements HackathonEventService {
             EventStatus.DRAFT,
             season);
 
-    return hackathonEventRepository.save(hackathonEvent);
+    return new HackathonEventDto(
+        hackathonEvent.getId(),
+        hackathonEvent.getName(),
+        hackathonEvent.getDescription(),
+        HackathonEventStatusDto.fromValue(hackathonEvent.getStatus().name()),
+        hackathonEvent.getStartTime(),
+        hackathonEvent.getEndTime(),
+        hackathonEvent.getSeason().getId());
   }
 }

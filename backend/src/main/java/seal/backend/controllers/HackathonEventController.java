@@ -1,35 +1,42 @@
 package seal.backend.controllers;
 
 import jakarta.validation.Valid;
-import java.util.List;
+import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import seal.backend.entities.HackathonEvent;
-import seal.backend.requests.CreateEventRequest;
 import seal.backend.services.HackathonEventService;
+import seal.openapi.api.EventsApi;
+import seal.openapi.model.CreateEventRequestDto;
+import seal.openapi.model.HackathonEventDto;
 
 @RestController
-@RequestMapping("/api/events")
 @RequiredArgsConstructor
-public class HackathonEventController {
+public class HackathonEventController implements EventsApi {
   private final HackathonEventService eventService;
 
+  @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
-  @PostMapping(value = {"", "/"})
-  public ResponseEntity<HackathonEvent> createEvent(
-      @Valid @RequestBody CreateEventRequest request) {
+  public ResponseEntity<HackathonEventDto> createEvent(
+      @Valid @RequestBody CreateEventRequestDto request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(eventService.createEvent(request));
   }
 
-  @GetMapping
-  public ResponseEntity<List<HackathonEvent>> getAllEvents() {
-    return ResponseEntity.ok(eventService.getAllEvents());
+  @Override
+  public ResponseEntity<HackathonEventDto[]> getEventsInSeason(
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId) {
+    return ResponseEntity.ok(eventService.getAllEvents().toArray(HackathonEventDto[]::new));
+  }
+
+  @Override
+  public ResponseEntity<HackathonEventDto> getEvent(
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
+      @PathVariable(name = "eventId") @NotNull UUID eventId) {
+    return ResponseEntity.ok(eventService.getEvent(seasonId, eventId));
   }
 }
