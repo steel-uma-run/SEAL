@@ -1,0 +1,15 @@
+{
+  "type": "object",
+  "required": ["description"],
+  "properties": {
+    "description": {
+      "type": "string"
+    },
+    "criteria": {
+      "type": "array",
+      "items": {
+        "$ref": "./Criteria.json"
+      }
+    }
+  }
+}
