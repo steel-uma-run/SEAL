@@ -36,11 +36,38 @@ public class TrackServiceImpl implements TrackService {
   private final LecturerRepository lecturerRepository;
   private final TeamRepository teamRepository;
 
+  private HackathonEvent validateAndGetEvent(UUID seasonId, UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
+
+    if (!event.getSeason().getId().equals(seasonId)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Event does not belong to the specified Season.");
+    }
+    return event;
+  }
+
+  private Track validateAndGetTrack(UUID seasonId, UUID eventId, UUID trackId) {
+    validateAndGetEvent(seasonId, eventId);
+    Track track =
+        trackRepository
+            .findById(trackId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track does not exist."));
+
+    if (!track.getEvent().getId().equals(eventId)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Track does not belong to the specified Event.");
+    }
+    return track;
+  }
+
   @Override
-  public List<TrackDto> getAllTracksOfEvent(UUID eventId) {
-    hackathonEventRepository
-        .findById(eventId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
+  public List<TrackDto> getAllTracksOfEvent(UUID seasonId, UUID eventId) {
+    validateAndGetEvent(seasonId, eventId);
 
     List<Track> trackEntities = trackRepository.findByEventId(eventId);
     List<TrackDto> resultList = new ArrayList<>();
@@ -60,12 +87,8 @@ public class TrackServiceImpl implements TrackService {
   }
 
   @Override
-  public TrackDto getTrack(UUID trackId) {
-    Track track =
-        trackRepository
-            .findById(trackId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track does not exist"));
+  public TrackDto getTrack(UUID seasonId, UUID eventId, UUID trackId) {
+    Track track = validateAndGetTrack(seasonId, eventId, trackId);
 
     return new TrackDto(
         track.getId(),
@@ -77,12 +100,8 @@ public class TrackServiceImpl implements TrackService {
 
   @Override
   @Transactional
-  public TrackDto createTrack(CreateTrackRequestDto request, UUID eventId) {
-    HackathonEvent hackathonEvent =
-        hackathonEventRepository
-            .findById(eventId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
+  public TrackDto createTrack(CreateTrackRequestDto request, UUID seasonId, UUID eventId) {
+    HackathonEvent hackathonEvent = validateAndGetEvent(seasonId, eventId);
 
     Track newTrack = new Track(request.name(), request.description(), hackathonEvent);
     Track savedTrack = trackRepository.save(newTrack);
@@ -97,12 +116,9 @@ public class TrackServiceImpl implements TrackService {
 
   @Override
   @Transactional
-  public TrackDto assignMentor(UUID trackId, AssignMentorRequestDto request) {
-    Track track =
-        trackRepository
-            .findById(trackId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track not found."));
+  public TrackDto assignMentor(
+      UUID seasonId, UUID eventId, UUID trackId, AssignMentorRequestDto request) {
+    Track track = validateAndGetTrack(seasonId, eventId, trackId);
 
     Lecturer mentor =
         lecturerRepository
@@ -129,12 +145,9 @@ public class TrackServiceImpl implements TrackService {
 
   @Override
   @Transactional
-  public TeamDto assignTeam(UUID trackId, AssignTeamRequestDto request) {
-    Track track =
-        trackRepository
-            .findById(trackId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track not found."));
+  public TeamDto assignTeam(
+      UUID seasonId, UUID eventId, UUID trackId, AssignTeamRequestDto request) {
+    Track track = validateAndGetTrack(seasonId, eventId, trackId);
     HackathonEvent event = track.getEvent();
 
     Team team =
