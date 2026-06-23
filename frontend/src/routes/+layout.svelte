@@ -4,6 +4,8 @@
 	import { theme } from "$lib/theme.svelte"
 	import { argbFromHex, Hct, hexFromArgb, SchemeNeutral } from "@poupe/material-color-utilities"
 	import Header from "$lib/components/common/Header.svelte"
+	import { client } from "$lib/api/client.gen"
+	import { dev } from "$app/environment"
 
 	let { children } = $props()
 
@@ -25,6 +27,12 @@
 		const str = `<style>:root {${entries.join("\n")}}</style>`
 		return str
 	})
+
+	if (dev) {
+		client.setConfig({
+			baseUrl: "http://localhost:8080"
+		})
+	}
 </script>
 
 <svelte:head>
