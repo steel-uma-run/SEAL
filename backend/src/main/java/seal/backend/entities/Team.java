@@ -59,4 +59,9 @@ public class Team {
 
   @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
   private List<Student> members = new ArrayList<>();
+
+  // Returns whether the team is eligible to participate in an event.
+  public boolean isTeamValid() {
+    return teamStatus == TeamStatus.ACTIVE && members.size() >= 3 && members.size() <= 5;
+  }
 }
