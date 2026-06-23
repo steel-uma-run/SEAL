@@ -24,7 +24,11 @@ public class ProfileServiceImpl implements ProfileService {
     // user. Therefore user should never be null.
     User user = userRepository.findByEmail(email).get();
 
-    return new UserDto(user.getId(), user.getEmail(), UserRoleDto.fromValue(user.getRole().name()));
+    return new UserDto(
+        user.getId(),
+        user.getEmail(),
+        user.getFullName(),
+        UserRoleDto.fromValue(user.getRole().name()));
   }
 
   // public void approve(UUID id)
