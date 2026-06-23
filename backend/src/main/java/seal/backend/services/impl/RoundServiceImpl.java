@@ -21,17 +21,12 @@ public class RoundServiceImpl implements RoundService {
   private final RoundRepository roundRepository;
 
   @Override
-  public RoundDto createRound(UUID seasonId, UUID eventId, CreateRoundRequestDto request) {
+  public RoundDto createRound(UUID eventId, CreateRoundRequestDto request) {
     HackathonEvent event =
         eventRepository
             .findById(eventId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
-
-    if (!event.getSeason().getId().equals(seasonId)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Event does not belong to the specified season.");
-    }
 
     if (event.getStatus() != EventStatus.DRAFT) {
       throw new ResponseStatusException(
@@ -75,32 +70,16 @@ public class RoundServiceImpl implements RoundService {
   }
 
   @Override
-  public void deleteRound(UUID seasonId, UUID eventId, UUID roundId) {
-    HackathonEvent event =
-        eventRepository
-            .findById(eventId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
-
-    if (!event.getSeason().getId().equals(seasonId)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Event does not belong to the specified season.");
-    }
-
-    if (event.getStatus() != EventStatus.DRAFT) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Cannot delete round. Event is not in DRAFT status.");
-    }
-
+  public void deleteRound(UUID roundId) {
     Round round =
         roundRepository
             .findById(roundId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Round not found"));
 
-    if (!round.getEvent().getId().equals(eventId)) {
+    if (round.getEvent().getStatus() != EventStatus.DRAFT) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Round does not belong to the specified event.");
+          HttpStatus.BAD_REQUEST, "Cannot delete round. Event is not in DRAFT status.");
     }
 
     roundRepository.delete(round);

@@ -5,7 +5,7 @@ import seal.openapi.model.CreateRoundRequestDto;
 import seal.openapi.model.RoundDto;
 
 public interface RoundService {
-  RoundDto createRound(UUID seasonId, UUID eventId, CreateRoundRequestDto request);
+  RoundDto createRound(UUID eventId, CreateRoundRequestDto request);
 
-  void deleteRound(UUID seasonId, UUID eventId, UUID roundId);
+  void deleteRound(UUID roundId);
 }
