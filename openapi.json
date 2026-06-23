@@ -272,6 +272,34 @@
         }
       }
     },
+    "/seasons/{seasonId}/events/{eventId}/finalize": {
+      "post": {
+        "tags": ["events"],
+        "operationId": "finalize_event",
+        "description": "Finalize an event (changes status to FINALIZED).",
+        "parameters": [
+          {
+            "name": "seasonId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event finalized",
+            "content": {}
+          },
+          "4XX": { "$ref": "#/components/responses/ClientErrorResponse" }
+        }
+      }
+    },
     "/seasons": {
       "get": {
         "tags": ["seasons"],
