@@ -2,14 +2,31 @@
 	import { theme } from "$lib/theme.svelte"
 	import { page } from "$app/stores"
 	import { goto } from "$app/navigation"
+	import { getProfile } from "$lib/api/profile"
 
 	let isLoggedIn = $state(false)
+	let logoHref = $state("/")
 
 	$effect(() => {
 		// Track page changes to check if auth_data is present in localStorage
 		const _url = $page.url
 		if (typeof window !== "undefined") {
-			isLoggedIn = !!localStorage.getItem("auth_data")
+			const authData = localStorage.getItem("auth_data")
+			isLoggedIn = !!authData
+			
+			if (isLoggedIn && logoHref === "/") {
+				getProfile().then(res => {
+					if (res.ok) {
+						res.json().then(profile => {
+							if (profile.role === "COORDINATOR") logoHref = "/coordinator"
+							else if (profile.role === "STUDENT") logoHref = "/student"
+							else if (profile.role === "MENTOR" || profile.role === "JUDGE") logoHref = "/mentor"
+						})
+					}
+				}).catch(() => {})
+			} else if (!isLoggedIn) {
+				logoHref = "/"
+			}
 		}
 	})
 </script>
@@ -18,7 +35,7 @@
 	class="fixed top-0 left-0 w-full z-[1000] flex justify-between items-center px-8 py-4 bg-[var(--md-surface-container)] border-b border-[var(--md-outline-variant)] transition-colors duration-300 ease-in-out"
 >
 	<div class="text-2xl font-bold text-[var(--md-primary)]">
-		<a href="/" class="flex items-center gap-2.5 no-underline">
+		<a href={logoHref} class="flex items-center gap-2.5 no-underline">
 			<img
 				src="https://upload.wikimedia.org/wikipedia/commons/1/11/FPT_logo_2010.svg"
 				alt="Logo"
