@@ -13,4 +13,6 @@ public interface HackathonEventService {
   HackathonEventDto createEvent(CreateEventRequestDto request);
 
   void finalizeEvent(UUID seasonId, UUID eventId);
+
+  void markInterested(UUID eventId);
 }

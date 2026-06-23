@@ -105,6 +105,27 @@
         }
       }
     },
+    "/events/{eventId}/mark-interested": {
+      "post": {
+        "tags": ["Events"],
+        "summary": "Mark the authenticated student as interested in an event",
+        "operationId": "markInterested",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successfully marked interested" },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/teams": {
       "post": {
         "tags": ["teams"],
