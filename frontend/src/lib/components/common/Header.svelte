@@ -3,6 +3,7 @@
 	import { page } from "$app/stores"
 	import { goto } from "$app/navigation"
 	import { getProfile } from "$lib/api/profile"
+	import { Sun, Moon } from "@lucide/svelte"
 
 	let isLoggedIn = $state(false)
 	let logoHref = $state("/")
@@ -47,10 +48,15 @@
 
 	<div class="flex items-center gap-5">
 		<button
-			class="px-4 py-2 font-semibold rounded-lg bg-[var(--md-primary)] text-[var(--md-on-primary)] transition-opacity duration-200 hover:opacity-80 hover:cursor-pointer"
+			class="p-2.5 rounded-full transition-all duration-200 hover:cursor-pointer flex items-center justify-center border border-[var(--md-outline-variant)] shadow-sm {theme.darkMode ? 'bg-zinc-800 text-yellow-400 hover:bg-zinc-700' : 'bg-gray-100 text-slate-700 hover:bg-gray-200'}"
 			onclick={() => (theme.darkMode = !theme.darkMode)}
+			title={theme.darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
 		>
-			{theme.darkMode ? "Light Mode" : "Dark Mode"}
+			{#if theme.darkMode}
+				<Moon class="w-5 h-5" />
+			{:else}
+				<Sun class="w-5 h-5" />
+			{/if}
 		</button>
 		{#if !isLoggedIn}
 			<a
