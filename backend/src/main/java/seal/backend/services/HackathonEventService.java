@@ -4,9 +4,12 @@ import java.util.List;
 import java.util.UUID;
 import seal.openapi.model.CreateEventRequestDto;
 import seal.openapi.model.HackathonEventDto;
+import seal.openapi.model.StudentDto;
 import seal.openapi.model.UpdateEventRequestDto;
 
 public interface HackathonEventService {
+
+  List<StudentDto> getInterestedParticipants(UUID eventId);
 
   HackathonEventDto updateEvent(UUID eventId, UpdateEventRequestDto request);
 
