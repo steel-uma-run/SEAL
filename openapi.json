@@ -579,6 +579,37 @@
             "$ref": "#/components/responses/ClientErrorResponse"
           }
         }
+      },
+      "patch": {
+        "tags": ["tracks", "events", "seasons"],
+        "operationId": "update_track",
+        "description": "Partially update a track's info",
+        "security": [{"bearerAuthentication": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTrackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
       }
     },
     "/seasons/{seasonId}/events/{eventId}/tracks/{trackId}/assign-mentor": {
@@ -865,6 +896,20 @@
           "description": {
             "type": "string",
             "description": "Detailed description of the track"
+          }
+        }
+      },
+      "UpdateTrackRequest": {
+        "description": "Payload to partially update a track",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New name of the track"
+          },
+          "description": {
+            "type": "string",
+            "description": "New description of the track"
           }
         }
       },

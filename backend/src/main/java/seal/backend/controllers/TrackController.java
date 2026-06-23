@@ -19,6 +19,7 @@ import seal.openapi.model.AssignTeamRequestDto;
 import seal.openapi.model.CreateTrackRequestDto;
 import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
+import seal.openapi.model.UpdateTrackRequestDto;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,6 +52,14 @@ public class TrackController implements TracksApi {
       @RequestBody @Valid @NotNull CreateTrackRequestDto request) {
     TrackDto responseDto = trackService.createTrack(request, seasonId, eventId);
     return ResponseEntity.ok(responseDto);
+  }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<TrackDto> updateTrack(
+      UUID seasonId, UUID eventId, UUID trackId, UpdateTrackRequestDto request) {
+    TrackDto updatedTrack = trackService.updateTrack(seasonId, eventId, trackId, request);
+    return ResponseEntity.ok(updatedTrack);
   }
 
   @Override

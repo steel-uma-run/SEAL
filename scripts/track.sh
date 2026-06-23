@@ -21,32 +21,54 @@ if [ -z "$TOKEN" ] || [ "$TOKEN" == "null" ]; then
 fi
 echo "✅ Lấy token thành công!"
 
-echo "=== 1. TEST: GET ALL TRACKS OF EVENT ==="
-curl -s -X GET "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks" \
-     -H "Accept: application/json" | jq .
+#echo "=== 1. TEST: GET ALL TRACKS OF EVENT ==="
+#curl -s -X GET "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks" \
+#     -H "Accept: application/json" | jq .
+#
+#echo "=== 2. TEST: GET TRACK DETAIL ==="
+#curl -s -X GET "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks/${TRACK_ID}" \
+#     -H "Accept: application/json" | jq .
+#
+#echo "=== 3. TEST: CREATE TRACK ==="
+#curl -s -X POST "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks" \
+#     -H "Content-Type: application/json" \
+#     -H "Authorization: Bearer ${TOKEN}" \
+#     -d '{"name": "Software Engineering", "description": "Software Engineering test track"}' | jq .
+#
+#echo "=== 4. TEST: ASSIGN MENTOR ==="
+#curl -s -X POST "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks/${TRACK_ID}/assign-mentor" \
+#     -H "Content-Type: application/json" \
+#     -H "Authorization: Bearer ${TOKEN}" \
+#     -d '{
+#           "mentor_id": "'"${MENTOR_ID}"'"
+#         }' | jq .
+#
+#echo "=== 5. TEST: ASSIGN TEAM ==="
+#curl -s -X POST "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks/${TRACK_ID}/assign-team" \
+#     -H "Content-Type: application/json" \
+#     -H "Authorization: Bearer ${TOKEN}" \
+#     -d '{
+#           "team_id": "'"${TEAM_ID}"'"
+#         }' | jq .
 
-echo "=== 2. TEST: GET TRACK DETAIL ==="
-curl -s -X GET "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks/${TRACK_ID}" \
-     -H "Accept: application/json" | jq .
-
-echo "=== 3. TEST: CREATE TRACK ==="
-curl -s -X POST "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks" \
-     -H "Content-Type: application/json" \
-     -H "Authorization: Bearer ${TOKEN}" \
-     -d '{"name": "Software Engineering", "description": "Software Engineering test track"}' | jq .
-
-echo "=== 4. TEST: ASSIGN MENTOR ==="
-curl -s -X POST "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks/${TRACK_ID}/assign-mentor" \
+echo "=== 6. TEST: UPDATE TRACK ==="
+echo "------------------------------------------"
+echo "CASE 1: Cập nhật CẢ tên lẫn mô tả"
+echo "------------------------------------------"
+curl -s -X PATCH "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks/${TRACK_ID}" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer ${TOKEN}" \
      -d '{
-           "mentor_id": "'"${MENTOR_ID}"'"
+           "name": "Software Engineering 2.0",
+           "description": "hihihihihihihihihihihi"
          }' | jq .
 
-echo "=== 5. TEST: ASSIGN TEAM ==="
-curl -s -X POST "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks/${TRACK_ID}/assign-team" \
+echo "------------------------------------------"
+echo "CASE 2: Chỉ cập nhật MỖI TÊN"
+echo "------------------------------------------"
+curl -s -X PATCH "http://localhost:8080/api/v0/seasons/${SEASON_ID}/events/${EVENT_ID}/tracks/${TRACK_ID}" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer ${TOKEN}" \
      -d '{
-           "team_id": "'"${TEAM_ID}"'"
+           "name": "Software Engineering 3.0"
          }' | jq .

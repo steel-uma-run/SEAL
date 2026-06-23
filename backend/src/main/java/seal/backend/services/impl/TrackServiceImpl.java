@@ -27,6 +27,7 @@ import seal.openapi.model.CreateTrackRequestDto;
 import seal.openapi.model.TeamDto;
 import seal.openapi.model.TeamStatusDto;
 import seal.openapi.model.TrackDto;
+import seal.openapi.model.UpdateTrackRequestDto;
 
 @Service
 @RequiredArgsConstructor
@@ -111,6 +112,30 @@ public class TrackServiceImpl implements TrackService {
         savedTrack.getName(),
         savedTrack.getDescription(),
         hackathonEvent.getId(),
+        savedTrack.getMentor() != null ? savedTrack.getMentor().getId() : null);
+  }
+
+  @Override
+  @Transactional
+  public TrackDto updateTrack(
+      UUID seasonId, UUID eventId, UUID trackId, UpdateTrackRequestDto request) {
+    Track track = validateAndGetTrack(seasonId, eventId, trackId);
+
+    if (request.name() != null) {
+      track.setName(request.name());
+    }
+
+    if (request.description() != null) {
+      track.setDescription(request.description());
+    }
+
+    Track savedTrack = trackRepository.save(track);
+
+    return new TrackDto(
+        savedTrack.getId(),
+        savedTrack.getName(),
+        savedTrack.getDescription(),
+        savedTrack.getEvent().getId(),
         savedTrack.getMentor() != null ? savedTrack.getMentor().getId() : null);
   }
 
