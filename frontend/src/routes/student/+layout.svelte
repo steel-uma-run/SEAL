@@ -4,7 +4,7 @@
 	import { getProfile } from "$lib/api/profile"
 	import { theme } from "$lib/theme.svelte"
 	import Sidebar from "$lib/components/common/Sidebar.svelte"
-	import { LayoutDashboard, User, Settings } from "@lucide/svelte"
+	import { LayoutDashboard, User, Settings, Users, UploadCloud } from "@lucide/svelte"
 
 	let { children } = $props()
 	let isLoading = $state(true)
@@ -12,6 +12,8 @@
 	const menuItems = [
 		{ href: "/student", label: "Dashboard", icon: LayoutDashboard },
 		{ href: "/student/profile", label: "Profile", icon: User },
+		{ href: "/student/teams", label: "Teams", icon: Users },
+		{ href: "/student/submit-project", label: "Submission", icon: UploadCloud },
 		{ href: "#", label: "Settings", icon: Settings }
 	]
 

@@ -4,11 +4,12 @@
 	import { goto } from "$app/navigation"
 	import { getProfile } from "$lib/api/profile"
 	import { Sun, Moon } from "@lucide/svelte"
+	import { onMount } from "svelte"
 
 	let isLoggedIn = $state(false)
 	let logoHref = $state("/")
 
-	$effect(() => {
+	onMount(() => {
 		// Track page changes to check if auth_data is present in localStorage
 		const _url = $page.url
 		if (typeof window !== "undefined") {
