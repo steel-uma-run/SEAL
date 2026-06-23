@@ -6,13 +6,11 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"lint": "prettier --check .",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"mock": "prism mock --dynamic ../openapi.json --port 8080"
 	},
 	"dependencies": {
+		"@hey-api/vite-plugin": "0.3.2",
 		"@lucide/svelte": "1.17.0",
 		"@poupe/material-color-utilities": "0.4.1",
 		"@sveltejs/adapter-static": "3.0.10",
@@ -25,9 +23,11 @@
 		"svelte-check": "4.4.8",
 		"tailwindcss": "4.3.0",
 		"typescript": "6.0.3",
-		"vite": "8.0.14"
+		"vite": "8.0.14",
+		"zod": "4.4.3"
 	},
 	"devDependencies": {
+		"@stoplight/prism-cli": "5.15.11",
 		"prettier": "3.8.3",
 		"prettier-plugin-svelte": "4.0.1",
 		"prettier-plugin-tailwindcss": "0.8.0"
