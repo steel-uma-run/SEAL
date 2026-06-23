@@ -14,12 +14,22 @@ import seal.backend.services.HackathonEventService;
 import seal.openapi.api.EventsApi;
 import seal.openapi.model.CreateEventRequestDto;
 import seal.openapi.model.HackathonEventDto;
+import seal.openapi.model.StudentDto;
 import seal.openapi.model.UpdateEventRequestDto;
 
 @RestController
 @RequiredArgsConstructor
 public class HackathonEventController implements EventsApi {
   private final HackathonEventService eventService;
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<StudentDto[]> getInterestedParticipants(
+      @PathVariable(name = "eventId") @NotNull UUID eventId) {
+
+    return ResponseEntity.ok(
+        eventService.getInterestedParticipants(eventId).toArray(StudentDto[]::new));
+  }
 
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")

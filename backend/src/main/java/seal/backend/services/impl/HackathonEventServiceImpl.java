@@ -21,7 +21,9 @@ import seal.backend.services.HackathonEventService;
 import seal.openapi.model.CreateEventRequestDto;
 import seal.openapi.model.HackathonEventDto;
 import seal.openapi.model.HackathonEventStatusDto;
+import seal.openapi.model.StudentDto;
 import seal.openapi.model.UpdateEventRequestDto;
+import seal.openapi.model.UserRoleDto;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +31,33 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   private final HackathonEventRepository hackathonEventRepository;
   private final SeasonRepository seasonRepository;
   private final StudentRepository studentRepository;
+
+  @Override
+  public List<StudentDto> getInterestedParticipants(UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    return event.getStudents().stream()
+        .map(
+            student -> {
+              UUID[] interested =
+                  student.getEvents().stream().map(HackathonEvent::getId).toArray(UUID[]::new);
+
+              return new StudentDto(
+                  student.getId(),
+                  student.getUser().getEmail(),
+                  UserRoleDto.fromValue(student.getUser().getRole().name()),
+                  student.getStudentId(),
+                  student.isExternal(),
+                  null,
+                  student.getTeam() != null ? student.getTeam().getId() : null,
+                  interested);
+            })
+        .toList();
+  }
 
   @Override
   public HackathonEventDto updateEvent(UUID eventId, UpdateEventRequestDto request) {
