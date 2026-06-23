@@ -12,21 +12,27 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
+import seal.backend.entities.Lecturer;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
+import seal.backend.entities.Team;
+import seal.backend.entities.Track;
 import seal.backend.enums.EventStatus;
 import seal.backend.enums.StudentStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
+import seal.backend.repositories.TeamRepository;
+import seal.backend.repositories.TrackRepository;
 import seal.backend.services.HackathonEventService;
 import seal.openapi.model.CreateEventRequestDto;
 import seal.openapi.model.HackathonEventDto;
 import seal.openapi.model.HackathonEventStatusDto;
 import seal.openapi.model.StudentDto;
+import seal.openapi.model.TeamDto;
+import seal.openapi.model.TeamStatusDto;
+import seal.openapi.model.TrackDto;
 import seal.openapi.model.UpdateEventRequestDto;
-import seal.openapi.model.UserRoleDto;
-import seal.openapi.model.UserStatusDto;
 
 @Service
 @RequiredArgsConstructor
@@ -34,38 +40,22 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   private final HackathonEventRepository hackathonEventRepository;
   private final SeasonRepository seasonRepository;
   private final StudentRepository studentRepository;
+  private final TeamRepository teamRepo;
+  private final TrackRepository trackRepo;
 
   @Override
-  public List<StudentDto> getInterestedParticipants(UUID seasonId, UUID eventId) {
+  public List<StudentDto> getInterestedParticipants(UUID eventId) {
     HackathonEvent event =
         hackathonEventRepository
             .findById(eventId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
 
-    return event.getStudents().stream()
-        .map(
-            student -> {
-              UUID[] interested =
-                  student.getEvents().stream().map(HackathonEvent::getId).toArray(UUID[]::new);
-
-              return new StudentDto(
-                  student.getId(),
-                  student.getUser().getEmail(),
-                  student.getUser().getFullName(),
-                  UserRoleDto.fromValue(student.getUser().getRole().name()),
-                  UserStatusDto.fromValue(student.getStudentStatus().name()),
-                  student.getStudentId(),
-                  student.isExternal(),
-                  null,
-                  student.getTeam() != null ? student.getTeam().getId() : null,
-                  interested);
-            })
-        .toList();
+    return event.getStudents().stream().map(student -> student.toDto()).toList();
   }
 
   @Override
-  public HackathonEventDto updateEvent(UUID seasonId, UUID eventId, UpdateEventRequestDto request) {
+  public HackathonEventDto updateEvent(UUID eventId, UpdateEventRequestDto request) {
     HackathonEvent event =
         hackathonEventRepository
             .findById(eventId)
@@ -106,13 +96,13 @@ public class HackathonEventServiceImpl implements HackathonEventService {
 
   @Override
   @Transactional
-  public void markInterested(UUID seasonId, UUID eventId) {
+  public void markInterested(UUID eventId) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
     String currentStudentEmail = auth.getName();
     Student student =
         studentRepository
-            .findByUserEmail(currentStudentEmail)
+            .findByEmail(currentStudentEmail)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found"));
     HackathonEvent event =
@@ -133,10 +123,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   }
 
   @Override
-  public void finalizeEvent(UUID seasonId, UUID eventId) {
-    seasonRepository
-        .findById(seasonId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season not found"));
+  public void finalizeEvent(UUID eventId) {
     HackathonEvent event =
         hackathonEventRepository
             .findById(eventId)
@@ -152,10 +139,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   }
 
   @Override
-  public HackathonEventDto getEvent(UUID seasonId, UUID eventId) {
-    seasonRepository
-        .findById(seasonId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season not found"));
+  public HackathonEventDto getEvent(UUID eventId) {
     hackathonEventRepository
         .findById(eventId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
@@ -241,5 +225,48 @@ public class HackathonEventServiceImpl implements HackathonEventService {
         hackathonEvent.getStartTime(),
         hackathonEvent.getEndTime(),
         hackathonEvent.getSeason().getId());
+  }
+
+  @Override
+  public List<TeamDto> getAllTeamsOfEvent(UUID eventId) {
+    hackathonEventRepository
+        .findById(eventId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
+
+    List<Team> teams = teamRepo.findByHackathonEventId(eventId);
+    List<TeamDto> resultList = new ArrayList<>();
+
+    for (Team team : teams) {
+      TeamDto dto =
+          new TeamDto(
+              team.getId(),
+              team.getName(),
+              TeamStatusDto.valueOf(team.getTeamStatus().name()),
+              new UUID[0],
+              team.getLeader().getId(),
+              team.getTrack() != null ? team.getTrack().getId() : null);
+      resultList.add(dto);
+    }
+
+    return resultList;
+  }
+
+  @Override
+  public List<TrackDto> getAllTracksOfEvent(UUID eventId) {
+    List<Track> trackEntities = trackRepo.findByEventId(eventId);
+    List<TrackDto> resultList = new ArrayList<>();
+
+    for (Track track : trackEntities) {
+      TrackDto dto =
+          new TrackDto(
+              track.getId(),
+              track.getName(),
+              track.getDescription(),
+              track.getEvent().getId(),
+              track.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
+      resultList.add(dto);
+    }
+
+    return resultList;
   }
 }
