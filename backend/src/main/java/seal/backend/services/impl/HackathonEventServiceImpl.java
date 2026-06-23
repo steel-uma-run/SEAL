@@ -21,6 +21,7 @@ import seal.backend.services.HackathonEventService;
 import seal.openapi.model.CreateEventRequestDto;
 import seal.openapi.model.HackathonEventDto;
 import seal.openapi.model.HackathonEventStatusDto;
+import seal.openapi.model.UpdateEventRequestDto;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,50 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   private final HackathonEventRepository hackathonEventRepository;
   private final SeasonRepository seasonRepository;
   private final StudentRepository studentRepository;
+
+  @Override
+  public HackathonEventDto updateEvent(UUID eventId, UpdateEventRequestDto request) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    if (event.getStatus() == EventStatus.FINALIZED) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Event is finalized");
+    }
+
+    if (request.startTime() != null && request.endTime() != null) {
+      if (!request.endTime().isAfter(request.startTime())) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "End time must be after start time");
+      }
+
+      if (request.name() != null) event.setName(request.name());
+
+      if (request.description() != null) event.setDescription(request.description());
+
+      if (request.status() != null) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status cannot be updated");
+      }
+
+      event.setStartTime(request.startTime());
+      event.setEndTime(request.endTime());
+    } else if (request.startTime() != null) {
+      event.setStartTime(request.startTime());
+    } else if (request.endTime() != null) {
+      event.setEndTime(request.endTime());
+    }
+
+    return new HackathonEventDto(
+        event.getId(),
+        event.getName(),
+        event.getDescription(),
+        HackathonEventStatusDto.fromValue(event.getStatus().name()),
+        event.getStartTime(),
+        event.getEndTime(),
+        event.getSeason().getId());
+  }
 
   @Override
   public void markInterested(UUID eventId) {

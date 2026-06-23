@@ -73,59 +73,6 @@
         }
       }
     },
-    "/events": {
-      "post": {
-        "tags": ["events"],
-        "operationId": "create_event",
-        "description": "Create a new event (status starts as DRAFT).",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateEventRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HackathonEvent"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "$ref": "#/components/responses/ClientErrorResponse"
-          }
-        }
-      }
-    },
-    "/events/{eventId}/mark-interested": {
-      "post": {
-        "tags": ["Events"],
-        "summary": "Mark the authenticated student as interested in an event",
-        "operationId": "markInterested",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": { "description": "Successfully marked interested" },
-          "4XX": {
-            "$ref": "#/components/responses/ClientErrorResponse"
-          }
-        }
-      }
-    },
     "/teams": {
       "post": {
         "tags": ["teams"],
@@ -292,34 +239,6 @@
         }
       }
     },
-    "/seasons/{seasonId}/events/{eventId}/finalize": {
-      "post": {
-        "tags": ["events"],
-        "operationId": "finalize_event",
-        "description": "Finalize an event (changes status to FINALIZED).",
-        "parameters": [
-          {
-            "name": "seasonId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          },
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Event finalized",
-            "content": {}
-          },
-          "4XX": { "$ref": "#/components/responses/ClientErrorResponse" }
-        }
-      }
-    },
     "/seasons": {
       "get": {
         "tags": ["seasons"],
@@ -442,9 +361,67 @@
             "$ref": "#/components/responses/ClientErrorResponse"
           }
         }
+      },
+      "post": {
+        "tags": ["events"],
+        "operationId": "create_event",
+        "description": "Create a new event (status starts as DRAFT).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HackathonEvent"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
       }
     },
-    "/seasons/{seasonId}/events/{eventId}": {
+    "/seasons/{seasonId}/events/{eventId}/finalize": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" }
+        },
+        {
+          "name": "eventId",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string", "format": "uuid" }
+        }
+      ],
+      "post": {
+        "tags": ["events"],
+        "operationId": "finalize_event",
+        "description": "Finalize an event (changes status to FINALIZED).",
+        "responses": {
+          "200": {
+            "description": "Event finalized",
+            "content": {}
+          },
+          "4XX": { "$ref": "#/components/responses/ClientErrorResponse" }
+        }
+      }
+    },
+    "/seasons/{seasonId}/events/{eventId}/mark-interested": {
       "parameters": [
         {
           "name": "seasonId",
@@ -467,22 +444,21 @@
           }
         }
       ],
-      "get": {
-        "tags": ["events", "seasons"],
-        "operationId": "get_event",
-        "description": "Returns info on a specific event",
+      "post": {
+        "tags": ["Events"],
+        "summary": "Mark the authenticated student as interested in an event",
+        "operationId": "markInterested",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
         "responses": {
-          "200": {
-            "description": "Event data",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HackathonEvent"
-                }
-              }
-            }
-          },
-          "422": {
+          "200": { "description": "Successfully marked interested" },
+          "4XX": {
             "$ref": "#/components/responses/ClientErrorResponse"
           }
         }
@@ -923,6 +899,74 @@
         }
       }
     },
+    "/seasons/{seasonId}/events/{eventId}": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "eventId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["events", "seasons"],
+        "operationId": "get_event",
+        "description": "Returns info on a specific event",
+        "responses": {
+          "200": {
+            "description": "Event data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HackathonEvent"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Events"],
+        "summary": "Update a hackathon event",
+        "operationId": "update_event",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateEventRequestDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated event",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HackathonEvent" }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/profile": {
       "get": {
         "tags": ["profile"],
@@ -973,6 +1017,7 @@
       }
     }
   },
+
   "components": {
     "schemas": {
       "Email": {
@@ -1047,6 +1092,16 @@
             "type": "string",
             "format": "uuid"
           }
+        }
+      },
+      "UpdateEventRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "status": { "type": "string", "enum": ["DRAFT", "FINALIZED"] },
+          "startTime": { "type": "string", "format": "date-time" },
+          "endTime": { "type": "string", "format": "date-time" }
         }
       },
       "Track": {
