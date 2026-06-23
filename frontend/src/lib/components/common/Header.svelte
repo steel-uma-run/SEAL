@@ -9,7 +9,7 @@
 	let isLoggedIn = $state(false)
 	let logoHref = $state("/")
 
-	onMount(() => {
+	$effect(() => {
 		// Track page changes to check if auth_data is present in localStorage
 		const _url = $page.url
 		if (typeof window !== "undefined") {
