@@ -15,9 +15,9 @@
 			label: "Management",
 			icon: FolderKanban,
 			children: [
-				{ href: "/coordinator/seasons", label: "Seasons" },
+				{ href: "/coordinator/seasons", label: "Seasons & Events" },
 				{ href: "/coordinator/teams", label: "Teams" },
-				{ href: "/coordinator/experts", label: "Judges" },
+				{ href: "/coordinator/experts", label: "Judges & Mentors" },
 				{ href: "/coordinator/users", label: "Users" }
 			]
 		},
