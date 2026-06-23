@@ -665,6 +665,42 @@
         }
       }
     },
+    "/events/{eventId}": {
+      "patch": {
+        "tags": ["Events"],
+        "summary": "Update a hackathon event",
+        "operationId": "updateEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateEventRequestDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated event",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HackathonEvent" }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/events/{eventId}/tracks": {
       "parameters": [
         {
@@ -783,6 +819,7 @@
       }
     }
   },
+
   "components": {
     "schemas": {
       "Email": {
@@ -857,6 +894,16 @@
             "type": "string",
             "format": "uuid"
           }
+        }
+      },
+      "UpdateEventRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "status": { "type": "string", "enum": ["DRAFT", "FINALIZED"] },
+          "startTime": { "type": "string", "format": "date-time" },
+          "endTime": { "type": "string", "format": "date-time" }
         }
       },
       "Track": {
@@ -1104,7 +1151,6 @@
           }
         }
       },
-
       "LoginRequestPayload": {
         "type": "object",
         "required": ["email", "password"],
