@@ -67,7 +67,8 @@ public class SubmissionServiceImpl implements SubmissionService {
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event is not ongoing."));
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    Student actor = studentRepo.findByUserEmail(auth.getName()).get();
+    Student actor = studentRepo.findByEmail(auth.getName()).get();
+
     if (!actor.isTeamLeader()) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only team leader can submit works.");
     }
@@ -110,7 +111,7 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     if (actor.getRole() == Role.STUDENT) {
       // does this actor belong to the team they want to view?
-      Student student = studentRepo.findByUser(actor).get();
+      Student student = studentRepo.findById(actor.getId()).get();
       if (!targetTeam.equals(student.getTeam())) {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't belong to this team.");
       }
@@ -130,7 +131,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       // CONSTRAINTS:
       // Only mentor on the correct track or can view submissions
       // Only judge assigned to the correct track can view submissions
-      Lecturer lecturer = lecturerRepo.findByUser(actor).get();
+      Lecturer lecturer = lecturerRepo.findByEmail(actor.getEmail()).get();
 
       if (lecturer.getTrack() != null && lecturer.getTrack().equals(targetTeam.getTrack())) {
         // actor is a judge assigned to the same track as the team, return submissions
