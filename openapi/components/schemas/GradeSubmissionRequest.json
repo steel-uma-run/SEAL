@@ -1,0 +1,20 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "value"],
+    "properties": {
+      "criteria_id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "The UUID of the Criteria this score is based off of"
+      },
+      "value": {
+        "type": "integer"
+      },
+      "comment": {
+        "type": "string"
+      }
+    }
+  }
+}

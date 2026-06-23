@@ -11,21 +11,26 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import seal.backend.entities.Criteria;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Lecturer;
 import seal.backend.entities.Round;
+import seal.backend.entities.Score;
 import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
 import seal.backend.entities.User;
 import seal.backend.enums.Role;
+import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
+import seal.backend.repositories.ScoreRepository;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.SubmissionRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.SubmissionService;
+import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
 import seal.openapi.model.SubmissionDto;
 import seal.openapi.model.SubmitWorkRequestDto;
 
@@ -38,6 +43,8 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final LecturerRepository lecturerRepo;
   private final UserRepository userRepo;
   private final TeamRepository teamRepo;
+  private final CriteriaRepository criteriaRepo;
+  private final ScoreRepository scoreRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
   private final Pattern ytPattern = Pattern.compile("^(https?://)?youtube\\.com");
@@ -142,5 +149,54 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     throw new ResponseStatusException(
         HttpStatus.FORBIDDEN, "You are not allowed to view teams' submissions.");
+  }
+
+  @Transactional
+  @Override
+  public void gradeSubmission(UUID submissionId, GradeSubmissionRequestArrayItemDto[] scores) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    Lecturer actor =
+        lecturerRepo
+            .findByEmail(auth.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+
+    Submission submission =
+        submissionRepo
+            .findById(submissionId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission doesn't exist"));
+
+    // Constraint: can only grade submissions belonging to teams on the same track as the lecturer
+    if (!actor.getJudgedTracks().contains(submission.getSubmitterTeam().getTrack())) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+    }
+
+    for (GradeSubmissionRequestArrayItemDto dto : scores) {
+      // Constraint: score must be between 0-100
+      if (dto.value() < 0 | dto.value() > 100) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Score must be between 0 and 100");
+      }
+
+      // Constraint: if score is below average, require a comment
+      if (dto.value() < 50 && dto.comment() == null) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required");
+      }
+
+      Criteria criteria =
+          criteriaRepo
+              .findById(dto.criteriaId())
+              .orElseThrow(
+                  () ->
+                      new ResponseStatusException(HttpStatus.NOT_FOUND, "Criteria doesn't exist"));
+
+      Score givenScore = new Score(criteria, submission, actor, dto.value());
+      givenScore.setComment(dto.comment());
+      submission.getScores().add(givenScore);
+
+      scoreRepo.save(givenScore);
+      submissionRepo.save(submission);
+    }
   }
 }
