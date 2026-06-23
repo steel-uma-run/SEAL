@@ -10,9 +10,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -54,4 +57,7 @@ public class HackathonEvent {
   @JoinColumn(name = "season_id", nullable = false)
   @Nonnull
   private Season season;
+
+  @ManyToMany(mappedBy = "events")
+  private Set<Student> students = new HashSet<>();
 }
