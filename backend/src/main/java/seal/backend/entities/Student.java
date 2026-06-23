@@ -6,38 +6,30 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
+import seal.openapi.model.RoleDto;
+import seal.openapi.model.StudentDto;
+import seal.openapi.model.StudentStatusDto;
 
 @Entity
 @NoArgsConstructor
 @SuperBuilder
 @Getter
+@Setter
 public class Student extends User {
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID id;
-
-  @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  @Nonnull
-  private User user;
-
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   @Nonnull
@@ -56,8 +48,9 @@ public class Student extends User {
   @JoinColumn(name = "team_id", nullable = true)
   private Team team;
 
-  // TODO
-  // Add schoolName
+  @Column(columnDefinition = "TEXT", nullable = false)
+  @Nonnull
+  private String schoolName;
 
   @ManyToMany
   @JoinTable(
@@ -78,6 +71,20 @@ public class Student extends User {
 
   // Returns whether this Student is the leader of a specific team.
   public boolean isTeamLeaderOf(Team team) {
-    return team.getLeader().getId().equals(id);
+    return team.getLeader().getId().equals(getId());
+  }
+
+  public StudentDto toDto() {
+    return new StudentDto(
+        getId(),
+        getEmail(),
+        RoleDto.STUDENT,
+        getFullName(),
+        getStudentId(),
+        isExternal(),
+        getSchoolName(),
+        getTeam() != null ? getTeam().getId() : null,
+        StudentStatusDto.fromValue(getStudentStatus().name()),
+        getEvents().stream().map(event -> event.getId()).toArray(UUID[]::new));
   }
 }
