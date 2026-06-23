@@ -10,7 +10,3 @@ map:
   result: org.springframework.http.ResponseEntity
   types:
     - type: string:uuid => java.util.UUID
-  paths:
-    /profile:
-      parameters:
-        - add: auth => org.springframework.security.core.Authentication

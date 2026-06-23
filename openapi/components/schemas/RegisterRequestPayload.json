@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "required": ["email", "password", "name", "student_id", "is_external"],
+  "if": {
+    "properties": {
+      "is_external": {
+        "const": true
+      }
+    },
+    "required": ["is_external"]
+  },
+  "then": {
+    "required": ["school_name"]
+  },
+  "properties": {
+    "email": {
+      "$ref": "./Email.json"
+    },
+    "password": {
+      "description": "Password of the user",
+      "type": "string"
+    },
+    "name": {
+      "description": "Full name of the user",
+      "type": "string"
+    },
+    "student_id": {
+      "type": "string"
+    },
+    "is_external": {
+      "description": "Whether the user is an external student",
+      "type": "boolean"
+    },
+    "school_name": {
+      "description": "Name of the user's school. MUST be present if isExternal == true",
+      "type": "string"
+    }
+  }
+}

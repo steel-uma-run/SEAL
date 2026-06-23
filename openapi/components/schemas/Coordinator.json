@@ -1,0 +1,8 @@
+{
+  "description": "Coordinator account",
+  "allOf": [
+    {
+      "$ref": "./User.json"
+    }
+  ]
+}

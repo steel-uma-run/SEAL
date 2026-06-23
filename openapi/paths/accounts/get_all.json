@@ -1,0 +1,35 @@
+{
+  "get": {
+    "tags": ["accounts"],
+    "operationId": "get_all_accounts",
+    "summary": "Get all user accounts in the system",
+    "responses": {
+      "200": {
+        "description": "List of user accounts",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "oneOf": [
+                  {
+                    "$ref": "../../components/schemas/Student.json"
+                  },
+                  {
+                    "$ref": "../../components/schemas/Lecturer.json"
+                  },
+                  {
+                    "$ref": "../../components/schemas/Coordinator.json"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

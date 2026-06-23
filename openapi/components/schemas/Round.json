@@ -1,0 +1,36 @@
+{
+  "description": "A round within a hackathon event",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "start_time",
+    "end_time",
+    "event_id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

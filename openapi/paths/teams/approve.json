@@ -1,0 +1,27 @@
+{
+  "parameters": [
+    {
+      "name": "teamId",
+      "description": "ID of the team",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "post": {
+    "tags": ["teams"],
+    "operationId": "approve_team",
+    "summary": "Approve a pending team",
+    "responses": {
+      "204": {
+        "description": "Team approved successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

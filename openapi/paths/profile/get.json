@@ -1,0 +1,32 @@
+{
+  "get": {
+    "tags": ["profile"],
+    "operationId": "get_self_profile",
+    "summary": "Return the profile of the logged-in user",
+    "responses": {
+      "200": {
+        "description": "The user profile",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "$ref": "../../components/schemas/Student.json"
+                },
+                {
+                  "$ref": "../../components/schemas/Lecturer.json"
+                },
+                {
+                  "$ref": "../../components/schemas/Coordinator.json"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

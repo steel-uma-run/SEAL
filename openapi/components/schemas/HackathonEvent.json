@@ -1,0 +1,41 @@
+{
+  "description": "A hackathon event",
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "status",
+    "start_time",
+    "end_time",
+    "season_id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "FINALIZED"]
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "season_id": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

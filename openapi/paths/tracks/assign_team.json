@@ -1,0 +1,43 @@
+{
+  "parameters": [
+    {
+      "name": "trackId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "post": {
+    "tags": ["tracks"],
+    "operationId": "assign_team_to_track",
+    "summary": "Assign a team to a specific track",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/AssignTeamRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Successfully assigned team to track",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/Team.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

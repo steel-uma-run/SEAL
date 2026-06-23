@@ -1,0 +1,25 @@
+{
+  "parameters": [
+    {
+      "name": "eventId",
+      "description": "ID of the event",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "post": {
+    "tags": ["events"],
+    "summary": "Mark the authenticated student as interested in an event",
+    "operationId": "mark_interested",
+    "responses": {
+      "200": { "description": "Successfully marked interested" },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

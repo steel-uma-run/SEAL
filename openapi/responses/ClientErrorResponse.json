@@ -1,0 +1,25 @@
+{
+  "description": "RFC 7807 Problem Details",
+  "content": {
+    "application/json": {
+      "schema": {
+        "type": "object",
+        "required": ["status", "title", "detail"],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "status": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

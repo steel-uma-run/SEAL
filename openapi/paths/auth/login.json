@@ -1,0 +1,32 @@
+{
+  "post": {
+    "tags": ["auth"],
+    "operationId": "login",
+    "summary": "Login and obtain a JWT",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/LoginRequestPayload.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Successfully logged in",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/LoginResponsePayload.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

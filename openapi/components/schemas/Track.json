@@ -1,0 +1,28 @@
+{
+  "description": "A track within an event",
+  "type": "object",
+  "required": ["id", "name", "description", "event_id", "mentor_ids"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "mentor_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  }
+}

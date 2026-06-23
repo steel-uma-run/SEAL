@@ -1,0 +1,51 @@
+{
+  "description": "Student account",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "./User.json"
+    },
+    {
+      "required": [
+        "student_id",
+        "is_external",
+        "interested_in_events",
+        "status"
+      ],
+      "if": {
+        "properties": {
+          "is_external": { "const": true }
+        },
+        "required": ["is_external"]
+      },
+      "then": {
+        "required": ["school_name"]
+      },
+      "properties": {
+        "student_id": {
+          "type": "string"
+        },
+        "is_external": {
+          "type": "boolean"
+        },
+        "school_name": {
+          "type": "string"
+        },
+        "team_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "$ref": "./StudentStatus.json"
+        },
+        "interested_in_events": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "description": "The status of a student account",
+  "type": "string",
+  "enum": ["PENDING", "ACTIVE", "BANNED"]
+}

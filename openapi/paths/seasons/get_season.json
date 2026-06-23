@@ -1,0 +1,34 @@
+{
+  "parameters": [
+    {
+      "name": "seasonId",
+      "description": "ID of the season",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "get": {
+    "tags": ["seasons"],
+    "operationId": "get_season",
+    "summary": "Returns info of a specific season",
+    "responses": {
+      "200": {
+        "description": "Season data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/Season.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

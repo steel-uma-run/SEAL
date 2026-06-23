@@ -1,0 +1,37 @@
+{
+  "parameters": [
+    {
+      "name": "teamId",
+      "description": "ID of the team",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "get": {
+    "tags": ["teams"],
+    "operationId": "get_all_submissions",
+    "summary": "Get submissions for a team",
+    "responses": {
+      "200": {
+        "description": "Submissions data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/Submission.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

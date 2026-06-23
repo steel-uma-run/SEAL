@@ -1,0 +1,26 @@
+{
+  "post": {
+    "tags": ["auth"],
+    "operationId": "register",
+    "summary": "Register a new account",
+    "requestBody": {
+      "description": "Information to register a new account",
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/RegisterRequestPayload.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "204": {
+        "description": "Account registered successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

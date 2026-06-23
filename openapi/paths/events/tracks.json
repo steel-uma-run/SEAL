@@ -1,0 +1,66 @@
+{
+  "parameters": [
+    {
+      "name": "eventId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "get": {
+    "tags": ["events"],
+    "operationId": "get_all_tracks_of_event",
+    "summary": "Get a list of all tracks for a specific event",
+    "responses": {
+      "200": {
+        "description": "Success",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/Track.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  },
+  "post": {
+    "tags": ["events"],
+    "operationId": "create_track",
+    "summary": "Create a new track for an event",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/CreateTrackRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Successfully created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/Track.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

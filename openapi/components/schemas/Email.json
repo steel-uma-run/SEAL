@@ -1,0 +1,5 @@
+{
+  "description": "Email of the user",
+  "type": "string",
+  "format": "email"
+}

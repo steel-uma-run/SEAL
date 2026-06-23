@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "required": [
+    "title",
+    "description",
+    "github_link",
+    "youtube_link",
+    "slide_link",
+    "submitted_at"
+  ],
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "github_link": {
+      "type": "string"
+    },
+    "youtube_link": {
+      "type": "string"
+    },
+    "slide_link": {
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

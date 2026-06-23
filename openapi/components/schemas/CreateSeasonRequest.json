@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "required": ["semester", "year"],
+  "properties": {
+    "semester": {
+      "type": "string",
+      "enum": ["SPRING", "SUMMER", "FALL"]
+    },
+    "year": {
+      "type": "integer",
+      "format": "int32"
+    }
+  }
+}

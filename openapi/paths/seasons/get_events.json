@@ -1,0 +1,37 @@
+{
+  "parameters": [
+    {
+      "name": "seasonId",
+      "description": "ID of the season",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "get": {
+    "tags": ["events"],
+    "operationId": "get_events_in_season",
+    "summary": "Returns all events in a season",
+    "responses": {
+      "200": {
+        "description": "Events data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/HackathonEvent.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
