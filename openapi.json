@@ -444,6 +444,53 @@
         }
       }
     },
+    "/seasons/{seasonId}/events/{eventId}/submit": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "description": "ID of the season",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "eventId",
+          "description": "ID of the event",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["submissions", "events", "seasons"],
+        "operationId": "submit_work",
+        "description": "Create a submission for team",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitWorkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully submitted"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/seasons/{seasonId}/events/{eventId}/teams": {
       "parameters": [
         {
@@ -480,6 +527,63 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/Team"
+                  }
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/seasons/{seasonId}/events/{eventId}/teams/{teamId}/submissions": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "description": "ID of the season",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "eventId",
+          "description": "ID of the event",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "teamId",
+          "description": "ID of the team",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "tags": ["submissions", "events", "seasons"],
+        "operationId": "get_all_submissions",
+        "description": "Get submissions for a team",
+        "responses": {
+          "200": {
+            "description": "Submissions data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Submission"
                   }
                 }
               }
@@ -965,27 +1069,17 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "DRAFT",
-              "FINALIZED"
-            ]
+            "enum": ["DRAFT", "FINALIZED"]
           }
         }
       },
       "CreateSeasonRequest": {
         "type": "object",
-        "required": [
-          "semester",
-          "year"
-        ],
+        "required": ["semester", "year"],
         "properties": {
           "semester": {
             "type": "string",
-            "enum": [
-              "SPRING",
-              "SUMMER",
-              "FALL"
-            ]
+            "enum": ["SPRING", "SUMMER", "FALL"]
           },
           "year": {
             "type": "integer",
@@ -1162,6 +1256,38 @@
           }
         }
       },
+      "Submission": {
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "github_link",
+          "youtube_link",
+          "slide_link",
+          "submitted_at"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "github_link": {
+            "type": "string"
+          },
+          "youtube_link": {
+            "type": "string"
+          },
+          "slide_link": {
+            "type": "string"
+          },
+          "submitted_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
 
       "LoginRequestPayload": {
         "type": "object",
@@ -1242,6 +1368,34 @@
                 "enum": ["STUDENT", "COORDINATOR", "LECTURER"]
               }
             }
+          }
+        }
+      },
+      "SubmitWorkRequest": {
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "github_link",
+          "youtube_link",
+          "slide_link"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "github_link": {
+            "type": "string"
+          },
+          "youtube_link": {
+            "type": "string"
+          },
+          "slide_link": {
+            "type": "string"
           }
         }
       }
