@@ -4,19 +4,18 @@ fail-on-change = true
 command = "google-java-format"
 options = ["--replace"]
 includes = ["*.java"]
-excludes = []
-priority = 0
 
 [formatter.typescript]
 command = "prettier"
 options = ["--write"]
 includes = ["*.ts", "*.js"]
-excludes = []
-priority = 0
 
 [formatter.svelte]
 command = "prettier"
 options = ["--write"]
 includes = ["*.svelte"]
-excludes = []
-priority = 0
+
+[formatter.openapi]
+command = "prettier"
+options = ["--write"]
+includes = ["openapi.json"]
