@@ -2,8 +2,10 @@ package seal.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -17,11 +19,13 @@ import seal.openapi.model.RegisterRequestPayloadDto;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestMethodOrder(OrderAnnotation.class)
 class AuthControllerTests {
   @Autowired private MockMvc mvc;
   private final ObjectMapper objMapper = new ObjectMapper();
 
-  @BeforeEach
+  @Test
+  @Order(1)
   void registerTest() throws Exception {
     mvc.perform(
             MockMvcRequestBuilders.post(GlobalConfig.API_BASE + "/auth/register")
@@ -34,6 +38,7 @@ class AuthControllerTests {
   }
 
   @Test
+  @Order(2)
   void loginTest() throws Exception {
     mvc.perform(
             MockMvcRequestBuilders.post(GlobalConfig.API_BASE + "/auth/login")
