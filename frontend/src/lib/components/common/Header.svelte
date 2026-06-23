@@ -2,14 +2,32 @@
 	import { theme } from "$lib/theme.svelte"
 	import { page } from "$app/stores"
 	import { goto } from "$app/navigation"
+	import { getProfile } from "$lib/api/profile"
+	import { Sun, Moon } from "@lucide/svelte"
 
 	let isLoggedIn = $state(false)
+	let logoHref = $state("/")
 
 	$effect(() => {
 		// Track page changes to check if auth_data is present in localStorage
 		const _url = $page.url
 		if (typeof window !== "undefined") {
-			isLoggedIn = !!localStorage.getItem("auth_data")
+			const authData = localStorage.getItem("auth_data")
+			isLoggedIn = !!authData
+			
+			if (isLoggedIn && logoHref === "/") {
+				getProfile().then(res => {
+					if (res.ok) {
+						res.json().then(profile => {
+							if (profile.role === "COORDINATOR") logoHref = "/coordinator"
+							else if (profile.role === "STUDENT") logoHref = "/student"
+							else if (profile.role === "MENTOR" || profile.role === "JUDGE") logoHref = "/mentor"
+						})
+					}
+				}).catch(() => {})
+			} else if (!isLoggedIn) {
+				logoHref = "/"
+			}
 		}
 	})
 </script>
@@ -18,7 +36,7 @@
 	class="fixed top-0 left-0 w-full z-[1000] flex justify-between items-center px-8 py-4 bg-[var(--md-surface-container)] border-b border-[var(--md-outline-variant)] transition-colors duration-300 ease-in-out"
 >
 	<div class="text-2xl font-bold text-[var(--md-primary)]">
-		<a href="/" class="flex items-center gap-2.5 no-underline">
+		<a href={logoHref} class="flex items-center gap-2.5 no-underline">
 			<img
 				src="https://upload.wikimedia.org/wikipedia/commons/1/11/FPT_logo_2010.svg"
 				alt="Logo"
@@ -30,10 +48,15 @@
 
 	<div class="flex items-center gap-5">
 		<button
-			class="px-4 py-2 font-semibold rounded-lg bg-[var(--md-primary)] text-[var(--md-on-primary)] transition-opacity duration-200 hover:opacity-80 hover:cursor-pointer"
+			class="p-2.5 rounded-full transition-all duration-200 hover:cursor-pointer flex items-center justify-center border border-[var(--md-outline-variant)] shadow-sm {theme.darkMode ? 'bg-zinc-800 text-yellow-400 hover:bg-zinc-700' : 'bg-gray-100 text-slate-700 hover:bg-gray-200'}"
 			onclick={() => (theme.darkMode = !theme.darkMode)}
+			title={theme.darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
 		>
-			{theme.darkMode ? "Light Mode" : "Dark Mode"}
+			{#if theme.darkMode}
+				<Moon class="w-5 h-5" />
+			{:else}
+				<Sun class="w-5 h-5" />
+			{/if}
 		</button>
 		{#if !isLoggedIn}
 			<a
