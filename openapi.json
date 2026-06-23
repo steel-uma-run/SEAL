@@ -124,7 +124,7 @@
     },
 
     "/criteria-template": {
-      "$ref": "./openapi/paths/criteria/create_template.json"
+      "$ref": "./openapi/paths/criteria/index.json"
     },
 
     "/submission/{submissionId}/grade": {

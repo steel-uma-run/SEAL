@@ -20,6 +20,14 @@ public class CriteriaServiceImpl implements CriteriaService {
 
   @Transactional
   @Override
+  public CriteriaTemplateDto[] getAllTemplates() {
+    return templateRepo.findAll().stream()
+        .map(CriteriaTemplate::toDto)
+        .toArray(CriteriaTemplateDto[]::new);
+  }
+
+  @Transactional
+  @Override
   public CriteriaTemplateDto createTemplate(CreateCriteriaTemplateRequestDto request) {
     CriteriaTemplate newTemplate = new CriteriaTemplate(request.description());
 
