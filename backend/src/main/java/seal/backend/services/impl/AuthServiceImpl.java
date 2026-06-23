@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,8 +20,6 @@ import seal.backend.services.AuthService;
 import seal.backend.services.JwtService;
 import seal.openapi.model.LoginRequestPayloadDto;
 import seal.openapi.model.LoginResponsePayloadDto;
-import seal.openapi.model.LoginResponsePayloadUserDto;
-import seal.openapi.model.LoginResponsePayloadUserRoleDto;
 import seal.openapi.model.RegisterRequestPayloadDto;
 
 @Service
@@ -46,21 +42,18 @@ public class AuthServiceImpl implements AuthService {
           HttpStatus.CONFLICT, "This Student ID is already registered.");
     }
 
-    User newUser =
-        new User(
-            request.name(),
-            Role.STUDENT,
-            request.email(),
-            passwordEncoder.encode(request.password()));
-
     Student newStudent =
-        new Student(
-            newUser,
-            request.isExternal() ? StudentType.EXTERNAL : StudentType.FPT,
-            StudentStatus.PENDING,
-            request.studentId().toUpperCase());
+        Student.builder()
+            .email(request.email())
+            .fullName(request.name())
+            .role(Role.STUDENT)
+            .passwordHash(passwordEncoder.encode(request.password()))
+            .schoolName(request.schoolName())
+            .studentType(request.isExternal() ? StudentType.EXTERNAL : StudentType.FPT)
+            .studentStatus(StudentStatus.PENDING)
+            .studentId(request.studentId().toUpperCase())
+            .build();
 
-    userRepository.save(newUser);
     studentRepository.save(newStudent);
   }
 
@@ -68,7 +61,8 @@ public class AuthServiceImpl implements AuthService {
   public LoginResponsePayloadDto login(LoginRequestPayloadDto request) {
     UsernamePasswordAuthenticationToken token =
         new UsernamePasswordAuthenticationToken(request.email(), request.password());
-    Authentication auth = authenticationManager.authenticate(token);
+
+    authenticationManager.authenticate(token);
 
     String jwt = JwtService.sign(request.email());
     Optional<User> maybeUser = userRepository.findByEmail(request.email());
@@ -77,23 +71,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     User user = maybeUser.get();
-
-    LoginResponsePayloadUserDto userDto =
-        new LoginResponsePayloadUserDto(
-            user.getId(),
-            user.getEmail(),
-            user.getFullName(),
-            LoginResponsePayloadUserRoleDto.fromValue(user.getRole().name()));
-
-    LoginResponsePayloadDto resp = new LoginResponsePayloadDto(jwt, userDto);
-
-    return resp;
-  }
-
-  @Override
-  public User getCurrentUser(String email) throws UsernameNotFoundException {
-    return userRepository
-        .findByEmail(email)
-        .orElseThrow(() -> new RuntimeException("User not found"));
+    return new LoginResponsePayloadDto(jwt, user.toDto());
   }
 }
