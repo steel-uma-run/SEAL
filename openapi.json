@@ -1018,7 +1018,7 @@
       "User": {
         "description": "A user account",
         "type": "object",
-        "required": ["id", "email", "role"],
+        "required": ["id", "email", "role", "name"],
         "discriminator": {
           "propertyName": "role",
           "mapping": {
@@ -1035,6 +1035,9 @@
           "email": {
             "type": "string",
             "format": "email"
+          },
+          "name": {
+            "type": "string"
           },
           "role": {
             "type": "string",

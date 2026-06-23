@@ -70,7 +70,7 @@
 						? 'text-zinc-100'
 						: 'text-gray-800'}"
 				>
-					Welcome back, {profile.name}!
+					Welcome back, {profile?.name || "Student"}!
 				</h1>
 				<p class="mt-1 text-sm md:text-base {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
 					Here is your project progress.
@@ -80,10 +80,10 @@
 			<div class="flex items-center gap-4 mt-4 md:mt-0">
 				<div class="text-right hidden sm:block">
 					<p class="font-bold leading-tight {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
-						{profile.name}
+						{profile?.name || "Student"}
 					</p>
 					<p class="text-xs font-semibold text-[#ea580c] uppercase tracking-wider">
-						{profile.role}
+						{profile?.role}
 					</p>
 				</div>
 				<div
@@ -91,7 +91,7 @@
 						? 'bg-orange-950/40 border border-orange-900/50'
 						: 'bg-[#ffedd5] border border-[#fed7aa]'}"
 				>
-					{profile.name.charAt(0).toUpperCase()}
+					{profile?.name?.charAt(0).toUpperCase() || "S"}
 				</div>
 			</div>
 		</header>
