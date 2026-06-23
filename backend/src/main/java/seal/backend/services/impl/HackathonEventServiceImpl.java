@@ -27,7 +27,32 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   private final SeasonRepository seasonRepository;
 
   @Override
+  public void finalizeEvent(UUID seasonId, UUID eventId) {
+    seasonRepository
+        .findById(seasonId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season not found"));
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    if (event.getStatus() == EventStatus.FINALIZED) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Already finalized");
+    }
+
+    event.setStatus(EventStatus.FINALIZED);
+  }
+
+  @Override
   public HackathonEventDto getEvent(UUID seasonId, UUID eventId) {
+    seasonRepository
+        .findById(seasonId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season not found"));
+    hackathonEventRepository
+        .findById(eventId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
     Optional<HackathonEvent> result = hackathonEventRepository.findById(eventId);
 
     HackathonEventDto dto =
