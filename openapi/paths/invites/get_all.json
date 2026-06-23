@@ -1,0 +1,25 @@
+{
+  "get": {
+    "tags": ["invites"],
+    "operationId": "get_all_invites",
+    "summary": "Get all invites for the currently authenticated user",
+    "responses": {
+      "200": {
+        "description": "Invites data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/TeamInvite.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

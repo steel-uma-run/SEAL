@@ -1,0 +1,27 @@
+{
+  "parameters": [
+    {
+      "name": "inviteId",
+      "description": "ID of the invite",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "post": {
+    "tags": ["invites"],
+    "operationId": "accept_invite",
+    "summary": "Accept a team invite",
+    "responses": {
+      "204": {
+        "description": "Successfully accepted invite"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

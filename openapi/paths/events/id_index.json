@@ -1,0 +1,63 @@
+{
+  "parameters": [
+    {
+      "name": "eventId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "get": {
+    "tags": ["events"],
+    "operationId": "get_event",
+    "summary": "Returns info on a specific event",
+    "responses": {
+      "200": {
+        "description": "Event data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/HackathonEvent.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  },
+  "patch": {
+    "tags": ["events"],
+    "summary": "Update a hackathon event",
+    "operationId": "update_event",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/UpdateEventRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated event",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/HackathonEvent.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

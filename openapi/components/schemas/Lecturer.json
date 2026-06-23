@@ -1,0 +1,8 @@
+{
+  "description": "Lecturer account",
+  "allOf": [
+    {
+      "$ref": "./User.json"
+    }
+  ]
+}

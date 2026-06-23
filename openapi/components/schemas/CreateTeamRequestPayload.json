@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "required": ["name", "description", "event_id"],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the Event"
+    },
+    "leader_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the Student to be set as leader (optional, for coordinator use)"
+    },
+    "member_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "IDs of other students to be added to the team (optional, for coordinator use)"
+    }
+  }
+}

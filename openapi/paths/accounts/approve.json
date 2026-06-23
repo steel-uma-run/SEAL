@@ -1,0 +1,27 @@
+{
+  "parameters": [
+    {
+      "name": "accountId",
+      "description": "ID of the account to approve",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "post": {
+    "tags": ["accounts"],
+    "operationId": "approve_account",
+    "summary": "Approve a student account",
+    "responses": {
+      "204": {
+        "description": "Approved successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

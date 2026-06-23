@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "required": ["id", "name", "status", "members", "leader_id"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PENDING", "APPROVED"]
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      }
+    },
+    "leader_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "track_id": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "get": {
+    "tags": ["seasons"],
+    "operationId": "get_all_seasons",
+    "summary": "Get all seasons",
+    "responses": {
+      "200": {
+        "description": "Season data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/Season.json"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "post": {
+    "tags": ["seasons"],
+    "operationId": "create_season",
+    "summary": "Create a new season",
+    "requestBody": {
+      "description": "Data to create a new season",
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/CreateSeasonRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Season created successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/Season.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "description": "Forbidden - Only Coordinator can perform this action",
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "description": "Payload to create a new track",
+  "type": "object",
+  "required": ["name", "description"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the track"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the track"
+    }
+  }
+}

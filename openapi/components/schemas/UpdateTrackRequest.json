@@ -1,0 +1,14 @@
+{
+  "description": "Payload to partially update a track",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "New name of the track"
+    },
+    "description": {
+      "type": "string",
+      "description": "New description of the track"
+    }
+  }
+}

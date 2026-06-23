@@ -1,0 +1,20 @@
+{
+  "description": "A hackathon season. There are 3 of these a year",
+  "type": "object",
+  "required": ["id", "season", "year"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "semester": {
+      "type": "string",
+      "enum": ["SPRING", "SUMMER", "FALL"]
+    },
+    "year": {
+      "type": "integer",
+      "minimum": 1990,
+      "maximum": 9999
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "token": {
+      "type": "string"
+    },
+    "user": {
+      "oneOf": [
+        {
+          "$ref": "../../components/schemas/Student.json"
+        },
+        {
+          "$ref": "../../components/schemas/Lecturer.json"
+        },
+        {
+          "$ref": "../../components/schemas/Coordinator.json"
+        }
+      ]
+    }
+  }
+}

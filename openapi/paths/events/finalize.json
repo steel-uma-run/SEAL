@@ -1,0 +1,23 @@
+{
+  "parameters": [
+    {
+      "name": "eventId",
+      "in": "path",
+      "required": true,
+      "schema": { "type": "string", "format": "uuid" }
+    }
+  ],
+  "post": {
+    "tags": ["events"],
+    "operationId": "finalize_event",
+    "summary": "Finalize an event",
+    "responses": {
+      "204": {
+        "description": "Event finalized"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

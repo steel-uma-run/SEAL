@@ -1,0 +1,63 @@
+{
+  "parameters": [
+    {
+      "name": "trackId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "get": {
+    "tags": ["tracks"],
+    "operationId": "get_track",
+    "summary": "Get details of a specific track",
+    "responses": {
+      "200": {
+        "description": "Success",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/Track.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  },
+  "patch": {
+    "tags": ["tracks"],
+    "operationId": "update_track",
+    "summary": "Partially update a track's info",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/UpdateTrackRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Successfully updated",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/Track.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
