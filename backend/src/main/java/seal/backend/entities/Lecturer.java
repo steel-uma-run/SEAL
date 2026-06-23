@@ -8,12 +8,16 @@ import jakarta.persistence.ManyToOne;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
 @NoArgsConstructor
 @SuperBuilder
+@Getter
+@Setter
 public class Lecturer extends User {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "track_id", nullable = true)

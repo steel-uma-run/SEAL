@@ -13,13 +13,17 @@ import jakarta.persistence.InheritanceType;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import seal.backend.enums.Role;
+import seal.openapi.model.RoleDto;
+import seal.openapi.model.UserDto;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @NoArgsConstructor
 @Getter
+@Setter
 @SuperBuilder
 public abstract class User {
   @Id
@@ -42,4 +46,16 @@ public abstract class User {
   @Column(nullable = false, columnDefinition = "TEXT")
   @Nonnull
   private String passwordHash;
+
+  // Converts this User to an Object representing a DTO, depending on Role.
+  //
+  // Student converts into StudentDto, Lecturer and Coordinator converts to
+  // UserDto. These are typecasted to Object.
+  public Object toDto() {
+    if (role == Role.STUDENT) {
+      return ((Student) this).toDto();
+    }
+
+    return new UserDto(id, email, RoleDto.fromValue(role.name()), fullName);
+  }
 }
