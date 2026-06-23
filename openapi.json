@@ -121,6 +121,14 @@
     },
     "/accounts/lecturers": {
       "$ref": "./openapi/paths/accounts/create_lecturer.json"
+    },
+
+    "/criteria-template": {
+      "$ref": "./openapi/paths/criteria/create_template.json"
+    },
+
+    "/submission/{submissionId}/grade": {
+      "$ref": "./openapi/paths/submission/grade.json"
     }
   }
 }
