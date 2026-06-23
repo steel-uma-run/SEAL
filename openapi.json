@@ -73,6 +73,38 @@
         }
       }
     },
+    "/events": {
+      "post": {
+        "tags": ["events"],
+        "operationId": "create_event",
+        "description": "Create a new event (status starts as DRAFT).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HackathonEvent"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/teams": {
       "post": {
         "tags": ["teams"],
@@ -914,6 +946,17 @@
             "format": "uuid",
             "description": "ID of the Event"
           }
+        }
+      },
+      "CreateEventRequest": {
+        "type": "object",
+        "required": ["seasonId", "name", "description", "startTime", "endTime"],
+        "properties": {
+          "seasonId": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "startTime": { "type": "string", "format": "date-time" },
+          "endTime": { "type": "string", "format": "date-time" }
         }
       },
       "HackathonEvent": {
