@@ -1,9 +1,9 @@
 <script lang="ts">
-    import ManageUser from "$lib/components/coordinator/ManageUser.svelte";
+	import ManageUser from "$lib/components/coordinator/ManageUser.svelte"
 </script>
 
 <svelte:head>
-    <title>User Management - SEAL</title>
+	<title>User Management - SEAL</title>
 </svelte:head>
 
 <ManageUser />
