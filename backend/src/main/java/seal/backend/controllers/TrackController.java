@@ -2,7 +2,6 @@ package seal.backend.controllers;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,6 @@ import seal.backend.services.TrackService;
 import seal.openapi.api.TracksApi;
 import seal.openapi.model.AssignMentorRequestDto;
 import seal.openapi.model.AssignTeamRequestDto;
-import seal.openapi.model.CreateTrackRequestDto;
 import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
 import seal.openapi.model.UpdateTrackRequestDto;
@@ -28,62 +26,36 @@ public class TrackController implements TracksApi {
   private final TrackService trackService;
 
   @Override
-  public ResponseEntity<TrackDto[]> getAllTracksOfEvent(
-      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
-      @PathVariable(name = "eventId") @NotNull UUID eventId) {
-    List<TrackDto> dtos = trackService.getAllTracksOfEvent(seasonId, eventId);
-    return ResponseEntity.ok(dtos.toArray(TrackDto[]::new));
-  }
-
-  @Override
-  public ResponseEntity<TrackDto> getTrack(
-      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
-      @PathVariable(name = "eventId") @NotNull UUID eventId,
-      @PathVariable(name = "trackId") @NotNull UUID trackId) {
-    TrackDto trackDto = trackService.getTrack(seasonId, eventId, trackId);
+  public ResponseEntity<TrackDto> getTrack(@PathVariable(name = "trackId") @NotNull UUID trackId) {
+    TrackDto trackDto = trackService.getTrack(trackId);
     return ResponseEntity.ok(trackDto);
   }
 
   @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<TrackDto> createTrack(
-      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
-      @PathVariable(name = "eventId") @NotNull UUID eventId,
-      @RequestBody @Valid @NotNull CreateTrackRequestDto request) {
-    TrackDto responseDto = trackService.createTrack(request, seasonId, eventId);
-    return ResponseEntity.ok(responseDto);
-  }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
+  @PreAuthorize("hasAnuthority('COORDINATOR')")
   public ResponseEntity<TrackDto> updateTrack(
-      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
-      @PathVariable(name = "eventId") @NotNull UUID eventId,
       @PathVariable(name = "trackId") @NotNull UUID trackId,
-      @RequestBody @Valid @NotNull UpdateTrackRequestDto request) {
-    TrackDto updatedTrack = trackService.updateTrack(seasonId, eventId, trackId, request);
+      @RequestBody @Valid @NotNull UpdateTrackRequestDto body) {
+    TrackDto updatedTrack = trackService.updateTrack(trackId, body);
     return ResponseEntity.ok(updatedTrack);
   }
 
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<TrackDto> assignMentor(
-      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
-      @PathVariable(name = "eventId") @NotNull UUID eventId,
       @PathVariable(name = "trackId") @NotNull UUID trackId,
-      @RequestBody @Valid @NotNull AssignMentorRequestDto request) {
-    TrackDto updatedTrack = trackService.assignMentor(seasonId, eventId, trackId, request);
+      @RequestBody @Valid @NotNull AssignMentorRequestDto body) {
+
+    TrackDto updatedTrack = trackService.assignMentor(trackId, body);
     return ResponseEntity.ok(updatedTrack);
   }
 
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<TeamDto> assignTeamToTrack(
-      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
-      @PathVariable(name = "eventId") @NotNull UUID eventId,
       @PathVariable(name = "trackId") @NotNull UUID trackId,
-      @RequestBody @Valid @NotNull AssignTeamRequestDto request) {
-    TeamDto updatedTeam = trackService.assignTeam(seasonId, eventId, trackId, request);
+      @RequestBody @Valid @NotNull AssignTeamRequestDto body) {
+    TeamDto updatedTeam = trackService.assignTeam(trackId, body);
     return ResponseEntity.ok(updatedTeam);
   }
 }
