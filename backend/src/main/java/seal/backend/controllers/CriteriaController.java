@@ -23,6 +23,12 @@ public class CriteriaController implements CriteriaApi {
 
   @Override
   @PreAuthorize("hasRole('COORDINATOR')")
+  public ResponseEntity<CriteriaTemplateDto[]> getAllCriteriaTemplates() {
+    return ResponseEntity.ok(criteriaService.getAllTemplates());
+  }
+
+  @Override
+  @PreAuthorize("hasRole('COORDINATOR')")
   public ResponseEntity<CriteriaTemplateDto> createCriteriaTemplate(
       @RequestBody @Valid @NotNull CreateCriteriaTemplateRequestDto request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(criteriaService.createTemplate(request));
