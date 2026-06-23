@@ -2,19 +2,24 @@ package seal.backend.services;
 
 import java.util.List;
 import java.util.UUID;
+import seal.openapi.model.AssignMentorRequestDto;
 import seal.openapi.model.AssignTeamRequestDto;
 import seal.openapi.model.CreateTrackRequestDto;
 import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
+import seal.openapi.model.UpdateTrackRequestDto;
 
 public interface TrackService {
-  List<TrackDto> getAllTracksOfEvent(UUID eventId);
 
-  TrackDto getTrack(UUID trackId);
+  List<TrackDto> getAllTracksOfEvent(UUID seasonId, UUID eventId);
 
-  TrackDto createTrack(CreateTrackRequestDto request, UUID eventId);
+  TrackDto getTrack(UUID seasonId, UUID eventId, UUID trackId);
 
-  TrackDto assignMentor(UUID trackId, seal.openapi.model.AssignMentorRequestDto request);
+  TrackDto createTrack(CreateTrackRequestDto request, UUID seasonId, UUID eventId);
 
-  TeamDto assignTeam(UUID trackId, AssignTeamRequestDto request);
+  TrackDto updateTrack(UUID seasonId, UUID eventId, UUID trackId, UpdateTrackRequestDto request);
+
+  TrackDto assignMentor(UUID seasonId, UUID eventId, UUID trackId, AssignMentorRequestDto request);
+
+  TeamDto assignTeam(UUID seasonId, UUID eventId, UUID trackId, AssignTeamRequestDto request);
 }

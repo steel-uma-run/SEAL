@@ -78,4 +78,28 @@ public class SeasonsServiceImpl implements SeasonsService {
         savedSeason.getYear(),
         SeasonStatusDto.fromValue(savedSeason.getStatus().name()));
   }
+
+  @Override
+  @Transactional
+  public SeasonDto finalizeSeason(UUID seasonId) {
+    Season season =
+        seasonRepository
+            .findById(seasonId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season does not exist"));
+
+    if (season.getStatus() != SeasonStatus.DRAFT) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Only DRAFT seasons can be finalized.");
+    }
+
+    season.setStatus(SeasonStatus.FINALIZED);
+    Season savedSeason = seasonRepository.save(season);
+
+    return new SeasonDto(
+        savedSeason.getId(),
+        SeasonSemesterDto.fromValue(savedSeason.getSemester().name()),
+        savedSeason.getYear(),
+        SeasonStatusDto.fromValue(savedSeason.getStatus().name()));
+  }
 }

@@ -439,6 +439,43 @@
         }
       }
     },
+    "/seasons/{seasonId}/finalize": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "description": "ID of the season to finalize",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "tags": ["seasons"],
+        "operationId": "finalize_season",
+        "description": "Finalize a season",
+        "responses": {
+          "200": {
+            "description": "Successfully finalized the season",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Season"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Season is not in DRAFT status"
+          },
+          "404": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
     "/seasons/{seasonId}/events": {
       "parameters": [
         {
@@ -567,11 +604,19 @@
         }
       }
     },
-    "/tracks/{trackId}": {
+    "/seasons/{seasonId}/events/{eventId}/tracks": {
       "parameters": [
         {
-          "name": "trackId",
-          "description": "ID of the track to retrieve",
+          "name": "seasonId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "eventId",
           "in": "path",
           "required": true,
           "schema": {
@@ -581,7 +626,96 @@
         }
       ],
       "get": {
+        "tags": ["tracks", "events", "seasons"],
+        "operationId": "get_all_tracks_of_event",
+        "description": "Get a list of all tracks for a specific event",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Track"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      },
+      "post": {
+        "tags": ["tracks", "events", "seasons"],
+        "operationId": "create_track",
+        "description": "Create a new track for an event",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTrackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
+      }
+    },
+    "/seasons/{seasonId}/events/{eventId}/tracks/{trackId}": {
+      "parameters": [
+        {
+          "name": "seasonId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "eventId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "trackId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
         "tags": ["tracks"],
+        "operationId": "assign_mentor",
+        "description": "Assign a mentor to a specific track (Coordinator only)",
+        "security": [{ "bearerAuthentication": [] }],
+      "get": {
+        "tags": ["tracks", "events", "seasons"],
         "operationId": "get_track",
         "description": "Get details of a specific track",
         "responses": {
@@ -599,13 +733,60 @@
             "$ref": "#/components/responses/ClientErrorResponse"
           }
         }
+      },
+      "patch": {
+        "tags": ["tracks", "events", "seasons"],
+        "operationId": "update_track",
+        "description": "Partially update a track's info",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTrackRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Track"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "$ref": "#/components/responses/ClientErrorResponse"
+          }
+        }
       }
     },
-    "/tracks/{trackId}/assign-mentor": {
+    "/seasons/{seasonId}/events/{eventId}/tracks/{trackId}/assign-mentor": {
       "parameters": [
         {
+          "name": "seasonId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "eventId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
           "name": "trackId",
-          "description": "ID of the track to assign mentor",
           "in": "path",
           "required": true,
           "schema": {
@@ -615,9 +796,9 @@
         }
       ],
       "post": {
-        "tags": ["tracks"],
-        "operationId": "assign_mentor",
-        "description": "Assign a mentor to a specific track (Coordinator only)",
+        "tags": ["tracks", "teams"],
+        "operationId": "assign_team_to_track",
+        "description": "Assign a team to a specific track (Coordinator only)",
         "security": [{ "bearerAuthentication": [] }],
         "requestBody": {
           "required": true,
@@ -645,53 +826,6 @@
           },
           "404": {
             "description": "Track or Lecturer not found"
-          }
-        }
-      }
-    },
-    "/tracks/{trackId}/assign-team": {
-      "parameters": [
-        {
-          "name": "trackId",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      ],
-      "post": {
-        "tags": ["tracks", "teams"],
-        "operationId": "assign_team_to_track",
-        "description": "Assign a team to a specific track (Coordinator only)",
-        "security": [{ "bearerAuthentication": [] }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AssignTeamRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successfully assigned team to track",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Team"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - Event started, team not approved, or track mismatch"
-          },
-          "404": {
-            "$ref": "#/components/responses/ClientErrorResponse"
           }
         }
       }
@@ -732,11 +866,28 @@
         }
       }
     },
-    "/events/{eventId}/tracks": {
+    "/seasons/{seasonId}/events/{eventId}/tracks/{trackId}/assign-team": {
       "parameters": [
         {
+          "name": "seasonId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
           "name": "eventId",
-          "description": "ID of the event",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        {
+          "name": "trackId",
           "in": "path",
           "required": true,
           "schema": {
@@ -745,55 +896,35 @@
           }
         }
       ],
-      "get": {
-        "tags": ["tracks", "events"],
-        "operationId": "get_all_tracks_of_event",
-        "description": "Get a list of all tracks for a specific event",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Track"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "$ref": "#/components/responses/ClientErrorResponse"
-          }
-        }
-      },
       "post": {
-        "tags": ["tracks", "events"],
-        "operationId": "create_track",
-        "description": "Create a new track for an event",
+        "tags": ["tracks", "teams", "events", "seasons"],
+        "operationId": "assign_team_to_track",
+        "description": "Assign a team to a specific track (Coordinator only)",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateTrackRequest"
+                "$ref": "#/components/schemas/AssignTeamRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Successfully created",
+            "description": "Successfully assigned team to track",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Track"
+                  "$ref": "#/components/schemas/Team"
                 }
               }
             }
           },
-          "4XX": {
+          "400": {
+            "description": "Bad Request - Event started, team not approved, or track mismatch"
+          },
+          "404": {
             "$ref": "#/components/responses/ClientErrorResponse"
           }
         }
@@ -975,6 +1106,20 @@
           "description": {
             "type": "string",
             "description": "Detailed description of the track"
+          }
+        }
+      },
+      "UpdateTrackRequest": {
+        "description": "Payload to partially update a track",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "New name of the track"
+          },
+          "description": {
+            "type": "string",
+            "description": "New description of the track"
           }
         }
       },
@@ -1290,14 +1435,6 @@
             }
           }
         }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuthentication": {
-        "description": "Bearer token using a JWT",
-        "type": "http",
-        "scheme": "Bearer",
-        "bearerFormat": "JWT"
       }
     }
   }
