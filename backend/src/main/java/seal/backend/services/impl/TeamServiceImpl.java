@@ -2,8 +2,6 @@ package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,7 +24,7 @@ import seal.backend.repositories.TeamInviteRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.TeamService;
-import seal.openapi.model.CreateTeamRequestDto;
+import seal.openapi.model.CreateTeamRequestPayloadDto;
 import seal.openapi.model.TeamDto;
 import seal.openapi.model.TeamStatusDto;
 
@@ -41,7 +39,7 @@ public class TeamServiceImpl implements TeamService {
 
   @Override
   @Transactional
-  public TeamDto createTeam(CreateTeamRequestDto request) {
+  public TeamDto createTeam(CreateTeamRequestPayloadDto request) {
     String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
 
     User currentUser =
@@ -68,7 +66,7 @@ public class TeamServiceImpl implements TeamService {
     } else {
       leader =
           studentRepository
-              .findByUser(currentUser)
+              .findById(currentUser.getId())
               .orElseThrow(
                   () ->
                       new ResponseStatusException(
@@ -87,9 +85,6 @@ public class TeamServiceImpl implements TeamService {
           HttpStatus.FORBIDDEN, "Only ACTIVE students are allowed to create a team.");
     }
 
-    System.out.println(
-        "Debug - Current Team ID: "
-            + (leader.getTeam() != null ? leader.getTeam().getId() : "NULL"));
     if (leader.getTeam() != null) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
@@ -151,30 +146,6 @@ public class TeamServiceImpl implements TeamService {
   }
 
   @Override
-  public List<TeamDto> getAllTeamsOfEvent(UUID eventId) {
-    hackathonEventRepository
-        .findById(eventId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
-
-    List<Team> teams = teamRepository.findByHackathonEventId(eventId);
-    List<TeamDto> resultList = new ArrayList<>();
-
-    for (Team team : teams) {
-      TeamDto dto =
-          new TeamDto(
-              team.getId(),
-              team.getName(),
-              TeamStatusDto.valueOf(team.getTeamStatus().name()),
-              new UUID[0],
-              team.getLeader().getId(),
-              team.getTrack() != null ? team.getTrack().getId() : null);
-      resultList.add(dto);
-    }
-
-    return resultList;
-  }
-
-  @Override
   public void approveTeam(UUID teamId) {
     Team team =
         teamRepository
@@ -207,7 +178,7 @@ public class TeamServiceImpl implements TeamService {
 
     Student actor =
         studentRepository
-            .findByUserEmail(auth.getName())
+            .findByEmail(auth.getName())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
 
     if (!actor.isTeamLeaderOf(team)) {
