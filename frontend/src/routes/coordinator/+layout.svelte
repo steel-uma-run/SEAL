@@ -21,7 +21,7 @@
 				{ href: "/coordinator/users", label: "Users" }
 			]
 		},
-		{ href: "#", label: "Profile", icon: User }
+		{ href: "/coordinator/profile", label: "Profile", icon: User }
 	]
 
 	onMount(async () => {
