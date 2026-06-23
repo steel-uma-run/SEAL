@@ -2,16 +2,26 @@
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
 	import { getInvites, acceptInvite, declineInvite } from "$lib/api/invites"
+	import { getMyTeam } from "$lib/api/teams"
 	import { goto } from "$app/navigation"
-	import { Bell, CheckCircle, XCircle, Clock, Users } from "@lucide/svelte"
+	import { Bell, CheckCircle, XCircle, Clock, Users, Star } from "@lucide/svelte"
 
 	let invites = $state<any[]>([])
+	let myTeam = $state<any>(null)
 	let isLoading = $state(true)
 	let errorMessage = $state("")
 	let processingId = $state<string | null>(null)
 
-	async function loadInvites() {
+	async function loadData() {
 		try {
+			// Fetch My Team first
+			const teamRes = await getMyTeam()
+			if (teamRes.ok) {
+				myTeam = await teamRes.json()
+			} else {
+				myTeam = null
+			}
+
 			const res = await getInvites()
 			if (res.ok) {
 				const data = await res.json()
@@ -36,7 +46,7 @@
 	}
 
 	onMount(() => {
-		loadInvites()
+		loadData()
 	})
 
 	async function handleAccept(inviteId: string) {
@@ -46,7 +56,12 @@
 			if (res.ok) {
 				// Update local state
 				const idx = invites.findIndex(i => i.id === inviteId)
-				if (idx !== -1) invites[idx].status = "ACCEPTED"
+				if (idx !== -1) {
+					invites[idx].status = "ACCEPTED"
+					invites[idx].status = "ACCEPTED"
+					// Reload data
+					await loadData()
+				}
 			} else {
 				alert("Failed to accept invite. Please try again.")
 			}
@@ -116,12 +131,14 @@
 		</div>
 	</div>
 
-	<div class="mb-6 flex justify-end">
-		<a href="/student/create-team" class="px-5 py-2.5 bg-[#f26f21] hover:bg-[#d85c14] text-white font-semibold rounded-xl shadow-sm transition-colors flex items-center gap-2">
-			<Users class="w-5 h-5" />
-			Create New Team
-		</a>
-	</div>
+	{#if !myTeam}
+		<div class="mb-6 flex justify-end">
+			<a href="/student/create-team" class="px-5 py-2.5 bg-[#f26f21] hover:bg-[#d85c14] text-white font-semibold rounded-xl shadow-sm transition-colors flex items-center gap-2">
+				<Users class="w-5 h-5" />
+				Create New Team
+			</a>
+		</div>
+	{/if}
 
 	{#if isLoading}
 		<div class="flex justify-center py-12">
@@ -131,7 +148,32 @@
 		<div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r shadow-sm">
 			<p class="text-sm text-red-700">{errorMessage}</p>
 		</div>
-	{:else if invites.length === 0}
+	{:else}
+		{#if myTeam}
+			<div class="mb-8 p-6 md:p-8 rounded-3xl border transition-all {theme.darkMode ? 'bg-zinc-900 border-orange-900/50 shadow-[0_4px_30px_rgba(234,88,12,0.1)]' : 'bg-orange-50/50 border-orange-100 shadow-[0_4px_20px_rgba(234,88,12,0.05)]'}">
+				<div class="flex items-center gap-3 mb-4">
+					<div class="p-2.5 rounded-xl bg-orange-500 text-white shadow-sm">
+						<Star class="w-6 h-6" />
+					</div>
+					<div>
+						<h3 class="text-xs font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">My Current Team</h3>
+						<h2 class="text-2xl md:text-3xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-900'}">{myTeam.name || "Untitled Team"}</h2>
+					</div>
+				</div>
+				
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+					<div class="p-5 rounded-2xl border {theme.darkMode ? 'bg-zinc-950/50 border-zinc-800' : 'bg-white border-gray-100'}">
+						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Team ID</p>
+						<p class="font-mono text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">{myTeam.id}</p>
+					</div>
+					<div class="p-5 rounded-2xl border {theme.darkMode ? 'bg-zinc-950/50 border-zinc-800' : 'bg-white border-gray-100'}">
+						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Role</p>
+						<p class="font-semibold text-sm text-green-500">Member</p>
+					</div>
+				</div>
+			</div>
+		{:else}
+			{#if invites.length === 0}
 		<div class="text-center py-16 border-2 border-dashed rounded-2xl {theme.darkMode ? 'border-zinc-800 text-zinc-500' : 'border-gray-200 text-gray-400'}">
 			<Users class="w-12 h-12 mx-auto mb-4 opacity-50" />
 			<h3 class="text-lg font-medium">No Pending Invitations</h3>
@@ -156,7 +198,7 @@
 								<div class="flex items-center gap-4 mt-3 text-xs font-medium {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">
 									<span class="flex items-center gap-1.5"><Clock class="w-3.5 h-3.5" /> Sent: {formatDate(invite.sent_at)}</span>
 									{#if invite.status === "PENDING"}
-										<span class="text-yellow-600 dark:text-yellow-500 bg-yellow-50 dark:bg-yellow-950/30 px-2 py-0.5 rounded-md border border-yellow-200 dark:border-yellow-900/50">Pending</span>
+										<span class="text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-500/20 font-semibold">Pending</span>
 									{:else if invite.status === "ACCEPTED"}
 										<span class="text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-950/30 px-2 py-0.5 rounded-md border border-green-200 dark:border-green-900/50">Accepted</span>
 									{:else if invite.status === "DECLINED"}
@@ -190,5 +232,7 @@
 				</div>
 			{/each}
 		</div>
+	{/if}
+	{/if}
 	{/if}
 </div>

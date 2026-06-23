@@ -21,3 +21,11 @@ export async function createTeam(
 		})
 	})
 }
+
+export async function getMyTeam() {
+	return fetch(`${API_BASE}/teams/my-team`, {
+		headers: {
+			Authorization: `Bearer ${getToken()}`
+		}
+	})
+}
