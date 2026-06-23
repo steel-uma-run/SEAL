@@ -1,7 +1,6 @@
 package seal.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.OffsetDateTime;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -21,27 +20,14 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import seal.backend.config.GlobalConfig;
-import seal.backend.entities.Coordinator;
 import seal.backend.entities.HackathonEvent;
-import seal.backend.entities.Round;
-import seal.backend.entities.Season;
 import seal.backend.entities.Student;
 import seal.backend.entities.Team;
-import seal.backend.entities.User;
-import seal.backend.enums.EventStatus;
-import seal.backend.enums.Role;
-import seal.backend.enums.Semester;
 import seal.backend.enums.StudentStatus;
-import seal.backend.enums.StudentType;
 import seal.backend.enums.TeamStatus;
-import seal.backend.repositories.CoordinatorRepository;
-import seal.backend.repositories.HackathonEventRepository;
-import seal.backend.repositories.RoundRepository;
-import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.TeamRepository;
-import seal.backend.repositories.UserRepository;
-import seal.openapi.model.CreateTeamRequestDto;
+import seal.openapi.model.CreateTeamRequestPayloadDto;
 import seal.openapi.model.LoginRequestPayloadDto;
 import seal.openapi.model.SubmitWorkRequestDto;
 
@@ -51,14 +37,10 @@ import seal.openapi.model.SubmitWorkRequestDto;
 @TestMethodOrder(OrderAnnotation.class)
 class SubmissionControllerTests {
   @Autowired private MockMvc mvc;
-  @Autowired private PasswordEncoder passwordEncoder;
-  @Autowired private CoordinatorRepository coordRepo;
-  @Autowired private UserRepository userRepo;
-  @Autowired private StudentRepository studentRepo;
-  @Autowired private SeasonRepository seasonRepo;
-  @Autowired private HackathonEventRepository eventRepo;
   @Autowired private TeamRepository teamRepo;
-  @Autowired private RoundRepository roundRepo;
+  @Autowired private StudentRepository studentRepo;
+  @Autowired private CreateUtils createUtils;
+  @Autowired private PasswordEncoder passwordEncoder;
 
   private final ObjectMapper objMapper = new ObjectMapper();
 
@@ -81,71 +63,15 @@ class SubmissionControllerTests {
   }
 
   @BeforeAll
-  void setupAccounts() throws Exception {
-    {
-      User user =
-          new User(
-              "Coordinator",
-              Role.COORDINATOR,
-              "coordinator@example.com",
-              passwordEncoder.encode("admin"));
-      Coordinator coord = new Coordinator(user);
+  void setup() throws Exception {
+    testEvent = createUtils.createFinalizedEvent();
+    ongoingEvent = createUtils.createOngoingEvent();
 
-      userRepo.save(user);
-      coordRepo.save(coord);
-    }
-
-    {
-      User user =
-          new User(
-              "Student", Role.STUDENT, "student@example.com", passwordEncoder.encode("hunter2"));
-      Student student = new Student(user, StudentType.EXTERNAL, StudentStatus.ACTIVE, "");
-
-      userRepo.save(user);
-      studentRepo.save(student);
-    }
-  }
-
-  @BeforeAll
-  void setupEvent() throws Exception {
-    Season season = new Season(Semester.SPRING, 9999);
-
-    HackathonEvent event =
-        new HackathonEvent(
-            "Event",
-            "",
-            OffsetDateTime.now(),
-            OffsetDateTime.now().plusDays(1),
-            EventStatus.FINALIZED,
-            season);
-
-    seasonRepo.save(season);
-    eventRepo.save(event);
-
-    testEvent = event;
-  }
-
-  @BeforeAll
-  void setupOngoingEvent() throws Exception {
-    Season season = new Season(Semester.SPRING, 9999);
-
-    HackathonEvent event =
-        new HackathonEvent(
-            "Event",
-            "",
-            OffsetDateTime.now(),
-            OffsetDateTime.now().plusDays(1),
-            EventStatus.FINALIZED,
-            season);
-
-    Round round =
-        new Round("Test round", OffsetDateTime.now(), OffsetDateTime.now().plusDays(1), "", event);
-
-    seasonRepo.save(season);
-    eventRepo.save(event);
-    roundRepo.save(round);
-
-    ongoingEvent = event;
+    Student student = createUtils.createStudent();
+    student.setEmail("student@example.com");
+    student.setPasswordHash(passwordEncoder.encode("hunter2"));
+    student.setStudentStatus(StudentStatus.ACTIVE);
+    studentRepo.save(student);
   }
 
   @Test
@@ -158,7 +84,7 @@ class SubmissionControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     objMapper.writeValueAsString(
-                        new CreateTeamRequestDto("Team", "", testEvent.getId(), null, null)))
+                        new CreateTeamRequestPayloadDto("Team", "", testEvent.getId(), null, null)))
                 .header("Authorization", "Bearer " + token))
         .andExpectAll(MockMvcResultMatchers.status().isCreated());
   }
@@ -178,12 +104,7 @@ class SubmissionControllerTests {
 
     mvc.perform(
             MockMvcRequestBuilders.post(
-                    GlobalConfig.API_BASE
-                        + "/seasons/"
-                        + testEvent.getSeason().getId()
-                        + "/events/"
-                        + testEvent.getId()
-                        + "/submit")
+                    GlobalConfig.API_BASE + "/events/" + testEvent.getId() + "/submit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     objMapper.writeValueAsString(new SubmitWorkRequestDto("Title", "", "", "", "")))
@@ -201,12 +122,7 @@ class SubmissionControllerTests {
 
     mvc.perform(
             MockMvcRequestBuilders.post(
-                    GlobalConfig.API_BASE
-                        + "/seasons/"
-                        + testEvent.getSeason().getId()
-                        + "/events/"
-                        + testEvent.getId()
-                        + "/submit")
+                    GlobalConfig.API_BASE + "/events/" + testEvent.getId() + "/submit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     objMapper.writeValueAsString(
@@ -229,12 +145,7 @@ class SubmissionControllerTests {
 
     mvc.perform(
             MockMvcRequestBuilders.post(
-                    GlobalConfig.API_BASE
-                        + "/seasons/"
-                        + ongoingEvent.getSeason().getId()
-                        + "/events/"
-                        + ongoingEvent.getId()
-                        + "/submit")
+                    GlobalConfig.API_BASE + "/events/" + ongoingEvent.getId() + "/submit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     objMapper.writeValueAsString(
@@ -257,11 +168,8 @@ class SubmissionControllerTests {
     Team team = teamRepo.findAll().getFirst();
 
     for (int i = 0; i < 3; i++) {
-      User user = new User("Fake student", Role.STUDENT, "a" + i + "@a.b", "");
-      Student student = new Student(user, StudentType.EXTERNAL, StudentStatus.ACTIVE, "SE" + i);
+      Student student = createUtils.createStudent();
       student.setTeam(team);
-
-      userRepo.save(user);
       studentRepo.save(student);
     }
 
@@ -275,12 +183,7 @@ class SubmissionControllerTests {
 
     mvc.perform(
             MockMvcRequestBuilders.post(
-                    GlobalConfig.API_BASE
-                        + "/seasons/"
-                        + ongoingEvent.getSeason().getId()
-                        + "/events/"
-                        + ongoingEvent.getId()
-                        + "/submit")
+                    GlobalConfig.API_BASE + "/events/" + ongoingEvent.getId() + "/submit")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     objMapper.writeValueAsString(

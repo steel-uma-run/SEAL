@@ -2,6 +2,8 @@ package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -120,14 +122,13 @@ public class TeamServiceImpl implements TeamService {
 
         if (member.getStudentStatus() != StudentStatus.ACTIVE) {
           throw new ResponseStatusException(
-              HttpStatus.BAD_REQUEST,
-              "Student member is not ACTIVE: " + member.getUser().getFullName());
+              HttpStatus.BAD_REQUEST, "Student member is not ACTIVE: " + member.getFullName());
         }
 
         if (member.getTeam() != null) {
           throw new ResponseStatusException(
               HttpStatus.BAD_REQUEST,
-              "Student member is already in a team: " + member.getUser().getFullName());
+              "Student member is already in a team: " + member.getFullName());
         }
 
         member.setTeam(savedTeam);
