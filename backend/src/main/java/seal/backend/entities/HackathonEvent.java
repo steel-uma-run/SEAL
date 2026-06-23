@@ -11,8 +11,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -54,4 +58,19 @@ public class HackathonEvent {
   @JoinColumn(name = "season_id", nullable = false)
   @Nonnull
   private Season season;
+
+  @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
+  private List<Round> rounds = new ArrayList<>();
+
+  // Returns the currently active round. According to business rules/constraints an event can only
+  // have 1 active round at any given time.
+  public Optional<Round> getActiveRound() {
+    return rounds.stream()
+        .filter(
+            round -> {
+              OffsetDateTime now = OffsetDateTime.now();
+              return round.getStartTime().isBefore(now) && round.getEndTime().isAfter(now);
+            })
+        .findFirst();
+  }
 }
