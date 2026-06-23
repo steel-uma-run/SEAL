@@ -12,6 +12,7 @@
 	let isPageLoading = $state(true)
 
 	let teamName = $state("")
+	let teamSize = $state(4)
 	let teamDescription = $state("")
 	let selectedSeasonId = $state("")
 	let isLoading = $state(false)
@@ -57,12 +58,19 @@
 			message = "Please select a season."
 			return
 		}
+		
+		if (teamSize < 3 || teamSize > 5) {
+			isError = true
+			message = "Team size must be between 3 and 5 members."
+			return
+		}
 		isLoading = true
 		message = ""
 		isError = false
 
 		try {
-			const res = await createTeam(teamName, teamDescription, selectedSeasonId, profile.id)
+			const finalDescription = `[Expected Size: ${teamSize}] ${teamDescription}`
+			const res = await createTeam(teamName, finalDescription, selectedSeasonId, profile.id)
 			if (res.ok) {
 				message = "Team created successfully!"
 				teamName = ""
@@ -192,8 +200,24 @@
 						? 'bg-zinc-950 border-zinc-800 text-zinc-100 placeholder-zinc-600'
 						: 'bg-gray-50 border-gray-200 text-gray-900'}"
 				/>
+			<!-- Field 3: Expected Team Size -->
+			<div class="space-y-2">
+				<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+					>Expected Team Size (3-5 members)</label
+				>
+				<input
+					type="number"
+					bind:value={teamSize}
+					min="3"
+					max="5"
+					required
+					class="w-full rounded-xl p-3.5 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none border
+                    {theme.darkMode
+						? 'bg-zinc-950 border-zinc-800 text-zinc-100 placeholder-zinc-600'
+						: 'bg-gray-50 border-gray-200 text-gray-900'}"
+				/>
 			</div>
-			<!-- Field 3: Description -->
+			<!-- Field 4: Description -->
 			<div class="space-y-2">
 				<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
 					>Description</label
