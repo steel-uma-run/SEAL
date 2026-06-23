@@ -5,7 +5,7 @@ export async function getProfile() {
 	return fetch(`${API_BASE}/profile`, {
 		method: "GET",
 		headers: {
-            "Authorization": `Bearer ${getToken()}`,
+			Authorization: `Bearer ${getToken()}`,
 			"Content-Type": "application/json"
 		}
 	})
