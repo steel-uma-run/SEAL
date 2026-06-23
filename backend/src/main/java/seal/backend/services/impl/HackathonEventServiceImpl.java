@@ -12,9 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Season;
+import seal.backend.entities.Student;
 import seal.backend.enums.EventStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.SeasonRepository;
+import seal.backend.repositories.StudentRepository;
 import seal.backend.services.HackathonEventService;
 import seal.openapi.model.CreateEventRequestDto;
 import seal.openapi.model.HackathonEventDto;
@@ -25,6 +27,32 @@ import seal.openapi.model.HackathonEventStatusDto;
 public class HackathonEventServiceImpl implements HackathonEventService {
   private final HackathonEventRepository hackathonEventRepository;
   private final SeasonRepository seasonRepository;
+  private final StudentRepository studentRepository;
+
+  @Override
+  public void markInterested(UUID eventId) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
+    }
+
+    String currentStudentEmail = auth.getName();
+    Student student =
+        studentRepository
+            .findByUserEmail(currentStudentEmail)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found"));
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    boolean changed = student.getEvents().add(event);
+    if (changed) {
+      studentRepository.save(student);
+    }
+  }
 
   @Override
   public void finalizeEvent(UUID seasonId, UUID eventId) {
