@@ -1,5 +1,5 @@
 class ThemeStore {
-	primaryColor = $state("#ff851f")
+	primaryColor = $state("#f27123")
 	darkMode = $state(false)
 }
 

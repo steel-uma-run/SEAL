@@ -1,8 +1,9 @@
 <script lang="ts">
 	import "./layout.css"
 
+	import { argbFromHex, Hct, hexFromArgb, SchemeRainbow } from "@poupe/material-color-utilities"
+
 	import { theme } from "$lib/theme.svelte"
-	import { argbFromHex, Hct, hexFromArgb, SchemeNeutral } from "@poupe/material-color-utilities"
 	import Header from "$lib/components/common/Header.svelte"
 	import { client } from "$lib/api/client.gen"
 	import { dev } from "$app/environment"
@@ -11,7 +12,7 @@
 
 	// The things one would do to reduce reliance on JavaScript
 	const styleElem = $derived.by(() => {
-		const scheme = new SchemeNeutral(
+		const scheme = new SchemeRainbow(
 			Hct.fromInt(argbFromHex(theme.primaryColor)),
 			theme.darkMode,
 			0
@@ -39,6 +40,8 @@
 	<link rel="preconnect" href="https://rsms.me/" />
 	<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
 
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Icons" />
+
 	<style>
 		:root {
 			color: var(--md-on-surface);
@@ -48,13 +51,8 @@
 	{@html styleElem}
 </svelte:head>
 
-<div
-	class="flex flex-col min-h-screen bg-[var(--md-surface)] transition-colors duration-300 ease-in-out"
-	data-theme={theme.darkMode ? "dark" : "light"}
->
-	<Header />
+<Header />
 
-	<main class="pt-[70px] flex-1">
-		{@render children()}
-	</main>
-</div>
+<main class="bg-(--md-surface)">
+	{@render children()}
+</main>
