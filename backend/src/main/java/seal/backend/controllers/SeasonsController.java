@@ -44,12 +44,4 @@ public class SeasonsController implements SeasonsApi {
     SeasonDto responseDto = seasonsService.createSeason(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
   }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<SeasonDto> finalizeSeason(
-      @PathVariable(name = "seasonId") @NotNull UUID seasonId) {
-    SeasonDto responseDto = seasonsService.finalizeSeason(seasonId);
-    return ResponseEntity.ok(responseDto);
-  }
 }

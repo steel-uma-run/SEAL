@@ -11,6 +11,4 @@ public interface SeasonsService {
   SeasonDto getSeason(UUID seasonId);
 
   SeasonDto createSeason(CreateSeasonRequestDto request);
-
-  SeasonDto finalizeSeason(UUID seasonId);
 }

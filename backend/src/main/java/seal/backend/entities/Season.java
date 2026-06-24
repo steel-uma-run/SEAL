@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import seal.backend.enums.SeasonStatus;
 import seal.backend.enums.Semester;
 
 @Entity
@@ -36,9 +35,4 @@ public class Season {
   @Column(nullable = false)
   @Nonnull
   private Integer year;
-
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  @Nonnull
-  private SeasonStatus status;
 }
