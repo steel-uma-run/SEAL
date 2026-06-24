@@ -10,7 +10,6 @@ import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Season;
 import seal.backend.enums.EventStatus;
-import seal.backend.enums.SeasonStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.requests.CreateEventRequest;
@@ -50,10 +49,6 @@ public class HackathonEventServiceImpl implements HackathonEventService {
             .findById(request.seasonId())
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season not found"));
-
-    if (season.getStatus() != SeasonStatus.FINALIZED) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Season is not FINALIZED.");
-    }
 
     HackathonEvent hackathonEvent =
         new HackathonEvent(
