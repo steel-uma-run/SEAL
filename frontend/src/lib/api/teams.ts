@@ -29,3 +29,12 @@ export async function getMyTeam() {
 		}
 	})
 }
+
+export async function inviteMember(teamId: string, studentId: string) {
+	return fetch(`${API_BASE}/teams/${teamId}/invite/${studentId}`, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${getToken()}`
+		}
+	})
+}
