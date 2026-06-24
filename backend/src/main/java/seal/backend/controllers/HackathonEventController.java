@@ -23,7 +23,7 @@ public class HackathonEventController implements EventsApi {
   private final HackathonEventService eventService;
 
   @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
+  @PreAuthorize("hasAnyAuthority('COORDINATOR', 'STUDENT')")
   public ResponseEntity<StudentDto[]> getInterestedParticipants(
       @PathVariable(name = "eventId") @NotNull UUID eventId) {
 
