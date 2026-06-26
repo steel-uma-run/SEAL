@@ -30,7 +30,6 @@ import seal.backend.entities.Team;
 import seal.backend.entities.User;
 import seal.backend.enums.EventStatus;
 import seal.backend.enums.Role;
-import seal.backend.enums.SeasonStatus;
 import seal.backend.enums.Semester;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
@@ -109,7 +108,7 @@ class SubmissionControllerTests {
 
   @BeforeAll
   void setupEvent() throws Exception {
-    Season season = new Season(Semester.SPRING, 9999, SeasonStatus.FINALIZED);
+    Season season = new Season(Semester.SPRING, 9999);
 
     HackathonEvent event =
         new HackathonEvent(
@@ -128,7 +127,7 @@ class SubmissionControllerTests {
 
   @BeforeAll
   void setupOngoingEvent() throws Exception {
-    Season season = new Season(Semester.SPRING, 9999, SeasonStatus.FINALIZED);
+    Season season = new Season(Semester.SPRING, 9999);
 
     HackathonEvent event =
         new HackathonEvent(
