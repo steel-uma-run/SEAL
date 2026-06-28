@@ -1,5 +1,6 @@
 package seal.backend.services.impl;
 
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +34,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   private final StudentRepository studentRepository;
 
   @Override
-  public List<StudentDto> getInterestedParticipants(UUID eventId) {
+  public List<StudentDto> getInterestedParticipants(UUID seasonId, UUID eventId) {
     HackathonEvent event =
         hackathonEventRepository
             .findById(eventId)
@@ -49,6 +50,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
               return new StudentDto(
                   student.getId(),
                   student.getUser().getEmail(),
+                  student.getUser().getFullName(),
                   UserRoleDto.fromValue(student.getUser().getRole().name()),
                   student.getStudentId(),
                   student.isExternal(),
@@ -60,7 +62,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   }
 
   @Override
-  public HackathonEventDto updateEvent(UUID eventId, UpdateEventRequestDto request) {
+  public HackathonEventDto updateEvent(UUID seasonId, UUID eventId, UpdateEventRequestDto request) {
     HackathonEvent event =
         hackathonEventRepository
             .findById(eventId)
@@ -71,27 +73,23 @@ public class HackathonEventServiceImpl implements HackathonEventService {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Event is finalized");
     }
 
-    if (request.startTime() != null && request.endTime() != null) {
-      if (!request.endTime().isAfter(request.startTime())) {
+    if (request.endTime() != null) {
+      if (event.getStartTime() != null && !request.endTime().isAfter(event.getStartTime())) {
         throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST, "End time must be after start time");
       }
-
-      if (request.name() != null) event.setName(request.name());
-
-      if (request.description() != null) event.setDescription(request.description());
-
-      if (request.status() != null) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status cannot be updated");
-      }
-
-      event.setStartTime(request.startTime());
-      event.setEndTime(request.endTime());
-    } else if (request.startTime() != null) {
-      event.setStartTime(request.startTime());
-    } else if (request.endTime() != null) {
       event.setEndTime(request.endTime());
     }
+
+    if (request.startTime() != null) {
+      if (event.getEndTime() != null && !event.getEndTime().isAfter(request.startTime())) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "End time must be after start time");
+      }
+      event.setStartTime(request.startTime());
+    }
+
+    hackathonEventRepository.save(event);
 
     return new HackathonEventDto(
         event.getId(),
@@ -104,11 +102,9 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   }
 
   @Override
-  public void markInterested(UUID eventId) {
+  @Transactional
+  public void markInterested(UUID seasonId, UUID eventId) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth == null) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Not authenticated");
-    }
 
     String currentStudentEmail = auth.getName();
     Student student =
@@ -144,6 +140,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     }
 
     event.setStatus(EventStatus.FINALIZED);
+    hackathonEventRepository.save(event);
   }
 
   @Override
@@ -171,7 +168,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   }
 
   @Override
-  public List<HackathonEventDto> getAllEvents() {
+  public List<HackathonEventDto> getAllEvents(UUID seasonId) {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
     boolean isCoordinator =
@@ -182,9 +179,9 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     List<HackathonEventDto> resultList = new ArrayList<>();
 
     if (isCoordinator) {
-      found = hackathonEventRepository.findAll();
+      found = hackathonEventRepository.findBySeasonId(seasonId);
     } else {
-      found = hackathonEventRepository.findByStatus(EventStatus.FINALIZED);
+      found = hackathonEventRepository.findBySeasonIdAndStatus(seasonId, EventStatus.FINALIZED);
     }
 
     for (HackathonEvent event : found) {
@@ -225,6 +222,8 @@ public class HackathonEventServiceImpl implements HackathonEventService {
             request.endTime(),
             EventStatus.DRAFT,
             season);
+
+    hackathonEventRepository.save(hackathonEvent);
 
     return new HackathonEventDto(
         hackathonEvent.getId(),

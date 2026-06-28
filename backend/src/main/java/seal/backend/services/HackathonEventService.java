@@ -9,11 +9,11 @@ import seal.openapi.model.UpdateEventRequestDto;
 
 public interface HackathonEventService {
 
-  List<StudentDto> getInterestedParticipants(UUID eventId);
+  List<StudentDto> getInterestedParticipants(UUID seasonId, UUID eventId);
 
-  HackathonEventDto updateEvent(UUID eventId, UpdateEventRequestDto request);
+  HackathonEventDto updateEvent(UUID seasonId, UUID eventId, UpdateEventRequestDto request);
 
-  List<HackathonEventDto> getAllEvents();
+  List<HackathonEventDto> getAllEvents(UUID seasonId);
 
   HackathonEventDto getEvent(UUID seasonId, UUID eventId);
 
@@ -21,5 +21,5 @@ public interface HackathonEventService {
 
   void finalizeEvent(UUID seasonId, UUID eventId);
 
-  void markInterested(UUID eventId);
+  void markInterested(UUID seasonId, UUID eventId);
 }
