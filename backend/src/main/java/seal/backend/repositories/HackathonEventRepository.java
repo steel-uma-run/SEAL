@@ -7,5 +7,7 @@ import seal.backend.entities.HackathonEvent;
 import seal.backend.enums.EventStatus;
 
 public interface HackathonEventRepository extends JpaRepository<HackathonEvent, UUID> {
-  List<HackathonEvent> findByStatus(EventStatus status);
+  List<HackathonEvent> findBySeasonId(UUID seasonId);
+
+  List<HackathonEvent> findBySeasonIdAndStatus(UUID seasonId, EventStatus status);
 }

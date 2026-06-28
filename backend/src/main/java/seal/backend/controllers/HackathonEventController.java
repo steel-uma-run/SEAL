@@ -23,29 +23,32 @@ public class HackathonEventController implements EventsApi {
   private final HackathonEventService eventService;
 
   @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
+  @PreAuthorize("hasAnyAuthority('COORDINATOR', 'STUDENT')")
   public ResponseEntity<StudentDto[]> getInterestedParticipants(
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
       @PathVariable(name = "eventId") @NotNull UUID eventId) {
 
     return ResponseEntity.ok(
-        eventService.getInterestedParticipants(eventId).toArray(StudentDto[]::new));
+        eventService.getInterestedParticipants(seasonId, eventId).toArray(StudentDto[]::new));
   }
 
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<HackathonEventDto> updateEvent(
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
       @PathVariable(name = "eventId") @NotNull UUID eventId,
       @Valid @RequestBody UpdateEventRequestDto request) {
 
-    return ResponseEntity.ok(eventService.updateEvent(eventId, request));
+    return ResponseEntity.ok(eventService.updateEvent(seasonId, eventId, request));
   }
 
   @Override
   @PreAuthorize("hasAuthority('STUDENT')")
   public ResponseEntity<Void> markInterested(
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
       @PathVariable(name = "eventId") @NotNull UUID eventId) {
 
-    eventService.markInterested(eventId);
+    eventService.markInterested(seasonId, eventId);
     return ResponseEntity.ok().build();
   }
 
@@ -61,14 +64,15 @@ public class HackathonEventController implements EventsApi {
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<HackathonEventDto> createEvent(
-      @Valid @RequestBody CreateEventRequestDto request) {
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
+      @RequestBody @Valid @NotNull CreateEventRequestDto request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(eventService.createEvent(request));
   }
 
   @Override
   public ResponseEntity<HackathonEventDto[]> getEventsInSeason(
       @PathVariable(name = "seasonId") @NotNull UUID seasonId) {
-    return ResponseEntity.ok(eventService.getAllEvents().toArray(HackathonEventDto[]::new));
+    return ResponseEntity.ok(eventService.getAllEvents(seasonId).toArray(HackathonEventDto[]::new));
   }
 
   @Override

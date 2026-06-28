@@ -439,7 +439,7 @@
       "get": {
         "tags": ["Events"],
         "summary": "Get all interested students for an event",
-        "operationId": "getInterestedParticipants",
+        "operationId": "get_interested_participants",
         "responses": {
           "200": {
             "description": "List of interested students",
@@ -484,15 +484,7 @@
       "post": {
         "tags": ["Events"],
         "summary": "Mark the authenticated student as interested in an event",
-        "operationId": "markInterested",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "format": "uuid" }
-          }
-        ],
+        "operationId": "mark_interested",
         "responses": {
           "200": { "description": "Successfully marked interested" },
           "4XX": {
@@ -1086,8 +1078,8 @@
           "seasonId": { "type": "string", "format": "uuid" },
           "name": { "type": "string" },
           "description": { "type": "string" },
-          "startTime": { "type": "string", "format": "date-time" },
-          "endTime": { "type": "string", "format": "date-time" }
+          "start_time": { "type": "string", "format": "date-time" },
+          "end_time": { "type": "string", "format": "date-time" }
         }
       },
       "HackathonEvent": {
@@ -1137,8 +1129,8 @@
           "name": { "type": "string" },
           "description": { "type": "string" },
           "status": { "type": "string", "enum": ["DRAFT", "FINALIZED"] },
-          "startTime": { "type": "string", "format": "date-time" },
-          "endTime": { "type": "string", "format": "date-time" }
+          "start_time": { "type": "string", "format": "date-time" },
+          "end_time": { "type": "string", "format": "date-time" }
         }
       },
       "Track": {
