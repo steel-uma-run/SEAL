@@ -10,3 +10,15 @@ export async function getProfile() {
 		}
 	})
 }
+
+export async function updateProfile(data: { name: string; strengths?: string; about_me?: string }) {
+	return fetch(`${API_BASE}/profile`, {
+		method: "PUT",
+		headers: {
+			Authorization: `Bearer ${getToken()}`,
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify(data)
+	})
+}
+

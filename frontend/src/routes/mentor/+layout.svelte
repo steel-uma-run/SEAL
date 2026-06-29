@@ -23,7 +23,7 @@
 				return
 			}
 			const profile = await profileRes.json()
-			if (profile.role !== "MENTOR" && profile.role !== "JUDGE") {
+			if (profile.role !== "MENTOR" && profile.role !== "JUDGE" && profile.role !== "LECTURER") {
 				goto("/")
 				return
 			}

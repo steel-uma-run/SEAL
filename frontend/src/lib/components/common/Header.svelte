@@ -5,6 +5,8 @@
 	import { getProfile } from "$lib/api/profile"
 	import { Sun, Moon } from "@lucide/svelte"
 	import { onMount } from "svelte"
+	import NotificationDropdown from "./NotificationDropdown.svelte"
+	import { notificationsStore } from "$lib/notifications.svelte"
 
 	let isLoggedIn = $state(false)
 	let logoHref = $state("/")
@@ -22,12 +24,16 @@
 						res.json().then(profile => {
 							if (profile.role === "COORDINATOR") logoHref = "/coordinator"
 							else if (profile.role === "STUDENT") logoHref = "/student"
-							else if (profile.role === "MENTOR" || profile.role === "JUDGE") logoHref = "/mentor"
+							else if (profile.role === "MENTOR" || profile.role === "JUDGE" || profile.role === "LECTURER") logoHref = "/mentor"
+							
+							// Initialize notifications for the user's role
+							notificationsStore.initForRole(profile.role)
 						})
 					}
 				}).catch(() => {})
 			} else if (!isLoggedIn) {
 				logoHref = "/"
+				notificationsStore.clearRole()
 			}
 		}
 	})
@@ -48,6 +54,9 @@
 	</div>
 
 	<div class="flex items-center gap-5">
+		{#if isLoggedIn}
+			<NotificationDropdown />
+		{/if}
 		<button
 			class="p-2.5 rounded-full transition-all duration-200 hover:cursor-pointer flex items-center justify-center border border-[var(--md-outline-variant)] shadow-sm {theme.darkMode ? 'bg-zinc-800 text-yellow-400 hover:bg-zinc-700' : 'bg-gray-100 text-slate-700 hover:bg-gray-200'}"
 			onclick={() => (theme.darkMode = !theme.darkMode)}

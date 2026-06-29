@@ -41,5 +41,5 @@
 		<p class="text-sm text-red-700 mt-1">{errorMessage}</p>
 	</div>
 {:else if profile}
-	<ProfileUI {profile} />
+	<ProfileUI bind:profile={profile} />
 {/if}
