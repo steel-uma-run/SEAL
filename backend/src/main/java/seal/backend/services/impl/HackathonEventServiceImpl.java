@@ -14,12 +14,15 @@ import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
+import seal.backend.entities.Track;
 import seal.backend.enums.EventStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
+import seal.backend.repositories.TrackRepository;
 import seal.backend.services.HackathonEventService;
 import seal.openapi.model.CreateEventRequestDto;
+import seal.openapi.model.CreateTrackRequestDto;
 import seal.openapi.model.HackathonEventDto;
 import seal.openapi.model.HackathonEventStatusDto;
 import seal.openapi.model.StudentDto;
@@ -32,6 +35,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   private final HackathonEventRepository hackathonEventRepository;
   private final SeasonRepository seasonRepository;
   private final StudentRepository studentRepository;
+  private final TrackRepository trackRepository;
 
   @Override
   public List<StudentDto> getInterestedParticipants(UUID seasonId, UUID eventId) {
@@ -201,11 +205,17 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   }
 
   @Override
+  @Transactional
   public HackathonEventDto createEvent(CreateEventRequestDto request) {
     if (request.endTime().isEqual(request.startTime())
         || request.endTime().isBefore(request.startTime())) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "End time must be after start time");
+    }
+
+    if (request.tracks() == null || request.tracks().length < 2 || request.tracks().length > 3) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "An event must have 2 or 3 tracks.");
     }
 
     Season season =
@@ -224,6 +234,11 @@ public class HackathonEventServiceImpl implements HackathonEventService {
             season);
 
     hackathonEventRepository.save(hackathonEvent);
+
+    for (CreateTrackRequestDto trackReq : request.tracks()) {
+      Track track = new Track(trackReq.name(), trackReq.description(), hackathonEvent);
+      trackRepository.save(track);
+    }
 
     return new HackathonEventDto(
         hackathonEvent.getId(),

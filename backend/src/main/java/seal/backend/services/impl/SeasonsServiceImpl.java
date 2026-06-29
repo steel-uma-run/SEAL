@@ -24,6 +24,13 @@ public class SeasonsServiceImpl implements SeasonsService {
   @Override
   public List<SeasonDto> getAllSeasons() {
     List<Season> seasonEntities = seasonRepository.findAll();
+    seasonEntities.sort((s1, s2) -> {
+      int yearCompare = s2.getYear().compareTo(s1.getYear());
+      if (yearCompare != 0) {
+        return yearCompare;
+      }
+      return s2.getSemester().compareTo(s1.getSemester());
+    });
     List<SeasonDto> resultList = new ArrayList<>();
 
     for (Season season : seasonEntities) {
