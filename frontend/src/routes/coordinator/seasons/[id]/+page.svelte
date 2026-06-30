@@ -4,7 +4,7 @@
 	import { goto } from "$app/navigation"
 	import { getSeason } from "$lib/api/seasons"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2 } from "@lucide/svelte"
+	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2, Eye } from "@lucide/svelte"
 
 	// Route Param
 	const seasonId = $page.params.id || ""
@@ -19,6 +19,8 @@
 	let showEventModal = $state(false)
 	let isEventLoading = $state(false)
 	let eventMessage = $state("")
+	let showViewModal = $state(false)
+	let viewingEvent = $state<any>(null)
 
 	// Modal Mode: 'create' | 'edit'
 	let modalMode = $state<"create" | "edit">("create")
@@ -112,6 +114,16 @@
 		eventStatusState = eventItem.status || "DRAFT"
 		showEventModal = true
 		eventMessage = ""
+	}
+
+	function openViewModal(eventItem: any) {
+		viewingEvent = eventItem
+		showViewModal = true
+	}
+
+	function closeViewModal() {
+		showViewModal = false
+		viewingEvent = null
 	}
 
 	function toggleEventModal() {
@@ -416,15 +428,24 @@
 										{/if}
 									</div>
 
-									{#if event.status !== "FINALIZED"}
+									<div class="flex gap-2">
 										<button
-											onclick={() => openEditModal(event)}
-											class="flex items-center gap-1.5 bg-transparent border border-orange-500 hover:bg-orange-500 text-orange-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+											onclick={() => openViewModal(event)}
+											class="flex items-center gap-1.5 bg-transparent border {theme.darkMode ? 'border-zinc-700 text-zinc-300 hover:bg-zinc-800' : 'border-gray-300 text-gray-700 hover:bg-gray-100'} px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
 										>
-											<Edit2 class="w-3.5 h-3.5" />
-											Edit
+											<Eye class="w-3.5 h-3.5" />
+											View
 										</button>
-									{/if}
+										{#if event.status !== "FINALIZED"}
+											<button
+												onclick={() => openEditModal(event)}
+												class="flex items-center gap-1.5 bg-transparent border border-orange-500 hover:bg-orange-500 text-orange-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+											>
+												<Edit2 class="w-3.5 h-3.5" />
+												Edit
+											</button>
+										{/if}
+									</div>
 								</div>
 							{/each}
 						{:else}
@@ -675,6 +696,116 @@
 					</button>
 				</div>
 			</form>
+		</div>
+	</div>
+{/if}
+
+<!-- View Event Details Modal -->
+{#if showViewModal && viewingEvent}
+	<div
+		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+	>
+		<div
+			class="w-full max-w-lg rounded-2xl border p-8 relative transition-all shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar {theme.darkMode
+				? 'bg-zinc-900 border-zinc-800 text-zinc-100'
+				: 'bg-white border-gray-100 text-gray-800'}"
+		>
+			<button
+				onclick={closeViewModal}
+				class="absolute top-6 right-6 p-1.5 rounded-full hover:bg-zinc-500/10 transition-all cursor-pointer border-0 bg-transparent text-inherit"
+			>
+				<X class="w-5 h-5" />
+			</button>
+
+			<div class="flex items-center gap-3 mb-6">
+				<div class="p-2.5 rounded-xl bg-orange-500/10 text-orange-500">
+					<Calendar class="w-6 h-6" />
+				</div>
+				<div>
+					<h3 class="text-xl font-bold m-0 leading-tight">Event Details</h3>
+					<p class="text-xs mt-1 mb-0 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+						Full configuration details and tracks
+					</p>
+				</div>
+			</div>
+
+			<div class="space-y-5">
+				<!-- Name -->
+				<div class="space-y-1">
+					<span class="text-xs font-bold text-orange-500 uppercase tracking-wider">Event Name</span>
+					<p class="text-base font-semibold m-0">{viewingEvent.name}</p>
+				</div>
+
+				<!-- Description -->
+				<div class="space-y-1">
+					<span class="text-xs font-bold text-orange-500 uppercase tracking-wider">Description</span>
+					<p class="text-sm m-0 leading-relaxed {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">
+						{viewingEvent.description}
+					</p>
+				</div>
+
+				<!-- Dates -->
+				<div class="grid grid-cols-2 gap-4">
+					<div class="space-y-1">
+						<span class="text-xs font-bold text-orange-500 uppercase tracking-wider">Start Time</span>
+						<p class="text-sm m-0 flex items-center gap-1.5 font-medium">
+							<Clock class="w-4 h-4 text-orange-500/80" />
+							{formatDateTime(viewingEvent.startTime)}
+						</p>
+					</div>
+					<div class="space-y-1">
+						<span class="text-xs font-bold text-orange-500 uppercase tracking-wider">End Time</span>
+						<p class="text-sm m-0 flex items-center gap-1.5 font-medium">
+							<Clock class="w-4 h-4 text-red-500/80" />
+							{formatDateTime(viewingEvent.endTime)}
+						</p>
+					</div>
+				</div>
+
+				<!-- Status -->
+				<div class="space-y-1">
+					<span class="text-xs font-bold text-orange-500 uppercase tracking-wider">Status</span>
+					<div>
+						<span
+							class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {viewingEvent.status === 'FINALIZED'
+								? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+								: 'bg-green-500/10 text-green-500 border border-green-500/20'}"
+						>
+							{viewingEvent.status || 'DRAFT'}
+						</span>
+					</div>
+				</div>
+
+				<!-- Tracks -->
+				<div class="border-t pt-4 {theme.darkMode ? 'border-zinc-800' : 'border-gray-150'} space-y-3">
+					<span class="text-xs font-bold text-orange-500 uppercase tracking-wider">Tracks</span>
+					
+					{#if viewingEvent.tracks && viewingEvent.tracks.length > 0}
+						<div class="space-y-3">
+							{#each viewingEvent.tracks as track, idx}
+								<div class="p-4 rounded-xl border {theme.darkMode ? 'bg-zinc-950/40 border-zinc-800' : 'bg-gray-50/50 border-gray-200'}">
+									<p class="text-sm font-bold m-0 {theme.darkMode ? 'text-zinc-200' : 'text-gray-800'}">Track {idx + 1}: {track.name}</p>
+									<p class="text-xs mt-1.5 mb-0 leading-relaxed {theme.darkMode ? 'text-zinc-400' : 'text-gray-600'}">
+										{track.description}
+									</p>
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<p class="text-xs italic {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">No tracks configured for this event.</p>
+					{/if}
+				</div>
+
+				<!-- Close Button -->
+				<div class="pt-4 border-t {theme.darkMode ? 'border-zinc-800' : 'border-gray-150'}">
+					<button
+						onclick={closeViewModal}
+						class="w-full bg-[#f26f21] hover:bg-[#d85c14] text-white rounded-xl py-3 font-semibold transition-all shadow-sm cursor-pointer border-0"
+					>
+						Close
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
 {/if}

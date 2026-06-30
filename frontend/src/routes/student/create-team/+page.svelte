@@ -152,7 +152,7 @@
 			<!-- Field 1: Season -->
 			<div class="space-y-2">
 				<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-					>Season</label
+					>Event</label
 				>
 				<select
 					bind:value={selectedSeasonId}
@@ -163,7 +163,7 @@
 						: 'bg-gray-50 border-gray-200 text-gray-900'}"
 				>
 					<option value="" disabled class={theme.darkMode ? "bg-zinc-950" : ""}>
-						{isPageLoading ? "Loading seasons..." : "Select a season"}
+						{isPageLoading ? "Loading seasons..." : "Select a event"}
 					</option>
 					{#each seasons as season}
 						<option value={season.id} class={theme.darkMode ? "bg-zinc-950" : ""}

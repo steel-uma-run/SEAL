@@ -14,7 +14,7 @@
 		{ href: "/student/profile", label: "Profile", icon: User },
 		{ href: "/student/teams", label: "Teams", icon: Users },
 		{ href: "/student/submit-project", label: "Submission", icon: UploadCloud },
-		{ href: "#", label: "Settings", icon: Settings }
+		{ href: "/student/settings", label: "Settings", icon: Settings }
 	]
 
 	onMount(async () => {
