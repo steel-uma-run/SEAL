@@ -33,4 +33,15 @@ public class RoundController implements RoundsApi {
     RoundDto responseDto = roundService.createRound(seasonId, eventId, request);
     return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
   }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<Void> deleteRound(
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
+      @PathVariable(name = "eventId") @NotNull UUID eventId,
+      @PathVariable(name = "roundId") @NotNull UUID roundId) {
+
+    roundService.deleteRound(seasonId, eventId, roundId);
+    return ResponseEntity.ok().build();
+  }
 }

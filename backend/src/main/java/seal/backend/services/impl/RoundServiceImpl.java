@@ -67,4 +67,36 @@ public class RoundServiceImpl implements RoundService {
         savedRound.getEndTime(),
         event.getId());
   }
+
+  @Override
+  public void deleteRound(UUID seasonId, UUID eventId, UUID roundId) {
+    HackathonEvent event =
+        eventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    if (!event.getSeason().getId().equals(seasonId)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Event does not belong to the specified season.");
+    }
+
+    if (event.getStatus() != EventStatus.DRAFT) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot delete round. Event is not in DRAFT status.");
+    }
+
+    Round round =
+        roundRepository
+            .findById(roundId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Round not found"));
+
+    if (!round.getEvent().getId().equals(eventId)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Round does not belong to the specified event.");
+    }
+
+    roundRepository.delete(round);
+  }
 }
