@@ -1083,7 +1083,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": "Round deleted successfully"
           },
           "4XX": {
