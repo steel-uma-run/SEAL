@@ -1,9 +1,17 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
-	import { getInvites, acceptInvite, declineInvite } from "$lib/api/invites"
-	import { getMyTeam, inviteMember } from "$lib/api/teams"
-	import { getProfile } from "$lib/api/profile"
+	import {
+		getSelfProfile,
+		getAllInvites,
+		acceptInvite,
+		declineInvite,
+		inviteToTeam,
+		getAllSeasons,
+		getEventsInSeason,
+		getInterestedParticipants,
+		getAllTeamsOfEvents
+	} from "$lib/api"
 	import { goto } from "$app/navigation"
 	import { Bell, CheckCircle, XCircle, Clock, Users, Star, UserPlus, LogOut, ArrowRightLeft } from "@lucide/svelte"
 
@@ -19,33 +27,98 @@
 	let inviteMessage = $state("")
 	let inviteError = $state(false)
 
+	let studentUuid = $state<string | null>(null)
+	let allParticipants = $state<any[]>([])
+
 	async function loadData() {
 		try {
-			const profileRes = await getProfile()
-			if (profileRes.ok) {
-				profile = await profileRes.json()
-			}
-
-			const teamRes = await getMyTeam()
-			if (teamRes.ok) {
-				myTeam = await teamRes.json()
+			// 1. Get profile
+			const { data: profileData, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			if (profileRes?.ok && profileData) {
+				profile = profileData
 			} else {
-				myTeam = null
+				goto("/auth/login")
+				return
 			}
 
-			const res = await getInvites()
-			if (res.ok) {
-				const data = await res.json()
-				if (Array.isArray(data)) {
-					invites = data.sort((a, b) => {
-						if (a.status === "PENDING" && b.status !== "PENDING") return -1
-						if (a.status !== "PENDING" && b.status === "PENDING") return 1
-						return new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime()
+			// Initialize team and invites to default values in case search yields nothing
+			myTeam = null
+			invites = []
+
+			// 2. Fetch all seasons to find the student's team
+			const { data: seasons, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
+			if (seasonsRes?.ok && seasons) {
+				let resolvedTeam: any = null
+				let resolvedStudentUuid = null
+				let resolvedParticipants: any[] = []
+
+				// Loop through seasons and events to locate the student's registration
+				for (const season of seasons) {
+					const { data: events, response: eventsRes } = await getEventsInSeason({
+						path: { seasonId: season.id },
+						throwOnError: false
 					})
+					if (eventsRes?.ok && events) {
+						for (const event of events) {
+							// Get interested participants to find the student's student UUID and team ID
+							const { data: participants, response: participantsRes } = await getInterestedParticipants({
+								path: { seasonId: season.id, eventId: event.id },
+								throwOnError: false
+							})
+							if (participantsRes?.ok && participants) {
+								const currentParticipant = participants.find((p: any) => p.email === profile.email)
+								if (currentParticipant) {
+									resolvedStudentUuid = currentParticipant.id
+									resolvedParticipants = participants
+									
+									if (currentParticipant.team_id) {
+										// Fetch all teams of this event to find details
+										const { data: teams, response: teamsRes } = await getAllTeamsOfEvents({
+											path: { seasonId: season.id, eventId: event.id },
+											throwOnError: false
+										})
+										if (teamsRes?.ok && teams) {
+											const team = teams.find((t: any) => t.id === currentParticipant.team_id)
+											if (team) {
+												resolvedTeam = team as any
+												const teamMembers = participants
+													.filter((p: any) => p.team_id === team.id)
+													.map((p: any) => ({
+														id: p.id,
+														name: p.name,
+														email: p.email,
+														student_id: p.studentId,
+														role: p.id === team.leader_id ? "Leader" : "Member"
+													}))
+												resolvedTeam.members = teamMembers
+											}
+										}
+									}
+									break
+								}
+							}
+						}
+					}
+					if (resolvedStudentUuid) break
 				}
+
+				studentUuid = resolvedStudentUuid
+				myTeam = resolvedTeam
+				allParticipants = resolvedParticipants
+			}
+
+			// 3. Get invites
+			const { data: invitesData, response: invitesRes } = await getAllInvites({ throwOnError: false })
+			if (invitesRes?.ok && invitesData) {
+				invites = invitesData.sort((a: any, b: any) => {
+					if (a.status === "PENDING" && b.status !== "PENDING") return -1
+					if (a.status !== "PENDING" && b.status === "PENDING") return 1
+					return new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime()
+				})
 			}
 		} catch (error) {
 			errorMessage = "Error connecting to the server."
+			console.error("loadData error:", error)
 		} finally {
 			isLoading = false
 		}
@@ -58,12 +131,14 @@
 	async function handleAccept(inviteId: string) {
 		processingId = inviteId
 		try {
-			const res = await acceptInvite(inviteId)
-			if (res.ok) {
+			const { response: res } = await acceptInvite({
+				path: { inviteId },
+				throwOnError: false
+			})
+			if (res?.ok) {
 				await loadData()
 			} else {
-				const err = await res.text()
-				alert(`Failed to accept invite: ${err || "Please try again."}`)
+				alert("Failed to accept invite: Please try again.")
 			}
 		} catch (error) {
 			alert("Error accepting invite.")
@@ -76,8 +151,11 @@
 		if (!confirm("Are you sure you want to decline this invite? This action is irreversible.")) return
 		processingId = inviteId
 		try {
-			const res = await declineInvite(inviteId)
-			if (res.ok) {
+			const { response: res } = await declineInvite({
+				path: { inviteId },
+				throwOnError: false
+			})
+			if (res?.ok) {
 				const idx = invites.findIndex(i => i.id === inviteId)
 				if (idx !== -1) invites[idx].status = "DECLINED"
 			} else {
@@ -99,14 +177,30 @@
 		inviteError = false
 
 		try {
-			const res = await inviteMember(myTeam.id, inviteStudentId.trim())
-			if (res.ok) {
+			const invitee = allParticipants.find(
+				(p: any) => p.studentId && p.studentId.trim().toLowerCase() === inviteStudentId.trim().toLowerCase()
+			)
+
+			if (!invitee) {
+				inviteError = true
+				inviteMessage = "Failed to send invite: Student not found or has not registered/marked interest in this event."
+				isInviting = false
+				return
+			}
+
+			const { response: res } = await inviteToTeam({
+				path: {
+					teamId: myTeam.id,
+					studentId: invitee.id
+				},
+				throwOnError: false
+			})
+			if (res?.ok) {
 				inviteMessage = "Invitation sent successfully!"
 				inviteStudentId = ""
 			} else {
-				const errText = await res.text()
 				inviteError = true
-				inviteMessage = `Failed to send invite: ${errText || "User may not exist or is already in a team."}`
+				inviteMessage = "Failed to send invite: User may already be in a team or has pending invites."
 			}
 		} catch (error) {
 			inviteError = true
@@ -201,8 +295,8 @@
 					</div>
 					<div class="p-5 rounded-2xl border {theme.darkMode ? 'bg-zinc-950/50 border-zinc-800' : 'bg-white border-gray-100'}">
 						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">My Role</p>
-						<p class="font-semibold text-sm {profile?.id === myTeam.leader_id ? 'text-orange-500' : 'text-green-500'}">
-							{profile?.id === myTeam.leader_id ? 'Team Leader' : 'Member'}
+						<p class="font-semibold text-sm {studentUuid === myTeam.leader_id ? 'text-orange-500' : 'text-green-500'}">
+							{studentUuid === myTeam.leader_id ? 'Team Leader' : 'Member'}
 						</p>
 					</div>
 				</div>
@@ -214,44 +308,28 @@
 					
 					<div class="space-y-3 mb-8">
 						{#if myTeam.members && myTeam.members.length > 0}
-							{#each myTeam.members as memberId}
+							{#each myTeam.members as member}
 								<div class="flex items-center justify-between p-4 rounded-xl border {theme.darkMode ? 'bg-zinc-950/50 border-zinc-800' : 'bg-white border-gray-100'}">
 									<div class="flex items-center gap-3">
 										<div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-500 dark:text-zinc-400 font-semibold">
 											<Users class="w-5 h-5" />
 										</div>
 										<div>
-											<p class="font-mono text-sm {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">{memberId}</p>
-											{#if memberId === profile?.id}
-												<p class="text-xs text-gray-500 mt-0.5">(You)</p>
-											{/if}
+											<p class="text-sm font-bold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">{member.name || "Unknown Member"}</p>
+											<p class="text-xs text-gray-500 mt-0.5">{member.student_id || member.email || ""} {member.id === studentUuid ? "(You)" : ""}</p>
 										</div>
 									</div>
-									{#if memberId === myTeam.leader_id}
+									{#if member.id === myTeam.leader_id}
 										<span class="text-xs font-bold text-orange-500 bg-orange-100 dark:bg-orange-500/10 px-2 py-1 rounded">Leader</span>
 									{:else}
 										<span class="text-xs font-semibold text-gray-500 bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded">Member</span>
 									{/if}
 								</div>
 							{/each}
-						{:else}
-							<!-- Fallback if members array is missing but we know they are in the team -->
-							<div class="flex items-center justify-between p-4 rounded-xl border {theme.darkMode ? 'bg-zinc-950/50 border-zinc-800' : 'bg-white border-gray-100'}">
-								<div class="flex items-center gap-3">
-									<div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-500 dark:text-zinc-400 font-semibold">
-										<Users class="w-5 h-5" />
-									</div>
-									<div>
-										<p class="font-mono text-sm {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">{profile?.id}</p>
-										<p class="text-xs text-gray-500 mt-0.5">(You)</p>
-									</div>
-								</div>
-								<span class="text-xs font-bold text-orange-500 bg-orange-100 dark:bg-orange-500/10 px-2 py-1 rounded">Leader</span>
-							</div>
 						{/if}
 					</div>
 
-					{#if profile?.id === myTeam.leader_id}
+					{#if studentUuid === myTeam.leader_id}
 						<div class="p-6 rounded-2xl border {theme.darkMode ? 'bg-zinc-950/80 border-zinc-800' : 'bg-gray-50 border-gray-200'}">
 							<h4 class="font-bold mb-2 flex items-center gap-2 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
 								<UserPlus class="w-5 h-5 text-orange-500" />
@@ -268,7 +346,7 @@
 									<input 
 										type="text" 
 										bind:value={inviteStudentId} 
-										placeholder="Student UUID..." 
+										placeholder="Enter student ID (e.g. SE160123)..." 
 										required
 										class="flex-1 rounded-xl p-3 border focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all {theme.darkMode ? 'bg-zinc-900 border-zinc-700 text-zinc-100' : 'bg-white border-gray-300'}"
 									/>
@@ -323,7 +401,7 @@
 											Team Invitation
 										</h4>
 										<p class="text-sm mt-1 {theme.darkMode ? 'text-zinc-400' : 'text-gray-600'}">
-											You have been invited to join Team <span class="font-mono font-bold text-orange-500">{invite.team_id || "Unknown"}</span>.
+											You have been invited to join Team <span class="font-mono font-bold text-orange-500">{invite.inviting_team_id || "Unknown"}</span>.
 										</p>
 										<div class="flex items-center gap-4 mt-3 text-xs font-medium {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">
 											<span class="flex items-center gap-1.5"><Clock class="w-3.5 h-3.5" /> Sent: {formatDate(invite.sent_at)}</span>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { getProfile } from "$lib/api/profile"
+	import { getSelfProfile } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import Sidebar from "$lib/components/common/Sidebar.svelte"
 	import { LayoutDashboard, User, Settings } from "@lucide/svelte"
@@ -17,13 +17,12 @@
 
 	onMount(async () => {
 		try {
-			const profileRes = await getProfile()
-			if (!profileRes.ok) {
+			const { data: profile, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			if (!profileRes?.ok || !profile) {
 				goto("/auth/login")
 				return
 			}
-			const profile = await profileRes.json()
-			if (profile.role !== "MENTOR" && profile.role !== "JUDGE") {
+			if (profile.role !== "LECTURER") {
 				goto("/")
 				return
 			}

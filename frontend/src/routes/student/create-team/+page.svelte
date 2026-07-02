@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { createTeam } from "$lib/api/teams"
-	import { getSeasons } from "$lib/api/seasons"
-	import { getProfile } from "$lib/api/profile"
+	import { createTeam, getAllSeasons, getSelfProfile, getEventsInSeason } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
+
+	function formatSemester(semester: string) {
+		if (!semester) return ""
+		return semester.charAt(0).toUpperCase() + semester.slice(1).toLowerCase()
+	}
 
 	let profile = $state<any>(null)
 	let seasons = $state<any[]>([])
@@ -22,12 +25,13 @@
 	onMount(async () => {
 		// Load profile first — redirect to login if not authenticated
 		try {
-			const profileRes = await getProfile()
-			if (!profileRes.ok) {
+			const { data: profileData, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			if (profileRes?.ok && profileData) {
+				profile = profileData
+			} else {
 				goto("/auth/login")
 				return
 			}
-			profile = await profileRes.json()
 		} catch (err) {
 			goto("/auth/login")
 			return
@@ -35,17 +39,16 @@
 
 		// Load seasons
 		try {
-			const seasonsRes = await getSeasons()
-			if (seasonsRes.ok) {
-				seasons = await seasonsRes.json()
+			const { data: seasonsData, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
+			if (seasonsRes?.ok) {
+				seasons = seasonsData || []
 			} else {
-				const errText = await seasonsRes.text()
-				seasonsError = `Could not load seasons (${seasonsRes.status}). ${errText || ""}`
-				console.error("getSeasons failed:", seasonsRes.status, errText)
+				seasonsError = `Could not load seasons (${seasonsRes?.status || "Unknown"}).`
+				console.error("getAllSeasons failed:", seasonsRes?.status)
 			}
 		} catch (err) {
 			seasonsError = "Could not connect to the server to load seasons."
-			console.error("getSeasons error:", err)
+			console.error("getAllSeasons error:", err)
 		} finally {
 			isPageLoading = false
 		}
@@ -70,16 +73,36 @@
 
 		try {
 			const finalDescription = `[Expected Size: ${teamSize}] ${teamDescription}`
-			const res = await createTeam(teamName, finalDescription, selectedSeasonId, profile.id)
-			if (res.ok) {
+			// 1. Resolve event ID from selected season
+			const { data: events, response: eventsRes } = await getEventsInSeason({
+				path: { seasonId: selectedSeasonId },
+				throwOnError: false
+			})
+			if (!eventsRes?.ok || !events || events.length === 0) {
+				isError = true
+				message = "No event found in the selected season to create a team for."
+				isLoading = false
+				return
+			}
+			const eventId = events[0].id
+
+			// 2. Create the team
+			const { data: teamData, response: res } = await createTeam({
+				body: {
+					name: teamName,
+					description: finalDescription,
+					event_id: eventId
+				},
+				throwOnError: false
+			})
+			if (res?.ok) {
 				message = "Team created successfully!"
 				teamName = ""
 				teamDescription = ""
 				selectedSeasonId = ""
 			} else {
-				const errText = await res.text()
 				isError = true
-				message = `Failed to create team: ${errText || "Please try again."}`
+				message = `Failed to create team: ${res?.statusText || "Please try again."}`
 			}
 		} catch (err) {
 			isError = true
@@ -167,7 +190,7 @@
 					</option>
 					{#each seasons as season}
 						<option value={season.id} class={theme.darkMode ? "bg-zinc-950" : ""}
-							>{season.name}</option
+							>{formatSemester(season.semester)} {season.year}</option
 						>
 					{/each}
 				</select>

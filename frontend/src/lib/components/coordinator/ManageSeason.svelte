@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createSeason } from "$lib/api/seasons"
+	import { createSeason } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { Calendar, Plus, X } from "@lucide/svelte"
 	import { goto } from "$app/navigation"
@@ -38,11 +38,14 @@
 		isSeasonLoading = true
 		seasonMessage = ""
 		try {
-			const res = await createSeason(
-				seasonSemester,
-				seasonYear
-			)
-			if (res.ok) {
+			const { response } = await createSeason({
+				body: {
+					semester: seasonSemester as "SPRING" | "SUMMER" | "FALL",
+					year: seasonYear
+				},
+				throwOnError: false
+			})
+			if (response?.ok) {
 				seasonMessage = "Season created successfully!"
 				seasonSemester = ""
 				seasonYear = new Date().getFullYear()
@@ -52,8 +55,7 @@
 				}, 1500)
 				refreshSeasons()
 			} else {
-				const errText = await res.text()
-				seasonMessage = `Failed to create season: ${errText || "Unknown error"}`
+				seasonMessage = `Failed to create season: ${response?.statusText || "Unknown error"}`
 			}
 		} catch (err) {
 			seasonMessage = "Error connecting to server."

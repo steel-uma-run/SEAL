@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { getProfile } from "$lib/api/profile"
+	import { getSelfProfile } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import Sidebar from "$lib/components/common/Sidebar.svelte"
 	import { LayoutDashboard, FolderKanban, User } from "@lucide/svelte"
@@ -26,12 +26,11 @@
 
 	onMount(async () => {
 		try {
-			const profileRes = await getProfile()
-			if (!profileRes.ok) {
+			const { data: profile, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			if (!profileRes?.ok || !profile) {
 				goto("/auth/login")
 				return
 			}
-			const profile = await profileRes.json()
 			if (profile.role !== "COORDINATOR") {
 				// If logged in but not coordinator, send to home
 				goto("/")
