@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte"
-	import { getProfile } from "$lib/api/profile"
+	import { getSelfProfile } from "$lib/api"
 	import { goto } from "$app/navigation"
 	import ProfileUI from "$lib/components/common/ProfileUI.svelte"
 
@@ -10,9 +10,9 @@
 
 	onMount(async () => {
 		try {
-			const res = await getProfile()
-			if (res.ok) {
-				profile = await res.json()
+			const { data, response: res } = await getSelfProfile({ throwOnError: false })
+			if (res?.ok && data) {
+				profile = data
 			} else {
 				errorMessage = "Failed to load profile. Please log in again."
 				localStorage.removeItem("auth_data")

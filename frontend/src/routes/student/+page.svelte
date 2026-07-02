@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { getProfile } from "$lib/api/profile"
-	import { getSeasons } from "$lib/api/seasons"
+	import { getSelfProfile, getAllSeasons } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import DashboardUI from "$lib/components/student/DashboardUI.svelte"
 	import StudentPanel from "$lib/components/student/StudentPanel.svelte"
@@ -14,20 +13,20 @@
 
 	async function loadData() {
 		try {
-			const profileRes = await getProfile()
-			if (!profileRes.ok) {
-				if (profileRes.status === 401 || profileRes.status === 403) {
+			const { data: profileData, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			if (!profileRes?.ok || !profileData) {
+				if (profileRes?.status === 401 || profileRes?.status === 403) {
 					goto("/auth/login")
 					return
 				}
 				throw new Error("Failed to load profile")
 			}
-			profile = await profileRes.json()
+			profile = profileData
 
 			// Load seasons
-			const seasonsRes = await getSeasons()
-			if (seasonsRes.ok) {
-				seasons = await seasonsRes.json()
+			const { data: seasonsData, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
+			if (seasonsRes?.ok) {
+				seasons = seasonsData || []
 			}
 		} catch (err: any) {
 			errorMessage = err.message || "An error occurred while loading the dashboard."

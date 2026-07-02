@@ -29,11 +29,29 @@
 		return str
 	})
 
-	if (dev) {
-		client.setConfig({
-			baseUrl: "http://localhost:8080"
-		})
-	}
+	client.interceptors.request.use((request) => {
+		if (typeof window !== "undefined") {
+			const url = new URL(request.url)
+			if (url.pathname.endsWith("/auth/login") || url.pathname.endsWith("/auth/register")) {
+				return request
+			}
+
+			const data = localStorage.getItem("auth_data")
+			if (data) {
+				let token = ""
+				try {
+					const parsed = JSON.parse(data)
+					token = parsed.token || parsed
+				} catch {
+					token = data
+				}
+				if (token && token !== "undefined" && token !== "null") {
+					request.headers.set("Authorization", `Bearer ${token}`)
+				}
+			}
+		}
+		return request
+	})
 </script>
 
 <svelte:head>

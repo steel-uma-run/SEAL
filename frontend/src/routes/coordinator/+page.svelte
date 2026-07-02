@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { getProfile } from "$lib/api/profile"
+	import { getSelfProfile } from "$lib/api"
 	import DashboardUI from "$lib/components/coordinator/DashboardUI.svelte"
 
 	let profile: any = $state(null)
@@ -10,15 +10,15 @@
 
 	async function loadData() {
 		try {
-			const profileRes = await getProfile()
-			if (!profileRes.ok) {
-				if (profileRes.status === 401 || profileRes.status === 403) {
+			const { data, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			if (!profileRes?.ok || !data) {
+				if (profileRes?.status === 401 || profileRes?.status === 403) {
 					goto("/auth/login")
 					return
 				}
 				throw new Error("Failed to load profile")
 			}
-			profile = await profileRes.json()
+			profile = data
 		} catch (err: any) {
 			errorMessage = err.message || "An error occurred while loading the dashboard."
 		} finally {

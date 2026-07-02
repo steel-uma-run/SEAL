@@ -6,7 +6,10 @@ const config = {
 		experimental: { async: true }
 	},
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		prerender: {
+			handleUnseenRoutes: "warn"
+		}
 	}
 }
 

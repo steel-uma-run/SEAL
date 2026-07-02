@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte"
-	import { getSeasons } from "$lib/api/seasons"
+	import { getAllSeasons } from "$lib/api"
 	import ManageSeason from "$lib/components/coordinator/ManageSeason.svelte"
 
 	let seasons: any[] = $state([])
@@ -10,13 +10,12 @@
 	async function fetchSeasons() {
 		try {
 			seasonsError = ""
-			const seasonsRes = await getSeasons()
-			if (seasonsRes.ok) {
-				seasons = await seasonsRes.json()
+			const { data, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
+			if (seasonsRes?.ok) {
+				seasons = data || []
 			} else {
-				const errText = await seasonsRes.text()
-				console.error("Failed to fetch seasons:", seasonsRes.status, errText)
-				seasonsError = `Failed to load seasons (${seasonsRes.status}).`
+				console.error("Failed to fetch seasons:", seasonsRes?.status)
+				seasonsError = `Failed to load seasons (${seasonsRes?.status || "Unknown"}).`
 			}
 		} catch (err) {
 			console.error("Error fetching seasons:", err)

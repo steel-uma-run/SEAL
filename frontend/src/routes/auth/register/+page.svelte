@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { register } from "$lib/api/auth"
+	import { register } from "$lib/api"
 	import { Eye, EyeOff } from "@lucide/svelte"
 	import { goto } from "$app/navigation"
 
@@ -32,21 +32,23 @@
 		}
 		let isExternal = !isFptuStudent
 		isLoading = true
-		let finalStudentId = studentId.trim()
-		if (isExternal && schoolName.trim() !== "") {
-			finalStudentId = `${finalStudentId} - ${schoolName.trim()}`
-		}
 		try {
-			const response = await register(email, password, name, finalStudentId, isExternal)
-			if (response.ok) {
+			const { response, error } = await register({
+				body: {
+					email: email.trim(),
+					password,
+					name,
+					student_id: studentId.trim(),
+					is_external: isExternal,
+					school_name: isExternal ? schoolName.trim() : undefined
+				},
+				throwOnError: false
+			})
+			if (response?.ok) {
 				goto("/auth/login")
 			} else {
-				try {
-					const errorData = await response.json()
-					errorMessage = errorData.detail || errorData.message || "Registration failed!"
-				} catch {
-					errorMessage = (await response.text()) || "Registration failed!"
-				}
+				const errBody = error as any
+				errorMessage = errBody?.detail || errBody?.title || response?.statusText || "Registration failed!"
 			}
 		} catch (error) {
 			console.error("Registration failed", error)

@@ -4,37 +4,10 @@
 	import { getSelfProfile } from "$lib/api/sdk.gen"
 	import { Sun, Moon } from "@lucide/svelte"
 
-	// let isLoggedIn = $state(false)
-	// let logoHref = $state("/")
-
-	// $effect(() => {
-	// 	// Track page changes to check if auth_data is present in localStorage
-	// 	const _url = $page.url
-	// 	if (typeof window !== "undefined") {
-	// 		const authData = localStorage.getItem("auth_data")
-	// 		isLoggedIn = !!authData
-
-	// 		if (isLoggedIn && logoHref === "/") {
-	// 			getProfile()
-	// 				.then((res) => {
-	// 					if (res.ok) {
-	// 						res.json().then((profile) => {
-	// 							if (profile.role === "COORDINATOR") logoHref = "/coordinator"
-	// 							else if (profile.role === "STUDENT") logoHref = "/student"
-	// 							else if (profile.role === "MENTOR" || profile.role === "JUDGE") logoHref = "/mentor"
-	// 						})
-	// 					}
-	// 				})
-	// 				.catch(() => {})
-	// 		} else if (!isLoggedIn) {
-	// 			logoHref = "/"
-	// 		}
-	// 	}
-	// })
 </script>
 
 <header
-	class="sticky top-0 z-999 w-full flex justify-between items-center px-8 py-2 bg-(--md-surface-container) border-b border-(--md-outline-variant)"
+	class="sticky top-0 z-999 w-full h-14 flex justify-between items-center px-8 bg-(--md-surface-container) border-b border-(--md-outline-variant)"
 >
 	<div class="text-2xl font-bold text-(--md-primary)">
 		<a href={"/coordinator"} class="flex items-center gap-2.5 no-underline">

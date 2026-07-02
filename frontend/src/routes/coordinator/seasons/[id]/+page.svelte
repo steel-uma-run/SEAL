@@ -2,7 +2,7 @@
 	import { onMount } from "svelte"
 	import { page } from "$app/stores"
 	import { goto } from "$app/navigation"
-	import { getSeason } from "$lib/api/seasons"
+	import { getSeason } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2 } from "@lucide/svelte"
 
@@ -55,9 +55,9 @@
 		try {
 			isLoadingSeason = true
 			seasonError = ""
-			const res = await getSeason(seasonId)
-			if (res.ok) {
-				season = await res.json()
+			const { data, response: res } = await getSeason({ path: { seasonId }, throwOnError: false })
+			if (res?.ok && data) {
+				season = data
 				// Check local override for season finalization
 				if (typeof window !== "undefined") {
 					const localFinalized = localStorage.getItem(`finalized_season_${seasonId}`)
@@ -68,7 +68,7 @@
 					}
 				}
 			} else {
-				seasonError = `Failed to load season details (${res.status}).`
+				seasonError = `Failed to load season details (${res?.status || "Unknown"}).`
 			}
 		} catch (err) {
 			console.error("Error loading season:", err)
