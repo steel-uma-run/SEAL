@@ -52,7 +52,7 @@ public class RoundServiceImpl implements RoundService {
 
     boolean isOverlapping =
         roundRepository.existsByEventIdAndStartTimeLessThanAndEndTimeGreaterThan(
-            eventId, request.endTime(), request.startTime());
+            eventId, request.startTime(), request.endTime());
 
     if (isOverlapping) {
       throw new ResponseStatusException(

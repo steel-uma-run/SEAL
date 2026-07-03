@@ -7,5 +7,5 @@ import seal.backend.entities.Round;
 
 public interface RoundRepository extends JpaRepository<Round, UUID> {
   boolean existsByEventIdAndStartTimeLessThanAndEndTimeGreaterThan(
-      UUID eventId, OffsetDateTime endTime, OffsetDateTime startTime);
+      UUID eventId, OffsetDateTime startTime, OffsetDateTime endTime);
 }
