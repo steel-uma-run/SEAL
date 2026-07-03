@@ -1286,13 +1286,13 @@
       },
       "CreateRoundRequest": {
         "type": "object",
-        "required": ["startTime", "endTime", "name", "description"],
+        "required": ["start_time", "end_time", "name", "description"],
         "properties": {
-          "startTime": {
+          "start_time": {
             "type": "string",
             "format": "date-time"
           },
-          "endTime": {
+          "end_time": {
             "type": "string",
             "format": "date-time"
           },
@@ -1307,7 +1307,7 @@
       "Round": {
         "description": "A round within a hackathon event",
         "type": "object",
-        "required": ["id", "name", "description", "startTime", "endTime", "event_id"],
+        "required": ["id", "name", "description", "start_time", "end_time", "event_id"],
         "properties": {
           "id": {
             "type": "string",
@@ -1319,11 +1319,11 @@
           "description": {
             "type": "string"
           },
-          "startTime": {
+          "start_time": {
             "type": "string",
             "format": "date-time"
           },
-          "endTime": {
+          "end_time": {
             "type": "string",
             "format": "date-time"
           },
