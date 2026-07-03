@@ -13,7 +13,9 @@
 
 	async function loadData() {
 		try {
-			const { data: profileData, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			const { data: profileData, response: profileRes } = await getSelfProfile({
+				throwOnError: false
+			})
 			if (!profileRes?.ok || !profileData) {
 				if (profileRes?.status === 401 || profileRes?.status === 403) {
 					goto("/auth/login")
@@ -24,7 +26,9 @@
 			profile = profileData
 
 			// Load seasons
-			const { data: seasonsData, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
+			const { data: seasonsData, response: seasonsRes } = await getAllSeasons({
+				throwOnError: false
+			})
 			if (seasonsRes?.ok) {
 				seasons = seasonsData || []
 			}

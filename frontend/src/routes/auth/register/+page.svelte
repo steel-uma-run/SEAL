@@ -48,7 +48,8 @@
 				goto("/auth/login")
 			} else {
 				const errBody = error as any
-				errorMessage = errBody?.detail || errBody?.title || response?.statusText || "Registration failed!"
+				errorMessage =
+					errBody?.detail || errBody?.title || response?.statusText || "Registration failed!"
 			}
 		} catch (error) {
 			console.error("Registration failed", error)

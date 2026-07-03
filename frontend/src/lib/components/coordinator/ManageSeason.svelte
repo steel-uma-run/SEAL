@@ -128,8 +128,11 @@
 										? 'border-zinc-800/50 hover:bg-zinc-800/30 text-zinc-100'
 										: 'border-gray-50 hover:bg-gray-100/50 text-gray-700'}"
 								>
-									<td class="py-4 px-4 font-bold text-orange-500 hover:text-orange-600 transition-colors">
-										{formatSemester(season.semester)} {season.year}
+									<td
+										class="py-4 px-4 font-bold text-orange-500 hover:text-orange-600 transition-colors"
+									>
+										{formatSemester(season.semester)}
+										{season.year}
 									</td>
 									<td
 										class="py-4 px-4 text-xs font-medium {theme.darkMode
@@ -140,18 +143,22 @@
 									</td>
 									<td class="py-4 px-4">
 										<span
-											class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {season.status === 'FINALIZED'
+											class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {season.status ===
+											'FINALIZED'
 												? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
 												: 'bg-green-500/10 text-green-500 border border-green-500/20'}"
 										>
-											{season.status || 'DRAFT'}
+											{season.status || "DRAFT"}
 										</span>
 									</td>
 								</tr>
 							{/each}
 						{:else}
 							<tr>
-								<td colspan="4" class="py-8 px-4 text-center {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">
+								<td
+									colspan="4"
+									class="py-8 px-4 text-center {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}"
+								>
 									No active seasons found. Click "New Season" to create one.
 								</td>
 							</tr>

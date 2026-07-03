@@ -36,7 +36,6 @@
 		? 'bg-zinc-900 border-r border-zinc-800'
 		: 'bg-[#fff9f4] border-r border-[#ffe8d6]'}"
 >
-
 	<nav class="px-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar pb-4 mt-4">
 		{#each menuItems as item}
 			{#if item.children}
