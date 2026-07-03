@@ -1,6 +1,6 @@
 <script lang="ts">
-import { login, getSelfProfile } from "$lib/api";
-import { goto } from "$app/navigation"
+	import { login, getSelfProfile } from "$lib/api"
+	import { goto } from "$app/navigation"
 	import { Eye, EyeOff } from "@lucide/svelte"
 
 	let email = $state("")
@@ -14,53 +14,53 @@ import { goto } from "$app/navigation"
 	}
 
 	async function handleLogin(event: Event) {
-        event.preventDefault();
-        isLoading = true;
-        errorMessage = "";
+		event.preventDefault()
+		isLoading = true
+		errorMessage = ""
 
-        try {
-            // Truyền tham số dưới dạng object
-            const { data } = await login({
-                body: {
-                    email: email.trim(),
-                    password: password
-                }
-            });
+		try {
+			// Truyền tham số dưới dạng object
+			const { data } = await login({
+				body: {
+					email: email.trim(),
+					password: password
+				}
+			})
 
-            // Nếu thành công, data đã được parse sẵn
-            if (data) {
-                localStorage.setItem("auth_data", JSON.stringify(data));
+			// Nếu thành công, data đã được parse sẵn
+			if (data) {
+				localStorage.setItem("auth_data", JSON.stringify(data))
 
-                // Gọi hàm getSelfProfile
-                const { data: profile } = await getSelfProfile();
+				// Gọi hàm getSelfProfile
+				const { data: profile } = await getSelfProfile()
 
-                if (profile) {
-                    if (profile.role === "COORDINATOR") {
-                        goto("/coordinator");
-                    } else if (profile.role === "STUDENT") {
-                        goto("/student");
-                    } else if (profile.role === "LECTURER") {
-                        goto("/mentor");
-                    } else {
-                        // Handle other roles
-                    }
-                }
-            } // Đã bổ sung dấu đóng ngoặc cho if (data)
-        } catch (err: any) {
-            console.error("Lỗi đăng nhập", err);
-            let detail = "";
-            if (err.body) {
-                detail = err.body.detail || err.body.title || JSON.stringify(err.body);
-            } else if (err.message) {
-                detail = err.message;
-            } else {
-                detail = JSON.stringify(err);
-            }
-            errorMessage = `Lỗi: ${detail}`;
-        } finally {
-            isLoading = false;
-        }
-    }
+				if (profile) {
+					if (profile.role === "COORDINATOR") {
+						goto("/coordinator")
+					} else if (profile.role === "STUDENT") {
+						goto("/student")
+					} else if (profile.role === "LECTURER") {
+						goto("/mentor")
+					} else {
+						// Handle other roles
+					}
+				}
+			} // Đã bổ sung dấu đóng ngoặc cho if (data)
+		} catch (err: any) {
+			console.error("Lỗi đăng nhập", err)
+			let detail = ""
+			if (err.body) {
+				detail = err.body.detail || err.body.title || JSON.stringify(err.body)
+			} else if (err.message) {
+				detail = err.message
+			} else {
+				detail = JSON.stringify(err)
+			}
+			errorMessage = `Lỗi: ${detail}`
+		} finally {
+			isLoading = false
+		}
+	}
 </script>
 
 <main class="w-screen h-screen justify-center content-center bg-(--md-surface)">

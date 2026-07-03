@@ -25,7 +25,7 @@ export default defineConfig({
 						}
 					},
 					{
-						name: "@hey-api/sdk",
+						name: "@hey-api/sdk"
 					}
 				]
 			}

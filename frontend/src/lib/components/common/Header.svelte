@@ -3,7 +3,6 @@
 	import { page } from "$app/state"
 	import { getSelfProfile } from "$lib/api/sdk.gen"
 	import { Sun, Moon } from "@lucide/svelte"
-
 </script>
 
 <header

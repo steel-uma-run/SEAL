@@ -100,7 +100,8 @@
 					{
 						id: crypto.randomUUID(),
 						name: "Coding Prototype Phase",
-						description: "48-hour continuous coding sprint. Mentors will conduct milestone reviews.",
+						description:
+							"48-hour continuous coding sprint. Mentors will conduct milestone reviews.",
 						startTime: new Date(nextWeek.getTime() + 24 * 60 * 60 * 1000).toISOString(),
 						endTime: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
 						status: "DRAFT"
@@ -231,7 +232,9 @@
 </script>
 
 <svelte:head>
-	<title>{season ? `${formatSemester(season.semester)} ${season.year}` : 'Season Detail'} - SEAL</title>
+	<title
+		>{season ? `${formatSemester(season.semester)} ${season.year}` : "Season Detail"} - SEAL</title
+	>
 </svelte:head>
 
 <div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full">
@@ -251,7 +254,9 @@
 	<!-- Loading & Error States -->
 	{#if isLoadingSeason}
 		<div class="flex justify-center items-center h-[50vh]">
-			<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+			<div
+				class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"
+			></div>
 		</div>
 	{:else if seasonError}
 		<div class="bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 p-4 rounded-r shadow-sm">
@@ -261,7 +266,6 @@
 	{:else if season}
 		<!-- Main Content Grid -->
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-			
 			<!-- Left Column: Season Meta Card -->
 			<div class="lg:col-span-1 space-y-6">
 				<div
@@ -274,18 +278,30 @@
 							<Calendar class="w-6 h-6" />
 						</div>
 						<div>
-							<span class="text-xs uppercase tracking-wider font-bold text-orange-500">Hackathon Season</span>
-							<h1 class="text-2xl font-extrabold tracking-tight mt-0.5 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
-								{formatSemester(season.semester)} {season.year}
+							<span class="text-xs uppercase tracking-wider font-bold text-orange-500"
+								>Hackathon Season</span
+							>
+							<h1
+								class="text-2xl font-extrabold tracking-tight mt-0.5 {theme.darkMode
+									? 'text-zinc-100'
+									: 'text-gray-800'}"
+							>
+								{formatSemester(season.semester)}
+								{season.year}
 							</h1>
 						</div>
 					</div>
 
-					<div class="space-y-4 border-t pt-6 {theme.darkMode ? 'border-zinc-800' : 'border-gray-100'}">
+					<div
+						class="space-y-4 border-t pt-6 {theme.darkMode ? 'border-zinc-800' : 'border-gray-100'}"
+					>
 						<div class="flex justify-between items-center text-sm">
-							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium">Status</span>
+							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium"
+								>Status</span
+							>
 							<span
-								class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {seasonStatus === 'FINALIZED'
+								class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {seasonStatus ===
+								'FINALIZED'
 									? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
 									: 'bg-green-500/10 text-green-500 border border-green-500/20'}"
 							>
@@ -293,16 +309,24 @@
 							</span>
 						</div>
 						<div class="flex justify-between items-center text-sm">
-							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium">Academic Year</span>
-							<span class="font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-700'}">{season.year}</span>
+							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium"
+								>Academic Year</span
+							>
+							<span class="font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-700'}"
+								>{season.year}</span
+							>
 						</div>
 						<div class="flex justify-between items-center text-sm">
-							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium">Semester term</span>
-							<span class="font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-700'}">{season.semester}</span>
+							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium"
+								>Semester term</span
+							>
+							<span class="font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-700'}"
+								>{season.semester}</span
+							>
 						</div>
 					</div>
 
-					{#if seasonStatus === 'DRAFT'}
+					{#if seasonStatus === "DRAFT"}
 						<button
 							onclick={handleFinalizeSeason}
 							class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-semibold transition-all shadow-sm cursor-pointer border-0"
@@ -320,20 +344,22 @@
 						? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
 						: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
 				>
-					<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+					<div
+						class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"
+					>
 						<div>
 							<h2 class="text-xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
 								Season Events Schedule
 							</h2>
 							<p class="text-sm mt-1 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-								{#if seasonStatus === 'FINALIZED'}
+								{#if seasonStatus === "FINALIZED"}
 									This season is finalized. You cannot add or edit events.
 								{:else}
 									Manage and configure the specific rounds and checkpoints in this season.
 								{/if}
 							</p>
 						</div>
-						{#if seasonStatus === 'DRAFT'}
+						{#if seasonStatus === "DRAFT"}
 							<button
 								id="btn-new-event"
 								onclick={openCreateModal}
@@ -356,34 +382,51 @@
 								>
 									<div class="space-y-2 flex-1">
 										<div class="flex items-center gap-3">
-											<h3 class="text-base font-bold m-0 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+											<h3
+												class="text-base font-bold m-0 {theme.darkMode
+													? 'text-zinc-100'
+													: 'text-gray-800'}"
+											>
 												{event.name}
 											</h3>
 											<span
-												class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {event.status === 'FINALIZED'
+												class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {event.status ===
+												'FINALIZED'
 													? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
 													: 'bg-green-500/10 text-green-500 border border-green-500/20'}"
 											>
-												{event.status || 'DRAFT'}
+												{event.status || "DRAFT"}
 											</span>
 										</div>
-										<p class="text-xs m-0 leading-relaxed {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+										<p
+											class="text-xs m-0 leading-relaxed {theme.darkMode
+												? 'text-zinc-400'
+												: 'text-gray-500'}"
+										>
 											{event.description}
 										</p>
-										
+
 										<div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-2">
-											<div class="flex items-center gap-1.5 text-[11px] {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">
+											<div
+												class="flex items-center gap-1.5 text-[11px] {theme.darkMode
+													? 'text-zinc-500'
+													: 'text-gray-400'}"
+											>
 												<Clock class="w-3.5 h-3.5 text-orange-500/80" />
 												<span>Start: {formatDateTime(event.startTime)}</span>
 											</div>
-											<div class="flex items-center gap-1.5 text-[11px] {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">
+											<div
+												class="flex items-center gap-1.5 text-[11px] {theme.darkMode
+													? 'text-zinc-500'
+													: 'text-gray-400'}"
+											>
 												<Clock class="w-3.5 h-3.5 text-red-500/80" />
 												<span>End: {formatDateTime(event.endTime)}</span>
 											</div>
 										</div>
 									</div>
 
-									{#if seasonStatus === 'DRAFT' && event.status !== 'FINALIZED'}
+									{#if seasonStatus === "DRAFT" && event.status !== "FINALIZED"}
 										<button
 											onclick={() => openEditModal(event)}
 											class="flex items-center gap-1.5 bg-transparent border border-orange-500 hover:bg-orange-500 text-orange-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
@@ -395,7 +438,11 @@
 								</div>
 							{/each}
 						{:else}
-							<div class="text-center py-12 border border-dashed rounded-2xl {theme.darkMode ? 'border-zinc-800 text-zinc-500' : 'border-gray-200 text-gray-400'}">
+							<div
+								class="text-center py-12 border border-dashed rounded-2xl {theme.darkMode
+									? 'border-zinc-800 text-zinc-500'
+									: 'border-gray-200 text-gray-400'}"
+							>
 								<Award class="w-12 h-12 mx-auto opacity-30 mb-3" />
 								<p class="text-sm font-semibold">No events created for this season yet</p>
 								<p class="text-xs mt-1">Get started by creating your first milestone event.</p>
@@ -426,7 +473,7 @@
 			</button>
 			<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
 				<Calendar class="w-5 h-5 text-orange-500" />
-				{modalMode === 'create' ? 'Create' : 'Edit'} Event
+				{modalMode === "create" ? "Create" : "Edit"} Event
 			</h3>
 
 			<form onsubmit={handleSaveEvent} class="flex flex-col gap-4">
@@ -434,8 +481,7 @@
 					<label
 						id="lbl-event-name"
 						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-						for="input-event-name"
-						>Event Name *</label
+						for="input-event-name">Event Name *</label
 					>
 					<input
 						id="input-event-name"
@@ -454,8 +500,7 @@
 						<label
 							id="lbl-start-time"
 							class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-							for="input-start-time"
-							>Start Time *</label
+							for="input-start-time">Start Time *</label
 						>
 						<input
 							id="input-start-time"
@@ -471,8 +516,7 @@
 						<label
 							id="lbl-end-time"
 							class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-							for="input-end-time"
-							>End Time *</label
+							for="input-end-time">End Time *</label
 						>
 						<input
 							id="input-end-time"
@@ -490,8 +534,7 @@
 					<label
 						id="lbl-description"
 						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-						for="textarea-description"
-						>Description *</label
+						for="textarea-description">Description *</label
 					>
 					<textarea
 						id="textarea-description"
@@ -509,8 +552,7 @@
 					<label
 						id="lbl-status"
 						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-						for="select-status"
-						>Event Status *</label
+						for="select-status">Event Status *</label
 					>
 					<select
 						id="select-status"
@@ -554,7 +596,7 @@
 						disabled={isEventLoading}
 						class="w-1/2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-3 font-semibold disabled:opacity-50 transition-all shadow-sm cursor-pointer border-0"
 					>
-						{isEventLoading ? "Saving..." : (modalMode === 'create' ? 'Create' : 'Save')}
+						{isEventLoading ? "Saving..." : modalMode === "create" ? "Create" : "Save"}
 					</button>
 				</div>
 			</form>

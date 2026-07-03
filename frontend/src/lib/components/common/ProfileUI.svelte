@@ -10,9 +10,7 @@
 		<a
 			href="/student"
 			class="inline-flex items-center gap-2 transition-colors mb-6 font-medium
-			{theme.darkMode
-				? 'text-zinc-400 hover:text-orange-400'
-				: 'text-gray-500 hover:text-orange-600'}"
+			{theme.darkMode ? 'text-zinc-400 hover:text-orange-400' : 'text-gray-500 hover:text-orange-600'}"
 		>
 			<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
@@ -81,18 +79,24 @@
 					? 'bg-zinc-900 border-zinc-800'
 					: 'bg-white border-gray-100'}"
 			>
-				<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+				<p
+					class="text-xs text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1"
+				>
 					<Mail class="w-3.5 h-3.5" />
 					Email Address
 				</p>
 				<p class="font-bold text-sm mt-1 text-[#ea580c]">{profile.email}</p>
 			</div>
-			
+
 			<!-- ROLE BASED LOGIC UI HERE -->
 			{#if profile.role === "STUDENT"}
 				<div class="mt-6 border-t {theme.darkMode ? 'border-zinc-800' : 'border-gray-200'} pt-6">
 					<h4 class="font-bold text-lg mb-4">Student Information</h4>
-					<div class="p-6 rounded-xl border border-dashed {theme.darkMode ? 'bg-zinc-950/50 border-zinc-700' : 'bg-gray-50 border-gray-300'}">
+					<div
+						class="p-6 rounded-xl border border-dashed {theme.darkMode
+							? 'bg-zinc-950/50 border-zinc-700'
+							: 'bg-gray-50 border-gray-300'}"
+					>
 						<p class="text-center text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
 							No specific student data available yet. Please join a team or register for an event.
 						</p>
@@ -102,10 +106,14 @@
 				<div class="mt-6 border-t {theme.darkMode ? 'border-zinc-800' : 'border-gray-200'} pt-6">
 					<h4 class="font-bold text-lg mb-4">Coordinator Tools</h4>
 					<div class="grid grid-cols-2 gap-4">
-						<button class="p-3 text-sm font-semibold rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors cursor-pointer border-0">
+						<button
+							class="p-3 text-sm font-semibold rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors cursor-pointer border-0"
+						>
 							Manage Users
 						</button>
-						<button class="p-3 text-sm font-semibold rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors cursor-pointer border-0">
+						<button
+							class="p-3 text-sm font-semibold rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors cursor-pointer border-0"
+						>
 							System Settings
 						</button>
 					</div>
@@ -113,7 +121,11 @@
 			{:else if profile.role === "JUDGE" || profile.role === "MENTOR"}
 				<div class="mt-6 border-t {theme.darkMode ? 'border-zinc-800' : 'border-gray-200'} pt-6">
 					<h4 class="font-bold text-lg mb-4">Expert Information</h4>
-					<div class="p-6 rounded-xl border border-dashed {theme.darkMode ? 'bg-zinc-950/50 border-zinc-700' : 'bg-gray-50 border-gray-300'}">
+					<div
+						class="p-6 rounded-xl border border-dashed {theme.darkMode
+							? 'bg-zinc-950/50 border-zinc-700'
+							: 'bg-gray-50 border-gray-300'}"
+					>
 						<p class="text-center text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
 							You are currently assigned as an expert. Awaiting track assignments.
 						</p>
