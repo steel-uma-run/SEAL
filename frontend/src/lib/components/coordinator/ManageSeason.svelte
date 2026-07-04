@@ -18,6 +18,23 @@
 		seasonMessage = ""
 	}
 
+	function getEventCount(seasonId: string): number {
+		if (typeof window !== "undefined") {
+			const stored = localStorage.getItem(`events_${seasonId}`)
+			if (stored) {
+				try {
+					const parsed = JSON.parse(stored)
+					if (Array.isArray(parsed)) {
+						return parsed.length
+					}
+				} catch (e) {
+					console.error("Error parsing events from localStorage for season " + seasonId, e)
+				}
+			}
+		}
+		return 0
+	}
+
 	function formatSemester(semester: string) {
 		if (!semester) return ""
 		return semester.charAt(0).toUpperCase() + semester.slice(1).toLowerCase()
@@ -95,10 +112,10 @@
 		</div>
 	</header>
 
-	<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-		<!-- Left Column: Active Seasons Overview -->
+	<div class="space-y-8">
+		<!-- Active Seasons Overview -->
 		<div
-			class="xl:col-span-2 p-8 rounded-3xl border transition-all {theme.darkMode
+			class="p-8 rounded-3xl border transition-all {theme.darkMode
 				? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
 				: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
 		>
@@ -116,6 +133,7 @@
 						>
 							<th class="py-3.5 px-4">Season Name</th>
 							<th class="py-3.5 px-4">Time</th>
+							<th class="py-3.5 px-4">Events</th>
 							<th class="py-3.5 px-4">Status</th>
 						</tr>
 					</thead>
@@ -141,6 +159,13 @@
 									>
 										{season.year}
 									</td>
+									<td
+										class="py-4 px-4 text-xs font-bold {theme.darkMode
+											? 'text-zinc-300'
+											: 'text-gray-600'}"
+									>
+										{getEventCount(season.id)}
+									</td>
 									<td class="py-4 px-4">
 										<span
 											class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {season.status ===
@@ -163,55 +188,6 @@
 								</td>
 							</tr>
 						{/if}
-					</tbody>
-				</table>
-			</div>
-		</div>
-
-		<!-- Right Column: Past Seasons History -->
-		<div
-			class="xl:col-span-1 p-8 rounded-3xl border transition-all {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-				: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
-		>
-			<h2 class="text-xl font-bold mb-6 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
-				Past Seasons History
-			</h2>
-
-			<div class="overflow-x-auto font-sans">
-				<table class="w-full text-left border-collapse">
-					<thead>
-						<tr
-							class="border-b {theme.darkMode
-								? 'border-zinc-800 text-zinc-400'
-								: 'border-gray-100 text-gray-400'} text-xs font-bold uppercase tracking-wider"
-						>
-							<th class="py-2.5 px-2">Season Name</th>
-							<th class="py-2.5 px-2">Time</th>
-							<th class="py-2.5 px-2">Status</th>
-						</tr>
-					</thead>
-					<tbody class="text-xs">
-						{#each [{ name: "Spring 2026", dur: "June 10, 2026", teams: "36" }, { name: "Spring 2026", dur: "June 12, 2026", teams: "27" }, { name: "Spring 2026", dur: "June 11, 2026", teams: "19" }, { name: "Olwe 2026", dur: "June 11, 2026", teams: "13" }, { name: "Olwe 2026", dur: "June 15, 2026", teams: "4" }] as row}
-							<tr
-								class="border-b transition-colors {theme.darkMode
-									? 'border-zinc-800/50 hover:bg-zinc-800/20 text-zinc-100'
-									: 'border-gray-50 hover:bg-gray-50/50 text-gray-700'}"
-							>
-								<td class="py-3 px-2 font-bold">{row.name}</td>
-								<td
-									class="py-3 px-2 text-[10px] {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}"
-									>{row.dur}</td
-								>
-								<td class="py-3 px-2">
-									<span
-										class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/10 text-green-500 border border-green-500/20"
-									>
-										Completed
-									</span>
-								</td>
-							</tr>
-						{/each}
 					</tbody>
 				</table>
 			</div>
