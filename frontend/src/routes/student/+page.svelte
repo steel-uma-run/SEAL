@@ -1,13 +1,16 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { getSelfProfile, getAllSeasons } from "$lib/api"
+	import { getSelfProfile, getAllSeasons, getEventsInSeason } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
+	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 	import DashboardUI from "$lib/components/student/DashboardUI.svelte"
-	import StudentPanel from "$lib/components/student/StudentPanel.svelte"
+	import ActiveSeasonEvents from "$lib/components/student/ActiveSeasonEvents.svelte"
 
 	let profile: any = $state(null)
 	let seasons: any[] = $state([])
+	let activeSeason: any = $state(null)
+	let activeSeasonEvents: any[] = $state([])
 	let isLoading = $state(true)
 	let errorMessage = $state("")
 
@@ -31,6 +34,36 @@
 			})
 			if (seasonsRes?.ok) {
 				seasons = seasonsData || []
+
+				// Identify active season based on current date
+				const currentInfo = getCurrentSeasonInfo()
+				activeSeason = seasons.find(
+					(s) => s.semester === currentInfo.semester && s.year === currentInfo.year
+				)
+
+				// Fetch events for active season
+				if (activeSeason) {
+					// Check local storage for mock events (saving coordinators' actions locally)
+					if (typeof window !== "undefined") {
+						const key = `events_${activeSeason.id}`
+						const stored = localStorage.getItem(key)
+						if (stored) {
+							const allLocalEvents = JSON.parse(stored)
+							activeSeasonEvents = allLocalEvents.filter((e: any) => e.status === "FINALIZED")
+						}
+					}
+
+					// Fallback to API if no local events are found
+					if (activeSeasonEvents.length === 0) {
+						const { data: eventsData, response: eventsRes } = await getEventsInSeason({
+							path: { seasonId: activeSeason.id },
+							throwOnError: false
+						})
+						if (eventsRes?.ok) {
+							activeSeasonEvents = eventsData || []
+						}
+					}
+				}
 			}
 		} catch (err: any) {
 			errorMessage = err.message || "An error occurred while loading the dashboard."
@@ -99,7 +132,7 @@
 			</div>
 		</header>
 
-		<DashboardUI {profile} {seasons} />
-		<StudentPanel />
+		<DashboardUI {profile} {seasons} {activeSeason} />
+		<ActiveSeasonEvents {activeSeason} events={activeSeasonEvents} />
 	{/if}
 </div>

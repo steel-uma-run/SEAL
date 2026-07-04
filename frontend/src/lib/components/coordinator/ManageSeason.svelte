@@ -134,7 +134,6 @@
 							<th class="py-3.5 px-4">Season Name</th>
 							<th class="py-3.5 px-4">Time</th>
 							<th class="py-3.5 px-4">Events</th>
-							<th class="py-3.5 px-4">Status</th>
 						</tr>
 					</thead>
 					<tbody class="text-sm">
@@ -165,16 +164,6 @@
 											: 'text-gray-600'}"
 									>
 										{getEventCount(season.id)}
-									</td>
-									<td class="py-4 px-4">
-										<span
-											class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {season.status ===
-											'FINALIZED'
-												? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
-												: 'bg-green-500/10 text-green-500 border border-green-500/20'}"
-										>
-											{season.status || "DRAFT"}
-										</span>
 									</td>
 								</tr>
 							{/each}

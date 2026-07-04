@@ -13,7 +13,6 @@
 	let season = $state<any>(null)
 	let isLoadingSeason = $state(true)
 	let seasonError = $state("")
-	let seasonStatus = $state("DRAFT") // overridden by local storage
 
 	// Events State (Mock Data in LocalStorage)
 	let events = $state<any[]>([])
@@ -71,15 +70,7 @@
 			const { data, response: res } = await getSeason({ path: { seasonId }, throwOnError: false })
 			if (res?.ok && data) {
 				season = data
-				// Check local override for season finalization
-				if (typeof window !== "undefined") {
-					const localFinalized = localStorage.getItem(`finalized_season_${seasonId}`)
-					if (localFinalized === "true") {
-						seasonStatus = "FINALIZED"
-					} else {
-						seasonStatus = season.status || "DRAFT"
-					}
-				}
+
 			} else {
 				seasonError = `Failed to load season details (${res?.status || "Unknown"}).`
 			}
@@ -104,17 +95,7 @@
 		}
 	}
 
-	function handleFinalizeSeason() {
-		const confirmed = confirm(
-			"Are you sure you want to finalize this season? This action is permanent, cannot be undone, and will prevent any further edits (including adding new events or editing existing ones)."
-		)
-		if (confirmed) {
-			if (typeof window !== "undefined") {
-				localStorage.setItem(`finalized_season_${seasonId}`, "true")
-			}
-			seasonStatus = "FINALIZED"
-		}
-	}
+
 
 	function openCreateModal() {
 		modalMode = "create"
@@ -304,19 +285,6 @@
 					>
 						<div class="flex justify-between items-center text-sm">
 							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium"
-								>Status</span
-							>
-							<span
-								class="inline-flex px-2.5 py-1 rounded-full text-xs font-semibold {seasonStatus ===
-								'FINALIZED'
-									? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
-									: 'bg-green-500/10 text-green-500 border border-green-500/20'}"
-							>
-								{seasonStatus}
-							</span>
-						</div>
-						<div class="flex justify-between items-center text-sm">
-							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium"
 								>Academic Year</span
 							>
 							<span class="font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-700'}"
@@ -332,15 +300,6 @@
 							>
 						</div>
 					</div>
-
-					{#if seasonStatus === "DRAFT"}
-						<button
-							onclick={handleFinalizeSeason}
-							class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-3 font-semibold transition-all shadow-sm cursor-pointer border-0"
-						>
-							Finalize Season
-						</button>
-					{/if}
 				</div>
 			</div>
 
@@ -359,23 +318,17 @@
 								Season Events Schedule
 							</h2>
 							<p class="text-sm mt-1 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-								{#if seasonStatus === "FINALIZED"}
-									This season is finalized. You cannot add or edit events.
-								{:else}
-									Manage and configure the specific rounds and checkpoints in this season.
-								{/if}
+								Manage and configure the specific rounds and checkpoints in this season.
 							</p>
 						</div>
-						{#if seasonStatus === "DRAFT"}
-							<button
-								id="btn-new-event"
-								onclick={openCreateModal}
-								class="flex items-center gap-2 bg-[#f26f21] hover:bg-[#d85c14] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all cursor-pointer border-0"
-							>
-								<Plus class="w-4 h-4" />
-								Add Event
-							</button>
-						{/if}
+						<button
+							id="btn-new-event"
+							onclick={openCreateModal}
+							class="flex items-center gap-2 bg-[#f26f21] hover:bg-[#d85c14] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all cursor-pointer border-0"
+						>
+							<Plus class="w-4 h-4" />
+							Add Event
+						</button>
 					</div>
 
 					<!-- Events List -->
@@ -448,7 +401,7 @@
 										</div>
 									</div>
 
-									{#if seasonStatus === "DRAFT" && event.status !== "FINALIZED"}
+									{#if event.status !== "FINALIZED"}
 										<button
 											onclick={() => openEditModal(event)}
 											class="flex items-center gap-1.5 bg-transparent border border-orange-500 hover:bg-orange-500 text-orange-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
