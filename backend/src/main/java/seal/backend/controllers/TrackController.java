@@ -57,7 +57,10 @@ public class TrackController implements TracksApi {
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<TrackDto> updateTrack(
-      UUID seasonId, UUID eventId, UUID trackId, UpdateTrackRequestDto request) {
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId,
+      @PathVariable(name = "eventId") @NotNull UUID eventId,
+      @PathVariable(name = "trackId") @NotNull UUID trackId,
+      @RequestBody @Valid @NotNull UpdateTrackRequestDto request) {
     TrackDto updatedTrack = trackService.updateTrack(seasonId, eventId, trackId, request);
     return ResponseEntity.ok(updatedTrack);
   }

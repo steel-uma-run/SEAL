@@ -14,7 +14,7 @@
 		Zap
 	} from "@lucide/svelte"
 
-	let { profile } = $props<{ profile: any }>()
+	let { profile, seasonsCount = 0 } = $props<{ profile: any; seasonsCount?: number }>()
 </script>
 
 <div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full">
@@ -91,7 +91,7 @@
 					>
 						Total Seasons
 					</p>
-					<h3 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">4</h3>
+					<h3 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">{seasonsCount}</h3>
 				</div>
 			</div>
 			<p class="text-xs font-medium mt-4 {theme.darkMode ? 'text-zinc-400' : 'text-gray-600'}">

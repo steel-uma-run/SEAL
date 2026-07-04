@@ -31,6 +31,19 @@
 	let eventStartTime = $state("")
 	let eventEndTime = $state("")
 	let eventStatusState = $state("DRAFT")
+	let eventTracks = $state<{ name: string; description: string }[]>([])
+
+	function addTrack() {
+		eventTracks = [...eventTracks, { name: "", description: "" }]
+	}
+
+	function removeTrack(index: number) {
+		if (eventTracks.length > 1) {
+			eventTracks = eventTracks.filter((_, i) => i !== index)
+		} else {
+			alert("An event must have at least one track.")
+		}
+	}
 
 	// Helpers
 	function formatSemester(semester: string) {
@@ -85,28 +98,7 @@
 			if (stored) {
 				events = JSON.parse(stored)
 			} else {
-				// Default mock events (all starting as DRAFT at initialization)
-				const now = new Date()
-				const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-				events = [
-					{
-						id: crypto.randomUUID(),
-						name: "Initial Idea Registration",
-						description: "Teams register their names and submit a 2-page brief proposal.",
-						startTime: now.toISOString(),
-						endTime: nextWeek.toISOString(),
-						status: "DRAFT"
-					},
-					{
-						id: crypto.randomUUID(),
-						name: "Coding Prototype Phase",
-						description:
-							"48-hour continuous coding sprint. Mentors will conduct milestone reviews.",
-						startTime: new Date(nextWeek.getTime() + 24 * 60 * 60 * 1000).toISOString(),
-						endTime: new Date(nextWeek.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-						status: "DRAFT"
-					}
-				]
+				events = []
 				localStorage.setItem(key, JSON.stringify(events))
 			}
 		}
@@ -132,6 +124,10 @@
 		eventStartTime = ""
 		eventEndTime = ""
 		eventStatusState = "DRAFT"
+		eventTracks = [
+			{ name: "", description: "" },
+			{ name: "", description: "" }
+		]
 		showEventModal = true
 		eventMessage = ""
 	}
@@ -145,6 +141,7 @@
 		eventStartTime = eventItem.startTime ? eventItem.startTime.substring(0, 16) : ""
 		eventEndTime = eventItem.endTime ? eventItem.endTime.substring(0, 16) : ""
 		eventStatusState = eventItem.status || "DRAFT"
+		eventTracks = eventItem.tracks ? JSON.parse(JSON.stringify(eventItem.tracks)) : []
 		showEventModal = true
 		eventMessage = ""
 	}
@@ -170,6 +167,14 @@
 			return
 		}
 
+		// Validate tracks
+		for (let i = 0; i < eventTracks.length; i++) {
+			if (!eventTracks[i].name.trim() || !eventTracks[i].description.trim()) {
+				eventMessage = `Track ${i + 1} name and description cannot be empty.`
+				return
+			}
+		}
+
 		// Prompt confirmation if status is being set to FINALIZED
 		if (eventStatusState === "FINALIZED") {
 			const confirmed = confirm(
@@ -191,7 +196,8 @@
 					description: eventDescription,
 					startTime: start.toISOString(),
 					endTime: end.toISOString(),
-					status: eventStatusState
+					status: eventStatusState,
+					tracks: eventTracks
 				}
 				events = [...events, newEvent]
 			} else {
@@ -203,7 +209,8 @@
 							description: eventDescription,
 							startTime: start.toISOString(),
 							endTime: end.toISOString(),
-							status: eventStatusState
+							status: eventStatusState,
+							tracks: eventTracks
 						}
 					}
 					return evt
@@ -406,6 +413,21 @@
 											{event.description}
 										</p>
 
+										{#if event.tracks && event.tracks.length > 0}
+											<div class="flex flex-wrap gap-1.5 mt-2">
+												{#each event.tracks as track}
+													<span
+														class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider {theme.darkMode
+															? 'bg-zinc-800 text-zinc-300 border border-zinc-700/50'
+															: 'bg-zinc-100/80 text-zinc-700 border border-zinc-200/50'}"
+														title={track.description}
+													>
+														{track.name}
+													</span>
+												{/each}
+											</div>
+										{/if}
+
 										<div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-2">
 											<div
 												class="flex items-center gap-1.5 text-[11px] {theme.darkMode
@@ -461,7 +483,7 @@
 		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
 	>
 		<div
-			class="w-full max-w-lg rounded-2xl border p-8 relative transition-all shadow-2xl {theme.darkMode
+			class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border p-8 relative transition-all shadow-2xl {theme.darkMode
 				? 'bg-zinc-900 border-zinc-800 text-zinc-100'
 				: 'bg-white border-gray-100 text-gray-800'}"
 		>
@@ -546,6 +568,63 @@
 							? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500'
 							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
 					></textarea>
+				</div>
+
+				<!-- Tracks Section -->
+				<div class="space-y-3 border-t pt-4 mt-2 {theme.darkMode ? 'border-zinc-800' : 'border-gray-100'}">
+					<div class="flex items-center justify-between">
+						<label class="text-sm font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-800'}">
+							Event Tracks ({eventTracks.length})
+						</label>
+						<button
+							type="button"
+							onclick={addTrack}
+							class="text-[10px] flex items-center gap-1 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 py-1.5 px-3 rounded-lg border border-orange-500/20 transition-all font-bold cursor-pointer"
+						>
+							<Plus class="w-3 h-3" />
+							Add Track
+						</button>
+					</div>
+
+					<div class="space-y-3 max-h-[180px] overflow-y-auto pr-1">
+						{#each eventTracks as track, index}
+							<div class="p-3.5 rounded-xl border relative {theme.darkMode ? 'bg-zinc-950/30 border-zinc-800' : 'bg-gray-50/50 border-gray-100'}">
+								{#if eventTracks.length > 1}
+									<button
+										type="button"
+										onclick={() => removeTrack(index)}
+										class="absolute top-2 right-2 p-1 rounded-md hover:bg-red-500/10 text-red-500 hover:text-red-600 transition-colors border-0 bg-transparent cursor-pointer"
+										title="Remove Track"
+									>
+										<X class="w-3.5 h-3.5" />
+									</button>
+								{/if}
+								
+								<span class="text-[10px] font-bold uppercase tracking-wider text-orange-500 block mb-1.5">Track #{index + 1}</span>
+								
+								<div class="space-y-2">
+									<input
+										type="text"
+										bind:value={track.name}
+										required
+										placeholder="Track Name (e.g. Cybersecurity)"
+										class="w-full text-xs rounded-lg border p-2.5 outline-none transition-all {theme.darkMode
+											? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-1 focus:ring-orange-500'
+											: 'border-gray-200 bg-white focus:ring-1 focus:ring-orange-500'}"
+									/>
+									<textarea
+										bind:value={track.description}
+										required
+										rows="2"
+										placeholder="Track Description..."
+										class="w-full text-xs rounded-lg border p-2.5 outline-none transition-all resize-none {theme.darkMode
+											? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-1 focus:ring-orange-500'
+											: 'border-gray-200 bg-white focus:ring-1 focus:ring-orange-500'}"
+									></textarea>
+								</div>
+							</div>
+						{/each}
+					</div>
 				</div>
 
 				<div class="space-y-1">

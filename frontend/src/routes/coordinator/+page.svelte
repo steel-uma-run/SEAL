@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { getSelfProfile } from "$lib/api"
+	import { getSelfProfile, getAllSeasons } from "$lib/api"
 	import DashboardUI from "$lib/components/coordinator/DashboardUI.svelte"
 
 	let profile: any = $state(null)
+	let seasonsCount = $state(0)
 	let isLoading = $state(true)
 	let errorMessage = $state("")
 
@@ -19,6 +20,11 @@
 				throw new Error("Failed to load profile")
 			}
 			profile = data
+
+			const { data: seasonsData, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
+			if (seasonsRes?.ok && seasonsData) {
+				seasonsCount = seasonsData.length
+			}
 		} catch (err: any) {
 			errorMessage = err.message || "An error occurred while loading the dashboard."
 		} finally {
@@ -45,5 +51,5 @@
 		<p class="text-sm text-red-700 mt-1">{errorMessage}</p>
 	</div>
 {:else if profile}
-	<DashboardUI {profile} />
+	<DashboardUI {profile} {seasonsCount} />
 {/if}
