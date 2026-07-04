@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { theme } from "$lib/theme.svelte"
+	import { formatSeasonName } from "$lib/utils/seasons"
 
-	let { profile, seasons = [] } = $props<{ profile: any; seasons: any[] }>()
+	let { profile, seasons = [], activeSeason = null } = $props<{
+		profile: any
+		seasons: any[]
+		activeSeason?: any
+	}>()
 </script>
 
 <!-- Student Dashboard metrics -->
@@ -34,7 +39,7 @@
 				Current Season
 			</p>
 			<h3 class="text-xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
-				{seasons.length > 0 ? seasons[0].name : "Spring 2026"}
+				{activeSeason ? formatSeasonName(activeSeason) : (seasons.length > 0 ? formatSeasonName(seasons[0]) : "Spring 2026")}
 			</h3>
 		</div>
 	</div>
