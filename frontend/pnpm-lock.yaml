@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@hey-api/openapi-ts':
-        specifier: 0.99.0
-        version: 0.99.0(typescript@6.0.3)
       '@hey-api/vite-plugin':
         specifier: 0.3.2
         version: 0.3.2(@hey-api/openapi-ts@0.99.0(typescript@6.0.3))(vite@8.0.14(@types/node@26.0.1)(jiti@2.7.0))
