@@ -60,143 +60,150 @@
 	}
 </script>
 
-<main class="min-w-screen min-h-screen justify-center content-center bg-(--md-surface)">
-	<div class="max-w-md w-full m-auto flex flex-col items-center rounded-md p-4">
-		<h1 class="text-xl font-bold mb-6">Create an account</h1>
+<main class="min-w-screen min-h-screen flex justify-center items-center bg-(--md-surface) py-8">
+	<div
+		class="max-w-md w-full m-auto flex flex-col items-center rounded-2xl p-8 border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface) transition-colors duration-300"
+	>
+		<h1 class="text-2xl font-black mb-6 text-(--md-on-surface)">Create an account</h1>
 
-		<form class="w-full flex flex-col gap-2" onsubmit={handleSubmit}>
-			<label for="name" class="mb-1 mt-2 text-sm">Name</label>
-			<input
-				id="name"
-				class="w-full rounded-md"
-				type="text"
-				placeholder="Enter your name"
-				required
-				bind:value={name}
-			/>
-			<label for="email" class="mb-1 mt-2 text-sm">Email</label>
-			<input
-				id="email"
-				class="w-full rounded-md"
-				type="email"
-				placeholder="Enter email"
-				required
-				bind:value={email}
-			/>
-			<label for="password" class="mb-1 mt-2 text-sm">Password</label>
-			<div class="relative w-full">
+		<form class="w-full flex flex-col gap-4 font-sans" onsubmit={handleSubmit}>
+			<div class="flex flex-col">
+				<label for="name" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Name</label>
 				<input
-					id="password"
-					placeholder="Enter your password"
-					class="w-full rounded-md pr-10"
-					type={showPassword ? "text" : "password"}
+					id="name"
+					class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
+					type="text"
+					placeholder="Enter your name"
 					required
-					bind:value={password}
+					bind:value={name}
 				/>
-				<button
-					type="button"
-					onclick={togglePassword}
-					class="absolute right-3 top-1/2 -translate-y-1/2 text-(--md-surface-variant) hover:text-(--md-on-surface) hover:cursor-pointer"
-					aria-label={showPassword ? "Hide password" : "Show password"}
-				>
-					{#if showPassword}
-						<EyeOff size={20} />
-					{:else}
-						<Eye size={20} />
-					{/if}
-				</button>
 			</div>
-			<label for="confirmPassword" class="mb-1 mt-2 text-sm">Confirm password</label>
-			<div class="relative w-full">
+
+			<div class="flex flex-col">
+				<label for="email" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Email</label>
 				<input
-					id="confirmPassword"
-					placeholder="Confirm your password"
-					class="w-full rounded-md pr-10"
-					type={showConfirmPassword ? "text" : "password"}
+					id="email"
+					class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
+					type="email"
+					placeholder="Enter email"
 					required
-					bind:value={confirmPassword}
+					bind:value={email}
 				/>
-				<button
-					type="button"
-					onclick={toggleConfirmPassword}
-					class="absolute right-3 top-1/2 -translate-y-1/2 text-(--md-surface-variant) hover:text-(--md-on-surface) hover:cursor-pointer"
-					aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-				>
-					{#if showConfirmPassword}
-						<EyeOff size={20} />
-					{:else}
-						<Eye size={20} />
-					{/if}
-				</button>
 			</div>
-			<div class="mb-4 mt-2 flex items-center gap-3">
-				<div class="flex-1">
-					<label for="studentId" class="mb-1 block text-sm">Student ID</label>
+
+			<div class="flex flex-col">
+				<label for="password" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Password</label>
+				<div class="relative w-full">
+					<input
+						id="password"
+						placeholder="Enter your password"
+						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 pr-10 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
+						type={showPassword ? "text" : "password"}
+						required
+						bind:value={password}
+					/>
+					<button
+						type="button"
+						onclick={togglePassword}
+						class="absolute right-3 top-1/2 -translate-y-1/2 text-(--md-on-surface-variant) hover:text-(--md-on-surface) hover:cursor-pointer opacity-70 hover:opacity-100 transition-all"
+						aria-label={showPassword ? "Hide password" : "Show password"}
+					>
+						{#if showPassword}
+							<EyeOff size={20} />
+						{:else}
+							<Eye size={20} />
+						{/if}
+					</button>
+				</div>
+			</div>
+
+			<div class="flex flex-col">
+				<label for="confirmPassword" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Confirm password</label>
+				<div class="relative w-full">
+					<input
+						id="confirmPassword"
+						placeholder="Confirm your password"
+						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 pr-10 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
+						type={showConfirmPassword ? "text" : "password"}
+						required
+						bind:value={confirmPassword}
+					/>
+					<button
+						type="button"
+						onclick={toggleConfirmPassword}
+						class="absolute right-3 top-1/2 -translate-y-1/2 text-(--md-on-surface-variant) hover:text-(--md-on-surface) hover:cursor-pointer opacity-70 hover:opacity-100 transition-all"
+						aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+					>
+						{#if showConfirmPassword}
+							<EyeOff size={20} />
+						{:else}
+							<Eye size={20} />
+						{/if}
+					</button>
+				</div>
+			</div>
+
+			<div class="mt-2 flex items-center gap-3">
+				<div class="flex-1 flex flex-col">
+					<label for="studentId" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Student ID</label>
 					<input
 						type="text"
 						id="studentId"
-						class="w-full rounded-md border border-gray-400 px-3 py-2"
+						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
 						placeholder="Enter Student ID"
 						required
 						bind:value={studentId}
 					/>
 				</div>
 				<label
-					class="flex cursor-pointer items-center gap-2 mt-6 text-sm text-gray-800 whitespace-nowrap"
+					class="flex cursor-pointer items-center gap-2 mt-6 text-sm text-(--md-on-surface-variant) whitespace-nowrap"
 				>
 					<input
 						type="checkbox"
-						class="h-4 w-4 rounded border-gray-400"
+						class="h-5 w-5 rounded border-(--md-outline) bg-(--md-surface-bright) checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary) focus:ring-0"
 						bind:checked={isFptuStudent}
 					/>
 					I am a student of FPTU
 				</label>
 			</div>
+
 			{#if !isFptuStudent}
-				<div class="mb-4">
-					<label for="schoolName" class="mb-1 block text-sm">School Name</label>
+				<div class="flex flex-col">
+					<label for="schoolName" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">School Name</label>
 					<input
 						type="text"
 						id="schoolName"
-						class="w-full rounded-md border border-gray-400 px-3 py-2"
+						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
 						placeholder="Enter your school name"
 						required
 						bind:value={schoolName}
 					/>
 				</div>
 			{/if}
+
 			{#if errorMessage}
-				<span class="text-red-500 text-sm">{errorMessage}</span>
+				<span class="text-(--md-error) text-sm font-medium">{errorMessage}</span>
 			{/if}
+
 			<button
 				type="submit"
 				disabled={isLoading}
-				class="mt-2 rounded-md p-2 font-semibold transition-all bg-orange-500 text-white hover:cursor-pointer hover:brightness-75 disabled:opacity-50 disabled:cursor-not-allowed"
+				class="mt-2 w-full bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 active:scale-98 rounded-xl py-3.5 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer border-0"
 			>
 				{isLoading ? "Registering..." : "Register"}
 			</button>
 		</form>
-		<span class="mt-4">
+
+		<span class="mt-6 text-sm text-(--md-on-surface-variant)">
 			Already have an account?
-			<a href="/auth/login" class="text-blue-500 underline">Login now</a>
+			<a href="/auth/login" class="text-(--md-primary) hover:underline font-semibold">Login now</a>
 		</span>
 	</div>
 </main>
 
 <style>
-	input {
-		border-color: var(--md-outline);
-	}
-
-	input[type="email"],
-	input[type="text"],
-	input[type="password"] {
-		background-color: var(--md-surface-bright);
-		color: var(--md-on-surface);
-	}
-
 	input::placeholder {
 		color: var(--md-on-surface);
-		opacity: 0.5;
+		opacity: 0.55;
 	}
 </style>

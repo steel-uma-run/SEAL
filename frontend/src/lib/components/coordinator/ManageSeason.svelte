@@ -84,27 +84,19 @@
 
 <div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full">
 	<!-- Header Section -->
-	<header
-		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 {theme.darkMode
-			? 'border-zinc-800'
-			: 'border-gray-100'}"
-	>
+	<header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)">
 		<div>
-			<h1
-				class="text-2xl md:text-3xl font-extrabold tracking-tight {theme.darkMode
-					? 'text-zinc-100'
-					: 'text-gray-800'}"
-			>
+			<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-(--md-on-surface)">
 				Season Management
 			</h1>
-			<p class="mt-1 text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+			<p class="mt-1 text-sm text-(--md-on-surface-variant)">
 				Create and monitor hackathon seasons for FPT SEAL.
 			</p>
 		</div>
 		<div class="flex items-center gap-3 mt-4 md:mt-0">
 			<button
 				onclick={toggleSeasonModal}
-				class="flex items-center gap-2 bg-[#f26f21] hover:bg-[#d85c14] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all cursor-pointer border-0"
+				class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
 			>
 				<Plus class="w-4 h-4" />
 				New Season
@@ -114,23 +106,15 @@
 
 	<div class="space-y-8">
 		<!-- Active Seasons Overview -->
-		<div
-			class="p-8 rounded-3xl border transition-all {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-				: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
-		>
-			<h2 class="text-xl font-bold mb-6 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+		<div class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300">
+			<h2 class="text-xl font-bold mb-6 text-(--md-on-surface)">
 				Active Seasons Overview
 			</h2>
 
 			<div class="overflow-x-auto font-sans">
 				<table class="w-full text-left border-collapse">
 					<thead>
-						<tr
-							class="border-b {theme.darkMode
-								? 'border-zinc-800 text-zinc-400'
-								: 'border-gray-100 text-gray-400'} text-xs font-bold uppercase tracking-wider"
-						>
+						<tr class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider">
 							<th class="py-3.5 px-4">Season Name</th>
 							<th class="py-3.5 px-4">Time</th>
 							<th class="py-3.5 px-4">Events</th>
@@ -141,27 +125,21 @@
 							{#each seasons as season}
 								<tr
 									onclick={() => goto(`/coordinator/seasons/${season.id}`)}
-									class="border-b transition-colors cursor-pointer {theme.darkMode
-										? 'border-zinc-800/50 hover:bg-zinc-800/30 text-zinc-100'
-										: 'border-gray-50 hover:bg-gray-100/50 text-gray-700'}"
+									class="border-b transition-colors cursor-pointer border-(--md-outline-variant) hover:bg-zinc-800/5 hover:dark:bg-zinc-100/5 text-(--md-on-surface)"
 								>
 									<td
-										class="py-4 px-4 font-bold text-orange-500 hover:text-orange-600 transition-colors"
+										class="py-4 px-4 font-bold text-(--md-primary) hover:opacity-85 transition-colors"
 									>
 										{formatSemester(season.semester)}
 										{season.year}
 									</td>
 									<td
-										class="py-4 px-4 text-xs font-medium {theme.darkMode
-											? 'text-zinc-400'
-											: 'text-gray-500'}"
+										class="py-4 px-4 text-xs font-medium text-(--md-on-surface-variant)"
 									>
 										{season.year}
 									</td>
 									<td
-										class="py-4 px-4 text-xs font-bold {theme.darkMode
-											? 'text-zinc-300'
-											: 'text-gray-600'}"
+										class="py-4 px-4 text-xs font-bold text-(--md-on-surface)"
 									>
 										{getEventCount(season.id)}
 									</td>
@@ -171,7 +149,7 @@
 							<tr>
 								<td
 									colspan="4"
-									class="py-8 px-4 text-center {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}"
+									class="py-8 px-4 text-center text-(--md-on-surface-variant)"
 								>
 									No active seasons found. Click "New Season" to create one.
 								</td>
@@ -186,36 +164,26 @@
 
 <!-- Create Season Modal -->
 {#if showSeasonModal}
-	<div
-		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-	>
-		<div
-			class="w-full max-w-lg rounded-2xl border p-8 relative transition-all shadow-2xl {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 text-zinc-100'
-				: 'bg-white border-gray-100 text-gray-800'}"
-		>
+	<div class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4">
+		<div class="w-full max-w-lg rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) p-8 relative transition-colors duration-300">
 			<button
 				onclick={toggleSeasonModal}
-				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-zinc-800/10 dark:hover:bg-zinc-800 transition-colors text-zinc-500 cursor-pointer border-0 bg-transparent"
+				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-(--md-surface-container-highest) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
 			>
 				<X class="w-5 h-5" />
 			</button>
 			<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-				<Calendar class="w-5 h-5 text-orange-500" />
+				<Calendar class="w-5 h-5 text-(--md-primary)" />
 				Create Season
 			</h3>
 
 			<form onsubmit={handleCreateSeason} class="flex flex-col gap-4">
 				<div class="space-y-1">
-					<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-						>Semester *</label
-					>
+					<label class="text-sm font-semibold text-(--md-on-surface-variant)">Semester *</label>
 					<select
 						bind:value={seasonSemester}
 						required
-						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+						class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary) cursor-pointer"
 					>
 						<option value="" disabled selected>Select Semester</option>
 						<option value="SPRING">SPRING</option>
@@ -225,9 +193,7 @@
 				</div>
 
 				<div class="space-y-1">
-					<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-						>Year *</label
-					>
+					<label class="text-sm font-semibold text-(--md-on-surface-variant)">Year *</label>
 					<input
 						type="number"
 						bind:value={seasonYear}
@@ -235,21 +201,15 @@
 						min="1990"
 						max="9999"
 						placeholder="2026"
-						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+						class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
 					/>
 				</div>
 
 				{#if seasonMessage}
 					<div
-						class="p-3 rounded-lg text-sm font-medium {seasonMessage.includes('success')
-							? theme.darkMode
-								? 'bg-green-950/20 text-green-400'
-								: 'bg-green-50 text-green-700'
-							: theme.darkMode
-								? 'bg-red-950/20 text-red-400'
-								: 'bg-red-50 text-red-700'}"
+						class="p-3 rounded-lg text-sm font-medium border {seasonMessage.includes('success')
+							? 'bg-(--md-secondary-container) text-(--md-on-secondary-container) border-(--md-outline-variant)'
+							: 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'}"
 					>
 						{seasonMessage}
 					</div>
@@ -259,16 +219,14 @@
 					<button
 						type="button"
 						onclick={toggleSeasonModal}
-						class="w-1/2 rounded-xl border py-3 font-semibold transition-all cursor-pointer {theme.darkMode
-							? 'border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800/20'
-							: 'border-gray-250 bg-transparent text-gray-700 hover:bg-gray-50'}"
+						class="w-1/2 rounded-xl border border-(--md-outline) py-3 font-semibold transition-all cursor-pointer bg-transparent text-(--md-on-surface-variant) hover:bg-(--md-surface-container-highest)"
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
 						disabled={isSeasonLoading}
-						class="w-1/2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-3 font-semibold disabled:opacity-50 transition-all shadow-sm cursor-pointer border-0"
+						class="w-1/2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) rounded-xl py-3 font-semibold disabled:opacity-50 transition-all cursor-pointer border-0"
 					>
 						{isSeasonLoading ? "Creating..." : "Create"}
 					</button>
