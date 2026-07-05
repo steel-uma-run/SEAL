@@ -89,13 +89,17 @@
 			></div>
 		</div>
 	{:else if errorMessage}
-		<div class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r mb-6 text-(--md-on-error-container)">
+		<div
+			class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r mb-6 text-(--md-on-error-container)"
+		>
 			<h3 class="text-sm font-bold">Error loading dashboard</h3>
 			<p class="text-sm mt-1">{errorMessage}</p>
 		</div>
 	{:else if profile}
 		<!-- Top Header -->
-		<header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)">
+		<header
+			class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)"
+		>
 			<div>
 				<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-(--md-on-surface)">
 					Welcome back, {profile?.name || "Student"}!
@@ -114,7 +118,9 @@
 						{profile?.role}
 					</p>
 				</div>
-				<div class="w-12 h-12 rounded-full flex items-center justify-center text-(--md-on-primary-container) font-bold text-xl bg-(--md-primary-container) border border-(--md-outline-variant)">
+				<div
+					class="w-12 h-12 rounded-full flex items-center justify-center text-(--md-on-primary-container) font-bold text-xl bg-(--md-primary-container) border border-(--md-outline-variant)"
+				>
 					{profile?.name?.charAt(0).toUpperCase() || "S"}
 				</div>
 			</div>

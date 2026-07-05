@@ -68,7 +68,9 @@
 
 		<form class="w-full flex flex-col gap-4 font-sans" onsubmit={handleSubmit}>
 			<div class="flex flex-col">
-				<label for="name" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Name</label>
+				<label for="name" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
+					>Name</label
+				>
 				<input
 					id="name"
 					class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
@@ -80,7 +82,9 @@
 			</div>
 
 			<div class="flex flex-col">
-				<label for="email" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Email</label>
+				<label for="email" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
+					>Email</label
+				>
 				<input
 					id="email"
 					class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
@@ -92,7 +96,9 @@
 			</div>
 
 			<div class="flex flex-col">
-				<label for="password" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Password</label>
+				<label for="password" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
+					>Password</label
+				>
 				<div class="relative w-full">
 					<input
 						id="password"
@@ -118,7 +124,11 @@
 			</div>
 
 			<div class="flex flex-col">
-				<label for="confirmPassword" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Confirm password</label>
+				<label
+					for="confirmPassword"
+					class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
+					>Confirm password</label
+				>
 				<div class="relative w-full">
 					<input
 						id="confirmPassword"
@@ -145,7 +155,9 @@
 
 			<div class="mt-2 flex items-center gap-3">
 				<div class="flex-1 flex flex-col">
-					<label for="studentId" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Student ID</label>
+					<label for="studentId" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
+						>Student ID</label
+					>
 					<input
 						type="text"
 						id="studentId"
@@ -169,7 +181,10 @@
 
 			{#if !isFptuStudent}
 				<div class="flex flex-col">
-					<label for="schoolName" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">School Name</label>
+					<label
+						for="schoolName"
+						class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">School Name</label
+					>
 					<input
 						type="text"
 						id="schoolName"

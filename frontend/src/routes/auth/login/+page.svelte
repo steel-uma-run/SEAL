@@ -72,7 +72,9 @@
 
 		<form class="w-full flex flex-col gap-4 font-sans" onsubmit={handleLogin}>
 			<div class="flex flex-col">
-				<label for="email" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Email</label>
+				<label for="email" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
+					>Email</label
+				>
 				<input
 					id="email"
 					class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
@@ -84,7 +86,9 @@
 			</div>
 
 			<div class="flex flex-col">
-				<label for="password" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Password</label>
+				<label for="password" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
+					>Password</label
+				>
 				<div class="relative w-full">
 					<input
 						id="password"
@@ -108,7 +112,10 @@
 					</button>
 				</div>
 			</div>
-			<a href="/auth/forgot-password" class="mt-1 self-end text-sm text-(--md-primary) hover:underline font-semibold">
+			<a
+				href="/auth/forgot-password"
+				class="mt-1 self-end text-sm text-(--md-primary) hover:underline font-semibold"
+			>
 				Forgot password?
 			</a>
 
@@ -127,7 +134,9 @@
 
 		<span class="mt-6 text-sm text-(--md-on-surface-variant)">
 			Don't have an account yet?
-			<a href="/auth/register" class="text-(--md-primary) hover:underline font-semibold">Register now</a>
+			<a href="/auth/register" class="text-(--md-primary) hover:underline font-semibold"
+				>Register now</a
+			>
 		</span>
 	</div>
 </main>

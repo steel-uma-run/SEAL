@@ -70,7 +70,6 @@
 			const { data, response: res } = await getSeason({ path: { seasonId }, throwOnError: false })
 			if (res?.ok && data) {
 				season = data
-
 			} else {
 				seasonError = `Failed to load season details (${res?.status || "Unknown"}).`
 			}
@@ -94,8 +93,6 @@
 			}
 		}
 	}
-
-
 
 	function openCreateModal() {
 		modalMode = "create"
@@ -240,10 +237,14 @@
 	<!-- Loading & Error States -->
 	{#if isLoadingSeason}
 		<div class="flex justify-center items-center h-[50vh]">
-			<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"></div>
+			<div
+				class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
+			></div>
 		</div>
 	{:else if seasonError}
-		<div class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r text-(--md-on-error-container)">
+		<div
+			class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r text-(--md-on-error-container)"
+		>
 			<h3 class="text-sm font-bold">Error loading season</h3>
 			<p class="text-sm mt-1">{seasonError}</p>
 		</div>
@@ -252,13 +253,19 @@
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 			<!-- Left Column: Season Meta Card -->
 			<div class="lg:col-span-1 space-y-6">
-				<div class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300">
+				<div
+					class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300"
+				>
 					<div class="flex items-center gap-3.5 mb-6">
-						<div class="p-3.5 rounded-2xl bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)">
+						<div
+							class="p-3.5 rounded-2xl bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)"
+						>
 							<Calendar class="w-6 h-6" />
 						</div>
 						<div>
-							<span class="text-xs uppercase tracking-wider font-bold text-(--md-primary)">Hackathon Season</span>
+							<span class="text-xs uppercase tracking-wider font-bold text-(--md-primary)"
+								>Hackathon Season</span
+							>
 							<h1 class="text-2xl font-extrabold tracking-tight mt-0.5 text-(--md-on-surface)">
 								{formatSemester(season.semester)}
 								{season.year}
@@ -281,14 +288,14 @@
 
 			<!-- Right Column: Events Management -->
 			<div class="lg:col-span-2 space-y-6">
-				<div class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300">
+				<div
+					class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300"
+				>
 					<div
 						class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"
 					>
 						<div>
-							<h2 class="text-xl font-bold text-(--md-on-surface)">
-								Season Events Schedule
-							</h2>
+							<h2 class="text-xl font-bold text-(--md-on-surface)">Season Events Schedule</h2>
 							<p class="text-sm mt-1 text-(--md-on-surface-variant)">
 								Manage and configure the specific rounds and checkpoints in this season.
 							</p>
@@ -307,13 +314,20 @@
 					<div class="space-y-6">
 						{#if events.length > 0}
 							{#each events as event}
-								<div class="p-6 rounded-2xl border transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-(--md-surface-container-low) hover:bg-zinc-800/5 hover:dark:bg-zinc-100/5 border-(--md-outline-variant)">
+								<div
+									class="p-6 rounded-2xl border transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-(--md-surface-container-low) hover:bg-zinc-800/5 hover:dark:bg-zinc-100/5 border-(--md-outline-variant)"
+								>
 									<div class="space-y-2 flex-1">
 										<div class="flex items-center gap-3">
 											<h3 class="text-base font-bold m-0 text-(--md-on-surface)">
 												{event.name}
 											</h3>
-											<span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {event.status === 'FINALIZED' ? 'bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)' : 'bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)'}">
+											<span
+												class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {event.status ===
+												'FINALIZED'
+													? 'bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)'
+													: 'bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)'}"
+											>
 												{event.status || "DRAFT"}
 											</span>
 										</div>
@@ -324,7 +338,8 @@
 										{#if event.tracks && event.tracks.length > 0}
 											<div class="flex flex-wrap gap-1.5 mt-2">
 												{#each event.tracks as track}
-													<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-(--md-surface-container-high) text-(--md-on-surface-variant) border border-(--md-outline-variant)"
+													<span
+														class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-(--md-surface-container-high) text-(--md-on-surface-variant) border border-(--md-outline-variant)"
 														title={track.description}
 													>
 														{track.name}
@@ -334,11 +349,15 @@
 										{/if}
 
 										<div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-2">
-											<div class="flex items-center gap-1.5 text-[11px] text-(--md-on-surface-variant)">
+											<div
+												class="flex items-center gap-1.5 text-[11px] text-(--md-on-surface-variant)"
+											>
 												<Clock class="w-3.5 h-3.5 text-(--md-primary)" />
 												<span>Start: {formatDateTime(event.startTime)}</span>
 											</div>
-											<div class="flex items-center gap-1.5 text-[11px] text-(--md-on-surface-variant)">
+											<div
+												class="flex items-center gap-1.5 text-[11px] text-(--md-on-surface-variant)"
+											>
 												<Clock class="w-3.5 h-3.5 text-(--md-error)" />
 												<span>End: {formatDateTime(event.endTime)}</span>
 											</div>
@@ -357,7 +376,9 @@
 								</div>
 							{/each}
 						{:else}
-							<div class="text-center py-12 border border-dashed rounded-2xl border-(--md-outline-variant) text-(--md-on-surface-variant)">
+							<div
+								class="text-center py-12 border border-dashed rounded-2xl border-(--md-outline-variant) text-(--md-on-surface-variant)"
+							>
 								<Award class="w-12 h-12 mx-auto opacity-30 mb-3" />
 								<p class="text-sm font-semibold">No events created for this season yet</p>
 								<p class="text-xs mt-1">Get started by creating your first milestone event.</p>
@@ -372,8 +393,12 @@
 
 <!-- Create/Edit Event Modal -->
 {#if showEventModal}
-	<div class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4">
-		<div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) p-8 relative transition-colors duration-300">
+	<div
+		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4"
+	>
+		<div
+			class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) p-8 relative transition-colors duration-300"
+		>
 			<button
 				onclick={toggleEventModal}
 				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-(--md-surface-container-highest) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
@@ -467,7 +492,9 @@
 
 					<div class="space-y-3 max-h-[180px] overflow-y-auto pr-1">
 						{#each eventTracks as track, index}
-							<div class="p-3.5 rounded-xl border relative bg-(--md-surface-container-low) border-(--md-outline-variant)">
+							<div
+								class="p-3.5 rounded-xl border relative bg-(--md-surface-container-low) border-(--md-outline-variant)"
+							>
 								{#if eventTracks.length > 1}
 									<button
 										type="button"
@@ -478,9 +505,12 @@
 										<X class="w-3.5 h-3.5" />
 									</button>
 								{/if}
-								
-								<span class="text-[10px] font-bold uppercase tracking-wider text-(--md-primary) block mb-1.5">Track #{index + 1}</span>
-								
+
+								<span
+									class="text-[10px] font-bold uppercase tracking-wider text-(--md-primary) block mb-1.5"
+									>Track #{index + 1}</span
+								>
+
 								<div class="space-y-2">
 									<input
 										type="text"
