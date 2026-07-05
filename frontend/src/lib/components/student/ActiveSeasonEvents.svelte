@@ -34,15 +34,11 @@
 
 <!-- Reusable Event Card Snippet -->
 {#snippet eventCard(event: any)}
-	<div
-		class="border rounded-2xl p-8 flex flex-col justify-between transition-all {theme.darkMode
-			? 'border-zinc-800 bg-zinc-950/60 shadow-[0_8px_30px_rgba(0,0,0,0.3)]'
-			: 'border-gray-100 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.02)]'}"
-	>
+	<div class="border border-(--md-outline-variant) rounded-2xl p-8 flex flex-col justify-between bg-(--md-surface-container) transition-colors duration-300">
 		<div>
 			<div class="flex justify-between items-start gap-4 mb-4">
 				<div>
-					<h3 class="font-extrabold text-xl {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+					<h3 class="font-extrabold text-xl text-(--md-on-surface)">
 						{event.name}
 					</h3>
 					<!-- Tracks -->
@@ -50,9 +46,7 @@
 						<div class="flex flex-wrap gap-1.5 mt-2">
 							{#each event.tracks as track}
 								<span
-									class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {theme.darkMode
-										? 'bg-zinc-850 text-zinc-300 border border-zinc-700/50'
-										: 'bg-zinc-100/80 text-zinc-700 border border-zinc-200/50'}"
+									class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)"
 									title={track.description}
 								>
 									{track.name}
@@ -62,14 +56,14 @@
 					{/if}
 				</div>
 			</div>
-			<p class="text-sm leading-relaxed mb-6 {theme.darkMode ? 'text-zinc-300' : 'text-gray-600'}">
+			<p class="text-sm leading-relaxed mb-6 text-(--md-on-surface-variant)">
 				{event.description}
 			</p>
 		</div>
 
-		<div class="pt-5 border-t {theme.darkMode ? 'border-zinc-900/60' : 'border-gray-100'} flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-			<div class="flex items-center gap-2 text-xs {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">
-				<svg class="w-4 h-4 shrink-0 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<div class="pt-5 border-t border-(--md-outline-variant) flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+			<div class="flex items-center gap-2 text-xs text-(--md-on-surface-variant)">
+				<svg class="w-4 h-4 shrink-0 text-(--md-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
 				</svg>
 				<span class="font-medium">{formatFullDate(event.start_time || event.startTime)} - {formatFullDate(event.end_time || event.endTime)}</span>
@@ -77,9 +71,7 @@
 
 			<a
 				href="/events/{event.id}"
-				class="px-6 py-2.5 text-center rounded-xl text-xs font-bold transition-all border-0 shadow-sm hover:shadow cursor-pointer {theme.darkMode
-					? 'bg-orange-950/40 text-orange-400 hover:bg-orange-900/40'
-					: 'bg-[#ea580c] text-white hover:bg-[#d85c14]'}"
+				class="px-6 py-2.5 text-center rounded-xl text-xs font-bold transition-all bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 cursor-pointer"
 			>
 				View Details
 			</a>
@@ -87,17 +79,13 @@
 	</div>
 {/snippet}
 
-<div
-	class="p-8 rounded-3xl border transition-all {theme.darkMode
-		? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-		: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'} mb-8"
->
+<div class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) mb-8 transition-colors duration-300">
 	<div class="flex justify-between items-center mb-8">
 		<div>
-			<h2 class="text-xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+			<h2 class="text-xl font-bold text-(--md-on-surface)">
 				Active Season Events
 			</h2>
-			<p class="text-sm mt-1 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+			<p class="text-sm mt-1 text-(--md-on-surface-variant)">
 				{#if activeSeason}
 					Events scheduled for {formatSeasonName(activeSeason)}
 				{:else}
@@ -111,9 +99,7 @@
 			<div class="flex items-center gap-2">
 				<button
 					onclick={prevEvent}
-					class="p-2 rounded-xl transition-all cursor-pointer border {theme.darkMode
-						? 'bg-zinc-950 border-zinc-800 text-zinc-355 hover:bg-zinc-800'
-						: 'bg-gray-50 border-gray-100 text-gray-600 hover:bg-gray-100'}"
+					class="p-2 rounded-xl transition-all cursor-pointer border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) hover:bg-(--md-surface-container-highest)"
 					aria-label="Previous event"
 				>
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,9 +108,7 @@
 				</button>
 				<button
 					onclick={nextEvent}
-					class="p-2 rounded-xl transition-all cursor-pointer border {theme.darkMode
-						? 'bg-zinc-950 border-zinc-800 text-zinc-355 hover:bg-zinc-800'
-						: 'bg-gray-50 border-gray-100 text-gray-600 hover:bg-gray-100'}"
+					class="p-2 rounded-xl transition-all cursor-pointer border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) hover:bg-(--md-surface-container-highest)"
 					aria-label="Next event"
 				>
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,19 +121,19 @@
 
 	{#if !activeSeason}
 		<div class="text-center py-8">
-			<p class="text-lg {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+			<p class="text-lg text-(--md-on-surface-variant)">
 				We couldn't detect an active season matching today's date.
 			</p>
 		</div>
 	{:else if events.length === 0}
-		<div class="text-center py-10 border border-dashed rounded-2xl {theme.darkMode ? 'border-zinc-850 bg-zinc-950/40' : 'border-gray-200 bg-gray-50/30'}">
-			<svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<div class="text-center py-10 border border-dashed rounded-2xl border-(--md-outline-variant) bg-(--md-surface-container)">
+			<svg class="w-12 h-12 mx-auto mb-3 text-(--md-on-surface-variant) opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
 			</svg>
-			<p class="text-base font-medium {theme.darkMode ? 'text-zinc-300' : 'text-gray-600'}">
+			<p class="text-base font-medium text-(--md-on-surface)">
 				No events scheduled for {formatSeasonName(activeSeason)} yet.
 			</p>
-			<p class="text-xs mt-1 {theme.darkMode ? 'text-zinc-500' : 'text-gray-455'}">
+			<p class="text-xs mt-1 text-(--md-on-surface-variant)">
 				Check back later for updates!
 			</p>
 		</div>
@@ -175,7 +159,7 @@
 				{#each events as _, i}
 					<button
 						onclick={() => currentIndex = i}
-						class="h-2 rounded-full transition-all duration-300 border-0 p-0 cursor-pointer {currentIndex === i ? 'w-6 bg-[#ea580c]' : 'w-2 bg-gray-300 dark:bg-zinc-700'}"
+						class="h-2 rounded-full transition-all duration-300 border-0 p-0 cursor-pointer {currentIndex === i ? 'w-6 bg-(--md-primary)' : 'w-2 bg-(--md-outline)'}"
 						aria-label="Go to event {i + 1}"
 					></button>
 				{/each}

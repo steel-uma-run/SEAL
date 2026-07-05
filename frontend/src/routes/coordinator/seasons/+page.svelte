@@ -36,12 +36,12 @@
 
 {#if isLoading}
 	<div class="flex justify-center items-center h-[60vh]">
-		<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+		<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"></div>
 	</div>
 {:else if seasonsError && seasons.length === 0}
-	<div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r shadow-sm m-6">
-		<h3 class="text-sm font-medium text-red-800">Error loading seasons</h3>
-		<p class="text-sm text-red-700 mt-1">{seasonsError}</p>
+	<div class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r text-(--md-on-error-container) m-6">
+		<h3 class="text-sm font-bold">Error loading seasons</h3>
+		<p class="text-sm mt-1">{seasonsError}</p>
 	</div>
 {:else}
 	<ManageSeason {seasons} refreshSeasons={fetchSeasons} />

@@ -63,82 +63,78 @@
 	}
 </script>
 
-<main class="w-screen h-screen justify-center content-center bg-(--md-surface)">
-	<div class="max-w-md w-full m-auto flex flex-col items-center rounded-md p-4">
-		<h1 class="text-xl font-bold">Welcome back</h1>
-		<p class="mb-6 text-(--md-surface-variant)">Login with your account</p>
+<main class="w-screen h-screen flex justify-center items-center bg-(--md-surface)">
+	<div
+		class="max-w-md w-full m-auto flex flex-col items-center rounded-2xl p-8 border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface) transition-colors duration-300"
+	>
+		<h1 class="text-2xl font-black mb-2 text-(--md-on-surface)">Welcome back</h1>
+		<p class="mb-6 text-sm text-(--md-on-surface-variant) text-center">Login with your account</p>
 
-		<form class="w-full flex flex-col gap-2" onsubmit={handleLogin}>
-			<label for="email" class="mb-1 text-sm">Email</label>
-			<input
-				id="email"
-				class="w-full rounded-md"
-				type="email"
-				placeholder="Enter email"
-				required
-				bind:value={email}
-			/>
-
-			<label for="password" class="mb-1 text-sm">Password</label>
-			<div class="relative w-full">
+		<form class="w-full flex flex-col gap-4 font-sans" onsubmit={handleLogin}>
+			<div class="flex flex-col">
+				<label for="email" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Email</label>
 				<input
-					id="password"
-					class="w-full rounded-md pr-10"
-					type={showPassword ? "text" : "password"}
+					id="email"
+					class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
+					type="email"
+					placeholder="Enter email"
 					required
-					placeholder="Enter your password"
-					bind:value={password}
+					bind:value={email}
 				/>
-				<button
-					type="button"
-					onclick={togglePassword}
-					class="absolute right-3 top-1/2 -translate-y-1/2 text-(--md-surface-variant) hover:text-(--md-on-surface) hover:cursor-pointer"
-					aria-label={showPassword ? "Hide password" : "Show password"}
-				>
-					{#if showPassword}
-						<EyeOff size={20} />
-					{:else}
-						<Eye size={20} />
-					{/if}
-				</button>
 			</div>
-			<a href="/auth/forgot-password" class="mt-2 self-end text-sm text-blue-600 hover:underline">
+
+			<div class="flex flex-col">
+				<label for="password" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">Password</label>
+				<div class="relative w-full">
+					<input
+						id="password"
+						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 pr-10 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
+						type={showPassword ? "text" : "password"}
+						required
+						placeholder="Enter your password"
+						bind:value={password}
+					/>
+					<button
+						type="button"
+						onclick={togglePassword}
+						class="absolute right-3 top-1/2 -translate-y-1/2 text-(--md-on-surface-variant) hover:text-(--md-on-surface) hover:cursor-pointer opacity-70 hover:opacity-100 transition-all"
+						aria-label={showPassword ? "Hide password" : "Show password"}
+					>
+						{#if showPassword}
+							<EyeOff size={20} />
+						{:else}
+							<Eye size={20} />
+						{/if}
+					</button>
+				</div>
+			</div>
+			<a href="/auth/forgot-password" class="mt-1 self-end text-sm text-(--md-primary) hover:underline font-semibold">
 				Forgot password?
 			</a>
 
 			{#if errorMessage}
-				<span class="text-red-500 text-sm">{errorMessage}</span>
+				<span class="text-(--md-error) text-sm font-medium">{errorMessage}</span>
 			{/if}
 
 			<button
 				type="submit"
 				disabled={isLoading}
-				class="mt-2 rounded-md p-2 font-semibold transition-all bg-orange-500 text-white hover:cursor-pointer hover:brightness-75 disabled:opacity-50 disabled:cursor-not-allowed"
+				class="mt-2 w-full bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 active:scale-98 rounded-xl py-3.5 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer border-0"
 			>
 				{isLoading ? "Logging in..." : "Login"}
 			</button>
 		</form>
 
-		<span class="mt-4">
+		<span class="mt-6 text-sm text-(--md-on-surface-variant)">
 			Don't have an account yet?
-			<a href="/auth/register" class="text-blue-600 hover:underline">Register now</a>
+			<a href="/auth/register" class="text-(--md-primary) hover:underline font-semibold">Register now</a>
 		</span>
 	</div>
 </main>
 
 <style>
-	input {
-		border-color: var(--md-outline);
-	}
-	input[type="email"],
-	input[type="password"],
-	input[type="text"] {
-		background-color: var(--md-surface-bright);
-		color: var(--md-on-surface);
-	}
-
 	input::placeholder {
 		color: var(--md-on-surface);
-		opacity: 0.5;
+		opacity: 0.55;
 	}
 </style>

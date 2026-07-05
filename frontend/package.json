@@ -10,6 +10,7 @@
 		"mock": "prism mock --dynamic ../openapi.json --port 8080"
 	},
 	"dependencies": {
+		"@hey-api/openapi-ts": "0.99.0",
 		"@hey-api/vite-plugin": "0.3.2",
 		"@lucide/svelte": "1.17.0",
 		"@poupe/material-color-utilities": "0.4.1",

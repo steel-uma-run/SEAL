@@ -230,9 +230,7 @@
 	<div class="mb-6 flex items-center justify-between">
 		<button
 			onclick={() => goto("/coordinator/seasons")}
-			class="flex items-center gap-2 bg-transparent text-sm font-semibold py-2 px-3 rounded-lg border transition-all cursor-pointer {theme.darkMode
-				? 'border-zinc-800 text-zinc-300 hover:bg-zinc-800/30'
-				: 'border-gray-200 text-gray-700 hover:bg-gray-50'}"
+			class="flex items-center gap-2 bg-transparent text-sm font-semibold py-2 px-3 rounded-lg border border-(--md-outline) text-(--md-on-surface-variant) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
 		>
 			<ArrowLeft class="w-4 h-4" />
 			Back to Seasons
@@ -242,62 +240,40 @@
 	<!-- Loading & Error States -->
 	{#if isLoadingSeason}
 		<div class="flex justify-center items-center h-[50vh]">
-			<div
-				class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"
-			></div>
+			<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"></div>
 		</div>
 	{:else if seasonError}
-		<div class="bg-red-50 dark:bg-red-950/20 border-l-4 border-red-500 p-4 rounded-r shadow-sm">
-			<h3 class="text-sm font-semibold text-red-800 dark:text-red-400">Error loading season</h3>
-			<p class="text-sm text-red-700 dark:text-red-300 mt-1">{seasonError}</p>
+		<div class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r text-(--md-on-error-container)">
+			<h3 class="text-sm font-bold">Error loading season</h3>
+			<p class="text-sm mt-1">{seasonError}</p>
 		</div>
 	{:else if season}
 		<!-- Main Content Grid -->
 		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 			<!-- Left Column: Season Meta Card -->
 			<div class="lg:col-span-1 space-y-6">
-				<div
-					class="p-8 rounded-3xl border transition-all {theme.darkMode
-						? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-						: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
-				>
+				<div class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300">
 					<div class="flex items-center gap-3.5 mb-6">
-						<div class="p-3.5 rounded-2xl bg-orange-500/10 text-orange-500">
+						<div class="p-3.5 rounded-2xl bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)">
 							<Calendar class="w-6 h-6" />
 						</div>
 						<div>
-							<span class="text-xs uppercase tracking-wider font-bold text-orange-500"
-								>Hackathon Season</span
-							>
-							<h1
-								class="text-2xl font-extrabold tracking-tight mt-0.5 {theme.darkMode
-									? 'text-zinc-100'
-									: 'text-gray-800'}"
-							>
+							<span class="text-xs uppercase tracking-wider font-bold text-(--md-primary)">Hackathon Season</span>
+							<h1 class="text-2xl font-extrabold tracking-tight mt-0.5 text-(--md-on-surface)">
 								{formatSemester(season.semester)}
 								{season.year}
 							</h1>
 						</div>
 					</div>
 
-					<div
-						class="space-y-4 border-t pt-6 {theme.darkMode ? 'border-zinc-800' : 'border-gray-100'}"
-					>
+					<div class="space-y-4 border-t pt-6 border-(--md-outline-variant)">
 						<div class="flex justify-between items-center text-sm">
-							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium"
-								>Academic Year</span
-							>
-							<span class="font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-700'}"
-								>{season.year}</span
-							>
+							<span class="text-(--md-on-surface-variant) font-medium">Academic Year</span>
+							<span class="font-bold text-(--md-on-surface)">{season.year}</span>
 						</div>
 						<div class="flex justify-between items-center text-sm">
-							<span class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'} font-medium"
-								>Semester term</span
-							>
-							<span class="font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-700'}"
-								>{season.semester}</span
-							>
+							<span class="text-(--md-on-surface-variant) font-medium">Semester term</span>
+							<span class="font-bold text-(--md-on-surface)">{season.semester}</span>
 						</div>
 					</div>
 				</div>
@@ -305,26 +281,22 @@
 
 			<!-- Right Column: Events Management -->
 			<div class="lg:col-span-2 space-y-6">
-				<div
-					class="p-8 rounded-3xl border transition-all {theme.darkMode
-						? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-						: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
-				>
+				<div class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300">
 					<div
 						class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"
 					>
 						<div>
-							<h2 class="text-xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+							<h2 class="text-xl font-bold text-(--md-on-surface)">
 								Season Events Schedule
 							</h2>
-							<p class="text-sm mt-1 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+							<p class="text-sm mt-1 text-(--md-on-surface-variant)">
 								Manage and configure the specific rounds and checkpoints in this season.
 							</p>
 						</div>
 						<button
 							id="btn-new-event"
 							onclick={openCreateModal}
-							class="flex items-center gap-2 bg-[#f26f21] hover:bg-[#d85c14] text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all cursor-pointer border-0"
+							class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
 						>
 							<Plus class="w-4 h-4" />
 							Add Event
@@ -335,44 +307,24 @@
 					<div class="space-y-6">
 						{#if events.length > 0}
 							{#each events as event}
-								<div
-									class="p-6 rounded-2xl border transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 {theme.darkMode
-										? 'bg-zinc-950/40 border-zinc-800 hover:border-zinc-700'
-										: 'bg-gray-50/50 border-gray-100 hover:border-gray-200'}"
-								>
+								<div class="p-6 rounded-2xl border transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-(--md-surface-container-low) hover:bg-zinc-800/5 hover:dark:bg-zinc-100/5 border-(--md-outline-variant)">
 									<div class="space-y-2 flex-1">
 										<div class="flex items-center gap-3">
-											<h3
-												class="text-base font-bold m-0 {theme.darkMode
-													? 'text-zinc-100'
-													: 'text-gray-800'}"
-											>
+											<h3 class="text-base font-bold m-0 text-(--md-on-surface)">
 												{event.name}
 											</h3>
-											<span
-												class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {event.status ===
-												'FINALIZED'
-													? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-													: 'bg-green-500/10 text-green-500 border border-green-500/20'}"
-											>
+											<span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {event.status === 'FINALIZED' ? 'bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)' : 'bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)'}">
 												{event.status || "DRAFT"}
 											</span>
 										</div>
-										<p
-											class="text-xs m-0 leading-relaxed {theme.darkMode
-												? 'text-zinc-400'
-												: 'text-gray-500'}"
-										>
+										<p class="text-xs m-0 leading-relaxed text-(--md-on-surface-variant)">
 											{event.description}
 										</p>
 
 										{#if event.tracks && event.tracks.length > 0}
 											<div class="flex flex-wrap gap-1.5 mt-2">
 												{#each event.tracks as track}
-													<span
-														class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider {theme.darkMode
-															? 'bg-zinc-800 text-zinc-300 border border-zinc-700/50'
-															: 'bg-zinc-100/80 text-zinc-700 border border-zinc-200/50'}"
+													<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-(--md-surface-container-high) text-(--md-on-surface-variant) border border-(--md-outline-variant)"
 														title={track.description}
 													>
 														{track.name}
@@ -382,20 +334,12 @@
 										{/if}
 
 										<div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-2">
-											<div
-												class="flex items-center gap-1.5 text-[11px] {theme.darkMode
-													? 'text-zinc-500'
-													: 'text-gray-400'}"
-											>
-												<Clock class="w-3.5 h-3.5 text-orange-500/80" />
+											<div class="flex items-center gap-1.5 text-[11px] text-(--md-on-surface-variant)">
+												<Clock class="w-3.5 h-3.5 text-(--md-primary)" />
 												<span>Start: {formatDateTime(event.startTime)}</span>
 											</div>
-											<div
-												class="flex items-center gap-1.5 text-[11px] {theme.darkMode
-													? 'text-zinc-500'
-													: 'text-gray-400'}"
-											>
-												<Clock class="w-3.5 h-3.5 text-red-500/80" />
+											<div class="flex items-center gap-1.5 text-[11px] text-(--md-on-surface-variant)">
+												<Clock class="w-3.5 h-3.5 text-(--md-error)" />
 												<span>End: {formatDateTime(event.endTime)}</span>
 											</div>
 										</div>
@@ -404,7 +348,7 @@
 									{#if event.status !== "FINALIZED"}
 										<button
 											onclick={() => openEditModal(event)}
-											class="flex items-center gap-1.5 bg-transparent border border-orange-500 hover:bg-orange-500 text-orange-500 hover:text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+											class="flex items-center gap-1.5 bg-transparent border border-(--md-outline) hover:bg-(--md-surface-container-highest) text-(--md-on-surface) px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
 										>
 											<Edit2 class="w-3.5 h-3.5" />
 											Edit
@@ -413,11 +357,7 @@
 								</div>
 							{/each}
 						{:else}
-							<div
-								class="text-center py-12 border border-dashed rounded-2xl {theme.darkMode
-									? 'border-zinc-800 text-zinc-500'
-									: 'border-gray-200 text-gray-400'}"
-							>
+							<div class="text-center py-12 border border-dashed rounded-2xl border-(--md-outline-variant) text-(--md-on-surface-variant)">
 								<Award class="w-12 h-12 mx-auto opacity-30 mb-3" />
 								<p class="text-sm font-semibold">No events created for this season yet</p>
 								<p class="text-xs mt-1">Get started by creating your first milestone event.</p>
@@ -432,22 +372,16 @@
 
 <!-- Create/Edit Event Modal -->
 {#if showEventModal}
-	<div
-		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-	>
-		<div
-			class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border p-8 relative transition-all shadow-2xl {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 text-zinc-100'
-				: 'bg-white border-gray-100 text-gray-800'}"
-		>
+	<div class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4">
+		<div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) p-8 relative transition-colors duration-300">
 			<button
 				onclick={toggleEventModal}
-				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-zinc-800/10 dark:hover:bg-zinc-800 transition-colors text-zinc-500 cursor-pointer border-0 bg-transparent"
+				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-(--md-surface-container-highest) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
 			>
 				<X class="w-5 h-5" />
 			</button>
 			<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-				<Calendar class="w-5 h-5 text-orange-500" />
+				<Calendar class="w-5 h-5 text-(--md-primary)" />
 				{modalMode === "create" ? "Create" : "Edit"} Event
 			</h3>
 
@@ -455,7 +389,7 @@
 				<div class="space-y-1">
 					<label
 						id="lbl-event-name"
-						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+						class="text-sm font-semibold text-(--md-on-surface-variant)"
 						for="input-event-name">Event Name *</label
 					>
 					<input
@@ -464,9 +398,7 @@
 						bind:value={eventName}
 						required
 						placeholder="Coding Round Phase"
-						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500'
-							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+						class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) placeholder-(--md-on-surface-variant) opacity-70 focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
 					/>
 				</div>
 
@@ -474,7 +406,7 @@
 					<div class="space-y-1">
 						<label
 							id="lbl-start-time"
-							class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+							class="text-sm font-semibold text-(--md-on-surface-variant)"
 							for="input-start-time">Start Time *</label
 						>
 						<input
@@ -482,15 +414,13 @@
 							type="datetime-local"
 							bind:value={eventStartTime}
 							required
-							class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-								? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-								: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+							class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
 						/>
 					</div>
 					<div class="space-y-1">
 						<label
 							id="lbl-end-time"
-							class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+							class="text-sm font-semibold text-(--md-on-surface-variant)"
 							for="input-end-time">End Time *</label
 						>
 						<input
@@ -498,9 +428,7 @@
 							type="datetime-local"
 							bind:value={eventEndTime}
 							required
-							class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-								? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-								: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+							class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
 						/>
 					</div>
 				</div>
@@ -508,7 +436,7 @@
 				<div class="space-y-1">
 					<label
 						id="lbl-description"
-						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+						class="text-sm font-semibold text-(--md-on-surface-variant)"
 						for="textarea-description">Description *</label
 					>
 					<textarea
@@ -517,22 +445,20 @@
 						rows="3"
 						required
 						placeholder="Briefly describe the round milestones, guidelines, and rules..."
-						class="w-full rounded-xl border p-3 outline-none transition-all resize-none {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500'
-							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+						class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all resize-none bg-(--md-surface-container-highest) text-(--md-on-surface) placeholder-(--md-on-surface-variant) opacity-70 focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
 					></textarea>
 				</div>
 
 				<!-- Tracks Section -->
-				<div class="space-y-3 border-t pt-4 mt-2 {theme.darkMode ? 'border-zinc-800' : 'border-gray-100'}">
+				<div class="space-y-3 border-t pt-4 mt-2 border-(--md-outline-variant)">
 					<div class="flex items-center justify-between">
-						<label class="text-sm font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-800'}">
+						<label class="text-sm font-bold text-(--md-on-surface)">
 							Event Tracks ({eventTracks.length})
 						</label>
 						<button
 							type="button"
 							onclick={addTrack}
-							class="text-[10px] flex items-center gap-1 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 py-1.5 px-3 rounded-lg border border-orange-500/20 transition-all font-bold cursor-pointer"
+							class="text-[10px] flex items-center gap-1 bg-(--md-primary-container) hover:bg-(--md-primary-container)/80 text-(--md-on-primary-container) py-1.5 px-3 rounded-lg border border-(--md-outline-variant) transition-all font-bold cursor-pointer"
 						>
 							<Plus class="w-3 h-3" />
 							Add Track
@@ -541,7 +467,7 @@
 
 					<div class="space-y-3 max-h-[180px] overflow-y-auto pr-1">
 						{#each eventTracks as track, index}
-							<div class="p-3.5 rounded-xl border relative {theme.darkMode ? 'bg-zinc-950/30 border-zinc-800' : 'bg-gray-50/50 border-gray-100'}">
+							<div class="p-3.5 rounded-xl border relative bg-(--md-surface-container-low) border-(--md-outline-variant)">
 								{#if eventTracks.length > 1}
 									<button
 										type="button"
@@ -553,7 +479,7 @@
 									</button>
 								{/if}
 								
-								<span class="text-[10px] font-bold uppercase tracking-wider text-orange-500 block mb-1.5">Track #{index + 1}</span>
+								<span class="text-[10px] font-bold uppercase tracking-wider text-(--md-primary) block mb-1.5">Track #{index + 1}</span>
 								
 								<div class="space-y-2">
 									<input
@@ -561,18 +487,14 @@
 										bind:value={track.name}
 										required
 										placeholder="Track Name (e.g. Cybersecurity)"
-										class="w-full text-xs rounded-lg border p-2.5 outline-none transition-all {theme.darkMode
-											? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-1 focus:ring-orange-500'
-											: 'border-gray-200 bg-white focus:ring-1 focus:ring-orange-500'}"
+										class="w-full text-xs rounded-lg border border-(--md-outline) p-2.5 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
 									/>
 									<textarea
 										bind:value={track.description}
 										required
 										rows="2"
 										placeholder="Track Description..."
-										class="w-full text-xs rounded-lg border p-2.5 outline-none transition-all resize-none {theme.darkMode
-											? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-1 focus:ring-orange-500'
-											: 'border-gray-200 bg-white focus:ring-1 focus:ring-orange-500'}"
+										class="w-full text-xs rounded-lg border border-(--md-outline) p-2.5 outline-none transition-all resize-none bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
 									></textarea>
 								</div>
 							</div>
@@ -583,16 +505,14 @@
 				<div class="space-y-1">
 					<label
 						id="lbl-status"
-						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+						class="text-sm font-semibold text-(--md-on-surface-variant)"
 						for="select-status">Event Status *</label
 					>
 					<select
 						id="select-status"
 						bind:value={eventStatusState}
 						required
-						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+						class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary) cursor-pointer"
 					>
 						<option value="DRAFT">DRAFT</option>
 						<option value="FINALIZED">FINALIZED</option>
@@ -601,13 +521,9 @@
 
 				{#if eventMessage}
 					<div
-						class="p-3 rounded-lg text-sm font-medium {eventMessage.includes('successfully')
-							? theme.darkMode
-								? 'bg-green-950/20 text-green-400'
-								: 'bg-green-50 text-green-700'
-							: theme.darkMode
-								? 'bg-red-950/20 text-red-400'
-								: 'bg-red-50 text-red-700'}"
+						class="p-3 rounded-lg text-sm font-medium border {eventMessage.includes('successfully')
+							? 'bg-(--md-secondary-container) text-(--md-on-secondary-container) border-(--md-outline-variant)'
+							: 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'}"
 					>
 						{eventMessage}
 					</div>
@@ -617,16 +533,14 @@
 					<button
 						type="button"
 						onclick={toggleEventModal}
-						class="w-1/2 rounded-xl border py-3 font-semibold transition-all cursor-pointer {theme.darkMode
-							? 'border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800/20'
-							: 'border-gray-250 bg-transparent text-gray-700 hover:bg-gray-50'}"
+						class="w-1/2 rounded-xl border border-(--md-outline) py-3 font-semibold transition-all cursor-pointer bg-transparent text-(--md-on-surface-variant) hover:bg-(--md-surface-container-highest)"
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
 						disabled={isEventLoading}
-						class="w-1/2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl py-3 font-semibold disabled:opacity-50 transition-all shadow-sm cursor-pointer border-0"
+						class="w-1/2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) rounded-xl py-3 font-semibold disabled:opacity-50 transition-all cursor-pointer border-0"
 					>
 						{isEventLoading ? "Saving..." : modalMode === "create" ? "Create" : "Save"}
 					</button>
