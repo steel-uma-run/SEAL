@@ -84,7 +84,9 @@
 
 <div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full">
 	<!-- Header Section -->
-	<header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)">
+	<header
+		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)"
+	>
 		<div>
 			<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-(--md-on-surface)">
 				Season Management
@@ -106,15 +108,17 @@
 
 	<div class="space-y-8">
 		<!-- Active Seasons Overview -->
-		<div class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300">
-			<h2 class="text-xl font-bold mb-6 text-(--md-on-surface)">
-				Active Seasons Overview
-			</h2>
+		<div
+			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300"
+		>
+			<h2 class="text-xl font-bold mb-6 text-(--md-on-surface)">Active Seasons Overview</h2>
 
 			<div class="overflow-x-auto font-sans">
 				<table class="w-full text-left border-collapse">
 					<thead>
-						<tr class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider">
+						<tr
+							class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
+						>
 							<th class="py-3.5 px-4">Season Name</th>
 							<th class="py-3.5 px-4">Time</th>
 							<th class="py-3.5 px-4">Events</th>
@@ -133,24 +137,17 @@
 										{formatSemester(season.semester)}
 										{season.year}
 									</td>
-									<td
-										class="py-4 px-4 text-xs font-medium text-(--md-on-surface-variant)"
-									>
+									<td class="py-4 px-4 text-xs font-medium text-(--md-on-surface-variant)">
 										{season.year}
 									</td>
-									<td
-										class="py-4 px-4 text-xs font-bold text-(--md-on-surface)"
-									>
+									<td class="py-4 px-4 text-xs font-bold text-(--md-on-surface)">
 										{getEventCount(season.id)}
 									</td>
 								</tr>
 							{/each}
 						{:else}
 							<tr>
-								<td
-									colspan="4"
-									class="py-8 px-4 text-center text-(--md-on-surface-variant)"
-								>
+								<td colspan="4" class="py-8 px-4 text-center text-(--md-on-surface-variant)">
 									No active seasons found. Click "New Season" to create one.
 								</td>
 							</tr>
@@ -164,8 +161,12 @@
 
 <!-- Create Season Modal -->
 {#if showSeasonModal}
-	<div class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4">
-		<div class="w-full max-w-lg rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) p-8 relative transition-colors duration-300">
+	<div
+		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4"
+	>
+		<div
+			class="w-full max-w-lg rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) p-8 relative transition-colors duration-300"
+		>
 			<button
 				onclick={toggleSeasonModal}
 				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-(--md-surface-container-highest) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"

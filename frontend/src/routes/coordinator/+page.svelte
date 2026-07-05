@@ -21,7 +21,9 @@
 			}
 			profile = data
 
-			const { data: seasonsData, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
+			const { data: seasonsData, response: seasonsRes } = await getAllSeasons({
+				throwOnError: false
+			})
 			if (seasonsRes?.ok && seasonsData) {
 				seasonsCount = seasonsData.length
 			}
@@ -43,11 +45,15 @@
 
 {#if isLoading}
 	<div class="flex justify-center items-center h-[60vh]">
-		<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"></div>
+		<div
+			class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
+		></div>
 	</div>
 {:else}
 	{#if errorMessage}
-		<div class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r text-(--md-on-error-container) m-6">
+		<div
+			class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r text-(--md-on-error-container) m-6"
+		>
 			<h3 class="text-sm font-bold">Error loading dashboard</h3>
 			<p class="text-sm mt-1">{errorMessage}</p>
 		</div>

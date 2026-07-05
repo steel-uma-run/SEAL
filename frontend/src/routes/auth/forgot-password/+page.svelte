@@ -54,7 +54,9 @@
 		{:else}
 			<form class="w-full flex flex-col gap-4" onsubmit={handleResetPassword}>
 				<div class="space-y-1.5 font-sans">
-					<label for="email" class="text-sm font-semibold text-(--md-on-surface-variant)">Email Address</label>
+					<label for="email" class="text-sm font-semibold text-(--md-on-surface-variant)"
+						>Email Address</label
+					>
 					<div class="relative w-full">
 						<input
 							id="email"
@@ -64,7 +66,9 @@
 							required
 							bind:value={email}
 						/>
-						<span class="absolute left-3 top-1/2 -translate-y-1/2 text-(--md-on-surface-variant) opacity-70">
+						<span
+							class="absolute left-3 top-1/2 -translate-y-1/2 text-(--md-on-surface-variant) opacity-70"
+						>
 							<Mail size={16} />
 						</span>
 					</div>
