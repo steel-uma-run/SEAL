@@ -7,8 +7,10 @@ import seal.backend.entities.User;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.ProfileService;
+import seal.backend.enums.Role;
 import seal.openapi.model.UserDto;
 import seal.openapi.model.UserRoleDto;
+import seal.openapi.model.UserStatusDto;
 
 @Service
 @RequiredArgsConstructor
@@ -24,11 +26,19 @@ public class ProfileServiceImpl implements ProfileService {
     // user. Therefore user should never be null.
     User user = userRepository.findByEmail(email).get();
 
+    UserStatusDto status = null;
+    if (user.getRole() == Role.STUDENT) {
+      status = studentRepository.findByUser(user)
+          .map(student -> UserStatusDto.fromValue(student.getStudentStatus().name()))
+          .orElse(null);
+    }
+
     return new UserDto(
         user.getId(),
         user.getEmail(),
         user.getFullName(),
-        UserRoleDto.fromValue(user.getRole().name()));
+        UserRoleDto.fromValue(user.getRole().name()),
+        status);
   }
 
   // public void approve(UUID id)

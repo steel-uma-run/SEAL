@@ -14,7 +14,17 @@
 		Zap
 	} from "@lucide/svelte"
 
-	let { profile, seasonsCount = 0 } = $props<{ profile: any; seasonsCount?: number }>()
+	let {
+		profile,
+		seasonsCount = 0,
+		activeParticipantsCount = 0,
+		totalLecturersCount = 0
+	} = $props<{
+		profile: any
+		seasonsCount?: number
+		activeParticipantsCount?: number
+		totalLecturersCount?: number
+	}>()
 </script>
 
 <div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full">
@@ -127,7 +137,7 @@
 					>
 						Active Participants
 					</p>
-					<h3 class="text-2xl font-bold text-(--md-on-surface)">156</h3>
+					<h3 class="text-2xl font-bold text-(--md-on-surface)">{activeParticipantsCount}</h3>
 				</div>
 			</div>
 			<p class="text-xs font-semibold mt-4 text-(--md-primary)">+12 new registrations this week</p>
@@ -149,7 +159,7 @@
 					>
 						Total Mentors/Judges
 					</p>
-					<h3 class="text-2xl font-bold text-(--md-on-surface)">28</h3>
+					<h3 class="text-2xl font-bold text-(--md-on-surface)">{totalLecturersCount}</h3>
 				</div>
 			</div>
 			<div class="mt-4">

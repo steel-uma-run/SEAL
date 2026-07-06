@@ -25,6 +25,7 @@ import seal.openapi.model.HackathonEventStatusDto;
 import seal.openapi.model.StudentDto;
 import seal.openapi.model.UpdateEventRequestDto;
 import seal.openapi.model.UserRoleDto;
+import seal.openapi.model.UserStatusDto;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +53,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
                   student.getUser().getEmail(),
                   student.getUser().getFullName(),
                   UserRoleDto.fromValue(student.getUser().getRole().name()),
+                  UserStatusDto.fromValue(student.getStudentStatus().name()),
                   student.getStudentId(),
                   student.isExternal(),
                   null,
