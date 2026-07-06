@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from "svelte"
+	import { getAllAccounts, approveAccount } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import {
 		Users,
@@ -18,45 +20,49 @@
 		AlertTriangle
 	} from "@lucide/svelte"
 
-	// Mock Users Data
-	let users = $state([
-		{
-			id: "100001",
-			name: "Ngay Name",
-			email: "haachkly@gmail.com",
-			role: "COORDINATOR",
-			status: "ACTIVE"
-		},
-		{
-			id: "100002",
-			name: "Slimath Name",
-			email: "shutiah@gmail.com",
-			role: "STUDENT",
-			status: "INACTIVE"
-		},
-		{
-			id: "100003",
-			name: "Briah Name",
-			email: "briah@gmail.com",
-			role: "LECTURER",
-			status: "ACTIVE"
-		},
-		{
-			id: "100004",
-			name: "Jarm Aldnen",
-			email: "jarm@gmail.com",
-			role: "LECTURER",
-			status: "INACTIVE"
-		},
-		{
-			id: "100005",
-			name: "Nguyen Van A",
-			email: "nva@fpt.edu.vn",
-			role: "STUDENT",
-			status: "PENDING"
-		},
-		{ id: "100006", name: "Tran Thi B", email: "ttb@fpt.edu.vn", role: "STUDENT", status: "BANNED" }
-	])
+	// Live Users Data
+	let users = $state<any[]>([])
+	let isPageLoading = $state(true)
+
+	async function loadUsers() {
+		try {
+			const { data, response } = await getAllAccounts({ throwOnError: false })
+			if (response?.ok && data) {
+				users = data.map((u: any) => ({
+					id: u.id,
+					name: u.name,
+					email: u.email,
+					role: u.role,
+					status: u.status || "ACTIVE"
+				}))
+			}
+		} catch (err) {
+			console.error("Failed to load unapproved students", err)
+		} finally {
+			isPageLoading = false
+		}
+	}
+
+	onMount(() => {
+		loadUsers()
+	})
+
+	async function handleApproveStudent(user: any) {
+		try {
+			const { response } = await approveAccount({
+				path: { accountId: user.id },
+				throwOnError: false
+			})
+			if (response?.ok) {
+				showNotification(`Account for ${user.name} approved successfully!`)
+				await loadUsers()
+			} else {
+				showNotification(`Failed to approve account: ${response?.statusText || "Error"}`, "error")
+			}
+		} catch (err) {
+			showNotification("Error connecting to the server.", "error")
+		}
+	}
 
 	// Search & Filter State
 	let searchQuery = $state("")
@@ -94,6 +100,23 @@
 			const matchesStatus = statusFilter === "ALL" || u.status === statusFilter
 			return matchesSearch && matchesRole && matchesStatus
 		})
+	)
+
+	let currentPage = $state(1)
+	const itemsPerPage = 8
+
+	$effect(() => {
+		// Reset page to 1 whenever filters change
+		searchQuery
+		roleFilter
+		statusFilter
+		currentPage = 1
+	})
+
+	let totalPages = $derived(Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage)))
+
+	let paginatedUsers = $derived(
+		filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 	)
 
 	// Derived Statistics
@@ -203,43 +226,37 @@
 	<!-- Success & Error Banners -->
 	{#if successMessage}
 		<div
-			class="fixed top-6 right-6 z-[5000] flex items-center gap-3 bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded shadow-lg animate-fade-in max-w-md"
+			class="fixed top-6 right-6 z-[5000] flex items-center gap-3 bg-emerald-500/10 border-l-4 border-emerald-500 p-4 rounded-xl max-w-md"
 		>
 			<CheckCircle2 class="w-5 h-5 text-emerald-500" />
 			<div>
-				<p class="text-sm font-semibold text-emerald-800">Success</p>
-				<p class="text-xs text-emerald-700 mt-0.5">{successMessage}</p>
+				<p class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Success</p>
+				<p class="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">{successMessage}</p>
 			</div>
 		</div>
 	{/if}
 
 	{#if errorMessage}
 		<div
-			class="fixed top-6 right-6 z-[5000] flex items-center gap-3 bg-rose-50 border-l-4 border-rose-500 p-4 rounded shadow-lg animate-fade-in max-w-md"
+			class="fixed top-6 right-6 z-[5000] flex items-center gap-3 bg-rose-500/10 border-l-4 border-rose-500 p-4 rounded-xl max-w-md"
 		>
 			<AlertTriangle class="w-5 h-5 text-rose-500" />
 			<div>
-				<p class="text-sm font-semibold text-rose-800">Error</p>
-				<p class="text-xs text-rose-700 mt-0.5">{errorMessage}</p>
+				<p class="text-sm font-semibold text-rose-800 dark:text-rose-300">Error</p>
+				<p class="text-xs text-rose-700 dark:text-rose-400 mt-0.5">{errorMessage}</p>
 			</div>
 		</div>
 	{/if}
 
 	<!-- Header Section -->
 	<header
-		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b {theme.darkMode
-			? 'border-zinc-800'
-			: 'border-gray-100'}"
+		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b border-(--md-outline-variant)"
 	>
 		<div>
-			<h1
-				class="text-2xl md:text-3xl font-extrabold tracking-tight {theme.darkMode
-					? 'text-zinc-100'
-					: 'text-gray-800'}"
-			>
+			<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-(--md-on-surface)">
 				User Management
 			</h1>
-			<p class="mt-1 text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+			<p class="mt-1 text-sm text-(--md-on-surface-variant)">
 				Manage, edit, and audit system users for the SEAL event platform.
 			</p>
 		</div>
@@ -247,7 +264,7 @@
 		<div class="flex items-center gap-3 mt-4 md:mt-0">
 			<button
 				onclick={openAddModal}
-				class="flex items-center gap-2 bg-[#f97316] hover:bg-[#ea580c] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all cursor-pointer border-0"
+				class="flex items-center gap-2 bg-(--md-primary) text-(--md-on-primary) px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer border-0 hover:opacity-90 active:scale-98"
 			>
 				<Plus class="w-4 h-4" />
 				Add User
@@ -259,26 +276,20 @@
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 		<!-- Card 1: Total Users -->
 		<div
-			class="p-6 rounded-2xl border flex items-center gap-5 transition-all {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-				: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]'}"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) flex items-center gap-5 transition-all text-(--md-on-surface)"
 		>
 			<div
-				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {theme.darkMode
-					? 'bg-orange-950/40 text-orange-400'
-					: 'bg-[#fff2e8] text-[#ea580c]'}"
+				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-primary-container) text-(--md-on-primary-container)"
 			>
 				<Users class="w-6 h-6" />
 			</div>
 			<div>
 				<p
-					class="text-xs font-semibold uppercase tracking-wider mb-1 {theme.darkMode
-						? 'text-zinc-500'
-						: 'text-gray-400'}"
+					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
 				>
 					Total Users
 				</p>
-				<h3 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+				<h3 class="text-2xl font-bold">
 					{totalUsersCount}
 				</h3>
 			</div>
@@ -286,26 +297,20 @@
 
 		<!-- Card 2: Students -->
 		<div
-			class="p-6 rounded-2xl border flex items-center gap-5 transition-all {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-				: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]'}"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) flex items-center gap-5 transition-all text-(--md-on-surface)"
 		>
 			<div
-				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {theme.darkMode
-					? 'bg-blue-950/40 text-blue-400'
-					: 'bg-blue-50 text-blue-600'}"
+				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-secondary-container) text-(--md-on-secondary-container)"
 			>
 				<GraduationCap class="w-6 h-6" />
 			</div>
 			<div>
 				<p
-					class="text-xs font-semibold uppercase tracking-wider mb-1 {theme.darkMode
-						? 'text-zinc-500'
-						: 'text-gray-400'}"
+					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
 				>
 					Students
 				</p>
-				<h3 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+				<h3 class="text-2xl font-bold">
 					{studentsCount}
 				</h3>
 			</div>
@@ -313,26 +318,20 @@
 
 		<!-- Card 3: Lecturers -->
 		<div
-			class="p-6 rounded-2xl border flex items-center gap-5 transition-all {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-				: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]'}"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) flex items-center gap-5 transition-all text-(--md-on-surface)"
 		>
 			<div
-				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {theme.darkMode
-					? 'bg-green-950/40 text-green-400'
-					: 'bg-green-50 text-green-600'}"
+				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-tertiary-container) text-(--md-on-tertiary-container)"
 			>
 				<BookOpen class="w-6 h-6" />
 			</div>
 			<div>
 				<p
-					class="text-xs font-semibold uppercase tracking-wider mb-1 {theme.darkMode
-						? 'text-zinc-500'
-						: 'text-gray-400'}"
+					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
 				>
 					Lecturers
 				</p>
-				<h3 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+				<h3 class="text-2xl font-bold">
 					{lecturersCount}
 				</h3>
 			</div>
@@ -340,26 +339,20 @@
 
 		<!-- Card 4: Coordinators -->
 		<div
-			class="p-6 rounded-2xl border flex items-center gap-5 transition-all {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-				: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)]'}"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) flex items-center gap-5 transition-all text-(--md-on-surface)"
 		>
 			<div
-				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {theme.darkMode
-					? 'bg-purple-950/40 text-purple-400'
-					: 'bg-purple-50 text-purple-600'}"
+				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-surface-container-high) text-(--md-on-surface)"
 			>
 				<Shield class="w-6 h-6" />
 			</div>
 			<div>
 				<p
-					class="text-xs font-semibold uppercase tracking-wider mb-1 {theme.darkMode
-						? 'text-zinc-500'
-						: 'text-gray-400'}"
+					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
 				>
 					Coordinators
 				</p>
-				<h3 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+				<h3 class="text-2xl font-bold">
 					{coordinatorsCount}
 				</h3>
 			</div>
@@ -368,18 +361,14 @@
 
 	<!-- Filters and Table Container -->
 	<div
-		class="p-8 rounded-3xl border transition-all {theme.darkMode
-			? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
-			: 'bg-white border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}"
+		class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface)"
 	>
 		<!-- Filters Toolbar -->
 		<div class="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
 			<!-- Search bar -->
 			<div class="relative w-full md:max-w-md">
 				<span
-					class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none {theme.darkMode
-						? 'text-zinc-500'
-						: 'text-gray-400'}"
+					class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-(--md-on-surface-variant)"
 				>
 					<Search class="w-4 h-4" />
 				</span>
@@ -387,15 +376,13 @@
 					type="text"
 					bind:value={searchQuery}
 					placeholder="Search by ID, name, or email..."
-					class="w-full pl-10 pr-4 py-2.5 rounded-xl border outline-none transition-all text-sm {theme.darkMode
-						? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500'
-						: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+					class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-(--md-outline) outline-none transition-all text-sm bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) focus:border-transparent"
 				/>
 				{#if searchQuery}
 					<button
 						type="button"
 						onclick={() => (searchQuery = "")}
-						class="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-xs font-bold text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 cursor-pointer border-0 bg-transparent"
+						class="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-xs font-bold text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer border-0 bg-transparent"
 					>
 						Clear
 					</button>
@@ -404,16 +391,14 @@
 
 			<!-- Role & Status selectors -->
 			<div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-				<div class="flex items-center gap-2 text-sm text-gray-500">
+				<div class="flex items-center gap-2 text-sm text-(--md-on-surface-variant)">
 					<Filter class="w-4 h-4" />
 					Filters:
 				</div>
 				<!-- Role Filter -->
 				<select
 					bind:value={roleFilter}
-					class="rounded-xl border px-3 py-2 text-sm outline-none transition-all {theme.darkMode
-						? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-						: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+					class="rounded-xl border border-(--md-outline) px-3 py-2 text-sm outline-none transition-all bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary)"
 				>
 					<option value="ALL">All Roles</option>
 					<option value="STUDENT">Student</option>
@@ -424,9 +409,7 @@
 				<!-- Status Filter -->
 				<select
 					bind:value={statusFilter}
-					class="rounded-xl border px-3 py-2 text-sm outline-none transition-all {theme.darkMode
-						? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-						: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+					class="rounded-xl border border-(--md-outline) px-3 py-2 text-sm outline-none transition-all bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary)"
 				>
 					<option value="ALL">All Statuses</option>
 					<option value="ACTIVE">Active</option>
@@ -442,9 +425,7 @@
 			<table class="w-full text-left border-collapse">
 				<thead>
 					<tr
-						class="border-b {theme.darkMode
-							? 'border-zinc-800 text-zinc-400'
-							: 'border-gray-100 text-gray-400'} text-xs font-bold uppercase tracking-wider"
+						class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
 					>
 						<th class="py-4 px-4">User ID</th>
 						<th class="py-4 px-4">Full Name</th>
@@ -455,42 +436,38 @@
 					</tr>
 				</thead>
 				<tbody class="text-sm">
-					{#if filteredUsers.length > 0}
-						{#each filteredUsers as user}
+					{#if paginatedUsers.length > 0}
+						{#each paginatedUsers as user}
 							<tr
-								class="border-b transition-colors {theme.darkMode
-									? 'border-zinc-800/50 hover:bg-zinc-800/20 text-zinc-100'
-									: 'border-gray-50 hover:bg-gray-50/50 text-gray-700'}"
+								class="border-b border-(--md-outline-variant)/50 hover:bg-(--md-surface-container-high) text-(--md-on-surface)"
 							>
 								<td
-									class="py-4 px-4 font-mono text-xs font-semibold {theme.darkMode
-										? 'text-zinc-400'
-										: 'text-gray-500'}"
+									class="py-4 px-4 font-mono text-xs font-semibold text-(--md-on-surface-variant)"
 								>
 									#{user.id}
 								</td>
 								<td class="py-4 px-4 font-bold">
 									{user.name}
 								</td>
-								<td class="py-4 px-4 text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+								<td class="py-4 px-4 text-sm text-(--md-on-surface-variant)">
 									{user.email}
 								</td>
 								<td class="py-4 px-4">
 									{#if user.role === "COORDINATOR"}
 										<span
-											class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20"
+											class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-primary)/10"
 										>
 											Coordinator
 										</span>
 									{:else if user.role === "LECTURER"}
 										<span
-											class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
+											class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-secondary)/10"
 										>
 											Lecturer
 										</span>
 									{:else}
 										<span
-											class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20"
+											class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-(--md-tertiary-container) text-(--md-on-tertiary-container) border border-(--md-tertiary)/10"
 										>
 											Student
 										</span>
@@ -529,26 +506,35 @@
 								</td>
 								<td class="py-4 px-4 text-center">
 									<div class="flex justify-center gap-2">
+										{#if user.status === "PENDING"}
+											<button
+												onclick={() => handleApproveStudent(user)}
+												title="Approve Account"
+												class="p-2 rounded-lg hover:bg-emerald-500/10 hover:text-emerald-500 text-zinc-400 transition-colors cursor-pointer border-0 bg-transparent"
+											>
+												<CheckCircle2 class="w-4.5 h-4.5 text-emerald-500" />
+											</button>
+										{/if}
 										<button
 											onclick={() => openEditModal(user)}
 											title="Edit User"
-											class="p-2 rounded-lg hover:bg-orange-100 hover:text-orange-600 dark:hover:bg-orange-950/40 dark:hover:text-orange-400 text-zinc-400 transition-colors cursor-pointer border-0 bg-transparent"
+											class="p-2 rounded-lg hover:bg-(--md-primary-container) hover:text-(--md-on-primary-container) text-(--md-on-surface-variant) transition-colors cursor-pointer border-0 bg-transparent"
 										>
-											<Edit3 class="w-4 h-4" />
+											<Edit3 class="w-4.5 h-4.5 text-(--md-primary)" />
 										</button>
 										<button
 											onclick={() => openViewModal(user)}
 											title="View Details"
-											class="p-2 rounded-lg hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-950/40 dark:hover:text-blue-400 text-zinc-400 transition-colors cursor-pointer border-0 bg-transparent"
+											class="p-2 rounded-lg hover:bg-(--md-secondary-container) hover:text-(--md-on-secondary-container) text-(--md-on-surface-variant) transition-colors cursor-pointer border-0 bg-transparent"
 										>
-											<Eye class="w-4 h-4" />
+											<Eye class="w-4 h-4 text-blue-500" />
 										</button>
 										<button
 											onclick={() => openDeleteModal(user)}
 											title="Delete User"
-											class="p-2 rounded-lg hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 text-zinc-400 transition-colors cursor-pointer border-0 bg-transparent"
+											class="p-2 rounded-lg hover:bg-rose-500/10 hover:text-rose-500 text-zinc-400 transition-colors cursor-pointer border-0 bg-transparent"
 										>
-											<Trash2 class="w-4 h-4" />
+											<Trash2 class="w-4 h-4 text-rose-500" />
 										</button>
 									</div>
 								</td>
@@ -556,12 +542,7 @@
 						{/each}
 					{:else}
 						<tr>
-							<td
-								colspan="6"
-								class="py-12 text-center text-gray-500 {theme.darkMode
-									? 'text-zinc-500'
-									: 'text-gray-400'}"
-							>
+							<td colspan="6" class="py-12 text-center text-(--md-on-surface-variant)">
 								<div class="flex flex-col items-center gap-2">
 									<Search class="w-8 h-8 opacity-40" />
 									<p class="font-semibold text-lg mt-2">No users found</p>
@@ -573,6 +554,53 @@
 				</tbody>
 			</table>
 		</div>
+
+		<!-- Pagination Controls -->
+		{#if totalPages > 1}
+			<div
+				class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-(--md-outline-variant)"
+			>
+				<span class="text-xs text-(--md-on-surface-variant)">
+					Showing {Math.min(filteredUsers.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(
+						filteredUsers.length,
+						currentPage * itemsPerPage
+					)} of {filteredUsers.length} users
+				</span>
+				<div class="flex items-center gap-3">
+					<button
+						onclick={() => (currentPage = Math.max(1, currentPage - 1))}
+						disabled={currentPage === 1}
+						class="p-2 rounded-lg border border-(--md-outline) text-(--md-on-surface) hover:bg-(--md-surface-container-high) disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer bg-transparent"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M15 19l-7-7 7-7"
+							/>
+						</svg>
+					</button>
+					<span class="text-xs font-bold text-(--md-on-surface)">
+						Page {currentPage} of {totalPages}
+					</span>
+					<button
+						onclick={() => (currentPage = Math.min(totalPages, currentPage + 1))}
+						disabled={currentPage === totalPages}
+						class="p-2 rounded-lg border border-(--md-outline) text-(--md-on-surface) hover:bg-(--md-surface-container-high) disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer bg-transparent"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M9 5l7 7-7 7"
+							/>
+						</svg>
+					</button>
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -581,29 +609,25 @@
 <!-- Modal: Add User -->
 {#if showAddModal}
 	<div
-		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/45 backdrop-blur-xs p-4"
 	>
 		<div
-			class="w-full max-w-lg rounded-2xl border p-8 relative transition-all shadow-2xl {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 text-zinc-100'
-				: 'bg-white border-gray-100 text-gray-800'}"
+			class="w-full max-w-lg rounded-2xl border p-8 relative transition-all bg-(--md-surface-container-high) border-(--md-outline-variant) text-(--md-on-surface)"
 		>
 			<button
 				onclick={() => (showAddModal = false)}
-				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-zinc-800/10 dark:hover:bg-zinc-800 transition-colors text-zinc-500 cursor-pointer border-0 bg-transparent"
+				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-(--md-surface-container-low) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
 			>
 				<X class="w-5 h-5" />
 			</button>
 			<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-				<User class="w-5 h-5 text-orange-500" />
+				<User class="w-5 h-5 text-(--md-primary)" />
 				Add User Account
 			</h3>
 
 			<form onsubmit={handleAddUser} class="flex flex-col gap-4">
 				<div class="space-y-1">
-					<label
-						for="add-full-name"
-						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+					<label for="add-full-name" class="text-sm font-semibold text-(--md-on-surface-variant)"
 						>Full Name *</label
 					>
 					<input
@@ -612,16 +636,12 @@
 						bind:value={formName}
 						required
 						placeholder="Dr. Nguyen Van A"
-						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500'
-							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+						class="w-full rounded-xl border p-3 outline-none transition-all border-(--md-outline) bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) focus:border-transparent"
 					/>
 				</div>
 
 				<div class="space-y-1">
-					<label
-						for="add-email"
-						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+					<label for="add-email" class="text-sm font-semibold text-(--md-on-surface-variant)"
 						>Email Address *</label
 					>
 					<input
@@ -630,9 +650,7 @@
 						bind:value={formEmail}
 						required
 						placeholder="anv@fpt.edu.vn"
-						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500'
-							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+						class="w-full rounded-xl border p-3 outline-none transition-all border-(--md-outline) bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) focus:border-transparent"
 					/>
 				</div>
 
@@ -640,15 +658,12 @@
 					<div class="space-y-1">
 						<label
 							for="add-system-role"
-							class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-							>System Role</label
+							class="text-sm font-semibold text-(--md-on-surface-variant)">System Role</label
 						>
 						<select
 							id="add-system-role"
 							bind:value={formRole}
-							class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-								? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-								: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+							class="w-full rounded-xl border p-3 outline-none transition-all border-(--md-outline) bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary)"
 						>
 							<option value="STUDENT">Student</option>
 							<option value="LECTURER">Lecturer</option>
@@ -660,17 +675,14 @@
 						<div class="space-y-1">
 							<label
 								for="add-student-id"
-								class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-								>Student ID</label
+								class="text-sm font-semibold text-(--md-on-surface-variant)">Student ID</label
 							>
 							<input
 								id="add-student-id"
 								type="text"
 								bind:value={formStudentId}
 								placeholder="SE160000"
-								class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-									? 'border-zinc-800 bg-zinc-950 text-zinc-100 placeholder-zinc-600 focus:ring-2 focus:ring-orange-500'
-									: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+								class="w-full rounded-xl border p-3 outline-none transition-all border-(--md-outline) bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) focus:border-transparent"
 							/>
 						</div>
 					{/if}
@@ -678,17 +690,13 @@
 
 				{#if formRole === "STUDENT"}
 					<div class="space-y-1">
-						<label
-							for="add-status"
-							class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+						<label for="add-status" class="text-sm font-semibold text-(--md-on-surface-variant)"
 							>Status</label
 						>
 						<select
 							id="add-status"
 							bind:value={formStatus}
-							class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-								? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-								: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+							class="w-full rounded-xl border p-3 outline-none transition-all border-(--md-outline) bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary)"
 						>
 							<option value="ACTIVE">Active</option>
 							<option value="INACTIVE">Inactive</option>
@@ -702,15 +710,13 @@
 					<button
 						type="button"
 						onclick={() => (showAddModal = false)}
-						class="w-1/2 rounded-xl border py-3 font-semibold transition-all cursor-pointer {theme.darkMode
-							? 'border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800/20'
-							: 'border-gray-250 bg-transparent text-gray-700 hover:bg-gray-50'}"
+						class="w-1/2 rounded-xl border border-(--md-outline) bg-transparent text-(--md-on-surface) py-3 font-semibold transition-all cursor-pointer hover:bg-(--md-surface-container-low)"
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
-						class="w-1/2 bg-[#f97316] hover:bg-[#ea580c] text-white rounded-xl py-3 font-semibold transition-all cursor-pointer border-0"
+						class="w-1/2 bg-(--md-primary) text-(--md-on-primary) rounded-xl py-3 font-semibold transition-all cursor-pointer border-0 hover:opacity-90 active:scale-98"
 					>
 						Create User
 					</button>
@@ -723,29 +729,25 @@
 <!-- Modal: Edit User -->
 {#if showEditModal && selectedUser}
 	<div
-		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/45 backdrop-blur-xs p-4"
 	>
 		<div
-			class="w-full max-w-lg rounded-2xl border p-8 relative transition-all shadow-2xl {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 text-zinc-100'
-				: 'bg-white border-gray-100 text-gray-800'}"
+			class="w-full max-w-lg rounded-2xl border p-8 relative transition-all bg-(--md-surface-container-high) border-(--md-outline-variant) text-(--md-on-surface)"
 		>
 			<button
 				onclick={() => (showEditModal = false)}
-				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-zinc-800/10 dark:hover:bg-zinc-800 transition-colors text-zinc-500 cursor-pointer border-0 bg-transparent"
+				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-(--md-surface-container-low) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
 			>
 				<X class="w-5 h-5" />
 			</button>
 			<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-				<Edit3 class="w-5 h-5 text-orange-500" />
+				<Edit3 class="w-5 h-5 text-(--md-primary)" />
 				Edit User Account
 			</h3>
 
 			<form onsubmit={handleEditUser} class="flex flex-col gap-4">
 				<div class="space-y-1">
-					<label
-						for="edit-user-id"
-						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+					<label for="edit-user-id" class="text-sm font-semibold text-(--md-on-surface-variant)"
 						>User ID</label
 					>
 					<input
@@ -753,14 +755,12 @@
 						type="text"
 						value="#{selectedUser.id}"
 						disabled
-						class="w-full rounded-xl border p-3 bg-gray-100 dark:bg-zinc-950/40 text-gray-500 cursor-not-allowed outline-none border-gray-250 dark:border-zinc-800"
+						class="w-full rounded-xl border p-3 bg-(--md-surface-container-low) text-(--md-on-surface-variant) cursor-not-allowed outline-none border-(--md-outline-variant)"
 					/>
 				</div>
 
 				<div class="space-y-1">
-					<label
-						for="edit-full-name"
-						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+					<label for="edit-full-name" class="text-sm font-semibold text-(--md-on-surface-variant)"
 						>Full Name</label
 					>
 					<input
@@ -768,16 +768,12 @@
 						type="text"
 						bind:value={formName}
 						required
-						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+						class="w-full rounded-xl border p-3 outline-none transition-all border-(--md-outline) bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) focus:border-transparent"
 					/>
 				</div>
 
 				<div class="space-y-1">
-					<label
-						for="edit-email"
-						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+					<label for="edit-email" class="text-sm font-semibold text-(--md-on-surface-variant)"
 						>Email (Cannot be modified)</label
 					>
 					<input
@@ -785,22 +781,18 @@
 						type="email"
 						value={formEmail}
 						disabled
-						class="w-full rounded-xl border p-3 bg-gray-100 dark:bg-zinc-950/40 text-gray-500 cursor-not-allowed outline-none border-gray-250 dark:border-zinc-800"
+						class="w-full rounded-xl border p-3 bg-(--md-surface-container-low) text-(--md-on-surface-variant) cursor-not-allowed outline-none border-(--md-outline-variant)"
 					/>
 				</div>
 
 				<div class="space-y-1">
-					<label
-						for="edit-system-role"
-						class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+					<label for="edit-system-role" class="text-sm font-semibold text-(--md-on-surface-variant)"
 						>System Role</label
 					>
 					<select
 						id="edit-system-role"
 						bind:value={formRole}
-						class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-							? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-							: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+						class="w-full rounded-xl border p-3 outline-none transition-all border-(--md-outline) bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary)"
 					>
 						<option value="STUDENT">Student</option>
 						<option value="LECTURER">Lecturer</option>
@@ -810,17 +802,13 @@
 
 				{#if formRole === "STUDENT"}
 					<div class="space-y-1">
-						<label
-							for="edit-status"
-							class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+						<label for="edit-status" class="text-sm font-semibold text-(--md-on-surface-variant)"
 							>Student Status</label
 						>
 						<select
 							id="edit-status"
 							bind:value={formStatus}
-							class="w-full rounded-xl border p-3 outline-none transition-all {theme.darkMode
-								? 'border-zinc-800 bg-zinc-950 text-zinc-100 focus:ring-2 focus:ring-orange-500'
-								: 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-orange-500'}"
+							class="w-full rounded-xl border p-3 outline-none transition-all border-(--md-outline) bg-(--md-surface-container) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary)"
 						>
 							<option value="ACTIVE">Active</option>
 							<option value="INACTIVE">Inactive</option>
@@ -834,15 +822,13 @@
 					<button
 						type="button"
 						onclick={() => (showEditModal = false)}
-						class="w-1/2 rounded-xl border py-3 font-semibold transition-all cursor-pointer {theme.darkMode
-							? 'border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800/20'
-							: 'border-gray-250 bg-transparent text-gray-700 hover:bg-gray-50'}"
+						class="w-1/2 rounded-xl border border-(--md-outline) bg-transparent text-(--md-on-surface) py-3 font-semibold transition-all cursor-pointer hover:bg-(--md-surface-container-low)"
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
-						class="w-1/2 bg-[#f97316] hover:bg-[#ea580c] text-white rounded-xl py-3 font-semibold transition-all cursor-pointer border-0"
+						class="w-1/2 bg-(--md-primary) text-(--md-on-primary) rounded-xl py-3 font-semibold transition-all cursor-pointer border-0 hover:opacity-90 active:scale-98"
 					>
 						Save Changes
 					</button>
@@ -855,40 +841,34 @@
 <!-- Modal: View User Details -->
 {#if showViewModal && selectedUser}
 	<div
-		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/45 backdrop-blur-xs p-4"
 	>
 		<div
-			class="w-full max-w-lg rounded-2xl border p-8 relative transition-all shadow-2xl {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 text-zinc-100'
-				: 'bg-white border-gray-100 text-gray-800'}"
+			class="w-full max-w-lg rounded-2xl border p-8 relative transition-all bg-(--md-surface-container-high) border-(--md-outline-variant) text-(--md-on-surface)"
 		>
 			<button
 				onclick={() => (showViewModal = false)}
-				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-zinc-800/10 dark:hover:bg-zinc-800 transition-colors text-zinc-500 cursor-pointer border-0 bg-transparent"
+				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-(--md-surface-container-low) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
 			>
 				<X class="w-5 h-5" />
 			</button>
 			<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-				<Eye class="w-5 h-5 text-blue-500" />
+				<Eye class="w-5 h-5 text-(--md-secondary)" />
 				User Details Profile
 			</h3>
 
 			<div class="space-y-4">
 				<div
-					class="flex items-center gap-4 p-4 rounded-xl {theme.darkMode
-						? 'bg-zinc-950'
-						: 'bg-gray-50'}"
+					class="flex items-center gap-4 p-4 rounded-xl bg-(--md-surface-container-low) border border-(--md-outline-variant)"
 				>
 					<div
-						class="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold text-[#ea580c] {theme.darkMode
-							? 'bg-orange-950/40'
-							: 'bg-orange-100'}"
+						class="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold bg-(--md-primary-container) text-(--md-on-primary-container)"
 					>
 						{selectedUser.name.charAt(0).toUpperCase()}
 					</div>
 					<div>
 						<h4 class="font-extrabold text-lg">{selectedUser.name}</h4>
-						<p class="text-xs font-mono {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">
+						<p class="text-xs font-mono text-(--md-on-surface-variant)">
 							UUID: {selectedUser.id}
 						</p>
 					</div>
@@ -896,41 +876,43 @@
 
 				<div class="grid grid-cols-2 gap-4">
 					<div
-						class="p-4 rounded-xl border {theme.darkMode
-							? 'bg-zinc-900 border-zinc-800'
-							: 'bg-white border-gray-100'}"
+						class="p-4 rounded-xl border bg-(--md-surface-container-low) border-(--md-outline-variant)"
 					>
-						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">System Role</p>
+						<p
+							class="text-xs text-(--md-on-surface-variant) font-semibold uppercase tracking-wider"
+						>
+							System Role
+						</p>
 						<p class="font-bold text-sm mt-1">{selectedUser.role}</p>
 					</div>
 					<div
-						class="p-4 rounded-xl border {theme.darkMode
-							? 'bg-zinc-900 border-zinc-800'
-							: 'bg-white border-gray-100'}"
+						class="p-4 rounded-xl border bg-(--md-surface-container-low) border-(--md-outline-variant)"
 					>
-						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Status</p>
+						<p
+							class="text-xs text-(--md-on-surface-variant) font-semibold uppercase tracking-wider"
+						>
+							Status
+						</p>
 						<p class="font-bold text-sm mt-1">{selectedUser.status}</p>
 					</div>
 				</div>
 
 				<div
-					class="p-4 rounded-xl border {theme.darkMode
-						? 'bg-zinc-900 border-zinc-800'
-						: 'bg-white border-gray-100'}"
+					class="p-4 rounded-xl border bg-(--md-surface-container-low) border-(--md-outline-variant)"
 				>
 					<p
-						class="text-xs text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1"
+						class="text-xs text-(--md-on-surface-variant) font-semibold uppercase tracking-wider flex items-center gap-1"
 					>
 						<Mail class="w-3.5 h-3.5" />
 						Email Address
 					</p>
-					<p class="font-bold text-sm mt-1 text-[#ea580c]">{selectedUser.email}</p>
+					<p class="font-bold text-sm mt-1 text-(--md-primary)">{selectedUser.email}</p>
 				</div>
 			</div>
 
 			<button
 				onclick={() => (showViewModal = false)}
-				class="mt-8 bg-zinc-500 hover:bg-zinc-600 text-white rounded-xl py-3 font-semibold transition-all w-full cursor-pointer border-0"
+				class="mt-8 border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-low) rounded-xl py-3 font-semibold transition-all w-full cursor-pointer"
 			>
 				Close Profile
 			</button>
@@ -941,16 +923,14 @@
 <!-- Modal: Delete User Confirmation -->
 {#if showDeleteModal && selectedUser}
 	<div
-		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/45 backdrop-blur-xs p-4"
 	>
 		<div
-			class="w-full max-w-md rounded-2xl border p-8 relative transition-all shadow-2xl {theme.darkMode
-				? 'bg-zinc-900 border-zinc-800 text-zinc-100'
-				: 'bg-white border-gray-100 text-gray-800'}"
+			class="w-full max-w-md rounded-2xl border p-8 relative transition-all bg-(--md-surface-container-high) border-(--md-outline-variant) text-(--md-on-surface)"
 		>
 			<button
 				onclick={() => (showDeleteModal = false)}
-				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-zinc-800/10 dark:hover:bg-zinc-800 transition-colors text-zinc-500 cursor-pointer border-0 bg-transparent"
+				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-(--md-surface-container-low) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
 			>
 				<X class="w-5 h-5" />
 			</button>
@@ -959,8 +939,8 @@
 				Delete User Account?
 			</h3>
 
-			<p class="text-sm {theme.darkMode ? 'text-zinc-300' : 'text-gray-600'}">
-				Are you sure you want to permanently delete the user <strong class="text-orange-500"
+			<p class="text-sm text-(--md-on-surface-variant)">
+				Are you sure you want to permanently delete the user <strong class="text-(--md-primary)"
 					>{selectedUser.name}</strong
 				>
 				({selectedUser.email})? This action is irreversible and will remove all their records from
@@ -970,9 +950,7 @@
 			<div class="flex gap-3 mt-8">
 				<button
 					onclick={() => (showDeleteModal = false)}
-					class="w-1/2 rounded-xl border py-3 font-semibold transition-all cursor-pointer {theme.darkMode
-						? 'border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800/20'
-						: 'border-gray-250 bg-transparent text-gray-700 hover:bg-gray-50'}"
+					class="w-1/2 rounded-xl border border-(--md-outline) bg-transparent text-(--md-on-surface) py-3 font-semibold transition-all cursor-pointer hover:bg-(--md-surface-container-low)"
 				>
 					Cancel
 				</button>

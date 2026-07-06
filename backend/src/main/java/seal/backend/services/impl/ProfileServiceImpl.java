@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import seal.backend.entities.User;
+import seal.backend.enums.Role;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.ProfileService;
 import seal.openapi.model.UserDto;
 import seal.openapi.model.UserRoleDto;
+import seal.openapi.model.UserStatusDto;
 
 @Service
 @RequiredArgsConstructor
@@ -24,32 +26,45 @@ public class ProfileServiceImpl implements ProfileService {
     // user. Therefore user should never be null.
     User user = userRepository.findByEmail(email).get();
 
+    UserStatusDto status = null;
+
+    if (user.getRole() == Role.STUDENT) {
+      status =
+          studentRepository
+              .findByUser(user)
+              .map(student -> UserStatusDto.fromValue(student.getStudentStatus().name()))
+              .orElse(null);
+    }
+
     return new UserDto(
         user.getId(),
         user.getEmail(),
         user.getFullName(),
-        UserRoleDto.fromValue(user.getRole().name()));
+        UserRoleDto.fromValue(user.getRole().name()),
+        status);
   }
 
   // public void approve(UUID id)
-  //     throws UsernameNotFoundException, UserNotStudentException, StudentNotPendingException {
-  //   Optional<User> maybeUser = userRepository.findById(id);
+  // throws UsernameNotFoundException, UserNotStudentException,
+  // StudentNotPendingException {
+  // Optional<User> maybeUser = userRepository.findById(id);
 
-  //   if (maybeUser.isEmpty()) {
-  //     throw new UsernameNotFoundException("User with ID not found.");
-  //   }
+  // if (maybeUser.isEmpty()) {
+  // throw new UsernameNotFoundException("User with ID not found.");
+  // }
 
-  //   User user = maybeUser.get();
-  //   if (user.getRole() != Role.STUDENT) {
-  //     throw new UserNotStudentException("This user is not a student.");
-  //   }
+  // User user = maybeUser.get();
+  // if (user.getRole() != Role.STUDENT) {
+  // throw new UserNotStudentException("This user is not a student.");
+  // }
 
-  //   Student student = studentRepository.findByUserId(user.getId()).get();
-  //   if (student.getStudentStatus() != StudentStatus.PENDING) {
-  //     throw new StudentNotPendingException("This student is not pending approval.");
-  //   }
+  // Student student = studentRepository.findByUserId(user.getId()).get();
+  // if (student.getStudentStatus() != StudentStatus.PENDING) {
+  // throw new StudentNotPendingException("This student is not pending
+  // approval.");
+  // }
 
-  //   student.setStudentStatus(StudentStatus.ACTIVE);
-  //   studentRepository.save(student);
+  // student.setStudentStatus(StudentStatus.ACTIVE);
+  // studentRepository.save(student);
   // }
 }
