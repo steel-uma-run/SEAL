@@ -1248,10 +1248,12 @@
             "type": "string",
             "format": "uuid"
           },
-          "mentor_id": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
+          "mentor_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },
