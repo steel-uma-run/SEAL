@@ -19,7 +19,7 @@ public class AccountServiceImpl implements AccountService {
   public void approve(UUID id) {
     Student student =
         studentRepository
-            .findById(id)
+            .findByUserId(id)
             .orElseThrow(
                 () ->
                     new ResponseStatusException(
