@@ -80,7 +80,7 @@ public class TrackServiceImpl implements TrackService {
               track.getName(),
               track.getDescription(),
               track.getEvent().getId(),
-              track.getMentor() != null ? track.getMentor().getId() : null);
+              track.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
       resultList.add(dto);
     }
 
@@ -96,7 +96,7 @@ public class TrackServiceImpl implements TrackService {
         track.getName(),
         track.getDescription(),
         track.getEvent().getId(),
-        track.getMentor() != null ? track.getMentor().getId() : null);
+        track.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
   }
 
   @Override
@@ -112,7 +112,7 @@ public class TrackServiceImpl implements TrackService {
         savedTrack.getName(),
         savedTrack.getDescription(),
         hackathonEvent.getId(),
-        savedTrack.getMentor() != null ? savedTrack.getMentor().getId() : null);
+        savedTrack.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
   }
 
   @Override
@@ -136,7 +136,7 @@ public class TrackServiceImpl implements TrackService {
         savedTrack.getName(),
         savedTrack.getDescription(),
         savedTrack.getEvent().getId(),
-        savedTrack.getMentor() != null ? savedTrack.getMentor().getId() : null);
+        savedTrack.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
   }
 
   @Override
@@ -157,7 +157,27 @@ public class TrackServiceImpl implements TrackService {
           "This lecturer has been assigned as a judge for this track and cannot be a mentor");
     }
 
-    track.setMentor(mentor);
+    if (track.getMentors().size() >= 3) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Cannot assign more mentors. This track already has the maximum of 3 mentors.");
+    }
+
+    List<Track> allTracksInEvent = trackRepository.findByEventId(eventId);
+    for (Track currentTrack : allTracksInEvent) {
+      if (currentTrack.getMentors().contains(mentor)) {
+        if (currentTrack.getId().equals(trackId)) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST, "This lecturer is already a mentor for this track.");
+        } else {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "This lecturer is already assigned to another track within the same event.");
+        }
+      }
+    }
+
+    track.getMentors().add(mentor);
     Track savedTrack = trackRepository.save(track);
 
     return new TrackDto(
@@ -165,7 +185,7 @@ public class TrackServiceImpl implements TrackService {
         savedTrack.getName(),
         savedTrack.getDescription(),
         savedTrack.getEvent().getId(),
-        savedTrack.getMentor() != null ? savedTrack.getMentor().getId() : null);
+        savedTrack.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
   }
 
   @Override

@@ -147,7 +147,7 @@ public class SubmissionServiceImpl implements SubmissionService {
             .toList();
       }
 
-      if (targetTeam.getTrack().getMentor().equals(lecturer)) {
+      if (targetTeam.getTrack().getMentors().contains(lecturer)) {
         // actor is a mentor assigned to the same track as the team, return submissions
         return submissionRepo.findAllBySubmitterTeamId(teamId).stream()
             .map(
