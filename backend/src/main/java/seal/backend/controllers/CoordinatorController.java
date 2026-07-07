@@ -27,24 +27,28 @@ public class CoordinatorController implements CoordinatorApi {
   public ResponseEntity<StudentDto[]> getUnapprovedStudents() {
     List<Student> unapprovedStudents = coordinatorService.getUnapprovedStudents();
 
-    StudentDto[] dtoArr = unapprovedStudents.stream()
-        .map(
-            student -> {
-              UUID[] interested = student.getEvents().stream().map(HackathonEvent::getId).toArray(UUID[]::new);
+    StudentDto[] dtoArr =
+        unapprovedStudents.stream()
+            .map(
+                student -> {
+                  UUID[] interested =
+                      student.getEvents().stream()
+                          .map(HackathonEvent::getId)
+                          .toArray(UUID[]::new);
 
-              return new StudentDto(
-                  student.getId(),
-                  student.getUser().getEmail(),
-                  student.getUser().getFullName(),
-                  UserRoleDto.fromValue(student.getUser().getRole().name()),
-                  UserStatusDto.fromValue(student.getStudentStatus().name()),
-                  student.getStudentId(),
-                  student.isExternal(),
-                  null,
-                  student.getTeam() != null ? student.getTeam().getId() : null,
-                  interested);
-            })
-        .toArray(StudentDto[]::new);
+                  return new StudentDto(
+                      student.getId(),
+                      student.getUser().getEmail(),
+                      student.getUser().getFullName(),
+                      UserRoleDto.fromValue(student.getUser().getRole().name()),
+                      UserStatusDto.fromValue(student.getStudentStatus().name()),
+                      student.getStudentId(),
+                      student.isExternal(),
+                      null,
+                      student.getTeam() != null ? student.getTeam().getId() : null,
+                      interested);
+                })
+            .toArray(StudentDto[]::new);
 
     return ResponseEntity.ok(dtoArr);
   }

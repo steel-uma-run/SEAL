@@ -30,14 +30,14 @@
 				seasonsCount = seasonsData.length
 			}
 
-			const { data: accountsData, response: accountsRes } = await getAllAccounts({ throwOnError: false })
+			const { data: accountsData, response: accountsRes } = await getAllAccounts({
+				throwOnError: false
+			})
 			if (accountsRes?.ok && accountsData) {
 				activeParticipantsCount = accountsData.filter(
 					(u: any) => u.role === "STUDENT" && u.status === "ACTIVE"
 				).length
-				totalLecturersCount = accountsData.filter(
-					(u: any) => u.role === "LECTURER"
-				).length
+				totalLecturersCount = accountsData.filter((u: any) => u.role === "LECTURER").length
 			}
 		} catch (err: any) {
 			errorMessage = err.message || "An error occurred while loading the dashboard."
@@ -70,11 +70,6 @@
 			<p class="text-sm mt-1">{errorMessage}</p>
 		</div>
 	{:else if profile}
-		<DashboardUI
-			{profile}
-			{seasonsCount}
-			{activeParticipantsCount}
-			{totalLecturersCount}
-		/>
+		<DashboardUI {profile} {seasonsCount} {activeParticipantsCount} {totalLecturersCount} />
 	{/if}
 {/if}
