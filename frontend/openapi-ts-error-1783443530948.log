@@ -1,0 +1,13 @@
+[2026-07-07T16:58:50.949Z] Error: Post-processor "Prettier" failed to run: spawnSync prettier ENOENT
+Stack:
+ConfigError: Post-processor "Prettier" failed to run: spawnSync prettier ENOENT
+    at postprocessOutput (file:///C:/Users/nt583/OneDrive/Desktop/Study%20Only/Ky5/SWP391/SEAL/frontend/node_modules/.pnpm/@hey-api+shared@0.5.0/node_modules/@hey-api/shared/dist/index.mjs:858:27)
+    at createClient$1 (file:///C:/Users/nt583/OneDrive/Desktop/Study%20Only/Ky5/SWP391/SEAL/frontend/node_modules/.pnpm/@hey-api+openapi-ts@0.99.0_typescript@6.0.3/node_modules/@hey-api/openapi-ts/dist/src-CI9riJdm.mjs:159:4)
+    at async file:///C:/Users/nt583/OneDrive/Desktop/Study%20Only/Ky5/SWP391/SEAL/frontend/node_modules/.pnpm/@hey-api+openapi-ts@0.99.0_typescript@6.0.3/node_modules/@hey-api/openapi-ts/dist/src-CI9riJdm.mjs:213:12
+    at async Promise.all (index 0)
+    at async createClient (file:///C:/Users/nt583/OneDrive/Desktop/Study%20Only/Ky5/SWP391/SEAL/frontend/node_modules/.pnpm/@hey-api+openapi-ts@0.99.0_typescript@6.0.3/node_modules/@hey-api/openapi-ts/dist/src-CI9riJdm.mjs:211:21)
+    at async BasicMinimalPluginContext.configResolved (file:///C:/Users/nt583/OneDrive/Desktop/Study%20Only/Ky5/SWP391/SEAL/frontend/node_modules/.pnpm/@hey-api+vite-plugin@0.3.2__65bc06b9365bb2ee320728effbb9838f/node_modules/@hey-api/vite-plugin/dist/index.mjs:8:4)
+    at async Promise.all (index 1)
+    at async Module.resolveConfig (file:///C:/Users/nt583/OneDrive/Desktop/Study%20Only/Ky5/SWP391/SEAL/frontend/node_modules/.pnpm/vite@8.0.14_@types+node@26.0.1_jiti@2.7.0/node_modules/vite/dist/node/chunks/node.js:34632:2)
+    at async loadSvelteConfigFromVite (c:\Users\nt583\.vscode\extensions\svelte.svelte-vscode-110.2.1\node_modules\@sveltejs\load-config\dist\src\index.js:126:26)
+    at async loadConfigFromDirectory (c:\Users\nt583\.vscode\extensions\svelte.svelte-vscode-110.2.1\node_modules\@sveltejs\load-config\dist\src\index.js:98:24)

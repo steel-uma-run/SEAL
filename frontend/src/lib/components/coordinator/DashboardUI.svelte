@@ -143,7 +143,7 @@
 			<p class="text-xs font-semibold mt-4 text-(--md-primary)">+12 new registrations this week</p>
 		</div>
 
-		<!-- Card 4: Total Mentors/Judges -->
+		<!-- Card 4: Total Lecturers/Judges -->
 		<div
 			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container) flex flex-col justify-between transition-colors duration-300"
 		>
@@ -157,7 +157,7 @@
 					<p
 						class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
 					>
-						Total Mentors/Judges
+						Total Lecturers/Judges
 					</p>
 					<h3 class="text-2xl font-bold text-(--md-on-surface)">{totalLecturersCount}</h3>
 				</div>

@@ -40,7 +40,7 @@
 					} else if (profile.role === "STUDENT") {
 						goto("/student")
 					} else if (profile.role === "LECTURER") {
-						goto("/mentor")
+						goto("/lecturer")
 					} else {
 						// Handle other roles
 					}
