@@ -30,6 +30,18 @@
 			errorMessage = "Passwords do not match"
 			return
 		}
+
+		if (isFptuStudent && !email.trim().endsWith("@fpt.edu.vn")) {
+			errorMessage = "FPTU students must use a valid @fpt.edu.vn email address"
+			return
+		}
+
+		const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+		if (!passwordRegex.test(password)) {
+			errorMessage = "Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character."
+			return
+		}
+
 		let isExternal = !isFptuStudent
 		isLoading = true
 		try {

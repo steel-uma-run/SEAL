@@ -56,7 +56,20 @@
 			} else {
 				detail = JSON.stringify(err)
 			}
-			errorMessage = `Lỗi: ${detail}`
+			if (err.status === 403 || err.status === 401 || err.status === 429) {
+				const lowerDetail = detail.toLowerCase()
+				if (lowerDetail.includes("pending")) {
+					errorMessage = "Login denied: Your account is pending approval."
+				} else if (lowerDetail.includes("ban")) {
+					errorMessage = "Login denied: Your account has been banned."
+				} else if (lowerDetail.includes("lock") || lowerDetail.includes("attempt") || err.status === 429) {
+					errorMessage = "Account locked for 15 minutes due to too many failed attempts."
+				} else {
+					errorMessage = `Login Failed: ${detail}`
+				}
+			} else {
+				errorMessage = `Login Failed: ${detail}`
+			}
 		} finally {
 			isLoading = false
 		}

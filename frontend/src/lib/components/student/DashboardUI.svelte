@@ -83,9 +83,9 @@
 		</div>
 		<div>
 			<p class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)">
-				Team Status
+				Progress Status (BR-5)
 			</p>
-			<h3 class="text-lg font-bold text-(--md-on-surface)">Looking for team</h3>
+			<h3 class="text-lg font-bold text-(--md-on-surface)">Check submission detail</h3>
 		</div>
 	</div>
 
