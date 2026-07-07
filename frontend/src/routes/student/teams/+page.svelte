@@ -238,8 +238,25 @@
 		}).format(new Date(dateString))
 	}
 
-	function mockAction(actionName: string) {
-		alert(`The "${actionName}" action is not currently supported by the backend API.`)
+	function handleLeaveTeam() {
+		// BR-33: Leader cannot leave without transferring leadership
+		if (myTeam && studentUuid === myTeam.leader_id) {
+			alert("Error: You are the team leader. You must transfer leadership to another member before leaving the team.")
+			return
+		}
+		
+		// BR-32: Cannot leave team after season has officially begun (ACTIVE status)
+		// Assuming we can check season status if we had it, but for now we enforce the rule in UI
+		if (myTeam && myTeam.status === "ACTIVE") {
+			alert("Error: You cannot leave the team after the season has officially begun.")
+			return
+		}
+
+		alert(`The "Leave Team" action is not currently supported by the backend API.`)
+	}
+
+	function handleTransferLeadership() {
+		alert(`The "Transfer Leadership" action is not currently supported by the backend API.`)
 	}
 </script>
 
@@ -487,7 +504,7 @@
 								: 'border-gray-200'} pt-6"
 						>
 							<button
-								onclick={() => mockAction("Transfer Leadership")}
+								onclick={handleTransferLeadership}
 								class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg border transition-colors {theme.darkMode
 									? 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
 									: 'border-gray-300 text-gray-700 hover:bg-gray-100'}"
@@ -500,7 +517,7 @@
 
 					<div class="mt-4 flex gap-4">
 						<button
-							onclick={() => mockAction("Leave Team")}
+							onclick={handleLeaveTeam}
 							class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
 						>
 							<LogOut class="w-4 h-4" />

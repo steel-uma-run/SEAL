@@ -1,22 +1,98 @@
 <script lang="ts">
-	// 1. Import bộ quản lý trạng thái theme
+	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
+	import { goto } from "$app/navigation"
+	import { getSelfProfile, getAllSeasons, getEventsInSeason, getInterestedParticipants, submitWork } from "$lib/api"
 
+	let title = $state("")
+	let description = $state("")
 	let submitLink = $state("")
 	let youtubeLink = $state("")
 	let slideLink = $state("")
+	
 	let submitMessage = $state("")
 	let isLoading = $state(false)
+	let isPageLoading = $state(true)
+	
+	let myEventId = $state<string | null>(null)
+	let mySeasonId = $state<string | null>(null)
+	
+	onMount(async () => {
+		try {
+			const { data: profileData, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			if (!profileRes?.ok || !profileData) {
+				goto("/auth/login")
+				return
+			}
+			
+			const { data: seasons } = await getAllSeasons({ throwOnError: false })
+			if (seasons) {
+				for (const season of seasons) {
+					const { data: events } = await getEventsInSeason({ path: { seasonId: season.id }, throwOnError: false })
+					if (events) {
+						for (const event of events) {
+							const { data: participants } = await getInterestedParticipants({ path: { seasonId: season.id, eventId: event.id }, throwOnError: false })
+							if (participants) {
+								const me = participants.find((p: any) => p.email === profileData.email)
+								if (me && me.team_id) {
+									myEventId = event.id
+									mySeasonId = season.id
+									break
+								}
+							}
+						}
+					}
+					if (myEventId) break
+				}
+			}
+		} catch (e) {
+			console.error("Error loading team info", e)
+		} finally {
+			isPageLoading = false
+		}
+	})
 
-	function handleSubmit(e: Event) {
+	async function handleSubmit(e: Event) {
 		e.preventDefault()
-		isLoading = true
 
-		// Giả lập API call
-		setTimeout(() => {
-			submitMessage = "Submission successful!"
+		// BR-42, BR-43: GitHub link validation
+		if (!submitLink.trim().startsWith("https://github.com/")) {
+			submitMessage = "Error: Git Link must be a valid https://github.com/ repository URL."
+			return
+		}
+		
+		if (!myEventId || !mySeasonId) {
+			submitMessage = "Error: You are not part of any team or event."
+			return
+		}
+
+		isLoading = true
+		submitMessage = ""
+
+		try {
+			const { response, error } = await submitWork({
+				path: { seasonId: mySeasonId, eventId: myEventId },
+				body: {
+					title: title,
+					description: description,
+					github_link: submitLink,
+					youtube_link: youtubeLink,
+					slide_link: slideLink
+				},
+				throwOnError: false
+			})
+			
+			if (response?.ok) {
+				submitMessage = "Submission successful!"
+			} else {
+				const errBody = error as any
+				submitMessage = `Error: ${errBody?.detail || errBody?.title || response?.statusText || "Failed to submit"}`
+			}
+		} catch (error) {
+			submitMessage = "Error connecting to server."
+		} finally {
 			isLoading = false
-		}, 1000)
+		}
 	}
 </script>
 
@@ -79,6 +155,38 @@
 		</div>
 
 		<form onsubmit={handleSubmit} class="flex flex-col gap-6">
+			<div class="space-y-2">
+				<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+					>Project Title (Required)</label
+				>
+				<input
+					type="text"
+					bind:value={title}
+					required
+					placeholder="Enter your project title"
+					class="w-full rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none border
+					{theme.darkMode
+						? 'bg-zinc-950 border-zinc-800 text-zinc-100 placeholder-zinc-600'
+						: 'bg-gray-50 border-gray-200 text-gray-900'}"
+				/>
+			</div>
+
+			<div class="space-y-2">
+				<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
+					>Project Description (Required)</label
+				>
+				<textarea
+					bind:value={description}
+					required
+					rows="4"
+					placeholder="Describe your project"
+					class="w-full rounded-xl p-3.5 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none border
+					{theme.darkMode
+						? 'bg-zinc-950 border-zinc-800 text-zinc-100 placeholder-zinc-600'
+						: 'bg-gray-50 border-gray-200 text-gray-900'}"
+				></textarea>
+			</div>
+
 			<div class="space-y-2">
 				<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
 					>Git Link (Required)</label
