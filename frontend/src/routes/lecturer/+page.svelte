@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DashboardUI from "$lib/components/mentor/DashboardUI.svelte"
+	import DashboardUI from "$lib/components/lecturer/DashboardUI.svelte"
 </script>
 
 <svelte:head>

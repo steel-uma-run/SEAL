@@ -10,8 +10,8 @@
 	let isLoading = $state(true)
 
 	const menuItems = [
-		{ href: "/mentor", label: "Dashboard", icon: LayoutDashboard },
-		{ href: "/mentor/profile", label: "Profile", icon: User },
+		{ href: "/lecturer", label: "Dashboard", icon: LayoutDashboard },
+		{ href: "/lecturer/profile", label: "Profile", icon: User },
 		{ href: "#", label: "Settings", icon: Settings }
 	]
 

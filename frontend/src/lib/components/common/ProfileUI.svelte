@@ -118,7 +118,7 @@
 						</button>
 					</div>
 				</div>
-			{:else if profile.role === "JUDGE" || profile.role === "MENTOR"}
+			{:else if profile.role === "JUDGE" || profile.role === "LECTURER"}
 				<div class="mt-6 border-t {theme.darkMode ? 'border-zinc-800' : 'border-gray-200'} pt-6">
 					<h4 class="font-bold text-lg mb-4">Expert Information</h4>
 					<div

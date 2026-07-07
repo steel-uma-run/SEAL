@@ -30,7 +30,7 @@
 		{
 			id: 2,
 			name: "Trần Thị B",
-			role: "Mentor",
+			role: "Lecturer",
 			specialization: "System Design",
 			email: "ttb@fpt.edu.vn",
 			assignedTeams: [2, 4]
@@ -38,7 +38,7 @@
 		{
 			id: 3,
 			name: "Lê Văn C",
-			role: "Mentor",
+			role: "Lecturer",
 			specialization: "Cybersecurity",
 			email: "lvc@fpt.edu.vn",
 			assignedTeams: [1, 3]
@@ -56,7 +56,7 @@
 	// 2. STATE & DERIVED CHO STATISTIC CARDS (Tự động đếm)
 	let totalExperts = $derived(expertsList.length)
 	let totalJudges = $derived(expertsList.filter((e) => e.role === "Judge").length)
-	let totalMentors = $derived(expertsList.filter((e) => e.role === "Mentor").length)
+	let totalLecturers = $derived(expertsList.filter((e) => e.role === "Lecturer").length)
 	let unassignedExperts = $derived(expertsList.filter((e) => e.assignedTeams.length === 0).length)
 
 	// 3. STATE & DERIVED CHO SEARCH
@@ -114,7 +114,7 @@
 		expertMessage = ""
 
 		setTimeout(() => {
-			const roleLabel = formRole === "JUDGE" ? "Judge" : "Mentor"
+			const roleLabel = formRole === "JUDGE" ? "Judge" : "Lecturer"
 
 			if (editingId) {
 				expertsList = expertsList.map((exp) =>
@@ -153,8 +153,8 @@
 	function toggleRole(id: number) {
 		expertsList = expertsList.map((exp) => {
 			if (exp.id === id) {
-				if (exp.role === "Judge") return { ...exp, role: "Mentor" }
-				if (exp.role === "Mentor") return { ...exp, role: "Judge" }
+				if (exp.role === "Judge") return { ...exp, role: "Lecturer" }
+				if (exp.role === "Lecturer") return { ...exp, role: "Judge" }
 			}
 			return exp
 		})
@@ -183,10 +183,10 @@
 					? 'text-zinc-100'
 					: 'text-gray-800'}"
 			>
-				Mentorship & Judge Panel Management
+				Lecturership & Judge Panel Management
 			</h1>
 			<p class="mt-1 text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-				Manage, edit, and assign experts (Mentors & Judges) for hackathon tracks.
+				Manage, edit, and assign experts (Lecturers & Judges) for hackathon tracks.
 			</p>
 		</div>
 		<div class="flex items-center gap-3 mt-4 md:mt-0">
@@ -271,10 +271,10 @@
 						? 'text-zinc-500'
 						: 'text-gray-400'}"
 				>
-					Mentors
+					Lecturers
 				</p>
 				<h3 class="text-2xl font-black {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
-					{totalMentors}
+					{totalLecturers}
 				</h3>
 			</div>
 		</div>
@@ -534,7 +534,7 @@
 								: 'border-gray-200 bg-gray-50'}"
 						>
 							<option value="JUDGE">Judge</option>
-							<option value="MENTOR">Mentor</option>
+							<option value="Lecturer">Lecturer</option>
 						</select>
 					</div>
 					<div class="space-y-1.5">

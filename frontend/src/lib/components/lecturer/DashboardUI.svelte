@@ -27,13 +27,13 @@
 				Expert Dashboard
 			</h1>
 			<p class="mt-1 text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-				Manage your mentoring teams and evaluate project submissions.
+				Manage your Lecturering teams and evaluate project submissions.
 			</p>
 		</div>
 	</header>
 
 	<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-		<!-- Column 1: Mentoring Teams -->
+		<!-- Column 1: Lecturering Teams -->
 		<div
 			class="p-8 rounded-3xl border transition-all {theme.darkMode
 				? 'bg-zinc-900 border-zinc-800 shadow-[0_4px_30px_rgba(0,0,0,0.2)]'
@@ -52,10 +52,10 @@
 				</div>
 				<div>
 					<h2 class="text-xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
-						My Mentoring Teams
+						My Lecturering Teams
 					</h2>
 					<p class="text-xs text-gray-500 mt-0.5">
-						You are currently mentoring the following teams.
+						You are currently Lecturering the following teams.
 					</p>
 				</div>
 			</div>
