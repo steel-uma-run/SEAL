@@ -8,9 +8,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -46,4 +49,11 @@ public class Round {
   @JoinColumn(name = "event_id", nullable = false)
   @Nonnull
   private HackathonEvent event;
+
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(
+      name = "round_criteria",
+      joinColumns = @JoinColumn(name = "round_id", nullable = false),
+      inverseJoinColumns = @JoinColumn(name = "criteria_id", nullable = false))
+  private Set<Criteria> criteria;
 }
