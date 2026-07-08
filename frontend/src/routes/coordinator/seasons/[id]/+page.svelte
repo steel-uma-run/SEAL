@@ -2,9 +2,9 @@
 	import { onMount } from "svelte"
 	import { page } from "$app/stores"
 	import { goto } from "$app/navigation"
-	import { getSeason } from "$lib/api"
+	import { getSeason, getInterestedParticipants, getAllTeamsOfEvents } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2 } from "@lucide/svelte"
+	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2, Eye, Users } from "@lucide/svelte"
 
 	// Route Param
 	const seasonId = $page.params.id || ""
@@ -31,6 +31,61 @@
 	let eventEndTime = $state("")
 	let eventStatusState = $state("DRAFT")
 	let eventTracks = $state<{ name: string; description: string }[]>([])
+
+	// Event Details Modal State
+	let showDetailModal = $state(false)
+	let detailEvent = $state<any>(null)
+	let isLoadingDetails = $state(false)
+	let detailStudents = $state<any[]>([])
+	let detailTeams = $state<any[]>([])
+	let detailError = $state("")
+	let activeTab = $state<"students" | "teams">("students")
+
+	async function openDetailModal(eventItem: any) {
+		detailEvent = eventItem
+		showDetailModal = true
+		isLoadingDetails = true
+		detailError = ""
+		detailStudents = []
+		detailTeams = []
+		activeTab = "students"
+
+		try {
+			const [participantsRes, teamsRes] = await Promise.all([
+				getInterestedParticipants({
+					path: { seasonId: seasonId, eventId: eventItem.id },
+					throwOnError: false
+				}),
+				getAllTeamsOfEvents({
+					path: { seasonId: seasonId, eventId: eventItem.id },
+					throwOnError: false
+				})
+			])
+
+			if (participantsRes.response?.ok && participantsRes.data) {
+				detailStudents = participantsRes.data
+			} else {
+				// Fallback to local storage for mock events
+				if (typeof window !== "undefined") {
+					const localParts = localStorage.getItem(`participants_${eventItem.id}`)
+					if (localParts) {
+						detailStudents = JSON.parse(localParts)
+					}
+				}
+			}
+
+			if (teamsRes.response?.ok && teamsRes.data) {
+				detailTeams = teamsRes.data
+			} else {
+				detailTeams = []
+			}
+		} catch (err: any) {
+			console.error("Error loading event details:", err)
+			detailError = err.message || "An error occurred while loading the event details."
+		} finally {
+			isLoadingDetails = false
+		}
+	}
 
 	function addTrack() {
 		eventTracks = [...eventTracks, { name: "", description: "" }]
@@ -372,6 +427,14 @@
 											<Edit2 class="w-3.5 h-3.5" />
 											Edit
 										</button>
+									{:else}
+										<button
+											onclick={() => openDetailModal(event)}
+											class="flex items-center gap-1.5 bg-transparent border border-(--md-outline) hover:bg-(--md-surface-container-highest) text-(--md-on-surface) px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+										>
+											<Eye class="w-3.5 h-3.5" />
+											View Details
+										</button>
 									{/if}
 								</div>
 							{/each}
@@ -576,6 +639,207 @@
 					</button>
 				</div>
 			</form>
+		</div>
+	</div>
+{/if}
+
+<!-- View Event Details Modal -->
+{#if showDetailModal && detailEvent}
+	<div
+		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4"
+	>
+		<div
+			class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) p-8 relative transition-colors duration-300"
+		>
+			<button
+				onclick={() => (showDetailModal = false)}
+				class="absolute top-4 right-4 p-2 rounded-lg hover:bg-zinc-800/10 dark:hover:bg-zinc-150/10 transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
+				aria-label="Close"
+			>
+				<X class="w-5 h-5" />
+			</button>
+
+			<div class="mb-6">
+				<div class="flex items-center gap-2 mb-2">
+					<span
+						class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)"
+					>
+						{detailEvent.status}
+					</span>
+				</div>
+				<h2 class="text-2xl font-extrabold text-(--md-on-surface) m-0">
+					{detailEvent.name}
+				</h2>
+				<p class="text-sm text-(--md-on-surface-variant) mt-2 leading-relaxed">
+					{detailEvent.description || "No description provided."}
+				</p>
+				<div class="flex flex-wrap gap-4 mt-4 text-xs text-(--md-on-surface-variant)">
+					<div class="flex items-center gap-1.5">
+						<Clock class="w-4 h-4 text-(--md-primary)" />
+						<span>Start: {formatDateTime(detailEvent.startTime)}</span>
+					</div>
+					<div class="flex items-center gap-1.5">
+						<Clock class="w-4 h-4 text-(--md-error)" />
+						<span>End: {formatDateTime(detailEvent.endTime)}</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Tabs -->
+			<div class="flex border-b border-(--md-outline-variant) mb-6 gap-2">
+				<button
+					onclick={() => (activeTab = "students")}
+					class="px-4 py-2 border-0 bg-transparent text-sm font-bold cursor-pointer transition-all border-b-2 {activeTab ===
+					'students'
+						? 'border-(--md-primary) text-(--md-primary)'
+						: 'border-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface)'}"
+				>
+					Registered Students ({isLoadingDetails ? "..." : detailStudents.length})
+				</button>
+				<button
+					onclick={() => (activeTab = "teams")}
+					class="px-4 py-2 border-0 bg-transparent text-sm font-bold cursor-pointer transition-all border-b-2 {activeTab ===
+					'teams'
+						? 'border-(--md-primary) text-(--md-primary)'
+						: 'border-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface)'}"
+				>
+					Teams ({isLoadingDetails ? "..." : detailTeams.length})
+				</button>
+			</div>
+
+			<!-- Modal Content -->
+			{#if isLoadingDetails}
+				<div class="flex flex-col justify-center items-center py-12 gap-3">
+					<div
+						class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-(--md-primary)"
+					></div>
+					<span class="text-sm text-(--md-on-surface-variant)">Loading event data...</span>
+				</div>
+			{:else if detailError}
+				<div
+					class="bg-(--md-error-container) border border-(--md-error) p-4 rounded-xl text-(--md-on-error-container) text-sm"
+				>
+					<p class="font-bold">Cannot sync with database</p>
+					<p class="mt-1">{detailError}</p>
+				</div>
+			{:else}
+				{#if activeTab === "students"}
+					<div class="overflow-x-auto">
+						<table class="w-full text-left border-collapse">
+							<thead>
+								<tr
+									class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
+								>
+									<th class="py-3 px-4">Student ID</th>
+									<th class="py-3 px-4">Name</th>
+									<th class="py-3 px-4">Email</th>
+									<th class="py-3 px-4">Status</th>
+									<th class="py-3 px-4">Type</th>
+									<th class="py-3 px-4">Team</th>
+								</tr>
+							</thead>
+							<tbody class="text-sm">
+								{#if detailStudents.length > 0}
+									{#each detailStudents as student}
+										<tr
+											class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
+										>
+											<td class="py-3 px-4 font-mono text-xs font-semibold">
+												{student.student_id || student.studentId || "N/A"}
+											</td>
+											<td class="py-3 px-4 font-bold">{student.fullName || student.name || "N/A"}</td>
+											<td class="py-3 px-4 text-xs">{student.email}</td>
+											<td class="py-3 px-4">
+												<span
+													class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {student.status ===
+													'ACTIVE'
+														? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+														: 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}"
+												>
+													{student.status}
+												</span>
+											</td>
+											<td class="py-3 px-4 text-xs font-medium">
+												{student.is_external ? "External" : "FPT"}
+											</td>
+											<td class="py-3 px-4 font-mono text-xs text-(--md-primary)">
+												{#if student.team_id || student.teamId}
+													#{student.team_id || student.teamId}
+												{:else}
+													<span class="text-zinc-500 italic">No Team</span>
+												{/if}
+											</td>
+										</tr>
+									{/each}
+								{:else}
+									<tr>
+										<td colspan="6" class="py-8 text-center text-(--md-on-surface-variant)">
+											<p class="font-bold">No students registered for this event yet.</p>
+										</td>
+									</tr>
+								{/if}
+							</tbody>
+						</table>
+					</div>
+				{:else if activeTab === "teams"}
+					<div class="overflow-x-auto">
+						<table class="w-full text-left border-collapse">
+							<thead>
+								<tr
+									class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
+								>
+									<th class="py-3 px-4">Team ID</th>
+									<th class="py-3 px-4">Team Name</th>
+									<th class="py-3 px-4">Leader ID</th>
+									<th class="py-3 px-4">Status</th>
+								</tr>
+							</thead>
+							<tbody class="text-sm">
+								{#if detailTeams.length > 0}
+									{#each detailTeams as team}
+										<tr
+											class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
+										>
+											<td class="py-3 px-4 font-mono text-xs font-semibold">
+												#{team.id}
+											</td>
+											<td class="py-3 px-4 font-bold">{team.name}</td>
+											<td class="py-3 px-4 font-mono text-xs">{team.leader_id || team.leaderId}</td>
+											<td class="py-3 px-4">
+												<span
+													class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {team.status ===
+													'APPROVED' || team.status === 'ACTIVE'
+														? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+														: team.status === 'PENDING'
+															? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+															: 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}"
+												>
+													{team.status}
+												</span>
+											</td>
+										</tr>
+									{/each}
+								{:else}
+									<tr>
+										<td colspan="4" class="py-8 text-center text-(--md-on-surface-variant)">
+											<p class="font-bold">No teams created for this event yet.</p>
+										</td>
+									</tr>
+								{/if}
+							</tbody>
+						</table>
+					</div>
+				{/if}
+			{/if}
+
+			<div class="flex justify-end mt-8 pt-4 border-t border-(--md-outline-variant)">
+				<button
+					onclick={() => (showDetailModal = false)}
+					class="px-6 py-2.5 rounded-xl text-sm font-bold bg-(--md-surface-container-highest) hover:opacity-90 transition-all border border-(--md-outline) text-(--md-on-surface) cursor-pointer"
+				>
+					Close
+				</button>
+			</div>
 		</div>
 	</div>
 {/if}

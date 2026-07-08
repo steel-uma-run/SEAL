@@ -15,6 +15,7 @@ import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
 import seal.backend.enums.EventStatus;
+import seal.backend.enums.StudentStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
@@ -119,6 +120,11 @@ public class HackathonEventServiceImpl implements HackathonEventService {
             .findById(eventId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    if (student.getStudentStatus() != StudentStatus.ACTIVE) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Only active students are allowed to register for events.");
+    }
 
     boolean changed = student.getEvents().add(event);
     if (changed) {
