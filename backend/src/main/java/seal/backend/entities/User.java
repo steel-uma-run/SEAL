@@ -8,19 +8,20 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import java.util.UUID;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import seal.backend.enums.Role;
 
 @Entity
-@Table(name = "users")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @NoArgsConstructor
-@RequiredArgsConstructor
-@Data
-public class User {
+@Getter
+@SuperBuilder
+public abstract class User {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;

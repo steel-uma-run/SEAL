@@ -14,22 +14,21 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
 
 @Entity
-@Table(name = "students")
 @NoArgsConstructor
-@RequiredArgsConstructor
-@Data
-public class Student {
+@SuperBuilder
+@Getter
+public class Student extends User {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -65,6 +64,7 @@ public class Student {
       name = "events_interest",
       joinColumns = @JoinColumn(name = "students_id"),
       inverseJoinColumns = @JoinColumn(name = "events_id"))
+  @Builder.Default
   private Set<HackathonEvent> events = new HashSet<>();
 
   public boolean isExternal() {

@@ -1,42 +1,25 @@
 package seal.backend.entities;
 
-import jakarta.annotation.Nonnull;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-import lombok.Data;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "lecturers")
 @NoArgsConstructor
-@RequiredArgsConstructor
-@Data
-public class Lecturer {
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID id;
-
-  @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  @Nonnull
-  private User user;
-
+@SuperBuilder
+public class Lecturer extends User {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "track_id", nullable = true)
   private Track track; // for Judge
 
   @ManyToMany(mappedBy = "mentors", fetch = FetchType.LAZY)
+  @Builder.Default
   private List<Track> mentoredTracks = new ArrayList<>(); // for Mentor
 }

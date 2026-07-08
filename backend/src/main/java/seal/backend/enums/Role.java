@@ -4,5 +4,4 @@ public enum Role {
   STUDENT,
   LECTURER,
   COORDINATOR,
-  SYSADMIN,
 }
