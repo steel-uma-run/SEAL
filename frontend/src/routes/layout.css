@@ -28,3 +28,30 @@ body {
 	/* https://m3.material.io/styles/motion/overview/specs */
 	--ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
+
+@theme {
+	/* Override Tailwind's default orange and amber to be vibrant FPT Orange instead of earthy/muddy */
+	--color-orange-50: #fff4ed;
+	--color-orange-100: #ffede3;
+	--color-orange-200: #ffcdb3;
+	--color-orange-300: #ffb591;
+	--color-orange-400: #ff9d6c;
+	--color-orange-500: #F26F21; /* Primary Vibrant FPT Orange */
+	--color-orange-600: #d65900;
+	--color-orange-700: #a34300;
+	--color-orange-800: #7a3200;
+	--color-orange-900: #522100;
+	--color-orange-950: #291100;
+
+	--color-amber-50: #fff4ed;
+	--color-amber-100: #ffede3;
+	--color-amber-200: #ffcdb3;
+	--color-amber-300: #ffb591;
+	--color-amber-400: #ff9d6c;
+	--color-amber-500: #F26F21; /* Primary Vibrant FPT Orange */
+	--color-amber-600: #d65900;
+	--color-amber-700: #a34300;
+	--color-amber-800: #7a3200;
+	--color-amber-900: #522100;
+	--color-amber-950: #291100;
+}
