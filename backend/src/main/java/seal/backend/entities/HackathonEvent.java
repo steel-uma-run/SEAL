@@ -52,6 +52,9 @@ public class HackathonEvent {
   @Nonnull
   private OffsetDateTime endTime;
 
+  @Column(nullable = false)
+  private int teamsLimit;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   @Nonnull
