@@ -25,6 +25,41 @@
 			entries.push(`--md-${token}: ${value};`)
 		}
 
+		// Explicit overrides to achieve pure "Orange/White" and "Orange/Black" themes
+		// We explicitly override primary colors to bypass Material Design's desaturation (muddy colors)
+		entries.push(`--md-primary: #F26F21;`)
+		entries.push(`--md-on-primary: #ffffff;`)
+
+		if (theme.darkMode) {
+			// Black Backgrounds
+			entries.push(`--md-background: #000000;`)
+			entries.push(`--md-surface: #000000;`)
+			entries.push(`--md-surface-container-lowest: #000000;`)
+			entries.push(`--md-surface-container-low: #0a0a0a;`)
+			entries.push(`--md-surface-container: #141414;`)
+			entries.push(`--md-surface-container-high: #1f1f1f;`)
+			entries.push(`--md-surface-container-highest: #292929;`)
+			// Vibrant Dark Orange Accents
+			entries.push(`--md-primary-container: #472008;`)
+			entries.push(`--md-on-primary-container: #ffcbb0;`)
+			entries.push(`--md-secondary-container: #3d2314;`)
+			entries.push(`--md-on-secondary-container: #ffcdb3;`)
+		} else {
+			// White Backgrounds
+			entries.push(`--md-background: #ffffff;`)
+			entries.push(`--md-surface: #ffffff;`)
+			entries.push(`--md-surface-container-lowest: #ffffff;`)
+			entries.push(`--md-surface-container-low: #f7f7f7;`)
+			entries.push(`--md-surface-container: #eeeeee;`)
+			entries.push(`--md-surface-container-high: #e6e6e6;`)
+			entries.push(`--md-surface-container-highest: #dddddd;`)
+			// Vibrant Light Orange Accents
+			entries.push(`--md-primary-container: #ffede3;`)
+			entries.push(`--md-on-primary-container: #c44e00;`)
+			entries.push(`--md-secondary-container: #fff4ed;`)
+			entries.push(`--md-on-secondary-container: #d65900;`)
+		}
+
 		const str = `<style>:root {${entries.join("\n")}}</style>`
 		return str
 	})
