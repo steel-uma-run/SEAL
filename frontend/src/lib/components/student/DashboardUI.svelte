@@ -83,7 +83,7 @@
 		</div>
 		<div>
 			<p class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)">
-				Progress Status (BR-5)
+				Progress Status
 			</p>
 			<h3 class="text-lg font-bold text-(--md-on-surface)">Check submission detail</h3>
 		</div>
