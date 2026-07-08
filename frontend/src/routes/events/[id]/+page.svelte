@@ -91,7 +91,7 @@
 				</div>
 				<div class="p-5 rounded-2xl border bg-blue-50/50 border-blue-100 dark:bg-blue-950/20 dark:border-blue-900/50">
 					<p class="text-sm font-semibold uppercase tracking-wider mb-2 text-blue-600 dark:text-blue-400">
-						Submission Deadline (BR-2)
+						Submission Deadline
 					</p>
 					<p class="font-bold text-lg text-blue-900 dark:text-blue-300 flex items-center gap-2">
 						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>

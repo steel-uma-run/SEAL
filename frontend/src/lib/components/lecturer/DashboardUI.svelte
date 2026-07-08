@@ -20,7 +20,7 @@
 	
 	function attemptEvaluateOtherTeam() {
 		if (tryEvaluateOtherTeamId) {
-			alert("Error (BR-3): You cannot view detailed scores or evaluate teams you are not lecturing/advising.")
+			alert("Error: You cannot view detailed scores or evaluate teams you are not lecturing/advising.")
 			tryEvaluateOtherTeamId = ""
 		}
 	}
@@ -162,7 +162,7 @@
 						View Score
 					</button>
 				</div>
-				<p class="text-xs mt-2 text-rose-500 italic">Note: Lecturers cannot view detailed scores of teams they are not lecturing (BR-3).</p>
+				<p class="text-xs mt-2 text-rose-500 italic">Note: Lecturers cannot view detailed scores of teams they are not lecturing.</p>
 			</div>
 		</div>
 
