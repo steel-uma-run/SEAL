@@ -17,6 +17,7 @@ import seal.backend.entities.Team;
 import seal.backend.entities.TeamInvite;
 import seal.backend.entities.User;
 import seal.backend.enums.InviteStatus;
+import seal.backend.enums.Role;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.TeamStatus;
 import seal.backend.repositories.HackathonEventRepository;
@@ -51,14 +52,29 @@ public class TeamServiceImpl implements TeamService {
                     new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED, "User not authenticated."));
 
-    Student leader =
-        studentRepository
-            .findByUser(currentUser)
-            .orElseThrow(
-                () ->
-                    new ResponseStatusException(
-                        HttpStatus.FORBIDDEN, "Only Student accounts can create a team."));
-    leader = studentRepository.findById(leader.getId()).orElse(leader);
+    Student leader;
+    if (currentUser.getRole() == Role.COORDINATOR) {
+      if (request.leaderId() == null) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "leader_id is required when creating a team as coordinator.");
+      }
+      leader =
+          studentRepository
+              .findById(request.leaderId())
+              .orElseThrow(
+                  () ->
+                      new ResponseStatusException(
+                          HttpStatus.NOT_FOUND, "Student leader not found."));
+    } else {
+      leader =
+          studentRepository
+              .findByUser(currentUser)
+              .orElseThrow(
+                  () ->
+                      new ResponseStatusException(
+                          HttpStatus.FORBIDDEN, "Only Student accounts can create a team."));
+      leader = studentRepository.findById(leader.getId()).orElse(leader);
+    }
 
     HackathonEvent hackathonEvent =
         hackathonEventRepository
@@ -92,11 +108,44 @@ public class TeamServiceImpl implements TeamService {
     leader.setTeam(savedTeam);
     studentRepository.save(leader);
 
+    List<UUID> memberUuids = new ArrayList<>();
+    if (currentUser.getRole() == Role.COORDINATOR && request.memberIds() != null) {
+      for (UUID memberId : request.memberIds()) {
+        if (memberId.equals(leader.getId())) {
+          continue;
+        }
+
+        Student member =
+            studentRepository
+                .findById(memberId)
+                .orElseThrow(
+                    () ->
+                        new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "Member student not found: " + memberId));
+
+        if (member.getStudentStatus() != StudentStatus.ACTIVE) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "Student member is not ACTIVE: " + member.getUser().getFullName());
+        }
+
+        if (member.getTeam() != null) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "Student member is already in a team: " + member.getUser().getFullName());
+        }
+
+        member.setTeam(savedTeam);
+        studentRepository.save(member);
+        memberUuids.add(memberId);
+      }
+    }
+
     return new TeamDto(
         savedTeam.getId(),
         savedTeam.getName(),
         TeamStatusDto.valueOf(savedTeam.getTeamStatus().name()),
-        new UUID[0],
+        memberUuids.toArray(UUID[]::new),
         leader.getId(),
         null);
   }
