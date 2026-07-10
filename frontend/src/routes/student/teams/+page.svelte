@@ -100,7 +100,8 @@
 														id: p.id,
 														name: p.name,
 														email: p.email,
-														student_id: p.studentId,
+														student_id: p.student_id || p.studentId || "",
+														is_external: p.is_external || p.isExternal || false,
 														role: p.id === team.leader_id ? "Leader" : "Member"
 													}))
 												resolvedTeam.members = teamMembers
@@ -195,7 +196,9 @@
 		try {
 			const invitee = allParticipants.find(
 				(p: any) =>
-					p.studentId && p.studentId.trim().toLowerCase() === inviteStudentId.trim().toLowerCase()
+					(p.studentId && p.studentId.trim().toLowerCase() === inviteStudentId.trim().toLowerCase()) ||
+					(p.student_id && p.student_id.trim().toLowerCase() === inviteStudentId.trim().toLowerCase()) ||
+					(p.email && p.email.trim().toLowerCase() === inviteStudentId.trim().toLowerCase())
 			)
 
 			if (!invitee) {
@@ -422,7 +425,7 @@
 												{member.name || "Unknown Member"}
 											</p>
 											<p class="text-xs text-gray-500 mt-0.5">
-												{member.student_id || member.email || ""}
+												{member.is_external ? "NONE" : (member.student_id || member.email || "")}
 												{member.id === studentUuid ? "(You)" : ""}
 											</p>
 										</div>

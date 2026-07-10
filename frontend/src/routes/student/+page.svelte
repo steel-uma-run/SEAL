@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { getSelfProfile, getAllSeasons, getEventsInSeason } from "$lib/api"
+	import {
+		getSelfProfile,
+		getAllSeasons,
+		getEventsInSeason,
+		getInterestedParticipants
+	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 	import DashboardUI from "$lib/components/student/DashboardUI.svelte"
@@ -11,6 +16,7 @@
 	let seasons: any[] = $state([])
 	let activeSeason: any = $state(null)
 	let activeSeasonEvents: any[] = $state([])
+	let joinedEvents: any[] = $state([])
 	let isLoading = $state(true)
 	let errorMessage = $state("")
 
@@ -63,6 +69,39 @@
 							activeSeasonEvents = eventsData || []
 						}
 					}
+
+					// Fetch joined events
+					let joinedList: any[] = []
+					for (const event of activeSeasonEvents) {
+						let hasJoined = false
+
+						// 1. Check LocalStorage
+						if (typeof window !== "undefined") {
+							const localParts = localStorage.getItem(`participants_${event.id}`)
+							if (localParts) {
+								const parsed = JSON.parse(localParts)
+								if (parsed.some((p: any) => p.email === profile.email)) {
+									hasJoined = true
+								}
+							}
+						}
+
+						// 2. Check API if not found in local storage
+						if (!hasJoined) {
+							const { data: participants } = await getInterestedParticipants({
+								path: { seasonId: activeSeason.id, eventId: event.id },
+								throwOnError: false
+							})
+							if (participants && participants.some((p: any) => p.email === profile.email)) {
+								hasJoined = true
+							}
+						}
+
+						if (hasJoined) {
+							joinedList.push(event)
+						}
+					}
+					joinedEvents = joinedList
 				}
 			}
 		} catch (err: any) {
@@ -127,6 +166,81 @@
 		</header>
 
 		<DashboardUI {profile} {seasons} {activeSeason} />
+
+		<!-- Joined Events Section -->
+		<div
+			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) mb-8 transition-colors duration-300"
+		>
+			<div class="mb-6">
+				<h2 class="text-xl font-bold text-(--md-on-surface)">Joined Events</h2>
+				<p class="text-sm mt-1 text-(--md-on-surface-variant)">
+					Events you are currently registered for in this season.
+				</p>
+			</div>
+
+			{#if joinedEvents.length === 0}
+				<div
+					class="text-center py-10 border border-dashed rounded-2xl border-(--md-outline-variant) bg-(--md-surface-container)"
+				>
+					<svg
+						class="w-12 h-12 mx-auto mb-3 text-(--md-on-surface-variant) opacity-60"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="1.5"
+							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+						></path>
+					</svg>
+					<p class="text-base font-medium text-(--md-on-surface)">
+						You haven't joined any events yet.
+					</p>
+					<p class="text-xs mt-1 text-(--md-on-surface-variant)">
+						Select an active event below to join!
+					</p>
+				</div>
+			{:else}
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					{#each joinedEvents as event}
+						<div
+							class="border border-(--md-outline-variant) rounded-2xl p-6 flex flex-col justify-between bg-(--md-surface-container) hover:bg-(--md-surface-container-high) transition-all duration-300 shadow-sm"
+						>
+							<div>
+								<div class="flex justify-between items-start gap-4 mb-3">
+									<h3 class="font-extrabold text-lg text-(--md-on-surface line-clamp-1)">
+										{event.name}
+									</h3>
+									<span
+										class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shrink-0"
+									>
+										Joined
+									</span>
+								</div>
+								<p class="text-sm text-(--md-on-surface-variant) line-clamp-2 leading-relaxed mb-4">
+									{event.description}
+								</p>
+							</div>
+
+							<div
+								class="pt-4 border-t border-(--md-outline-variant) flex justify-between items-center"
+							>
+								<span class="text-xs text-(--md-on-surface-variant)"> Active Season Event </span>
+								<a
+									href="/events/{event.id}"
+									class="text-xs font-bold text-(--md-primary) hover:underline cursor-pointer"
+								>
+									View details &rarr;
+								</a>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+
 		<ActiveSeasonEvents {activeSeason} events={activeSeasonEvents} />
 	{/if}
 </div>

@@ -158,7 +158,7 @@ class SubmissionControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     objMapper.writeValueAsString(
-                        new CreateTeamRequestDto("Team", "", testEvent.getId())))
+                        new CreateTeamRequestDto("Team", "", testEvent.getId(), null, null)))
                 .header("Authorization", "Bearer " + token))
         .andExpectAll(MockMvcResultMatchers.status().isCreated());
   }

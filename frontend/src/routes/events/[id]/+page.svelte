@@ -2,11 +2,17 @@
 	import { page } from "$app/stores"
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { getSelfProfile, getAllSeasons, getEventsInSeason, getInterestedParticipants, markInterested } from "$lib/api"
+	import {
+		getSelfProfile,
+		getAllSeasons,
+		getEventsInSeason,
+		getInterestedParticipants,
+		markInterested
+	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { formatFullDate } from "$lib/utils/formatters.js"
-	
-	let eventId = $page.params.id
+
+	let eventId = $page.params.id as string
 	let eventDetail: any = $state(null)
 	let seasonId = $state("")
 	let profile: any = $state(null)
@@ -20,7 +26,13 @@
 	let studentIdResolved = $state("")
 
 	async function resolveStudentId(email: string) {
-		if (!email) return "MOCK-STUDENT"
+		if (!email) return "NONE"
+
+		// If it's not an FPT email, it's an external student, so their student ID should be NONE
+		if (!email.endsWith("@fpt.edu.vn")) {
+			studentIdResolved = "NONE"
+			return "NONE"
+		}
 
 		// 1. Try cached local storage
 		const cachedKey = `student_id_${email}`
@@ -48,7 +60,10 @@
 			const { data: seasons } = await getAllSeasons({ throwOnError: false })
 			if (seasons) {
 				for (const season of seasons) {
-					const { data: events } = await getEventsInSeason({ path: { seasonId: season.id }, throwOnError: false })
+					const { data: events } = await getEventsInSeason({
+						path: { seasonId: season.id },
+						throwOnError: false
+					})
 					if (events) {
 						for (const event of events) {
 							const { data: participants } = await getInterestedParticipants({
@@ -56,7 +71,7 @@
 								throwOnError: false
 							})
 							if (participants) {
-								const self = participants.find((p: any) => p.email === email)
+								const self = participants.find((p: any) => p.email === email) as any
 								if (self && (self.student_id || self.studentId)) {
 									const id = self.student_id || self.studentId
 									if (typeof window !== "undefined") {
@@ -93,10 +108,12 @@
 
 			if (response?.ok) {
 				isRegistered = true
-				actionMessage = "Successfully joined the event! You can now create a team or join an existing team."
+				actionMessage =
+					"Successfully joined the event! You can now create a team or join an existing team."
 				actionError = false
 			} else if (response?.status === 403) {
-				actionMessage = "Only approved (active) students are allowed to join events. Please contact the coordinator."
+				actionMessage =
+					"Only approved (active) students are allowed to join events. Please contact the coordinator."
 				actionError = true
 			} else {
 				// Fallback to LocalStorage join for mock events (404/not found on backend)
@@ -110,8 +127,8 @@
 							email: profile.email,
 							fullName: profile.fullName || profile.name,
 							status: "ACTIVE",
-							studentId: studentIdResolved || "MOCK-STUDENT",
-							is_external: false
+							studentId: studentIdResolved || "NONE",
+							is_external: !profile.email.endsWith("@fpt.edu.vn")
 						})
 						localStorage.setItem(key, JSON.stringify(list))
 					}
@@ -133,14 +150,16 @@
 
 	onMount(async () => {
 		try {
-			const { data: profileData, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			const { data: profileData, response: profileRes } = await getSelfProfile({
+				throwOnError: false
+			})
 			if (!profileRes?.ok || !profileData) {
 				goto("/auth/login")
 				return
 			}
 			profile = profileData
 			await resolveStudentId(profile.email)
-			
+
 			const { data: seasons } = await getAllSeasons({ throwOnError: false })
 			if (seasons) {
 				for (const season of seasons) {
@@ -160,7 +179,10 @@
 					}
 
 					// 2. Fallback to API if not in LocalStorage
-					const { data: events } = await getEventsInSeason({ path: { seasonId: season.id }, throwOnError: false })
+					const { data: events } = await getEventsInSeason({
+						path: { seasonId: season.id },
+						throwOnError: false
+					})
 					if (events) {
 						const found = events.find((e: any) => e.id === eventId)
 						if (found) {
@@ -171,7 +193,7 @@
 					}
 				}
 			}
-			
+
 			if (!eventDetail) {
 				errorMessage = "Event not found."
 			} else {
@@ -183,7 +205,7 @@
 				if (participants) {
 					isRegistered = participants.some((p: any) => p.email === profile.email)
 				}
-				
+
 				// Also check LocalStorage participants if not registered on DB
 				if (!isRegistered && typeof window !== "undefined") {
 					const localParts = localStorage.getItem(`participants_${eventId}`)
@@ -213,29 +235,46 @@
 		class="inline-flex items-center gap-2 transition-colors mb-8 font-medium bg-transparent border-0 cursor-pointer text-(--md-on-surface-variant) hover:text-(--md-primary)"
 	>
 		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				stroke-width="2"
+				d="M10 19l-7-7m0 0l7-7m-7 7h18"
+			></path>
 		</svg>
 		Back
 	</button>
 
 	{#if isLoading}
 		<div class="flex justify-center py-20">
-			<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"></div>
+			<div
+				class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
+			></div>
 		</div>
 	{:else if errorMessage}
-		<div class="bg-(--md-error-container) text-(--md-on-error-container) p-6 rounded-2xl border border-(--md-error)">
+		<div
+			class="bg-(--md-error-container) text-(--md-on-error-container) p-6 rounded-2xl border border-(--md-error)"
+		>
 			<h2 class="text-lg font-bold">Error</h2>
 			<p>{errorMessage}</p>
 		</div>
 	{:else if eventDetail}
-		<div class="p-8 md:p-10 rounded-3xl transition-all border bg-(--md-surface-container-low) border-(--md-outline-variant) shadow-sm">
+		<div
+			class="p-8 md:p-10 rounded-3xl transition-all border bg-(--md-surface-container-low) border-(--md-outline-variant) shadow-sm"
+		>
 			{#if actionMessage}
-				<div class="mb-6 p-4 rounded-xl border text-sm font-medium {actionError ? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)' : 'bg-(--md-secondary-container) text-(--md-on-secondary-container) border-(--md-outline-variant)'}">
+				<div
+					class="mb-6 p-4 rounded-xl border text-sm font-medium {actionError
+						? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
+						: 'bg-(--md-secondary-container) text-(--md-on-secondary-container) border-(--md-outline-variant)'}"
+				>
 					{actionMessage}
 				</div>
 			{/if}
 
-			<div class="mb-8 border-b pb-8 border-(--md-outline-variant) flex flex-col md:flex-row md:items-center justify-between gap-6">
+			<div
+				class="mb-8 border-b pb-8 border-(--md-outline-variant) flex flex-col md:flex-row md:items-center justify-between gap-6"
+			>
 				<div class="flex-1">
 					<h1 class="text-3xl font-extrabold text-(--md-on-surface)">
 						{eventDetail.name}
@@ -259,9 +298,16 @@
 								</span>
 							</div>
 						{:else if isRegistered}
-							<div class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+							<div
+								class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+									></path>
 								</svg>
 								Joined Event
 							</div>
@@ -272,7 +318,9 @@
 								class="px-8 py-3 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer border-0 flex items-center gap-2"
 							>
 								{#if isJoining}
-									<div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+									<div
+										class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
+									></div>
 									Joining...
 								{:else}
 									Join Event
@@ -284,24 +332,42 @@
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-				<div class="p-5 rounded-2xl border bg-(--md-surface-container) border-(--md-outline-variant)">
-					<p class="text-sm font-semibold uppercase tracking-wider mb-2 text-(--md-on-surface-variant)">
+				<div
+					class="p-5 rounded-2xl border bg-(--md-surface-container) border-(--md-outline-variant)"
+				>
+					<p
+						class="text-sm font-semibold uppercase tracking-wider mb-2 text-(--md-on-surface-variant)"
+					>
 						Event Start
 					</p>
 					<p class="font-bold text-lg text-(--md-on-surface)">
 						{formatFullDate(eventDetail.start_time || eventDetail.startTime)}
 					</p>
 				</div>
-				<div class="p-5 rounded-2xl border bg-(--md-secondary-container) border-(--md-outline-variant)">
+				<div
+					class="p-5 rounded-2xl border bg-(--md-secondary-container) border-(--md-outline-variant)"
+				>
 					<p class="text-sm font-semibold uppercase tracking-wider mb-2 text-(--md-primary)">
 						Submission Deadline
 					</p>
 					<p class="font-bold text-lg text-(--md-on-surface) flex items-center gap-2">
-						<svg class="w-5 h-5 text-(--md-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+						<svg
+							class="w-5 h-5 text-(--md-primary)"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							><path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+							></path></svg
+						>
 						{formatFullDate(eventDetail.end_time || eventDetail.endTime)}
 					</p>
 					<p class="text-xs text-(--md-on-surface-variant) mt-1">
-						All work must be submitted by this accurate deadline pulled from the event configuration.
+						All work must be submitted by this accurate deadline pulled from the event
+						configuration.
 					</p>
 				</div>
 			</div>
