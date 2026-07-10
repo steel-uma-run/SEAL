@@ -109,7 +109,7 @@
 	<div class="space-y-8">
 		<!-- Active Seasons Overview -->
 		<div
-			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300"
+			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-colors duration-300"
 		>
 			<h2 class="text-xl font-bold mb-6 text-(--md-on-surface)">Active Seasons Overview</h2>
 

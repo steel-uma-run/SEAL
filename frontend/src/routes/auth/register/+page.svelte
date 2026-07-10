@@ -38,7 +38,8 @@
 
 		const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
 		if (!passwordRegex.test(password)) {
-			errorMessage = "Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character."
+			errorMessage =
+				"Password must be at least 8 characters long and include an uppercase letter, lowercase letter, number, and special character."
 			return
 		}
 
