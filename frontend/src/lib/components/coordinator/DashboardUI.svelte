@@ -73,7 +73,7 @@
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 		<!-- Card 1: Total Seasons -->
 		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container) flex flex-col justify-between transition-colors duration-300"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
 		>
 			<div class="flex items-center gap-4">
 				<div
@@ -95,7 +95,7 @@
 
 		<!-- Card 2: Total Teams -->
 		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container) flex flex-col justify-between transition-colors duration-300"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
 		>
 			<div class="flex items-center gap-4">
 				<div
@@ -123,7 +123,7 @@
 
 		<!-- Card 3: Active Participants -->
 		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container) flex flex-col justify-between transition-colors duration-300"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
 		>
 			<div class="flex items-center gap-4">
 				<div
@@ -145,7 +145,7 @@
 
 		<!-- Card 4: Total Lecturers/Judges -->
 		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container) flex flex-col justify-between transition-colors duration-300"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
 		>
 			<div class="flex items-center gap-4">
 				<div
@@ -176,7 +176,7 @@
 	<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
 		<!-- Hackathon Timeline (2 cols) -->
 		<div
-			class="lg:col-span-2 p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) transition-colors duration-300"
+			class="lg:col-span-2 p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-colors duration-300 shadow-sm"
 		>
 			<h2 class="text-xl font-bold mb-8 text-(--md-on-surface)">Hackathon Timeline</h2>
 
@@ -251,7 +251,7 @@
 
 		<!-- Quick Actions (1 col - 2x2 Grid) -->
 		<div
-			class="lg:col-span-1 p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) flex flex-col justify-between transition-colors duration-300"
+			class="lg:col-span-1 p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
 		>
 			<div>
 				<h2 class="text-xl font-bold mb-6 text-(--md-on-surface)">Quick Actions</h2>
@@ -294,7 +294,7 @@
 
 	<!-- 4. ROW 3: ATTENTION REQUIRED (System Alerts) -->
 	<div
-		class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container) mb-8 transition-colors duration-300"
+		class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) mb-8 transition-colors duration-300 shadow-sm"
 	>
 		<div class="flex items-center gap-3 mb-6">
 			<AlertTriangle class="w-6 h-6 text-(--md-error)" />

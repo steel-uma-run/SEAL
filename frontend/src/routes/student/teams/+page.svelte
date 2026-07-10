@@ -196,8 +196,10 @@
 		try {
 			const invitee = allParticipants.find(
 				(p: any) =>
-					(p.studentId && p.studentId.trim().toLowerCase() === inviteStudentId.trim().toLowerCase()) ||
-					(p.student_id && p.student_id.trim().toLowerCase() === inviteStudentId.trim().toLowerCase()) ||
+					(p.studentId &&
+						p.studentId.trim().toLowerCase() === inviteStudentId.trim().toLowerCase()) ||
+					(p.student_id &&
+						p.student_id.trim().toLowerCase() === inviteStudentId.trim().toLowerCase()) ||
 					(p.email && p.email.trim().toLowerCase() === inviteStudentId.trim().toLowerCase())
 			)
 
@@ -244,10 +246,12 @@
 	function handleLeaveTeam() {
 		// BR-33: Leader cannot leave without transferring leadership
 		if (myTeam && studentUuid === myTeam.leader_id) {
-			alert("Error: You are the team leader. You must transfer leadership to another member before leaving the team.")
+			alert(
+				"Error: You are the team leader. You must transfer leadership to another member before leaving the team."
+			)
 			return
 		}
-		
+
 		// BR-32: Cannot leave team after season has officially begun (ACTIVE status)
 		// Assuming we can check season status if we had it, but for now we enforce the rule in UI
 		if (myTeam && myTeam.status === "ACTIVE") {
@@ -425,7 +429,7 @@
 												{member.name || "Unknown Member"}
 											</p>
 											<p class="text-xs text-gray-500 mt-0.5">
-												{member.is_external ? "NONE" : (member.student_id || member.email || "")}
+												{member.is_external ? "NONE" : member.student_id || member.email || ""}
 												{member.id === studentUuid ? "(You)" : ""}
 											</p>
 										</div>

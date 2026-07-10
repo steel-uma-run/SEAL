@@ -2,36 +2,50 @@
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
 	import { goto } from "$app/navigation"
-	import { getSelfProfile, getAllSeasons, getEventsInSeason, getInterestedParticipants, submitWork } from "$lib/api"
+	import {
+		getSelfProfile,
+		getAllSeasons,
+		getEventsInSeason,
+		getInterestedParticipants,
+		submitWork
+	} from "$lib/api"
 
 	let title = $state("")
 	let description = $state("")
 	let submitLink = $state("")
 	let youtubeLink = $state("")
 	let slideLink = $state("")
-	
+
 	let submitMessage = $state("")
 	let isLoading = $state(false)
 	let isPageLoading = $state(true)
-	
+
 	let myEventId = $state<string | null>(null)
 	let mySeasonId = $state<string | null>(null)
-	
+
 	onMount(async () => {
 		try {
-			const { data: profileData, response: profileRes } = await getSelfProfile({ throwOnError: false })
+			const { data: profileData, response: profileRes } = await getSelfProfile({
+				throwOnError: false
+			})
 			if (!profileRes?.ok || !profileData) {
 				goto("/auth/login")
 				return
 			}
-			
+
 			const { data: seasons } = await getAllSeasons({ throwOnError: false })
 			if (seasons) {
 				for (const season of seasons) {
-					const { data: events } = await getEventsInSeason({ path: { seasonId: season.id }, throwOnError: false })
+					const { data: events } = await getEventsInSeason({
+						path: { seasonId: season.id },
+						throwOnError: false
+					})
 					if (events) {
 						for (const event of events) {
-							const { data: participants } = await getInterestedParticipants({ path: { seasonId: season.id, eventId: event.id }, throwOnError: false })
+							const { data: participants } = await getInterestedParticipants({
+								path: { seasonId: season.id, eventId: event.id },
+								throwOnError: false
+							})
 							if (participants) {
 								const me = participants.find((p: any) => p.email === profileData.email)
 								if (me && me.team_id) {
@@ -60,7 +74,7 @@
 			submitMessage = "Error: Git Link must be a valid https://github.com/ repository URL."
 			return
 		}
-		
+
 		if (!myEventId || !mySeasonId) {
 			submitMessage = "Error: You are not part of any team or event."
 			return
@@ -81,7 +95,7 @@
 				},
 				throwOnError: false
 			})
-			
+
 			if (response?.ok) {
 				submitMessage = "Submission successful!"
 			} else {

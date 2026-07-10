@@ -276,7 +276,7 @@
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 		<!-- Card 1: Total Users -->
 		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) flex items-center gap-5 transition-all text-(--md-on-surface)"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all text-(--md-on-surface)"
 		>
 			<div
 				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-primary-container) text-(--md-on-primary-container)"
@@ -297,7 +297,7 @@
 
 		<!-- Card 2: Students -->
 		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) flex items-center gap-5 transition-all text-(--md-on-surface)"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all text-(--md-on-surface)"
 		>
 			<div
 				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-secondary-container) text-(--md-on-secondary-container)"
@@ -318,7 +318,7 @@
 
 		<!-- Card 3: Lecturers -->
 		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) flex items-center gap-5 transition-all text-(--md-on-surface)"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all text-(--md-on-surface)"
 		>
 			<div
 				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-tertiary-container) text-(--md-on-tertiary-container)"
@@ -339,7 +339,7 @@
 
 		<!-- Card 4: Coordinators -->
 		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) flex items-center gap-5 transition-all text-(--md-on-surface)"
+			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all text-(--md-on-surface)"
 		>
 			<div
 				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-surface-container-high) text-(--md-on-surface)"
@@ -361,7 +361,7 @@
 
 	<!-- Filters and Table Container -->
 	<div
-		class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface)"
+		class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) text-(--md-on-surface)"
 	>
 		<!-- Filters Toolbar -->
 		<div class="flex flex-col md:flex-row gap-4 justify-between items-center mb-6">
