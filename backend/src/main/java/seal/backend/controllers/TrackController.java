@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import seal.backend.config.GlobalConfig;
 import seal.backend.services.TrackService;
 import seal.openapi.api.TracksApi;
+import seal.openapi.model.AssignJudgeRequestDto;
 import seal.openapi.model.AssignMentorRequestDto;
 import seal.openapi.model.AssignTeamRequestDto;
 import seal.openapi.model.TeamDto;
@@ -57,5 +58,14 @@ public class TrackController implements TracksApi {
       @RequestBody @Valid @NotNull AssignTeamRequestDto body) {
     TeamDto updatedTeam = trackService.assignTeam(trackId, body);
     return ResponseEntity.ok(updatedTeam);
+  }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<TrackDto> assignJudge(
+      @PathVariable(name = "trackId") @NotNull UUID trackId,
+      @RequestBody @Valid @NotNull AssignJudgeRequestDto body) {
+    TrackDto responseDto = trackService.assignJudge(trackId, body);
+    return ResponseEntity.ok(responseDto);
   }
 }
