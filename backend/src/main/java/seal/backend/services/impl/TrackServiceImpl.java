@@ -20,6 +20,7 @@ import seal.backend.repositories.LecturerRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.TrackRepository;
 import seal.backend.services.TrackService;
+import seal.openapi.model.AssignJudgeRequestDto;
 import seal.openapi.model.AssignMentorRequestDto;
 import seal.openapi.model.AssignTeamRequestDto;
 import seal.openapi.model.CreateTrackRequestDto;
@@ -44,12 +45,7 @@ public class TrackServiceImpl implements TrackService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
 
-    return new TrackDto(
-        track.getId(),
-        track.getName(),
-        track.getDescription(),
-        track.getEvent().getId(),
-        track.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
+    return track.toDto();
   }
 
   @Override
@@ -64,12 +60,7 @@ public class TrackServiceImpl implements TrackService {
     Track newTrack = new Track(request.name(), request.description(), hackathonEvent);
     Track savedTrack = trackRepository.save(newTrack);
 
-    return new TrackDto(
-        savedTrack.getId(),
-        savedTrack.getName(),
-        savedTrack.getDescription(),
-        hackathonEvent.getId(),
-        savedTrack.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
+    return savedTrack.toDto();
   }
 
   @Override
@@ -91,12 +82,7 @@ public class TrackServiceImpl implements TrackService {
 
     Track savedTrack = trackRepository.save(track);
 
-    return new TrackDto(
-        savedTrack.getId(),
-        savedTrack.getName(),
-        savedTrack.getDescription(),
-        savedTrack.getEvent().getId(),
-        savedTrack.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
+    return savedTrack.toDto();
   }
 
   @Override
@@ -143,12 +129,54 @@ public class TrackServiceImpl implements TrackService {
     track.getMentors().add(mentor);
     Track savedTrack = trackRepository.save(track);
 
-    return new TrackDto(
-        savedTrack.getId(),
-        savedTrack.getName(),
-        savedTrack.getDescription(),
-        savedTrack.getEvent().getId(),
-        savedTrack.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
+    return savedTrack.toDto();
+  }
+
+  @Override
+  @Transactional
+  public TrackDto assignJudge(UUID trackId, AssignJudgeRequestDto request) {
+    Track track =
+        trackRepository
+            .findById(trackId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
+
+    Lecturer judge =
+        lecturerRepository
+            .findById(request.judgeId())
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecturer not found."));
+
+    if (track.getMentors().contains(judge)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "This lecturer has been assigned as a mentor for this track and cannot be a judge");
+    }
+
+    if (track.getJudges().size() >= 3) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "Cannot assign more judges. This track already has the maximum of 3 judges.");
+    }
+
+    if (track.getJudges().contains(judge)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "This lecturer is already assigned to this track.");
+    }
+
+    List<Track> allTracksInEvent = trackRepository.findByEventId(track.getEvent().getId());
+    for (Track currentTrack : allTracksInEvent) {
+      if (currentTrack.getJudges().contains(judge)) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "This lecturer is already assigned to another track within the same event.");
+      }
+    }
+
+    track.getJudges().add(judge);
+    Track savedTrack = trackRepository.save(track);
+
+    return savedTrack.toDto();
   }
 
   @Override

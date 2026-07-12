@@ -12,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
-import seal.backend.entities.Lecturer;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
 import seal.backend.entities.Team;
@@ -30,7 +29,6 @@ import seal.openapi.model.HackathonEventDto;
 import seal.openapi.model.HackathonEventStatusDto;
 import seal.openapi.model.StudentDto;
 import seal.openapi.model.TeamDto;
-import seal.openapi.model.TeamStatusDto;
 import seal.openapi.model.TrackDto;
 import seal.openapi.model.UpdateEventRequestDto;
 
@@ -237,15 +235,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     List<TeamDto> resultList = new ArrayList<>();
 
     for (Team team : teams) {
-      TeamDto dto =
-          new TeamDto(
-              team.getId(),
-              team.getName(),
-              TeamStatusDto.valueOf(team.getTeamStatus().name()),
-              new UUID[0],
-              team.getLeader().getId(),
-              team.getTrack() != null ? team.getTrack().getId() : null);
-      resultList.add(dto);
+      resultList.add(team.toDto());
     }
 
     return resultList;
@@ -257,14 +247,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     List<TrackDto> resultList = new ArrayList<>();
 
     for (Track track : trackEntities) {
-      TrackDto dto =
-          new TrackDto(
-              track.getId(),
-              track.getName(),
-              track.getDescription(),
-              track.getEvent().getId(),
-              track.getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new));
-      resultList.add(dto);
+      resultList.add(track.toDto());
     }
 
     return resultList;

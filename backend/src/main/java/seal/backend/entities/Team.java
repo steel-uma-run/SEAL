@@ -20,6 +20,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import seal.backend.enums.TeamStatus;
+import seal.openapi.model.TeamDto;
+import seal.openapi.model.TeamStatusDto;
 
 @Entity
 @Table(name = "teams")
@@ -63,5 +65,15 @@ public class Team {
   // Returns whether the team is eligible to participate in an event.
   public boolean isTeamValid() {
     return teamStatus == TeamStatus.ACTIVE && members.size() >= 3 && members.size() <= 5;
+  }
+
+  public TeamDto toDto() {
+    return new TeamDto(
+        id,
+        name,
+        TeamStatusDto.fromValue(teamStatus.name()),
+        members.stream().map(stu -> stu.getId()).toArray(UUID[]::new),
+        leader.getId(),
+        track != null ? track.getId() : null);
   }
 }

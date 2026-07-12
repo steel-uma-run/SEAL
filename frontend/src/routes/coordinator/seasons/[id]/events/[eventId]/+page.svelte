@@ -2,7 +2,7 @@
 	import { onMount } from "svelte"
 	import { page } from "$app/stores"
 	import { goto } from "$app/navigation"
-	import { getEvent, getInterestedParticipants, getAllTeamsOfEvents, createTeam } from "$lib/api"
+	import { getEvent, getInterestedParticipants, getAllTeamsOfEvents, createTeam, getAllAccounts, assignExperts } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Clock, X } from "@lucide/svelte"
 
@@ -29,6 +29,18 @@
 	let isCreatingTeam = $state(false)
 	let createTeamMessage = $state("")
 	let createTeamError = $state(false)
+
+	// Lecturers List for Assignment
+	let lecturers = $state<any[]>([])
+
+	// Assign Experts Modal State
+	let showAssignModal = $state(false)
+	let targetTeam = $state<any>(null)
+	let selectedMentorId = $state<string>("")
+	let selectedJudgeIds = $state<string[]>([])
+	let isAssigning = $state(false)
+	let assignMessage = $state("")
+	let assignError = $state(false)
 
 	// Computed: Active teamless students for selection
 	let activeTeamlessStudents = $derived(
@@ -223,8 +235,111 @@
 		}
 	}
 
+	async function loadLecturers() {
+		try {
+			const { data, response } = await getAllAccounts({ throwOnError: false })
+			if (response?.ok && data) {
+				lecturers = data.filter((u: any) => u.role === "LECTURER" || u.role === "Lecturer")
+			} else {
+				lecturers = [
+					{ id: "lecturer-1", name: "Nguyễn Văn A", email: "nva@fpt.edu.vn" },
+					{ id: "lecturer-2", name: "Trần Thị B", email: "ttb@fpt.edu.vn" },
+					{ id: "lecturer-3", name: "Lê Văn C", email: "lvc@fpt.edu.vn" },
+					{ id: "lecturer-4", name: "David Miller", email: "david@fpt.edu.vn" }
+				]
+			}
+		} catch (err) {
+			console.error("Error loading lecturers:", err)
+			lecturers = [
+				{ id: "lecturer-1", name: "Nguyễn Văn A", email: "nva@fpt.edu.vn" },
+				{ id: "lecturer-2", name: "Trần Thị B", email: "ttb@fpt.edu.vn" },
+				{ id: "lecturer-3", name: "Lê Văn C", email: "lvc@fpt.edu.vn" },
+				{ id: "lecturer-4", name: "David Miller", email: "david@fpt.edu.vn" }
+			]
+		}
+	}
+
+	function openAssignModal(team: any) {
+		targetTeam = team
+		selectedMentorId = team.mentor_id || team.mentorId || ""
+		selectedJudgeIds = team.judge_ids || team.judgeIds || []
+		assignMessage = ""
+		assignError = false
+		showAssignModal = true
+	}
+
+	async function handleAssignExperts(e: Event) {
+		e.preventDefault()
+		if (selectedJudgeIds.length > 0 && selectedJudgeIds.length !== 2 && selectedJudgeIds.length !== 3) {
+			assignMessage = "You must assign either 2 or 3 judges (or none)."
+			assignError = true
+			return
+		}
+
+		isAssigning = true
+		assignMessage = ""
+		assignError = false
+
+		try {
+			const { response, data, error: apiErr } = await assignExperts({
+				path: { teamId: targetTeam.id },
+				body: {
+					mentor_id: selectedMentorId || null,
+					judge_ids: selectedJudgeIds
+				},
+				throwOnError: false
+			})
+
+			if (response?.ok && data) {
+				showAssignModal = false
+				await fetchEventDetails()
+				alert(`Experts assigned to team "${targetTeam.name}" successfully!`)
+			} else {
+				if (typeof window !== "undefined" && (!response || response.status === 404)) {
+					const keyTeams = `teams_${eventId}`
+					const storedTeams = localStorage.getItem(keyTeams)
+					if (storedTeams) {
+						let localTeams = JSON.parse(storedTeams)
+						localTeams = localTeams.map((t: any) => {
+							if (t.id === targetTeam.id) {
+								return {
+									...t,
+									mentor_id: selectedMentorId || null,
+									mentorId: selectedMentorId || null,
+									judge_ids: selectedJudgeIds,
+									judgeIds: selectedJudgeIds
+								}
+							}
+							return t
+						})
+						localStorage.setItem(keyTeams, JSON.stringify(localTeams))
+					}
+					showAssignModal = false
+					await fetchEventDetails()
+					alert(`Experts assigned locally for mock event!`)
+				} else {
+					const errBody = apiErr as any
+					assignMessage = errBody?.detail || errBody?.title || response?.statusText || "Failed to assign experts."
+					assignError = true
+				}
+			}
+		} catch (err: any) {
+			console.error("Error assigning experts:", err)
+			assignMessage = err.message || "An error occurred."
+			assignError = true
+		} finally {
+			isAssigning = false
+		}
+	}
+
+	function getLecturerName(lecturerId: string) {
+		const lec = lecturers.find((l) => l.id === lecturerId)
+		return lec ? lec.fullName || lec.name : lecturerId
+	}
+
 	onMount(() => {
 		fetchEventDetails()
+		loadLecturers()
 	})
 </script>
 
@@ -383,6 +498,9 @@
 								<th class="py-3 px-4">Team Name</th>
 								<th class="py-3 px-4">Leader Name</th>
 								<th class="py-3 px-4">Status</th>
+								<th class="py-3 px-4">Mentor</th>
+								<th class="py-3 px-4">Judges</th>
+								<th class="py-3 px-4">Actions</th>
 							</tr>
 						</thead>
 						<tbody class="text-sm">
@@ -409,6 +527,46 @@
 											>
 												{team.status}
 											</span>
+										</td>
+										<td class="py-3 px-4 text-xs">
+											{#if team.mentor_id || team.mentorId}
+												<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-500 border border-violet-500/20">
+													{getLecturerName(team.mentor_id || team.mentorId)}
+												</span>
+											{:else}
+												<span class="text-zinc-500 italic">Unassigned</span>
+											{/if}
+										</td>
+										<td class="py-3 px-4 text-xs">
+											{#if team.judge_ids && team.judge_ids.length > 0}
+												<div class="flex flex-wrap gap-1">
+													{#each team.judge_ids as judgeId}
+														<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20">
+															{getLecturerName(judgeId)}
+														</span>
+													{/each}
+												</div>
+											{:else if team.judgeIds && team.judgeIds.length > 0}
+												<div class="flex flex-wrap gap-1">
+													{#each team.judgeIds as judgeId}
+														<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20">
+															{getLecturerName(judgeId)}
+														</span>
+													{/each}
+												</div>
+											{:else}
+												<span class="text-zinc-500 italic">Unassigned</span>
+											{/if}
+										</td>
+										<td class="py-3 px-4">
+											{#if team.status === "APPROVED" || team.status === "ACTIVE"}
+												<button
+													onclick={() => openAssignModal(team)}
+													class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-(--md-primary) bg-transparent text-(--md-primary) hover:bg-(--md-primary-container) hover:text-(--md-on-primary-container) transition-all cursor-pointer"
+												>
+													Assign Experts
+												</button>
+											{/if}
 										</td>
 									</tr>
 								{/each}
@@ -559,6 +717,134 @@
 						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
 					>
 						{isCreatingTeam ? "Creating..." : "Create Team"}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
+
+{#if showAssignModal && targetTeam}
+	<div
+		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+	>
+		<div
+			class="w-full max-w-md rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low)"
+		>
+			<div class="flex justify-between items-center mb-6">
+				<h3 class="text-xl font-extrabold text-(--md-on-surface)">Assign Experts</h3>
+				<button
+					onclick={() => (showAssignModal = false)}
+					class="p-1 rounded-full hover:bg-(--md-surface-container-high) border-0 bg-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer"
+				>
+					<X class="w-5 h-5" />
+				</button>
+			</div>
+
+			<form onsubmit={handleAssignExperts} class="space-y-4">
+				{#if assignMessage}
+					<div
+						class="p-3.5 rounded-xl border text-sm font-medium {assignError
+							? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
+							: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
+					>
+						{assignMessage}
+					</div>
+				{/if}
+
+				<div>
+					<label
+						for="assign-team-name"
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Team Name
+					</label>
+					<input
+						type="text"
+						id="assign-team-name"
+						value={targetTeam.name}
+						disabled
+						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-container-high) text-(--md-on-surface-variant) outline-none opacity-80"
+					/>
+				</div>
+
+				<!-- Mentor Selection -->
+				<div>
+					<label
+						for="assign-mentor"
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Select Mentor
+					</label>
+					<select
+						id="assign-mentor"
+						bind:value={selectedMentorId}
+						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all cursor-pointer"
+					>
+						<option value="">-- Unassigned / None --</option>
+						{#each lecturers.filter(l => !selectedJudgeIds.includes(l.id)) as lecturer}
+							<option value={lecturer.id}>{lecturer.fullName || lecturer.name} ({lecturer.email})</option>
+						{/each}
+					</select>
+				</div>
+
+				<!-- Judges Selection -->
+				<div>
+					<label
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Select Judges (2 or 3 required)
+					</label>
+					<div
+						class="max-h-40 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
+					>
+						{#each lecturers.filter(l => l.id !== selectedMentorId) as lecturer}
+							<label
+								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
+							>
+								<input
+									type="checkbox"
+									value={lecturer.id}
+									checked={selectedJudgeIds.includes(lecturer.id)}
+									onchange={(e) => {
+										if (e.currentTarget.checked) {
+											selectedJudgeIds = [...selectedJudgeIds, lecturer.id]
+										} else {
+											selectedJudgeIds = selectedJudgeIds.filter((id) => id !== lecturer.id)
+										}
+									}}
+									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
+								/>
+								<div class="text-xs">
+									<p class="font-bold text-(--md-on-surface)">
+										{lecturer.fullName || lecturer.name}
+									</p>
+									<p class="text-(--md-on-surface-variant) mt-0.5">
+										{lecturer.email}
+									</p>
+								</div>
+							</label>
+						{/each}
+					</div>
+					<p class="text-[10px] text-zinc-500 mt-1 italic">
+						Selected: {selectedJudgeIds.length} judge(s)
+					</p>
+				</div>
+
+				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
+					<button
+						type="button"
+						onclick={() => (showAssignModal = false)}
+						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
+					>
+						Cancel
+					</button>
+					<button
+						type="submit"
+						disabled={isAssigning}
+						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+					>
+						{isAssigning ? "Saving..." : "Save Assignment"}
 					</button>
 				</div>
 			</form>

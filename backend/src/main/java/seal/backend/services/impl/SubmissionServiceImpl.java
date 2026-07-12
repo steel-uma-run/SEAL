@@ -133,7 +133,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       // Only judge assigned to the correct track can view submissions
       Lecturer lecturer = lecturerRepo.findByEmail(actor.getEmail()).get();
 
-      if (lecturer.getTrack() != null && lecturer.getTrack().equals(targetTeam.getTrack())) {
+      if (lecturer.getJudgedTracks().contains(targetTeam.getTrack())) {
         // actor is a judge assigned to the same track as the team, return submissions
         return submissionRepo.findAllBySubmitterTeamId(teamId).stream()
             .map(

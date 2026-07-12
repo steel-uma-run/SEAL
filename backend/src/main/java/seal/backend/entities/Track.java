@@ -11,7 +11,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +18,7 @@ import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import seal.openapi.model.TrackDto;
 
 @Entity
 @Table(name = "tracks")
@@ -50,6 +50,16 @@ public class Track {
       inverseJoinColumns = @JoinColumn(name = "lecturer_id"))
   private List<Lecturer> mentors = new ArrayList<>();
 
-  @OneToMany(mappedBy = "track", fetch = FetchType.LAZY)
+  @ManyToMany(fetch = FetchType.LAZY)
   private List<Lecturer> judges = new ArrayList<>();
+
+  public TrackDto toDto() {
+    return new TrackDto(
+        id,
+        name,
+        description,
+        event.getId(),
+        mentors.stream().map(mentor -> mentor.getId()).toArray(UUID[]::new),
+        judges.stream().map(judges -> judges.getId()).toArray(UUID[]::new));
+  }
 }

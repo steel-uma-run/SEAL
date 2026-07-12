@@ -92,6 +92,9 @@
     "/tracks/{trackId}/assign-team": {
       "$ref": "./openapi/paths/tracks/assign_team.json"
     },
+    "/tracks/{trackId}/assign-judge": {
+      "$ref": "./openapi/paths/tracks/assign_judge.json"
+    },
 
     "/rounds/{roundId}": {
       "$ref": "./openapi/paths/rounds/delete.json"
