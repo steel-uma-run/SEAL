@@ -77,6 +77,12 @@ public class HackathonEventController implements EventsApi {
   }
 
   @Override
+  public ResponseEntity<HackathonEventDto[]> getEventsInSeason(
+      @PathVariable(name = "seasonId") @NotNull UUID seasonId) {
+    return ResponseEntity.ok(eventService.getAllEvents(seasonId).toArray(HackathonEventDto[]::new));
+  }
+
+  @Override
   public ResponseEntity<TeamDto[]> getAllTeamsOfEvents(
       @PathVariable(name = "eventId") @NotNull UUID eventId) {
     List<TeamDto> dtos = eventService.getAllTeamsOfEvent(eventId);

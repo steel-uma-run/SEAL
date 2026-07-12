@@ -16,7 +16,7 @@ public class ProfileController implements ProfileApi {
   private final ProfileService profileService;
 
   @Override
-  @PreAuthorize("authenticated()")
+  @PreAuthorize("isAuthenticated()")
   public ResponseEntity<Object> getSelfProfile() {
     return ResponseEntity.ok(profileService.getSelfProfile());
   }

@@ -51,6 +51,9 @@
     "/seasons/{seasonId}": {
       "$ref": "./openapi/paths/seasons/get_season.json"
     },
+    "/seasons/{seasonId}/events": {
+      "$ref": "./openapi/paths/seasons/get_events.json"
+    },
 
     "/events": {
       "$ref": "./openapi/paths/events/create.json"
