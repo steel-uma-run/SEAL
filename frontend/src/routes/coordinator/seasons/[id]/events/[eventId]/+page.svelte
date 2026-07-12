@@ -2,7 +2,15 @@
 	import { onMount } from "svelte"
 	import { page } from "$app/stores"
 	import { goto } from "$app/navigation"
-	import { getEvent, getInterestedParticipants, getAllTeamsOfEvents, createTeam, getAllAccounts, assignExperts } from "$lib/api"
+	import {
+		getEvent,
+		getInterestedParticipants,
+		getAllTeamsOfEvents,
+		createTeam,
+		getAllAccounts,
+		assignExperts,
+		getAllTracksOfEvent
+	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Clock, X } from "@lucide/svelte"
 
@@ -33,9 +41,13 @@
 	// Lecturers List for Assignment
 	let lecturers = $state<any[]>([])
 
+	// Event Tracks list
+	let eventTracks = $state<any[]>([])
+
 	// Assign Experts Modal State
 	let showAssignModal = $state(false)
 	let targetTeam = $state<any>(null)
+	let selectedTrackId = $state<string>("")
 	let selectedMentorId = $state<string>("")
 	let selectedJudgeIds = $state<string[]>([])
 	let isAssigning = $state(false)
@@ -82,7 +94,7 @@
 			// 1. Fetch Event Details
 			let eventItem = null
 			try {
-				const res = await getEvent({ path: { seasonId, eventId }, throwOnError: false })
+				const res = await getEvent({ path: { eventId }, throwOnError: false })
 				if (res.response?.ok && res.data) {
 					eventItem = res.data
 				}
@@ -108,11 +120,11 @@
 			// 2. Fetch interested participants and teams
 			const [participantsRes, teamsRes] = await Promise.all([
 				getInterestedParticipants({
-					path: { seasonId, eventId },
+					path: { eventId },
 					throwOnError: false
 				}),
 				getAllTeamsOfEvents({
-					path: { seasonId, eventId },
+					path: { eventId },
 					throwOnError: false
 				})
 			])
@@ -259,8 +271,43 @@
 		}
 	}
 
+	async function loadEventTracks() {
+		try {
+			const { data, response } = await getAllTracksOfEvent({
+				path: { eventId },
+				throwOnError: false
+			})
+			if (response?.ok && data && data.length > 0) {
+				eventTracks = data
+				return
+			}
+		} catch (err) {
+			console.error("Error loading event tracks from API:", err)
+		}
+
+		// Fallback to local storage event tracks
+		if (event && event.tracks && event.tracks.length > 0) {
+			eventTracks = event.tracks.map((t: any, idx: number) => ({
+				id: t.id || t.name || `track-${idx + 1}`,
+				name: t.name,
+				description: t.description || ""
+			}))
+		} else {
+			eventTracks = [
+				{ id: "track-1", name: "Cybersecurity", description: "Cybersecurity track" },
+				{ id: "track-2", name: "Artificial Intelligence", description: "AI track" }
+			]
+		}
+	}
+
+	function getTrackName(trackId: string) {
+		const track = eventTracks.find((t) => t.id === trackId || t.name === trackId)
+		return track ? track.name : trackId
+	}
+
 	function openAssignModal(team: any) {
 		targetTeam = team
+		selectedTrackId = team.track_id || team.trackId || ""
 		selectedMentorId = team.mentor_id || team.mentorId || ""
 		selectedJudgeIds = team.judge_ids || team.judgeIds || []
 		assignMessage = ""
@@ -270,7 +317,11 @@
 
 	async function handleAssignExperts(e: Event) {
 		e.preventDefault()
-		if (selectedJudgeIds.length > 0 && selectedJudgeIds.length !== 2 && selectedJudgeIds.length !== 3) {
+		if (
+			selectedJudgeIds.length > 0 &&
+			selectedJudgeIds.length !== 2 &&
+			selectedJudgeIds.length !== 3
+		) {
 			assignMessage = "You must assign either 2 or 3 judges (or none)."
 			assignError = true
 			return
@@ -281,9 +332,14 @@
 		assignError = false
 
 		try {
-			const { response, data, error: apiErr } = await assignExperts({
+			const {
+				response,
+				data,
+				error: apiErr
+			} = await assignExperts({
 				path: { teamId: targetTeam.id },
 				body: {
+					track_id: selectedTrackId || null,
 					mentor_id: selectedMentorId || null,
 					judge_ids: selectedJudgeIds
 				},
@@ -293,7 +349,7 @@
 			if (response?.ok && data) {
 				showAssignModal = false
 				await fetchEventDetails()
-				alert(`Experts assigned to team "${targetTeam.name}" successfully!`)
+				alert(`Track and experts assigned to team "${targetTeam.name}" successfully!`)
 			} else {
 				if (typeof window !== "undefined" && (!response || response.status === 404)) {
 					const keyTeams = `teams_${eventId}`
@@ -304,6 +360,8 @@
 							if (t.id === targetTeam.id) {
 								return {
 									...t,
+									track_id: selectedTrackId || null,
+									trackId: selectedTrackId || null,
 									mentor_id: selectedMentorId || null,
 									mentorId: selectedMentorId || null,
 									judge_ids: selectedJudgeIds,
@@ -316,15 +374,19 @@
 					}
 					showAssignModal = false
 					await fetchEventDetails()
-					alert(`Experts assigned locally for mock event!`)
+					alert(`Track and experts assigned locally for mock event!`)
 				} else {
 					const errBody = apiErr as any
-					assignMessage = errBody?.detail || errBody?.title || response?.statusText || "Failed to assign experts."
+					assignMessage =
+						errBody?.detail ||
+						errBody?.title ||
+						response?.statusText ||
+						"Failed to assign track and experts."
 					assignError = true
 				}
 			}
 		} catch (err: any) {
-			console.error("Error assigning experts:", err)
+			console.error("Error assigning track and experts:", err)
 			assignMessage = err.message || "An error occurred."
 			assignError = true
 		} finally {
@@ -337,9 +399,10 @@
 		return lec ? lec.fullName || lec.name : lecturerId
 	}
 
-	onMount(() => {
-		fetchEventDetails()
-		loadLecturers()
+	onMount(async () => {
+		await fetchEventDetails()
+		await loadLecturers()
+		await loadEventTracks()
 	})
 </script>
 
@@ -386,6 +449,21 @@
 				<p class="text-base text-(--md-on-surface-variant) mt-3 leading-relaxed max-w-3xl">
 					{event.description || "No description provided."}
 				</p>
+				{#if eventTracks.length > 0}
+					<div class="flex items-center gap-2 mt-4 flex-wrap">
+						<span class="text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider"
+							>Tracks:</span
+						>
+						{#each eventTracks as track}
+							<span
+								class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-(--md-surface-container-high) text-(--md-on-surface-variant) border border-(--md-outline-variant)"
+								title={track.description}
+							>
+								{track.name}
+							</span>
+						{/each}
+					</div>
+				{/if}
 				<div class="flex flex-wrap gap-6 mt-6 text-sm text-(--md-on-surface-variant)">
 					<div class="flex items-center gap-2">
 						<Clock class="w-4 h-4 text-(--md-primary)" />
@@ -494,10 +572,10 @@
 							<tr
 								class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
 							>
-								<th class="py-3 px-4">Team ID</th>
 								<th class="py-3 px-4">Team Name</th>
 								<th class="py-3 px-4">Leader Name</th>
 								<th class="py-3 px-4">Status</th>
+								<th class="py-3 px-4">Track</th>
 								<th class="py-3 px-4">Mentor</th>
 								<th class="py-3 px-4">Judges</th>
 								<th class="py-3 px-4">Actions</th>
@@ -509,9 +587,6 @@
 									<tr
 										class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
 									>
-										<td class="py-3 px-4 font-mono text-xs font-semibold">
-											#{team.id}
-										</td>
 										<td class="py-3 px-4 font-bold">{team.name}</td>
 										<td class="py-3 px-4 text-xs font-semibold"
 											>{getStudentName(team.leader_id || team.leaderId)}</td
@@ -528,9 +603,22 @@
 												{team.status}
 											</span>
 										</td>
+										<td class="py-3 px-4 text-xs font-semibold">
+											{#if team.track_id || team.trackId}
+												<span
+													class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500/10 text-teal-500 border border-teal-500/20"
+												>
+													{getTrackName(team.track_id || team.trackId)}
+												</span>
+											{:else}
+												<span class="text-zinc-500 italic">Unassigned</span>
+											{/if}
+										</td>
 										<td class="py-3 px-4 text-xs">
 											{#if team.mentor_id || team.mentorId}
-												<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-500 border border-violet-500/20">
+												<span
+													class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-500 border border-violet-500/20"
+												>
 													{getLecturerName(team.mentor_id || team.mentorId)}
 												</span>
 											{:else}
@@ -541,7 +629,9 @@
 											{#if team.judge_ids && team.judge_ids.length > 0}
 												<div class="flex flex-wrap gap-1">
 													{#each team.judge_ids as judgeId}
-														<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20">
+														<span
+															class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20"
+														>
 															{getLecturerName(judgeId)}
 														</span>
 													{/each}
@@ -549,7 +639,9 @@
 											{:else if team.judgeIds && team.judgeIds.length > 0}
 												<div class="flex flex-wrap gap-1">
 													{#each team.judgeIds as judgeId}
-														<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20">
+														<span
+															class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20"
+														>
 															{getLecturerName(judgeId)}
 														</span>
 													{/each}
@@ -768,6 +860,26 @@
 					/>
 				</div>
 
+				<!-- Track Selection -->
+				<div>
+					<label
+						for="assign-track"
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Select Track
+					</label>
+					<select
+						id="assign-track"
+						bind:value={selectedTrackId}
+						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all cursor-pointer"
+					>
+						<option value="">-- Unassigned / None --</option>
+						{#each eventTracks as track}
+							<option value={track.id}>{track.name}</option>
+						{/each}
+					</select>
+				</div>
+
 				<!-- Mentor Selection -->
 				<div>
 					<label
@@ -782,8 +894,10 @@
 						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all cursor-pointer"
 					>
 						<option value="">-- Unassigned / None --</option>
-						{#each lecturers.filter(l => !selectedJudgeIds.includes(l.id)) as lecturer}
-							<option value={lecturer.id}>{lecturer.fullName || lecturer.name} ({lecturer.email})</option>
+						{#each lecturers.filter((l) => !selectedJudgeIds.includes(l.id)) as lecturer}
+							<option value={lecturer.id}
+								>{lecturer.fullName || lecturer.name} ({lecturer.email})</option
+							>
 						{/each}
 					</select>
 				</div>
@@ -798,7 +912,7 @@
 					<div
 						class="max-h-40 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
 					>
-						{#each lecturers.filter(l => l.id !== selectedMentorId) as lecturer}
+						{#each lecturers.filter((l) => l.id !== selectedMentorId) as lecturer}
 							<label
 								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
 							>
