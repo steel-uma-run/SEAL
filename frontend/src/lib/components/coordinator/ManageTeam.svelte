@@ -124,11 +124,23 @@
 				let seasonEvents: any[] = []
 				const eventsRes = await getEventsInSeason({ path: { seasonId }, throwOnError: false })
 				if (eventsRes.response?.ok && eventsRes.data) {
-					seasonEvents = eventsRes.data
-				} else if (typeof window !== "undefined") {
+					seasonEvents = [...eventsRes.data]
+				}
+				if (typeof window !== "undefined") {
 					const localEvents = localStorage.getItem(`events_${seasonId}`)
 					if (localEvents) {
-						seasonEvents = JSON.parse(localEvents)
+						try {
+							const parsed = JSON.parse(localEvents)
+							if (Array.isArray(parsed)) {
+								for (const e of parsed) {
+									if (!seasonEvents.some((se) => se.id === e.id)) {
+										seasonEvents.push(e)
+									}
+								}
+							}
+						} catch (e) {
+							console.error("Error parsing local events:", e)
+						}
 					}
 				}
 
@@ -150,11 +162,23 @@
 						throwOnError: false
 					})
 					if (teamsRes.response?.ok && teamsRes.data) {
-						eventTeams = teamsRes.data
-					} else if (typeof window !== "undefined") {
+						eventTeams = [...teamsRes.data]
+					}
+					if (typeof window !== "undefined") {
 						const localTeams = localStorage.getItem(`teams_${eventId}`)
 						if (localTeams) {
-							eventTeams = JSON.parse(localTeams)
+							try {
+								const parsed = JSON.parse(localTeams)
+								if (Array.isArray(parsed)) {
+									for (const t of parsed) {
+										if (!eventTeams.some((et) => et.id === t.id)) {
+											eventTeams.push(t)
+										}
+									}
+								}
+							} catch (e) {
+								console.error("Error parsing local teams:", e)
+							}
 						}
 					}
 
@@ -166,11 +190,23 @@
 						throwOnError: false
 					})
 					if (partsRes.response?.ok && partsRes.data) {
-						participants = partsRes.data
-					} else if (typeof window !== "undefined") {
+						participants = [...partsRes.data]
+					}
+					if (typeof window !== "undefined") {
 						const localParts = localStorage.getItem(`participants_${eventId}`)
 						if (localParts) {
-							participants = JSON.parse(localParts)
+							try {
+								const parsed = JSON.parse(localParts)
+								if (Array.isArray(parsed)) {
+									for (const p of parsed) {
+										if (!participants.some((sp) => sp.id === p.id)) {
+											participants.push(p)
+										}
+									}
+								}
+							} catch (e) {
+								console.error("Error parsing local participants:", e)
+							}
 						}
 					}
 
@@ -181,7 +217,7 @@
 							throwOnError: false
 						})
 						if (tracksRes.response?.ok && tracksRes.data) {
-							tracks = tracksRes.data
+							tracks = [...tracksRes.data]
 						}
 					} catch (e) {
 						console.error("Error loading tracks for event:", e)
@@ -214,26 +250,7 @@
 			}
 
 			allEvents = loadedEvents
-
-			if (loadedTeams.length === 0) {
-				// Mock fallback if nothing is loaded to prevent completely blank view
-				teams = [
-					{
-						id: "T-001",
-						name: "Team Alpha (Mock)",
-						season: "AI for Good 2026",
-						seasonId: "mock-1",
-						track: "AI & Machine Learning",
-						leader: "john.doe@fptu.edu.vn",
-						leaderName: "John Doe",
-						membersCount: 4,
-						maxMembers: 5,
-						status: "APPROVED"
-					}
-				]
-			} else {
-				teams = loadedTeams
-			}
+			teams = loadedTeams
 		} catch (err) {
 			console.error("Error loading team data:", err)
 		} finally {
@@ -427,7 +444,7 @@
 				<input
 					type="text"
 					bind:value={searchQuery}
-					placeholder="Search by ID, team name, leader..."
+					placeholder="Search by team name, leader..."
 					class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-(--md-outline) bg-(--md-surface-container-low) text-(--md-on-surface) placeholder-(--md-on-surface-variant)/60 focus:ring-2 focus:ring-(--md-primary) outline-none transition-all text-sm"
 				/>
 				{#if searchQuery}
@@ -509,9 +526,8 @@
 					<tr
 						class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
 					>
-						<th class="py-4 px-4">Team ID</th>
 						<th class="py-4 px-4">Team Name</th>
-						<th class="py-4 px-4">Season & Track</th>
+						<th class="py-4 px-4">Event</th>
 						<th class="py-4 px-4">Leader</th>
 						<th class="py-4 px-4">Members</th>
 						<th class="py-4 px-4">Status</th>
@@ -521,7 +537,7 @@
 				<tbody class="text-sm">
 					{#if isLoading}
 						<tr>
-							<td colspan="7" class="py-16 text-center">
+							<td colspan="6" class="py-16 text-center">
 								<div class="flex flex-col items-center justify-center gap-3">
 									<div
 										class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-(--md-primary)"
@@ -537,21 +553,11 @@
 							<tr
 								class="border-b border-(--md-outline-variant)/50 transition-colors hover:bg-(--md-surface-container-highest)/30 text-(--md-on-surface)"
 							>
-								<td
-									class="py-4 px-4 font-mono text-xs font-semibold text-(--md-on-surface-variant)"
-								>
-									#{team.id}
-								</td>
 								<td class="py-4 px-4 font-bold">
 									{team.name}
 								</td>
-								<td class="py-4 px-4">
-									<p class="font-semibold text-xs text-(--md-on-surface)">
-										{team.season}
-									</p>
-									<p class="text-[10px] mt-0.5 text-(--md-on-surface-variant)">
-										{team.track}
-									</p>
+								<td class="py-4 px-4 font-semibold text-xs text-(--md-on-surface)">
+									{team.event ? team.event.name || team.event : team.eventName || "General Event"}
 								</td>
 								<td class="py-4 px-4">
 									<p class="font-bold text-xs">{team.leaderName}</p>
@@ -614,7 +620,7 @@
 						{/each}
 					{:else}
 						<tr>
-							<td colspan="7" class="py-12 text-center text-(--md-on-surface-variant)">
+							<td colspan="6" class="py-12 text-center text-(--md-on-surface-variant)">
 								<p class="font-semibold text-lg">No teams found</p>
 								<p class="text-sm">Try adjusting your filters or search terms.</p>
 							</td>
@@ -650,10 +656,13 @@
 					class="p-4 rounded-xl border border-(--md-outline-variant) bg-(--md-surface-container-high)"
 				>
 					<p class="text-xs text-(--md-on-surface-variant) font-semibold uppercase tracking-wider">
-						Season & Track
+						Event
 					</p>
-					<p class="font-bold text-sm mt-1">{selectedTeam.season}</p>
-					<p class="text-xs text-(--md-on-surface-variant) mt-0.5">Track: {selectedTeam.track}</p>
+					<p class="font-bold text-sm mt-1">
+						{selectedTeam.event
+							? selectedTeam.event.name || selectedTeam.event
+							: selectedTeam.eventName || "General Event"}
+					</p>
 				</div>
 
 				<div

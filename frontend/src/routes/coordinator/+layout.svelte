@@ -17,7 +17,7 @@
 			children: [
 				{ href: "/coordinator/seasons", label: "Seasons & Events" },
 				{ href: "/coordinator/teams", label: "Teams" },
-				{ href: "/coordinator/experts", label: "Lecturers & Judges" },
+				{ href: "/coordinator/experts", label: "Lecturers" },
 				{ href: "/coordinator/users", label: "Users" }
 			]
 		},

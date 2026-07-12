@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-	<title>Expert Management - SEAL</title>
+	<title>Lecturer Management - SEAL</title>
 </svelte:head>
 
 <LecturerPanel />
