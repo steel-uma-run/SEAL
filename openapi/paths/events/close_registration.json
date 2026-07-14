@@ -1,0 +1,33 @@
+{
+  "post": {
+    "summary": "Close event for registration",
+    "operationId": "close_registration",
+    "tags": ["events"],
+    "parameters": [
+      {
+        "name": "eventId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successfully closed registration"
+      },
+      "400": {
+        "description": "Event is not finalized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../responses/ClientErrorResponse.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}
