@@ -3,7 +3,6 @@ package seal.backend.services.impl;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,7 +25,6 @@ import seal.backend.repositories.TrackRepository;
 import seal.backend.services.HackathonEventService;
 import seal.openapi.model.CreateEventRequestDto;
 import seal.openapi.model.HackathonEventDto;
-import seal.openapi.model.HackathonEventStatusDto;
 import seal.openapi.model.StudentDto;
 import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
@@ -82,14 +80,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
 
     hackathonEventRepository.save(event);
 
-    return new HackathonEventDto(
-        event.getId(),
-        event.getName(),
-        event.getDescription(),
-        HackathonEventStatusDto.fromValue(event.getStatus().name()),
-        event.getStartTime(),
-        event.getEndTime(),
-        event.getSeason().getId());
+    return event.toDto();
   }
 
   @Override
@@ -137,24 +128,48 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   }
 
   @Override
+  public void openRegistration(UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    if (event.getStatus() != EventStatus.FINALIZED) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Event must be finalized to open registration");
+    }
+
+    event.setOpenForRegistration(true);
+    hackathonEventRepository.save(event);
+  }
+
+  @Override
+  public void closeRegistration(UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    if (event.getStatus() != EventStatus.FINALIZED) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Event must be finalized to close registration");
+    }
+
+    event.setOpenForRegistration(false);
+    hackathonEventRepository.save(event);
+  }
+
+  @Override
   public HackathonEventDto getEvent(UUID eventId) {
-    hackathonEventRepository
-        .findById(eventId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+    HackathonEvent result =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
 
-    Optional<HackathonEvent> result = hackathonEventRepository.findById(eventId);
-
-    HackathonEventDto dto =
-        new HackathonEventDto(
-            result.get().getId(),
-            result.get().getName(),
-            result.get().getDescription(),
-            HackathonEventStatusDto.fromValue(result.get().getStatus().name()),
-            result.get().getStartTime(),
-            result.get().getEndTime(),
-            result.get().getSeason().getId());
-
-    return dto;
+    return result.toDto();
   }
 
   @Override
@@ -175,16 +190,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     }
 
     for (HackathonEvent event : found) {
-      HackathonEventDto dto =
-          new HackathonEventDto(
-              event.getId(),
-              event.getName(),
-              event.getDescription(),
-              HackathonEventStatusDto.fromValue(event.getStatus().name()),
-              event.getStartTime(),
-              event.getEndTime(),
-              event.getSeason().getId());
-      resultList.add(dto);
+      resultList.add(event.toDto());
     }
 
     return resultList;
@@ -215,14 +221,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
 
     hackathonEventRepository.save(hackathonEvent);
 
-    return new HackathonEventDto(
-        hackathonEvent.getId(),
-        hackathonEvent.getName(),
-        hackathonEvent.getDescription(),
-        HackathonEventStatusDto.fromValue(hackathonEvent.getStatus().name()),
-        hackathonEvent.getStartTime(),
-        hackathonEvent.getEndTime(),
-        hackathonEvent.getSeason().getId());
+    return hackathonEvent.toDto();
   }
 
   @Override

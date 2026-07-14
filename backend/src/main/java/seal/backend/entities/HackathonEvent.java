@@ -25,6 +25,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import seal.backend.enums.EventStatus;
+import seal.openapi.model.HackathonEventDto;
+import seal.openapi.model.HackathonEventStatusDto;
 
 @Entity
 @Table(name = "events")
@@ -65,6 +67,9 @@ public class HackathonEvent {
   @Nonnull
   private Season season;
 
+  @Column(columnDefinition = "boolean default false", nullable = false)
+  private boolean openForRegistration = false;
+
   @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
   private List<Round> rounds = new ArrayList<>();
 
@@ -82,4 +87,16 @@ public class HackathonEvent {
 
   @ManyToMany(mappedBy = "events")
   private Set<Student> students = new HashSet<>();
+
+  public HackathonEventDto toDto() {
+    return new HackathonEventDto(
+        getId(),
+        getName(),
+        getDescription(),
+        HackathonEventStatusDto.fromValue(getStatus().name()),
+        getStartTime(),
+        getEndTime(),
+        getSeason().getId(),
+        isOpenForRegistration());
+  }
 }

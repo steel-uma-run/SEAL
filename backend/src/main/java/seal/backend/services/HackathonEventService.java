@@ -27,4 +27,8 @@ public interface HackathonEventService {
   void finalizeEvent(UUID eventId);
 
   void markInterested(UUID eventId);
+
+  void openRegistration(UUID eventId);
+
+  void closeRegistration(UUID eventId);
 }
