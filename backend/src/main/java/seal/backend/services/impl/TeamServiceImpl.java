@@ -28,7 +28,6 @@ import seal.backend.repositories.UserRepository;
 import seal.backend.services.TeamService;
 import seal.openapi.model.CreateTeamRequestPayloadDto;
 import seal.openapi.model.TeamDto;
-import seal.openapi.model.TeamStatusDto;
 
 @Service
 @RequiredArgsConstructor
@@ -82,6 +81,11 @@ public class TeamServiceImpl implements TeamService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
 
+    if (!hackathonEvent.isOpenForRegistration()) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "This event is not opened for team registration");
+    }
+
     if (leader.getStudentStatus() != StudentStatus.ACTIVE) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "Only ACTIVE students are allowed to create a team.");
@@ -134,16 +138,11 @@ public class TeamServiceImpl implements TeamService {
         member.setTeam(savedTeam);
         studentRepository.save(member);
         memberUuids.add(memberId);
+        savedTeam.getMembers().add(member);
       }
     }
 
-    return new TeamDto(
-        savedTeam.getId(),
-        savedTeam.getName(),
-        TeamStatusDto.valueOf(savedTeam.getTeamStatus().name()),
-        memberUuids.toArray(UUID[]::new),
-        leader.getId(),
-        null);
+    return savedTeam.toDto();
   }
 
   @Override

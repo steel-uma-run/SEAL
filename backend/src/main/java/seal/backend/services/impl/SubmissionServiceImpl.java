@@ -117,15 +117,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       }
 
       return submissionRepo.findAllBySubmitterTeamId(teamId).stream()
-          .map(
-              sub ->
-                  new SubmissionDto(
-                      sub.getTitle(),
-                      sub.getDescription(),
-                      sub.getGithubLink(),
-                      sub.getYtLink(),
-                      sub.getSlideLink(),
-                      sub.getSubmitTime()))
+          .map(Submission::toDto)
           .toList();
     } else if (actor.getRole() == Role.LECTURER) {
       // CONSTRAINTS:
@@ -136,30 +128,14 @@ public class SubmissionServiceImpl implements SubmissionService {
       if (lecturer.getJudgedTracks().contains(targetTeam.getTrack())) {
         // actor is a judge assigned to the same track as the team, return submissions
         return submissionRepo.findAllBySubmitterTeamId(teamId).stream()
-            .map(
-                sub ->
-                    new SubmissionDto(
-                        sub.getTitle(),
-                        sub.getDescription(),
-                        sub.getGithubLink(),
-                        sub.getYtLink(),
-                        sub.getSlideLink(),
-                        sub.getSubmitTime()))
+            .map(Submission::toDto)
             .toList();
       }
 
       if (targetTeam.getTrack().getMentors().contains(lecturer)) {
         // actor is a mentor assigned to the same track as the team, return submissions
         return submissionRepo.findAllBySubmitterTeamId(teamId).stream()
-            .map(
-                sub ->
-                    new SubmissionDto(
-                        sub.getTitle(),
-                        sub.getDescription(),
-                        sub.getGithubLink(),
-                        sub.getYtLink(),
-                        sub.getSlideLink(),
-                        sub.getSubmitTime()))
+            .map(Submission::toDto)
             .toList();
       }
     }

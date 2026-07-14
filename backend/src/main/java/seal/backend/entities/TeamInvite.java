@@ -18,6 +18,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import seal.backend.enums.InviteStatus;
+import seal.openapi.model.TeamInviteDto;
+import seal.openapi.model.TeamInviteStatusDto;
 
 @Entity
 @Table(name = "team_invites")
@@ -51,4 +53,13 @@ public class TeamInvite {
   @JoinColumn(name = "invitee_id", nullable = false)
   @Nonnull
   private Student invitee;
+
+  public TeamInviteDto toDto() {
+    return new TeamInviteDto(
+        getId(),
+        getSentAt(),
+        getExpiresAt(),
+        TeamInviteStatusDto.fromValue(getStatus().name()),
+        getInvitingTeam().getId());
+  }
 }

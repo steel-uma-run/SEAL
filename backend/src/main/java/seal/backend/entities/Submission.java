@@ -15,6 +15,7 @@ import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import seal.openapi.model.SubmissionDto;
 
 @Entity
 @Table(name = "submissions")
@@ -59,4 +60,14 @@ public class Submission {
   @JoinColumn(name = "round_id", nullable = false)
   @Nonnull
   private Round round;
+
+  public SubmissionDto toDto() {
+    return new SubmissionDto(
+        getTitle(),
+        getDescription(),
+        getGithubLink(),
+        getYtLink(),
+        getSlideLink(),
+        getSubmitTime());
+  }
 }

@@ -16,7 +16,6 @@ import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.TeamInviteRepository;
 import seal.backend.services.InviteService;
 import seal.openapi.model.TeamInviteDto;
-import seal.openapi.model.TeamInviteStatusDto;
 
 @Service
 @RequiredArgsConstructor
@@ -35,16 +34,7 @@ public class InviteServiceImpl implements InviteService {
 
     List<TeamInvite> invites = inviteRepository.findAllByInviteeId(actor.getId());
 
-    return invites.stream()
-        .map(
-            (inviteEntity) ->
-                new TeamInviteDto(
-                    inviteEntity.getId(),
-                    inviteEntity.getSentAt(),
-                    inviteEntity.getExpiresAt(),
-                    TeamInviteStatusDto.fromValue(inviteEntity.getStatus().name()),
-                    inviteEntity.getInvitingTeam().getId()))
-        .toList();
+    return invites.stream().map(TeamInvite::toDto).toList();
   }
 
   @Override
