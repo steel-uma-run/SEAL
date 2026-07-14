@@ -14,7 +14,6 @@ import seal.backend.repositories.SeasonRepository;
 import seal.backend.services.SeasonsService;
 import seal.openapi.model.CreateSeasonRequestDto;
 import seal.openapi.model.SeasonDto;
-import seal.openapi.model.SeasonSemesterDto;
 
 @Service
 @RequiredArgsConstructor
@@ -27,12 +26,7 @@ public class SeasonsServiceImpl implements SeasonsService {
     List<SeasonDto> resultList = new ArrayList<>();
 
     for (Season season : seasonEntities) {
-      SeasonDto dto =
-          new SeasonDto(
-              season.getId(),
-              SeasonSemesterDto.fromValue(season.getSemester().name()),
-              season.getYear());
-      resultList.add(dto);
+      resultList.add(season.toDto());
     }
 
     return resultList;
@@ -45,8 +39,7 @@ public class SeasonsServiceImpl implements SeasonsService {
             .findById(seasonId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Season does not exist"));
-    return new SeasonDto(
-        season.getId(), SeasonSemesterDto.fromValue(season.getSemester().name()), season.getYear());
+    return season.toDto();
   }
 
   @Override
@@ -65,9 +58,6 @@ public class SeasonsServiceImpl implements SeasonsService {
     Season newSeason = new Season(Semester.valueOf(request.semester().name()), request.year());
     Season savedSeason = seasonRepository.save(newSeason);
 
-    return new SeasonDto(
-        savedSeason.getId(),
-        SeasonSemesterDto.fromValue(savedSeason.getSemester().name()),
-        savedSeason.getYear());
+    return savedSeason.toDto();
   }
 }

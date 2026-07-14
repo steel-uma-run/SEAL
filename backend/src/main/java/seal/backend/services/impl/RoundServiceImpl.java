@@ -60,13 +60,7 @@ public class RoundServiceImpl implements RoundService {
 
     Round savedRound = roundRepository.save(round);
 
-    return new RoundDto(
-        savedRound.getId(),
-        savedRound.getName(),
-        savedRound.getDescription(),
-        savedRound.getStartTime(),
-        savedRound.getEndTime(),
-        event.getId());
+    return savedRound.toDto();
   }
 
   @Override

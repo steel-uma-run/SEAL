@@ -25,7 +25,6 @@ import seal.openapi.model.AssignMentorRequestDto;
 import seal.openapi.model.AssignTeamRequestDto;
 import seal.openapi.model.CreateTrackRequestDto;
 import seal.openapi.model.TeamDto;
-import seal.openapi.model.TeamStatusDto;
 import seal.openapi.model.TrackDto;
 import seal.openapi.model.UpdateTrackRequestDto;
 
@@ -219,12 +218,6 @@ public class TrackServiceImpl implements TrackService {
 
     UUID[] memberIds = savedTeam.getMembers().stream().map(Student::getId).toArray(UUID[]::new);
 
-    return new TeamDto(
-        savedTeam.getId(),
-        savedTeam.getName(),
-        TeamStatusDto.APPROVED,
-        memberIds,
-        savedTeam.getLeader().getId(),
-        savedTeam.getTrack().getId());
+    return savedTeam.toDto();
   }
 }

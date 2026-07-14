@@ -55,11 +55,11 @@ public class Track {
 
   public TrackDto toDto() {
     return new TrackDto(
-        id,
-        name,
-        description,
-        event.getId(),
-        mentors.stream().map(mentor -> mentor.getId()).toArray(UUID[]::new),
-        judges.stream().map(judges -> judges.getId()).toArray(UUID[]::new));
+        getId(),
+        getName(),
+        getDescription(),
+        getEvent().getId(),
+        getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new),
+        getJudges().stream().map(Lecturer::getId).toArray(UUID[]::new));
   }
 }

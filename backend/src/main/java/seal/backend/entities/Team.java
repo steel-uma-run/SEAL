@@ -69,11 +69,11 @@ public class Team {
 
   public TeamDto toDto() {
     return new TeamDto(
-        id,
-        name,
-        TeamStatusDto.fromValue(teamStatus.name()),
-        members.stream().map(stu -> stu.getId()).toArray(UUID[]::new),
-        leader.getId(),
-        track != null ? track.getId() : null);
+        getId(),
+        getName(),
+        TeamStatusDto.valueOf(getTeamStatus().name()),
+        getMembers().stream().map(Student::getId).toArray(UUID[]::new),
+        getLeader().getId(),
+        getTrack() != null ? getTrack().getId() : null);
   }
 }

@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import seal.backend.enums.Semester;
+import seal.openapi.model.SeasonDto;
+import seal.openapi.model.SeasonSemesterDto;
 
 @Entity
 @Table(name = "seasons")
@@ -35,4 +37,8 @@ public class Season {
   @Column(nullable = false)
   @Nonnull
   private Integer year;
+
+  public SeasonDto toDto() {
+    return new SeasonDto(getId(), SeasonSemesterDto.fromValue(getSemester().name()), getYear());
+  }
 }

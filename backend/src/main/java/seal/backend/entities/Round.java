@@ -18,6 +18,7 @@ import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import seal.openapi.model.RoundDto;
 
 @Entity
 @Table(name = "rounds")
@@ -56,4 +57,9 @@ public class Round {
       joinColumns = @JoinColumn(name = "round_id", nullable = false),
       inverseJoinColumns = @JoinColumn(name = "criteria_id", nullable = false))
   private Set<Criteria> criteria;
+
+  public RoundDto toDto() {
+    return new RoundDto(
+        getId(), getName(), getDescription(), getStartTime(), getEndTime(), getEvent().getId());
+  }
 }
