@@ -102,10 +102,7 @@
 		eventStartTime = ""
 		eventEndTime = ""
 		eventStatusState = "DRAFT"
-		eventTracks = [
-			{ name: "", description: "" },
-			{ name: "", description: "" }
-		]
+		eventTracks = []
 		showEventModal = true
 		eventMessage = ""
 	}
@@ -143,14 +140,6 @@
 		if (start >= end) {
 			eventMessage = "Start time must be before end time."
 			return
-		}
-
-		// Validate tracks
-		for (let i = 0; i < eventTracks.length; i++) {
-			if (!eventTracks[i].name.trim() || !eventTracks[i].description.trim()) {
-				eventMessage = `Track ${i + 1} name and description cannot be empty.`
-				return
-			}
 		}
 
 		// Prompt confirmation if status is being set to FINALIZED
@@ -335,9 +324,9 @@
 											{event.description}
 										</p>
 
-										{#if event.tracks && event.tracks.length > 0}
+										{#if event.tracks && event.tracks.filter((t: any) => t.name && t.name.trim() !== "").length > 0}
 											<div class="flex flex-wrap gap-1.5 mt-2">
-												{#each event.tracks as track}
+												{#each event.tracks.filter((t: any) => t.name && t.name.trim() !== "") as track}
 													<span
 														class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-(--md-surface-container-high) text-(--md-on-surface-variant) border border-(--md-outline-variant)"
 														title={track.description}
@@ -480,64 +469,6 @@
 						placeholder="Briefly describe the round milestones, guidelines, and rules..."
 						class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all resize-none bg-(--md-surface-container-highest) text-(--md-on-surface) placeholder-(--md-on-surface-variant) opacity-70 focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
 					></textarea>
-				</div>
-
-				<!-- Tracks Section -->
-				<div class="space-y-3 border-t pt-4 mt-2 border-(--md-outline-variant)">
-					<div class="flex items-center justify-between">
-						<label class="text-sm font-bold text-(--md-on-surface)">
-							Event Tracks ({eventTracks.length})
-						</label>
-						<button
-							type="button"
-							onclick={addTrack}
-							class="text-[10px] flex items-center gap-1 bg-(--md-primary-container) hover:bg-(--md-primary-container)/80 text-(--md-on-primary-container) py-1.5 px-3 rounded-lg border border-(--md-outline-variant) transition-all font-bold cursor-pointer"
-						>
-							<Plus class="w-3 h-3" />
-							Add Track
-						</button>
-					</div>
-
-					<div class="space-y-3 max-h-[180px] overflow-y-auto pr-1">
-						{#each eventTracks as track, index}
-							<div
-								class="p-3.5 rounded-xl border relative bg-(--md-surface-container-low) border-(--md-outline-variant)"
-							>
-								{#if eventTracks.length > 1}
-									<button
-										type="button"
-										onclick={() => removeTrack(index)}
-										class="absolute top-2 right-2 p-1 rounded-md hover:bg-red-500/10 text-red-500 hover:text-red-600 transition-colors border-0 bg-transparent cursor-pointer"
-										title="Remove Track"
-									>
-										<X class="w-3.5 h-3.5" />
-									</button>
-								{/if}
-
-								<span
-									class="text-[10px] font-bold uppercase tracking-wider text-(--md-primary) block mb-1.5"
-									>Track #{index + 1}</span
-								>
-
-								<div class="space-y-2">
-									<input
-										type="text"
-										bind:value={track.name}
-										required
-										placeholder="Track Name (e.g. Cybersecurity)"
-										class="w-full text-xs rounded-lg border border-(--md-outline) p-2.5 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
-									/>
-									<textarea
-										bind:value={track.description}
-										required
-										rows="2"
-										placeholder="Track Description..."
-										class="w-full text-xs rounded-lg border border-(--md-outline) p-2.5 outline-none transition-all resize-none bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
-									></textarea>
-								</div>
-							</div>
-						{/each}
-					</div>
 				</div>
 
 				<div class="space-y-1">

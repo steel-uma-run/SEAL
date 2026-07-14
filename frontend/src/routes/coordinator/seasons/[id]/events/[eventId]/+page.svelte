@@ -8,11 +8,14 @@
 		getAllTeamsOfEvents,
 		createTeam,
 		getAllAccounts,
-		assignExperts,
+		assignMentor,
+		assignJudge,
+		assignTeamToTrack,
+		createTrack,
 		getAllTracksOfEvent
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Clock, X } from "@lucide/svelte"
+	import { ArrowLeft, Clock, X, Plus } from "@lucide/svelte"
 
 	// Route Params
 	const seasonId = $page.params.id || ""
@@ -44,15 +47,16 @@
 	// Event Tracks list
 	let eventTracks = $state<any[]>([])
 
-	// Assign Experts Modal State
-	let showAssignModal = $state(false)
-	let targetTeam = $state<any>(null)
-	let selectedTrackId = $state<string>("")
-	let selectedMentorId = $state<string>("")
-	let selectedJudgeIds = $state<string[]>([])
-	let isAssigning = $state(false)
-	let assignMessage = $state("")
-	let assignError = $state(false)
+	// Create Track Modal State
+	let showCreateTrackModal = $state(false)
+	let newTrackName = $state("")
+	let newTrackDescription = $state("")
+	let selectedTeamsForTrack = $state<string[]>([])
+	let selectedMentorForTrack = $state<string>("")
+	let selectedJudgesForTrack = $state<string[]>([])
+	let isCreatingTrack = $state(false)
+	let createTrackMessage = $state("")
+	let createTrackError = $state(false)
 
 	// Computed: Active teamless students for selection
 	let activeTeamlessStudents = $derived(
@@ -197,7 +201,7 @@
 				await fetchEventDetails()
 				alert(`Team "${teamNameInput}" created successfully!`)
 			} else {
-				if (typeof window !== "undefined" && (!response || response.status === 404)) {
+				if (typeof window !== "undefined") {
 					const mockTeamId = crypto.randomUUID()
 					const mockTeam = {
 						id: mockTeamId,
@@ -287,16 +291,17 @@
 
 		// Fallback to local storage event tracks
 		if (event && event.tracks && event.tracks.length > 0) {
-			eventTracks = event.tracks.map((t: any, idx: number) => ({
-				id: t.id || t.name || `track-${idx + 1}`,
-				name: t.name,
-				description: t.description || ""
-			}))
+			eventTracks = event.tracks
+				.filter((t: any) => t.name && t.name.trim() !== "")
+				.map((t: any, idx: number) => ({
+					id: t.id || t.name || `track-${idx + 1}`,
+					name: t.name,
+					description: t.description || "",
+					mentor_ids: t.mentor_ids || t.mentorIds || [],
+					judge_ids: t.judge_ids || t.judgeIds || []
+				}))
 		} else {
-			eventTracks = [
-				{ id: "track-1", name: "Cybersecurity", description: "Cybersecurity track" },
-				{ id: "track-2", name: "Artificial Intelligence", description: "AI track" }
-			]
+			eventTracks = []
 		}
 	}
 
@@ -305,92 +310,148 @@
 		return track ? track.name : trackId
 	}
 
-	function openAssignModal(team: any) {
-		targetTeam = team
-		selectedTrackId = team.track_id || team.trackId || ""
-		selectedMentorId = team.mentor_id || team.mentorId || ""
-		selectedJudgeIds = team.judge_ids || team.judgeIds || []
-		assignMessage = ""
-		assignError = false
-		showAssignModal = true
+	function openCreateTrackModal() {
+		newTrackName = ""
+		newTrackDescription = ""
+		selectedTeamsForTrack = []
+		selectedMentorForTrack = ""
+		selectedJudgesForTrack = []
+		createTrackMessage = ""
+		createTrackError = false
+		showCreateTrackModal = true
 	}
 
-	async function handleAssignExperts(e: Event) {
+	async function handleCreateTrack(e: Event) {
 		e.preventDefault()
-		if (
-			selectedJudgeIds.length > 0 &&
-			selectedJudgeIds.length !== 2 &&
-			selectedJudgeIds.length !== 3
-		) {
-			assignMessage = "You must assign either 2 or 3 judges (or none)."
-			assignError = true
+		if (!newTrackName.trim() || !newTrackDescription.trim()) {
+			createTrackMessage = "Track name and description are required."
+			createTrackError = true
 			return
 		}
 
-		isAssigning = true
-		assignMessage = ""
-		assignError = false
+		if (
+			selectedJudgesForTrack.length > 0 &&
+			selectedJudgesForTrack.length !== 2 &&
+			selectedJudgesForTrack.length !== 3
+		) {
+			createTrackMessage = "You must assign either 2 or 3 judges (or none)."
+			createTrackError = true
+			return
+		}
+
+		isCreatingTrack = true
+		createTrackMessage = ""
+		createTrackError = false
 
 		try {
+			// 1. Create the Track
 			const {
 				response,
-				data,
+				data: newTrack,
 				error: apiErr
-			} = await assignExperts({
-				path: { teamId: targetTeam.id },
+			} = await createTrack({
+				path: { eventId },
 				body: {
-					track_id: selectedTrackId || null,
-					mentor_id: selectedMentorId || null,
-					judge_ids: selectedJudgeIds
+					name: newTrackName.trim(),
+					description: newTrackDescription.trim()
 				},
 				throwOnError: false
 			})
 
-			if (response?.ok && data) {
-				showAssignModal = false
+			if (response?.ok && newTrack) {
+				const trackId = newTrack.id
+
+				// 2. Assign Mentor if selected
+				if (selectedMentorForTrack) {
+					await assignMentor({
+						path: { trackId },
+						body: { mentor_id: selectedMentorForTrack },
+						throwOnError: false
+					})
+				}
+
+				// 3. Assign Judges if selected
+				for (const judgeId of selectedJudgesForTrack) {
+					await assignJudge({
+						path: { trackId },
+						body: { judge_id: judgeId },
+						throwOnError: false
+					})
+				}
+
+				// 4. Assign Teams if selected
+				for (const teamId of selectedTeamsForTrack) {
+					await assignTeamToTrack({
+						path: { trackId },
+						body: { team_id: teamId },
+						throwOnError: false
+					})
+				}
+
+				showCreateTrackModal = false
 				await fetchEventDetails()
-				alert(`Track and experts assigned to team "${targetTeam.name}" successfully!`)
+				await loadEventTracks()
+				alert(`Track "${newTrackName}" and assignments saved successfully!`)
 			} else {
-				if (typeof window !== "undefined" && (!response || response.status === 404)) {
-					const keyTeams = `teams_${eventId}`
-					const storedTeams = localStorage.getItem(keyTeams)
-					if (storedTeams) {
-						let localTeams = JSON.parse(storedTeams)
-						localTeams = localTeams.map((t: any) => {
-							if (t.id === targetTeam.id) {
-								return {
-									...t,
-									track_id: selectedTrackId || null,
-									trackId: selectedTrackId || null,
-									mentor_id: selectedMentorId || null,
-									mentorId: selectedMentorId || null,
-									judge_ids: selectedJudgeIds,
-									judgeIds: selectedJudgeIds
-								}
-							}
-							return t
-						})
-						localStorage.setItem(keyTeams, JSON.stringify(localTeams))
+				// Local storage mock fallback
+				if (typeof window !== "undefined") {
+					const trackId = crypto.randomUUID()
+					const mockTrack = {
+						id: trackId,
+						name: newTrackName.trim(),
+						description: newTrackDescription.trim(),
+						event_id: eventId,
+						mentor_ids: selectedMentorForTrack ? [selectedMentorForTrack] : [],
+						judge_ids: selectedJudgesForTrack
 					}
-					showAssignModal = false
+
+					// Update events list
+					const key = `events_${seasonId}`
+					const stored = localStorage.getItem(key)
+					if (stored) {
+						let localEvents = JSON.parse(stored)
+						localEvents = localEvents.map((evt: any) => {
+							if (evt.id === eventId) {
+								const existingTracks = evt.tracks || []
+								return { ...evt, tracks: [...existingTracks, mockTrack] }
+							}
+							return evt
+						})
+						localStorage.setItem(key, JSON.stringify(localEvents))
+					}
+
+					// Assign teams to this track in localStorage
+					if (selectedTeamsForTrack.length > 0) {
+						const keyTeams = `teams_${eventId}`
+						const storedTeams = localStorage.getItem(keyTeams)
+						if (storedTeams) {
+							let localTeams = JSON.parse(storedTeams)
+							localTeams = localTeams.map((t: any) => {
+								if (selectedTeamsForTrack.includes(t.id)) {
+									return { ...t, track_id: trackId, trackId: trackId }
+								}
+								return t
+							})
+							localStorage.setItem(keyTeams, JSON.stringify(localTeams))
+						}
+					}
+
+					showCreateTrackModal = false
 					await fetchEventDetails()
-					alert(`Track and experts assigned locally for mock event!`)
+					await loadEventTracks()
+					alert(`Track and assignments saved locally for mock event!`)
 				} else {
 					const errBody = apiErr as any
-					assignMessage =
-						errBody?.detail ||
-						errBody?.title ||
-						response?.statusText ||
-						"Failed to assign track and experts."
-					assignError = true
+					createTrackMessage = errBody?.detail || response?.statusText || "Failed to create track."
+					createTrackError = true
 				}
 			}
 		} catch (err: any) {
-			console.error("Error assigning track and experts:", err)
-			assignMessage = err.message || "An error occurred."
-			assignError = true
+			console.error("Error creating track and assignments:", err)
+			createTrackMessage = err.message || "An error occurred."
+			createTrackError = true
 		} finally {
-			isAssigning = false
+			isCreatingTrack = false
 		}
 	}
 
@@ -475,6 +536,115 @@
 					</div>
 				</div>
 			</div>
+		</div>
+
+		<!-- Event Tracks and Experts Management Card -->
+		<div
+			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-colors duration-300 shadow-sm"
+		>
+			<div class="flex justify-between items-center mb-6">
+				<div>
+					<h2 class="text-xl font-bold text-(--md-on-surface) m-0">Event Tracks & Experts</h2>
+					<p class="text-sm text-(--md-on-surface-variant) mt-1">
+						Manage and configure track details, assigned mentors, judges, and teams.
+					</p>
+				</div>
+				<button
+					onclick={openCreateTrackModal}
+					class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
+				>
+					<Plus class="w-4 h-4" />
+					Create Track
+				</button>
+			</div>
+
+			{#if eventTracks.length > 0}
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					{#each eventTracks as track}
+						<div
+							class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) space-y-4"
+						>
+							<div>
+								<h3 class="text-base font-bold text-(--md-primary) m-0">{track.name}</h3>
+								<p class="text-xs text-(--md-on-surface-variant) mt-1 leading-relaxed">
+									{track.description}
+								</p>
+							</div>
+
+							<div class="space-y-2 border-t pt-3 border-(--md-outline-variant)">
+								<div>
+									<span
+										class="text-[10px] uppercase font-bold tracking-wider text-(--md-on-surface-variant)"
+										>Mentor</span
+									>
+									<div class="mt-1">
+										{#if track.mentor_ids && track.mentor_ids.length > 0}
+											{#each track.mentor_ids as mentorId}
+												<span
+													class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-violet-500/10 text-violet-500 font-medium"
+												>
+													{getLecturerName(mentorId)}
+												</span>
+											{/each}
+										{:else}
+											<span class="text-xs text-zinc-500 italic">No mentor assigned</span>
+										{/if}
+									</div>
+								</div>
+
+								<div>
+									<span
+										class="text-[10px] uppercase font-bold tracking-wider text-(--md-on-surface-variant)"
+										>Judges</span
+									>
+									<div class="mt-1 flex flex-wrap gap-1">
+										{#if track.judge_ids && track.judge_ids.length > 0}
+											{#each track.judge_ids as judgeId}
+												<span
+													class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-sky-500/10 text-sky-500 font-medium"
+												>
+													{getLecturerName(judgeId)}
+												</span>
+											{/each}
+										{:else}
+											<span class="text-xs text-zinc-500 italic">No judges assigned</span>
+										{/if}
+									</div>
+								</div>
+
+								<div>
+									<span
+										class="text-[10px] uppercase font-bold tracking-wider text-(--md-on-surface-variant)"
+										>Assigned Teams</span
+									>
+									<div class="mt-1 flex flex-wrap gap-1">
+										{#if teams.filter((t) => t.track_id === track.id || t.trackId === track.id).length > 0}
+											{#each teams.filter((t) => t.track_id === track.id || t.trackId === track.id) as team}
+												<span
+													class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-500/10 text-emerald-500 font-medium"
+												>
+													{team.name}
+												</span>
+											{/each}
+										{:else}
+											<span class="text-xs text-zinc-500 italic">No teams assigned</span>
+										{/if}
+									</div>
+								</div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{:else}
+				<div
+					class="text-center py-8 border border-dashed rounded-2xl border-(--md-outline-variant) text-(--md-on-surface-variant)"
+				>
+					<p class="text-sm font-semibold">No tracks created for this event yet</p>
+					<p class="text-xs mt-1">
+						Get started by creating your first track and assigning components.
+					</p>
+				</div>
+			{/if}
 		</div>
 
 		<!-- Event Content Tabs Card -->
@@ -578,12 +748,16 @@
 								<th class="py-3 px-4">Track</th>
 								<th class="py-3 px-4">Mentor</th>
 								<th class="py-3 px-4">Judges</th>
-								<th class="py-3 px-4">Actions</th>
 							</tr>
 						</thead>
 						<tbody class="text-sm">
 							{#if teams.length > 0}
 								{#each teams as team}
+									{@const track = eventTracks.find(
+										(t) =>
+											t.id === (team.track_id || team.trackId) ||
+											t.name === (team.track_id || team.trackId)
+									)}
 									<tr
 										class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
 									>
@@ -615,30 +789,24 @@
 											{/if}
 										</td>
 										<td class="py-3 px-4 text-xs">
-											{#if team.mentor_id || team.mentorId}
-												<span
-													class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-500 border border-violet-500/20"
-												>
-													{getLecturerName(team.mentor_id || team.mentorId)}
-												</span>
+											{#if track && track.mentor_ids && track.mentor_ids.length > 0}
+												<div class="flex flex-wrap gap-1">
+													{#each track.mentor_ids as mentorId}
+														<span
+															class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-500 border border-violet-500/20"
+														>
+															{getLecturerName(mentorId)}
+														</span>
+													{/each}
+												</div>
 											{:else}
 												<span class="text-zinc-500 italic">Unassigned</span>
 											{/if}
 										</td>
 										<td class="py-3 px-4 text-xs">
-											{#if team.judge_ids && team.judge_ids.length > 0}
+											{#if track && track.judge_ids && track.judge_ids.length > 0}
 												<div class="flex flex-wrap gap-1">
-													{#each team.judge_ids as judgeId}
-														<span
-															class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20"
-														>
-															{getLecturerName(judgeId)}
-														</span>
-													{/each}
-												</div>
-											{:else if team.judgeIds && team.judgeIds.length > 0}
-												<div class="flex flex-wrap gap-1">
-													{#each team.judgeIds as judgeId}
+													{#each track.judge_ids as judgeId}
 														<span
 															class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20"
 														>
@@ -648,23 +816,13 @@
 												</div>
 											{:else}
 												<span class="text-zinc-500 italic">Unassigned</span>
-											{/if}
-										</td>
-										<td class="py-3 px-4">
-											{#if team.status === "APPROVED" || team.status === "ACTIVE"}
-												<button
-													onclick={() => openAssignModal(team)}
-													class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-(--md-primary) bg-transparent text-(--md-primary) hover:bg-(--md-primary-container) hover:text-(--md-on-primary-container) transition-all cursor-pointer"
-												>
-													Assign Experts
-												</button>
 											{/if}
 										</td>
 									</tr>
 								{/each}
 							{:else}
 								<tr>
-									<td colspan="4" class="py-8 text-center text-(--md-on-surface-variant)">
+									<td colspan="6" class="py-8 text-center text-(--md-on-surface-variant)">
 										<p class="font-bold">No teams created for this event yet.</p>
 									</td>
 								</tr>
@@ -816,85 +974,83 @@
 	</div>
 {/if}
 
-{#if showAssignModal && targetTeam}
+{#if showCreateTrackModal}
 	<div
 		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
 	>
 		<div
-			class="w-full max-w-md rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low)"
+			class="w-full max-w-md rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low) max-h-[90vh] overflow-y-auto"
 		>
 			<div class="flex justify-between items-center mb-6">
-				<h3 class="text-xl font-extrabold text-(--md-on-surface)">Assign Experts</h3>
+				<h3 class="text-xl font-extrabold text-(--md-on-surface)">Create Track</h3>
 				<button
-					onclick={() => (showAssignModal = false)}
+					onclick={() => (showCreateTrackModal = false)}
 					class="p-1 rounded-full hover:bg-(--md-surface-container-high) border-0 bg-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer"
 				>
 					<X class="w-5 h-5" />
 				</button>
 			</div>
 
-			<form onsubmit={handleAssignExperts} class="space-y-4">
-				{#if assignMessage}
+			<form onsubmit={handleCreateTrack} class="space-y-4">
+				{#if createTrackMessage}
 					<div
-						class="p-3.5 rounded-xl border text-sm font-medium {assignError
+						class="p-3.5 rounded-xl border text-sm font-medium {createTrackError
 							? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
 							: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
 					>
-						{assignMessage}
+						{createTrackMessage}
 					</div>
 				{/if}
 
 				<div>
 					<label
-						for="assign-team-name"
+						for="new-track-name"
 						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
 					>
-						Team Name
+						Track Name *
 					</label>
 					<input
 						type="text"
-						id="assign-team-name"
-						value={targetTeam.name}
-						disabled
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-container-high) text-(--md-on-surface-variant) outline-none opacity-80"
+						id="new-track-name"
+						bind:value={newTrackName}
+						placeholder="Cybersecurity"
+						required
+						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
 					/>
 				</div>
 
-				<!-- Track Selection -->
 				<div>
 					<label
-						for="assign-track"
+						for="new-track-desc"
 						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
 					>
-						Select Track
+						Description *
 					</label>
-					<select
-						id="assign-track"
-						bind:value={selectedTrackId}
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all cursor-pointer"
-					>
-						<option value="">-- Unassigned / None --</option>
-						{#each eventTracks as track}
-							<option value={track.id}>{track.name}</option>
-						{/each}
-					</select>
+					<textarea
+						id="new-track-desc"
+						bind:value={newTrackDescription}
+						placeholder="Enter track description..."
+						required
+						rows="2"
+						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all resize-none"
+					></textarea>
 				</div>
 
 				<!-- Mentor Selection -->
 				<div>
 					<label
-						for="assign-mentor"
+						for="new-track-mentor"
 						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
 					>
 						Select Mentor
 					</label>
 					<select
-						id="assign-mentor"
-						bind:value={selectedMentorId}
+						id="new-track-mentor"
+						bind:value={selectedMentorForTrack}
 						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all cursor-pointer"
 					>
-						<option value="">-- Unassigned / None --</option>
-						{#each lecturers.filter((l) => !selectedJudgeIds.includes(l.id)) as lecturer}
+						<option value="">-- None / Unassigned --</option>
+						{#each lecturers.filter((l) => !selectedJudgesForTrack.includes(l.id)) as lecturer}
 							<option value={lecturer.id}
 								>{lecturer.fullName || lecturer.name} ({lecturer.email})</option
 							>
@@ -910,21 +1066,23 @@
 						Select Judges (2 or 3 required)
 					</label>
 					<div
-						class="max-h-40 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
+						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
 					>
-						{#each lecturers.filter((l) => l.id !== selectedMentorId) as lecturer}
+						{#each lecturers.filter((l) => l.id !== selectedMentorForTrack) as lecturer}
 							<label
 								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
 							>
 								<input
 									type="checkbox"
 									value={lecturer.id}
-									checked={selectedJudgeIds.includes(lecturer.id)}
+									checked={selectedJudgesForTrack.includes(lecturer.id)}
 									onchange={(e) => {
 										if (e.currentTarget.checked) {
-											selectedJudgeIds = [...selectedJudgeIds, lecturer.id]
+											selectedJudgesForTrack = [...selectedJudgesForTrack, lecturer.id]
 										} else {
-											selectedJudgeIds = selectedJudgeIds.filter((id) => id !== lecturer.id)
+											selectedJudgesForTrack = selectedJudgesForTrack.filter(
+												(id) => id !== lecturer.id
+											)
 										}
 									}}
 									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
@@ -941,24 +1099,64 @@
 						{/each}
 					</div>
 					<p class="text-[10px] text-zinc-500 mt-1 italic">
-						Selected: {selectedJudgeIds.length} judge(s)
+						Selected: {selectedJudgesForTrack.length} judge(s)
 					</p>
 				</div>
+
+				<!-- Teams Selection -->
+				{#if teams.filter((t: any) => !t.track_id && !t.trackId).length > 0}
+					<div>
+						<label
+							class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+						>
+							Assign Teams
+						</label>
+						<div
+							class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
+						>
+							{#each teams.filter((t: any) => !t.track_id && !t.trackId) as team}
+								<label
+									class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
+								>
+									<input
+										type="checkbox"
+										value={team.id}
+										checked={selectedTeamsForTrack.includes(team.id)}
+										onchange={(e) => {
+											if (e.currentTarget.checked) {
+												selectedTeamsForTrack = [...selectedTeamsForTrack, team.id]
+											} else {
+												selectedTeamsForTrack = selectedTeamsForTrack.filter((id) => id !== team.id)
+											}
+										}}
+										class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
+									/>
+									<div class="text-xs">
+										<p class="font-bold text-(--md-on-surface)">{team.name}</p>
+										<p class="text-(--md-on-surface-variant) mt-0.5">
+											Leader: {getStudentName(team.leader_id || team.leaderId)}
+										</p>
+									</div>
+								</label>
+							{/each}
+						</div>
+					</div>
+				{/if}
 
 				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
 					<button
 						type="button"
-						onclick={() => (showAssignModal = false)}
+						onclick={() => (showCreateTrackModal = false)}
 						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
-						disabled={isAssigning}
+						disabled={isCreatingTrack}
 						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
 					>
-						{isAssigning ? "Saving..." : "Save Assignment"}
+						{isCreatingTrack ? "Creating..." : "Create Track"}
 					</button>
 				</div>
 			</form>
