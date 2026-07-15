@@ -1,5 +1,6 @@
 package seal.backend.services.impl;
 
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -83,5 +84,20 @@ public class RoundServiceImpl implements RoundService {
     }
 
     roundRepository.delete(round);
+  }
+
+  @Override
+  public List<RoundDto> getRounds(UUID eventId) {
+    return roundRepository.findByEventId(eventId).stream()
+        .map(
+            round ->
+                new RoundDto(
+                    round.getId(),
+                    round.getName(),
+                    round.getDescription(),
+                    round.getStartTime(),
+                    round.getEndTime(),
+                    eventId))
+        .toList();
   }
 }

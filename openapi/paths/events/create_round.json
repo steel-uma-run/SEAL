@@ -39,5 +39,39 @@
         "$ref": "../../responses/ClientErrorResponse.json"
       }
     }
+  },
+  "get": {
+    "tags": ["events"],
+    "operationId": "get_rounds",
+    "summary": "Get all rounds for an event",
+    "parameters": [
+      {
+        "name": "eventId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Rounds retrieved successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/Round.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
   }
 }
