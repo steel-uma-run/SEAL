@@ -144,4 +144,10 @@ public class HackathonEventController implements EventsApi {
     List<TrackDto> dtos = eventService.getAllTracksOfEvent(eventId);
     return ResponseEntity.ok(dtos.toArray(TrackDto[]::new));
   }
+
+  @Override
+  public ResponseEntity<RoundDto[]> getRounds(
+      @PathVariable(name = "eventId") @NotNull UUID eventId) {
+    return ResponseEntity.ok(roundService.getRounds(eventId).toArray(RoundDto[]::new));
+  }
 }

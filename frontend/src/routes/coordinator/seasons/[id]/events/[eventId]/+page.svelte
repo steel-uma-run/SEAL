@@ -12,7 +12,9 @@
 		assignJudge,
 		assignTeamToTrack,
 		createTrack,
-		getAllTracksOfEvent
+		getAllTracksOfEvent,
+		createRound,
+		getRounds
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Clock, X, Plus } from "@lucide/svelte"
@@ -29,7 +31,7 @@
 	// Students & Teams List State
 	let students = $state<any[]>([])
 	let teams = $state<any[]>([])
-	let activeTab = $state<"students" | "teams">("students")
+	let activeTab = $state<"students" | "teams" | "rounds">("students")
 
 	// Create Team Modal State
 	let showCreateTeamModal = $state(false)
@@ -57,6 +59,19 @@
 	let isCreatingTrack = $state(false)
 	let createTrackMessage = $state("")
 	let createTrackError = $state(false)
+
+	// Event Rounds list
+	let eventRounds = $state<any[]>([])
+
+	// Create Round Modal State
+	let showCreateRoundModal = $state(false)
+	let newRoundName = $state("")
+	let newRoundDescription = $state("")
+	let newRoundStartTime = $state("")
+	let newRoundEndTime = $state("")
+	let isCreatingRound = $state(false)
+	let createRoundMessage = $state("")
+	let createRoundError = $state(false)
 
 	// Computed: Active teamless students for selection
 	let activeTeamlessStudents = $derived(
@@ -310,6 +325,119 @@
 		return track ? track.name : trackId
 	}
 
+	async function loadEventRounds() {
+		try {
+			const { data, response } = await getRounds({
+				path: { eventId },
+				throwOnError: false
+			})
+			if (response?.ok && data && data.length > 0) {
+				eventRounds = data
+				return
+			}
+		} catch (err) {
+			console.error("Error loading event rounds from API:", err)
+		}
+
+		// Fallback to local storage
+		let localRounds: any[] = []
+		if (typeof window !== "undefined") {
+			const storedRounds = localStorage.getItem(`rounds_${eventId}`)
+			if (storedRounds) {
+				localRounds = JSON.parse(storedRounds)
+			}
+		}
+		eventRounds = localRounds
+	}
+
+	function openCreateRoundModal() {
+		newRoundName = ""
+		newRoundDescription = ""
+		newRoundStartTime = ""
+		newRoundEndTime = ""
+		createRoundMessage = ""
+		createRoundError = false
+		showCreateRoundModal = true
+	}
+
+	async function handleCreateRound(e: Event) {
+		e.preventDefault()
+		if (
+			!newRoundName.trim() ||
+			!newRoundDescription.trim() ||
+			!newRoundStartTime ||
+			!newRoundEndTime
+		) {
+			createRoundMessage = "All fields are required."
+			createRoundError = true
+			return
+		}
+
+		const start = new Date(newRoundStartTime)
+		const end = new Date(newRoundEndTime)
+
+		if (start >= end) {
+			createRoundMessage = "Start time must be before end time."
+			createRoundError = true
+			return
+		}
+
+		// Verify within event dates
+		if (event) {
+			const eventStart = new Date(event.startTime || event.start_time)
+			const eventEnd = new Date(event.endTime || event.end_time)
+			if (start < eventStart || end > eventEnd) {
+				createRoundMessage = "Round timeframe must be strictly within the Event's timeframe."
+				createRoundError = true
+				return
+			}
+		}
+
+		isCreatingRound = true
+		createRoundMessage = ""
+		createRoundError = false
+
+		try {
+			const { response, data: roundData } = await createRound({
+				path: { eventId },
+				body: {
+					name: newRoundName.trim(),
+					description: newRoundDescription.trim(),
+					start_time: start.toISOString(),
+					end_time: end.toISOString()
+				},
+				throwOnError: false
+			})
+
+			if (response?.ok && roundData) {
+				showCreateRoundModal = false
+				await loadEventRounds()
+				alert(`Round "${newRoundName}" created successfully!`)
+			} else {
+				// Local storage mock fallback
+				const mockRound = {
+					id: crypto.randomUUID(),
+					name: newRoundName.trim(),
+					description: newRoundDescription.trim(),
+					startTime: start.toISOString(),
+					endTime: end.toISOString(),
+					eventId
+				}
+				eventRounds = [...eventRounds, mockRound]
+				if (typeof window !== "undefined") {
+					localStorage.setItem(`rounds_${eventId}`, JSON.stringify(eventRounds))
+				}
+				showCreateRoundModal = false
+				alert(`Round "${newRoundName}" created locally for mock event!`)
+			}
+		} catch (err: any) {
+			createRoundMessage = err.message || "An error occurred."
+			createRoundError = true
+		} finally {
+			isCreatingRound = false
+		}
+	}
+
 	function openCreateTrackModal() {
 		newTrackName = ""
 		newTrackDescription = ""
@@ -464,6 +592,7 @@
 		await fetchEventDetails()
 		await loadLecturers()
 		await loadEventTracks()
+		await loadEventRounds()
 	})
 </script>
 
@@ -671,6 +800,15 @@
 				>
 					Teams ({teams.length})
 				</button>
+				<button
+					onclick={() => (activeTab = "rounds")}
+					class="px-4 py-3 border-0 bg-transparent text-sm font-bold cursor-pointer transition-all border-b-2 {activeTab ===
+					'rounds'
+						? 'border-(--md-primary) text-(--md-primary)'
+						: 'border-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface)'}"
+				>
+					Rounds ({eventRounds.length})
+				</button>
 			</div>
 
 			<!-- Tab Panels -->
@@ -829,6 +967,60 @@
 							{/if}
 						</tbody>
 					</table>
+				</div>
+			{:else if activeTab === "rounds"}
+				<div class="space-y-6">
+					<div class="flex justify-between items-center">
+						<h3 class="text-base font-bold text-(--md-on-surface) m-0">Event Rounds</h3>
+						<button
+							onclick={openCreateRoundModal}
+							class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
+						>
+							<Plus class="w-4 h-4" />
+							Create Round
+						</button>
+					</div>
+
+					{#if eventRounds.length > 0}
+						<div class="overflow-x-auto">
+							<table class="w-full text-left border-collapse">
+								<thead>
+									<tr
+										class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
+									>
+										<th class="py-3 px-4">Round Name</th>
+										<th class="py-3 px-4">Description</th>
+										<th class="py-3 px-4">Start Time</th>
+										<th class="py-3 px-4">End Time</th>
+									</tr>
+								</thead>
+								<tbody class="text-sm">
+									{#each eventRounds as round}
+										<tr
+											class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
+										>
+											<td class="py-3 px-4 font-bold">{round.name}</td>
+											<td class="py-3 px-4 text-xs text-(--md-on-surface-variant)"
+												>{round.description}</td
+											>
+											<td class="py-3 px-4 text-xs"
+												>{formatDateTime(round.startTime || round.start_time)}</td
+											>
+											<td class="py-3 px-4 text-xs"
+												>{formatDateTime(round.endTime || round.end_time)}</td
+											>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{:else}
+						<div
+							class="text-center py-8 border border-dashed rounded-2xl border-(--md-outline-variant) text-(--md-on-surface-variant)"
+						>
+							<p class="font-bold">No rounds created for this event yet.</p>
+						</div>
+					{/if}
 				</div>
 			{/if}
 		</div>
@@ -1157,6 +1349,123 @@
 						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
 					>
 						{isCreatingTrack ? "Creating..." : "Create Track"}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
+
+{#if showCreateRoundModal}
+	<div
+		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+	>
+		<div
+			class="w-full max-w-md rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low)"
+		>
+			<div class="flex justify-between items-center mb-6">
+				<h3 class="text-xl font-extrabold text-(--md-on-surface)">Create Round</h3>
+				<button
+					onclick={() => (showCreateRoundModal = false)}
+					class="p-1 rounded-full hover:bg-(--md-surface-container-high) border-0 bg-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer"
+				>
+					<X class="w-5 h-5" />
+				</button>
+			</div>
+
+			<form onsubmit={handleCreateRound} class="space-y-4">
+				{#if createRoundMessage}
+					<div
+						class="p-3.5 rounded-xl border text-sm font-medium {createRoundError
+							? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
+							: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
+					>
+						{createRoundMessage}
+					</div>
+				{/if}
+
+				<div>
+					<label
+						for="new-round-name"
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Round Name *
+					</label>
+					<input
+						type="text"
+						id="new-round-name"
+						bind:value={newRoundName}
+						placeholder="Enter round name (e.g. Group Stage)"
+						required
+						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
+					/>
+				</div>
+
+				<div>
+					<label
+						for="new-round-description"
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Description *
+					</label>
+					<textarea
+						id="new-round-description"
+						bind:value={newRoundDescription}
+						placeholder="Enter round instructions"
+						rows="3"
+						required
+						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all resize-none"
+					></textarea>
+				</div>
+
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label
+							for="new-round-start"
+							class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+						>
+							Start Time *
+						</label>
+						<input
+							type="datetime-local"
+							id="new-round-start"
+							bind:value={newRoundStartTime}
+							required
+							class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
+						/>
+					</div>
+
+					<div>
+						<label
+							for="new-round-end"
+							class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+						>
+							End Time *
+						</label>
+						<input
+							type="datetime-local"
+							id="new-round-end"
+							bind:value={newRoundEndTime}
+							required
+							class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
+						/>
+					</div>
+				</div>
+
+				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
+					<button
+						type="button"
+						onclick={() => (showCreateRoundModal = false)}
+						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
+					>
+						Cancel
+					</button>
+					<button
+						type="submit"
+						disabled={isCreatingRound}
+						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+					>
+						{isCreatingRound ? "Creating..." : "Create"}
 					</button>
 				</div>
 			</form>
