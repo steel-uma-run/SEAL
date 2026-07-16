@@ -33,7 +33,7 @@ public class TrackController implements TracksApi {
   }
 
   @Override
-  @PreAuthorize("hasAnuthority('COORDINATOR')")
+  @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<TrackDto> updateTrack(
       @PathVariable(name = "trackId") @NotNull UUID trackId,
       @RequestBody @Valid @NotNull UpdateTrackRequestDto body) {
