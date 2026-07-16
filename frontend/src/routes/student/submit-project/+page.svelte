@@ -7,7 +7,8 @@
 		getAllSeasons,
 		getEventsInSeason,
 		getInterestedParticipants,
-		submitWork
+		submitWork,
+		getAllSubmissions
 	} from "$lib/api"
 
 	let title = $state("")
@@ -22,6 +23,8 @@
 
 	let myEventId = $state<string | null>(null)
 	let mySeasonId = $state<string | null>(null)
+	let myTeamId = $state<string | null>(null)
+	let submissionsHistory = $state<any[]>([])
 
 	onMount(async () => {
 		try {
@@ -51,12 +54,24 @@
 								if (me && me.team_id) {
 									myEventId = event.id
 									mySeasonId = season.id
+									myTeamId = me.team_id
 									break
 								}
 							}
 						}
 					}
 					if (myEventId) break
+				}
+			}
+
+			// Fetch submissions history
+			if (myTeamId) {
+				const { data: subData } = await getAllSubmissions({
+					path: { teamId: myTeamId },
+					throwOnError: false
+				})
+				if (subData) {
+					submissionsHistory = subData
 				}
 			}
 		} catch (e) {
@@ -98,6 +113,23 @@
 
 			if (response?.ok) {
 				submitMessage = "Submission successful!"
+				// Update history array without reloading
+				submissionsHistory = [
+					{
+						title,
+						description,
+						github_link: submitLink,
+						youtube_link: youtubeLink,
+						slide_link: slideLink
+					},
+					...submissionsHistory
+				]
+				// Clear form
+				title = ""
+				description = ""
+				submitLink = ""
+				youtubeLink = ""
+				slideLink = ""
 			} else {
 				const errBody = error as any
 				submitMessage = `Error: ${errBody?.detail || errBody?.title || response?.statusText || "Failed to submit"}`
@@ -336,4 +368,91 @@
 			</button>
 		</form>
 	</div>
+
+	{#if submissionsHistory.length > 0}
+		<div
+			class="mt-8 p-8 md:p-10 rounded-3xl transition-all border {theme.darkMode
+				? 'bg-zinc-900 border-zinc-800'
+				: 'bg-white border-gray-100'}"
+		>
+			<h2 class="text-xl font-bold mb-4 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+				Submission History
+			</h2>
+			<div class="space-y-4">
+				{#each submissionsHistory as sub, index}
+					<div
+						class="p-4 rounded-xl border {theme.darkMode
+							? 'border-zinc-700 bg-zinc-800'
+							: 'border-gray-200 bg-gray-50'}"
+					>
+						<div class="flex justify-between items-start mb-2">
+							<h3 class="font-bold {theme.darkMode ? 'text-zinc-200' : 'text-gray-800'}">
+								{sub.title}
+								<span
+									class="ml-2 text-xs font-medium px-2 py-0.5 rounded-full {theme.darkMode
+										? 'bg-blue-900/50 text-blue-300'
+										: 'bg-blue-100 text-blue-700'}"
+								>
+									Attempt {submissionsHistory.length - index}
+								</span>
+							</h3>
+						</div>
+						<p class="text-sm mb-3 {theme.darkMode ? 'text-zinc-400' : 'text-gray-600'}">
+							{sub.description}
+						</p>
+						<div class="flex flex-col gap-2 text-sm">
+							<a
+								href={sub.github_link}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="text-blue-500 hover:underline flex items-center gap-1"
+							>
+								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+									><path
+										fill-rule="evenodd"
+										d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+										clip-rule="evenodd"
+									/></svg
+								>
+								GitHub Repository
+							</a>
+							{#if sub.youtube_link}
+								<a
+									href={sub.youtube_link}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="text-red-500 hover:underline flex items-center gap-1"
+								>
+									<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"
+										><path
+											d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"
+										/></svg
+									>
+									YouTube Demo
+								</a>
+							{/if}
+							{#if sub.slide_link}
+								<a
+									href={sub.slide_link}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="text-orange-500 hover:underline flex items-center gap-1"
+								>
+									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+										><path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+										></path></svg
+									>
+									Presentation Slide
+								</a>
+							{/if}
+						</div>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
 </div>
