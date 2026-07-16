@@ -158,7 +158,7 @@ public class TeamServiceImpl implements TeamService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Team is not in PENDING status.");
     }
 
-    team.setTeamStatus(TeamStatus.ACTIVE);
+    team.setTeamStatus(TeamStatus.APPROVED);
     teamRepository.save(team);
   }
 
@@ -172,7 +172,7 @@ public class TeamServiceImpl implements TeamService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Team does not exist."));
 
-    if (team.getTeamStatus() != TeamStatus.ACTIVE) {
+    if (team.getTeamStatus() != TeamStatus.APPROVED) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "Team is not allowed to send invites.");
     }

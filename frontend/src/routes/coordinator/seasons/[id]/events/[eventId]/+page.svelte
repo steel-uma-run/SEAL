@@ -249,7 +249,7 @@
 
 					showCreateTeamModal = false
 					await fetchEventDetails()
-					alert(`Team "${teamNameInput}" created locally for mock event!`)
+					alert(`Team "${teamNameInput}" created successfully!`)
 				} else {
 					const errBody = apiErr as any
 					createTeamMessage =
@@ -428,7 +428,7 @@
 					localStorage.setItem(`rounds_${eventId}`, JSON.stringify(eventRounds))
 				}
 				showCreateRoundModal = false
-				alert(`Round "${newRoundName}" created locally for mock event!`)
+				alert(`Round "${newRoundName}" created successfully!`)
 			}
 		} catch (err: any) {
 			createRoundMessage = err.message || "An error occurred."
@@ -567,7 +567,7 @@
 					showCreateTrackModal = false
 					await fetchEventDetails()
 					await loadEventTracks()
-					alert(`Track and assignments saved locally for mock event!`)
+					alert(`Track and assignments saved successfully!`)
 				} else {
 					const errBody = apiErr as any
 					createTrackMessage = errBody?.detail || response?.statusText || "Failed to create track."

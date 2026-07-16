@@ -200,7 +200,7 @@ public class TrackServiceImpl implements TrackService {
           HttpStatus.BAD_REQUEST, "Team and Track do not belong to the same Hackathon Event.");
     }
 
-    if (team.getTeamStatus() != TeamStatus.ACTIVE) {
+    if (team.getTeamStatus() != TeamStatus.APPROVED) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Team has not been approved yet.");
     }
 
