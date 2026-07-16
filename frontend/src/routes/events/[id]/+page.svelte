@@ -67,7 +67,7 @@
 					if (events) {
 						for (const event of events) {
 							const { data: participants } = await getInterestedParticipants({
-								path: { seasonId: season.id, eventId: event.id },
+								path: { eventId: event.id },
 								throwOnError: false
 							})
 							if (participants) {
@@ -102,7 +102,7 @@
 
 		try {
 			const { response } = await markInterested({
-				path: { seasonId: seasonId, eventId: eventId },
+				path: { eventId: eventId },
 				throwOnError: false
 			})
 
@@ -116,29 +116,8 @@
 					"Only approved (active) students are allowed to join events. Please contact the coordinator."
 				actionError = true
 			} else {
-				// Fallback to LocalStorage join for mock events (404/not found on backend)
-				if (typeof window !== "undefined") {
-					const key = `participants_${eventId}`
-					const stored = localStorage.getItem(key)
-					let list = stored ? JSON.parse(stored) : []
-					if (!list.some((p: any) => p.email === profile.email)) {
-						list.push({
-							id: profile.id,
-							email: profile.email,
-							fullName: profile.fullName || profile.name,
-							status: "ACTIVE",
-							studentId: studentIdResolved || "NONE",
-							is_external: !profile.email.endsWith("@fpt.edu.vn")
-						})
-						localStorage.setItem(key, JSON.stringify(list))
-					}
-					isRegistered = true
-					actionMessage = "Successfully joined the mock event locally!"
-					actionError = false
-				} else {
-					actionMessage = "Failed to join the event. Please try again."
-					actionError = true
-				}
+				actionMessage = "Failed to join the event. Please try again."
+				actionError = true
 			}
 		} catch (error) {
 			actionMessage = "An error occurred. Please try again later."
@@ -163,28 +142,12 @@
 			const { data: seasons } = await getAllSeasons({ throwOnError: false })
 			if (seasons) {
 				for (const season of seasons) {
-					// 1. Check LocalStorage first (for mock events created locally by coordinator)
-					if (typeof window !== "undefined") {
-						const key = `events_${season.id}`
-						const stored = localStorage.getItem(key)
-						if (stored) {
-							const allLocalEvents = JSON.parse(stored)
-							const found = allLocalEvents.find((e: any) => e.id === eventId)
-							if (found) {
-								eventDetail = found
-								seasonId = season.id
-								break
-							}
-						}
-					}
-
-					// 2. Fallback to API if not in LocalStorage
 					const { data: events } = await getEventsInSeason({
 						path: { seasonId: season.id },
 						throwOnError: false
 					})
 					if (events) {
-						const found = events.find((e: any) => e.id === eventId)
+						let found = events.find((e: any) => e.id === eventId)
 						if (found) {
 							eventDetail = found
 							seasonId = season.id
@@ -199,22 +162,11 @@
 			} else {
 				// Check registration status from the API.
 				const { data: participants } = await getInterestedParticipants({
-					path: { seasonId: seasonId, eventId: eventId },
+					path: { eventId: eventId },
 					throwOnError: false
 				})
 				if (participants) {
 					isRegistered = participants.some((p: any) => p.email === profile.email)
-				}
-
-				// Also check LocalStorage participants if not registered on DB
-				if (!isRegistered && typeof window !== "undefined") {
-					const localParts = localStorage.getItem(`participants_${eventId}`)
-					if (localParts) {
-						const parsed = JSON.parse(localParts)
-						if (parsed.some((p: any) => p.email === profile.email)) {
-							isRegistered = true
-						}
-					}
 				}
 			}
 		} catch (err) {

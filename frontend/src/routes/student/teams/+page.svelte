@@ -39,6 +39,7 @@
 
 	let studentUuid = $state<string | null>(null)
 	let allParticipants = $state<any[]>([])
+	let availableStudents = $state<any[]>([])
 
 	async function loadData() {
 		try {
@@ -66,50 +67,104 @@
 
 				// Loop through seasons and events to locate the student's registration
 				for (const season of seasons) {
-					const { data: events, response: eventsRes } = await getEventsInSeason({
-						path: { seasonId: season.id },
-						throwOnError: false
-					})
-					if (eventsRes?.ok && events) {
-						for (const event of events) {
-							// Get interested participants to find the student's student UUID and team ID
-							const { data: participants, response: participantsRes } =
-								await getInterestedParticipants({
-									path: { seasonId: season.id, eventId: event.id },
+					let allSeasonEvents: any[] = []
+
+					// 1. Check LocalStorage for mock events
+					if (typeof window !== "undefined") {
+						const key = `events_${season.id}`
+						const stored = localStorage.getItem(key)
+						if (stored) {
+							allSeasonEvents = JSON.parse(stored).filter(
+								(e: any) => e.status === "FINALIZED" || e.status === "ACTIVE"
+							)
+						}
+					}
+
+					// 2. Fallback to API if no local events
+					if (allSeasonEvents.length === 0) {
+						const { data: events, response: eventsRes } = await getEventsInSeason({
+							path: { seasonId: season.id },
+							throwOnError: false
+						})
+						if (eventsRes?.ok && events) allSeasonEvents = events
+					}
+
+					for (const event of allSeasonEvents) {
+						let participantsList: any[] = []
+
+						// 1. Check API for participants
+						const { data: participants, response: participantsRes } =
+							await getInterestedParticipants({
+								path: { eventId: event.id },
+								throwOnError: false
+							})
+						if (participantsRes?.ok && participants && participants.length > 0) {
+							participantsList = participants
+						} else {
+							// 2. Check local storage for participants fallback
+							if (typeof window !== "undefined") {
+								const localParts = localStorage.getItem(`participants_${event.id}`)
+								if (localParts) {
+									participantsList = JSON.parse(localParts)
+								}
+							}
+						}
+
+						if (participantsList.length > 0) {
+							const currentParticipant = participantsList.find(
+								(p: any) => p.email === profile.email
+							)
+							if (currentParticipant) {
+								resolvedStudentUuid = currentParticipant.id
+								resolvedParticipants = participantsList
+
+								let eventTeamsList: any[] = []
+								// Always fetch teams to resolve invite team names
+								const { data: teams, response: teamsRes } = await getAllTeamsOfEvents({
+									path: { eventId: event.id } as any,
 									throwOnError: false
 								})
-							if (participantsRes?.ok && participants) {
-								const currentParticipant = participants.find((p: any) => p.email === profile.email)
-								if (currentParticipant) {
-									resolvedStudentUuid = currentParticipant.id
-									resolvedParticipants = participants
-
-									if (currentParticipant.team_id) {
-										// Fetch all teams of this event to find details
-										const { data: teams, response: teamsRes } = await getAllTeamsOfEvents({
-											path: { seasonId: season.id, eventId: event.id },
-											throwOnError: false
-										})
-										if (teamsRes?.ok && teams) {
-											const team = teams.find((t: any) => t.id === currentParticipant.team_id)
-											if (team) {
-												resolvedTeam = team as any
-												const teamMembers = participants
-													.filter((p: any) => p.team_id === team.id)
-													.map((p: any) => ({
-														id: p.id,
-														name: p.name,
-														email: p.email,
-														student_id: p.student_id || p.studentId || "",
-														is_external: p.is_external || p.isExternal || false,
-														role: p.id === team.leader_id ? "Leader" : "Member"
-													}))
-												resolvedTeam.members = teamMembers
-											}
+								if (teamsRes?.ok && teams && teams.length > 0) {
+									eventTeamsList = teams
+								} else {
+									if (typeof window !== "undefined") {
+										const localTeams = localStorage.getItem(`teams_${event.id}`)
+										if (localTeams) {
+											eventTeamsList = JSON.parse(localTeams)
 										}
 									}
-									break
 								}
+								// Store this globally or on the invite processing step so invites can use it
+								// Since this is per-event, and invites are global, we will just use it to resolve resolvedTeam if they have one
+								// But to map invite names, we should store a global map of teamId -> teamName
+								eventTeamsList.forEach((t: any) => {
+									if (typeof window !== "undefined") {
+										// cache in session storage or just map it
+									}
+								})
+
+								if (currentParticipant.team_id || currentParticipant.teamId) {
+									if (eventTeamsList.length > 0) {
+										const teamId = currentParticipant.team_id || currentParticipant.teamId
+										const team = eventTeamsList.find((t: any) => t.id === teamId)
+										if (team) {
+											resolvedTeam = team as any
+											const teamMembers = participantsList
+												.filter((p: any) => p.team_id === team.id || p.teamId === team.id)
+												.map((p: any) => ({
+													id: p.id,
+													name: p.fullName || p.full_name || p.name || "Unknown",
+													email: p.email,
+													student_id: p.studentId || p.student_id || "",
+													is_external: p.isExternal || p.is_external || false,
+													role:
+														p.id === team.leader_id || p.id === team.leaderId ? "Leader" : "Member"
+												}))
+											resolvedTeam.members = teamMembers
+										}
+									}
+								}
+								break
 							}
 						}
 					}
@@ -119,18 +174,68 @@
 				studentUuid = resolvedStudentUuid
 				myTeam = resolvedTeam
 				allParticipants = resolvedParticipants
+				availableStudents = resolvedParticipants.filter(
+					(p: any) => !p.team_id && !p.teamId && p.id !== resolvedStudentUuid
+				)
 			}
 
 			// 3. Get invites
+			let invitesList: any[] = []
 			const { data: invitesData, response: invitesRes } = await getAllInvites({
 				throwOnError: false
 			})
 			if (invitesRes?.ok && invitesData) {
-				invites = invitesData.sort((a: any, b: any) => {
+				invitesList = invitesData
+			}
+
+			if (invitesList.length > 0) {
+				invites = invitesList.sort((a: any, b: any) => {
 					if (a.status === "PENDING" && b.status !== "PENDING") return -1
 					if (a.status !== "PENDING" && b.status === "PENDING") return 1
 					return new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime()
 				})
+			}
+
+			// Fallback: If myTeam is null, but we have an ACCEPTED invite (fixes F5 refresh issue)
+			if (!myTeam && invites.length > 0) {
+				const acceptedInvite = invites.find((i: any) => i.status === "ACCEPTED")
+				if (acceptedInvite && allParticipants.length > 0) {
+					const targetTeamId = acceptedInvite.inviting_team_id
+					let fallbackTeam = acceptedInvite.team || {
+						id: targetTeamId,
+						name: targetTeamId,
+						status: "APPROVED"
+					}
+
+					const existingMembers = allParticipants
+						.filter((p: any) => p.team_id === targetTeamId || p.teamId === targetTeamId)
+						.map((p: any) => ({
+							id: p.id,
+							name: p.fullName || p.full_name || p.name || "Unknown",
+							email: p.email,
+							student_id: p.studentId || p.student_id || "",
+							is_external: p.isExternal || p.is_external || false,
+							role:
+								p.id === fallbackTeam.leader_id || p.id === fallbackTeam.leaderId
+									? "Leader"
+									: "Member"
+						}))
+
+					const me = {
+						id: profile.id,
+						name: profile.fullName || profile.full_name || profile.name || "Me",
+						email: profile.email,
+						role: "Member"
+					}
+
+					if (!existingMembers.some((m: any) => m.id === me.id || m.email === me.email)) {
+						fallbackTeam.members = [...existingMembers, me]
+					} else {
+						fallbackTeam.members = existingMembers
+					}
+
+					myTeam = fallbackTeam
+				}
 			}
 		} catch (error) {
 			errorMessage = "Error connecting to the server."
@@ -152,9 +257,42 @@
 				throwOnError: false
 			})
 			if (res?.ok) {
+				// Manually extract team from invite just in case loadData fails to fetch it (due to GET cache)
+				const acceptedInvite = invites.find((i) => i.id === inviteId)
 				await loadData()
+				if (!myTeam && acceptedInvite) {
+					// Find the team in the teams list we just fetched (if it was cached) or from the invite
+					const targetTeamId = acceptedInvite.inviting_team_id
+					let fallbackTeam = acceptedInvite.team || { id: targetTeamId, name: targetTeamId }
+
+					// Find existing members in allParticipants
+					const existingMembers = allParticipants
+						.filter((p: any) => p.team_id === targetTeamId || p.teamId === targetTeamId)
+						.map((p: any) => ({
+							id: p.id,
+							name: p.fullName || p.full_name || p.name || "Unknown",
+							email: p.email,
+							student_id: p.studentId || p.student_id || "",
+							is_external: p.isExternal || p.is_external || false,
+							role:
+								p.id === fallbackTeam.leader_id || p.id === fallbackTeam.leaderId
+									? "Leader"
+									: "Member"
+						}))
+
+					// Add the current user
+					const me = {
+						id: profile.id,
+						name: profile.fullName || "Me",
+						email: profile.email,
+						role: "Member"
+					}
+
+					fallbackTeam.members = [...existingMembers, me]
+					myTeam = fallbackTeam
+				}
 			} else {
-				alert("Failed to accept invite: Please try again.")
+				errorMessage = "Failed to accept invite: " + (res?.statusText || "Unknown error")
 			}
 		} catch (error) {
 			alert("Error accepting invite.")
@@ -176,6 +314,21 @@
 				const idx = invites.findIndex((i) => i.id === inviteId)
 				if (idx !== -1) invites[idx].status = "DECLINED"
 			} else {
+				// MOCK FALLBACK
+				if (typeof window !== "undefined") {
+					const mockInvitesStr = localStorage.getItem("mock_invites")
+					if (mockInvitesStr) {
+						let mockInvites = JSON.parse(mockInvitesStr)
+						const mIdx = mockInvites.findIndex((i: any) => i.id === inviteId)
+						if (mIdx !== -1) {
+							mockInvites[mIdx].status = "DECLINED"
+							localStorage.setItem("mock_invites", JSON.stringify(mockInvites))
+							const idx = invites.findIndex((i) => i.id === inviteId)
+							if (idx !== -1) invites[idx].status = "DECLINED"
+							return
+						}
+					}
+				}
 				alert("Failed to decline invite.")
 			}
 		} catch (error) {
@@ -185,8 +338,8 @@
 		}
 	}
 
-	async function handleInviteMember(e: Event) {
-		e.preventDefault()
+	async function handleInviteMember(e?: Event) {
+		if (e) e.preventDefault()
 		if (!inviteStudentId.trim()) return
 
 		isInviting = true
@@ -211,7 +364,7 @@
 				return
 			}
 
-			const { response: res } = await inviteToTeam({
+			const { response: res, error } = await inviteToTeam({
 				path: {
 					teamId: myTeam.id,
 					studentId: invitee.id
@@ -223,12 +376,13 @@
 				inviteStudentId = ""
 			} else {
 				inviteError = true
+				const errorDetails = error || await res?.json().catch(() => null)
 				inviteMessage =
-					"Failed to send invite: User may already be in a team or has pending invites."
+					`Failed to send invite: ${errorDetails?.detail || errorDetails?.message || errorDetails?.title || res?.statusText || "User may already be in a team or has pending invites."}`
 			}
-		} catch (error) {
+		} catch (err: any) {
 			inviteError = true
-			inviteMessage = "Error sending invite."
+			inviteMessage = `Error sending invite: ${err?.message || "Unknown error"}`
 		} finally {
 			isInviting = false
 		}
@@ -331,7 +485,7 @@
 			<div
 				class="mb-8 p-6 md:p-8 rounded-3xl border transition-all {theme.darkMode
 					? 'bg-zinc-900 border-orange-900/50 shadow-[0_4px_30px_rgba(234,88,12,0.1)]'
-					: 'bg-orange-50/50 border-orange-100 shadow-[0_4px_20px_rgba(234,88,12,0.05)]'}"
+					: 'bg-white border-gray-200 shadow-sm'}"
 			>
 				<div class="flex items-center justify-between gap-4 flex-wrap mb-4">
 					<div class="flex items-center gap-3">
@@ -365,6 +519,20 @@
 								>Status: Approved</span
 							>
 						{/if}
+						<a
+							href="/student/submit-project"
+							class="px-4 py-1.5 bg-[#f26f21] hover:bg-[#d85c14] text-white rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-2"
+						>
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+								><path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+								></path></svg
+							>
+							Submission
+						</a>
 					</div>
 				</div>
 
@@ -390,11 +558,14 @@
 					>
 						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">My Role</p>
 						<p
-							class="font-semibold text-sm {studentUuid === myTeam.leader_id
+							class="font-semibold text-sm {studentUuid === myTeam.leader_id ||
+							studentUuid === myTeam.leaderId
 								? 'text-orange-500'
 								: 'text-green-500'}"
 						>
-							{studentUuid === myTeam.leader_id ? "Team Leader" : "Member"}
+							{studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
+								? "Team Leader"
+								: "Member"}
 						</p>
 					</div>
 				</div>
@@ -415,11 +586,6 @@
 										: 'bg-white border-gray-100'}"
 								>
 									<div class="flex items-center gap-3">
-										<div
-											class="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-800 flex items-center justify-center text-gray-500 dark:text-zinc-400 font-semibold"
-										>
-											<Users class="w-5 h-5" />
-										</div>
 										<div>
 											<p
 												class="text-sm font-bold {theme.darkMode
@@ -427,21 +593,24 @@
 													: 'text-gray-700'}"
 											>
 												{member.name || "Unknown Member"}
+												{#if member.id === studentUuid}
+													<span class="text-xs font-medium text-gray-400 ml-1">(You)</span>
+												{/if}
 											</p>
 											<p class="text-xs text-gray-500 mt-0.5">
-												{member.is_external ? "NONE" : member.student_id || member.email || ""}
-												{member.id === studentUuid ? "(You)" : ""}
+												{member.email || "No Email"}
+												{member.is_external ? " (External)" : ""}
 											</p>
 										</div>
 									</div>
-									{#if member.id === myTeam.leader_id}
+									{#if member.role === "Leader" || member.id === myTeam.leader_id || member.id === myTeam.leaderId}
 										<span
 											class="text-xs font-bold text-orange-500 bg-orange-100 dark:bg-orange-500/10 px-2 py-1 rounded"
 											>Leader</span
 										>
 									{:else}
 										<span
-											class="text-xs font-semibold text-gray-500 bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded"
+											class="text-xs font-semibold text-black bg-white border border-gray-300 dark:text-white dark:bg-black dark:border-zinc-700 px-2 py-1 rounded"
 											>Member</span
 										>
 									{/if}
@@ -502,6 +671,64 @@
 										{inviteMessage}
 									</p>
 								{/if}
+
+								<div
+									class="mt-6 border-t {theme.darkMode
+										? 'border-zinc-800'
+										: 'border-gray-200'} pt-4"
+								>
+									<h5
+										class="text-sm font-bold mb-3 flex items-center gap-2 {theme.darkMode
+											? 'text-zinc-200'
+											: 'text-gray-700'}"
+									>
+										Students Without a Team ({availableStudents.length})
+									</h5>
+									{#if availableStudents.length > 0}
+										<div class="max-h-60 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+											{#each availableStudents as student}
+												<div
+													class="flex items-center justify-between p-3 rounded-xl border {theme.darkMode
+														? 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
+														: 'bg-white border-gray-100 hover:border-orange-200'} transition-colors"
+												>
+													<div>
+														<p
+															class="text-sm font-bold {theme.darkMode
+																? 'text-zinc-200'
+																: 'text-gray-800'}"
+														>
+															{student.fullName || student.full_name || student.name || "Unknown"}
+														</p>
+														<p class="text-xs text-gray-500 mt-0.5">
+															{student.studentId || student.student_id || student.email || "No ID"}
+														</p>
+													</div>
+													<button
+														onclick={() => {
+															inviteStudentId =
+																student.studentId || student.student_id || student.email || ""
+															handleInviteMember()
+														}}
+														class="text-xs font-bold px-4 py-2 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:hover:bg-orange-900/50 transition-colors"
+													>
+														Invite
+													</button>
+												</div>
+											{/each}
+										</div>
+									{:else}
+										<div
+											class="p-4 text-center rounded-xl border border-dashed {theme.darkMode
+												? 'bg-zinc-950/50 border-zinc-800 text-zinc-400'
+												: 'bg-gray-50 border-gray-200 text-gray-500'}"
+										>
+											<p class="text-sm">
+												There are no available students without a team to invite right now.
+											</p>
+										</div>
+									{/if}
+								</div>
 							{/if}
 						</div>
 
@@ -572,7 +799,7 @@
 										<p class="text-sm mt-1 {theme.darkMode ? 'text-zinc-400' : 'text-gray-600'}">
 											You have been invited to join Team <span
 												class="font-mono font-bold text-orange-500"
-												>{invite.inviting_team_id || "Unknown"}</span
+												>{invite.team?.name || invite.inviting_team_id || "Unknown"}</span
 											>.
 										</p>
 										<div
@@ -583,17 +810,17 @@
 											<span class="flex items-center gap-1.5"
 												><Clock class="w-3.5 h-3.5" /> Sent: {formatDate(invite.sent_at)}</span
 											>
-											{#if invite.status === "PENDING"}
+											{#if invite.status?.toUpperCase() === "PENDING"}
 												<span
 													class="text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-500/20 font-semibold"
 													>Pending</span
 												>
-											{:else if invite.status === "ACCEPTED"}
+											{:else if invite.status?.toUpperCase() === "ACCEPTED"}
 												<span
 													class="text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-950/30 px-2 py-0.5 rounded-md border border-green-200 dark:border-green-900/50"
 													>Accepted</span
 												>
-											{:else if invite.status === "DECLINED"}
+											{:else if invite.status?.toUpperCase() === "DECLINED"}
 												<span
 													class="text-red-600 dark:text-red-500 bg-red-50 dark:bg-red-950/30 px-2 py-0.5 rounded-md border border-red-200 dark:border-red-900/50"
 													>Declined</span
@@ -603,7 +830,7 @@
 									</div>
 								</div>
 
-								{#if invite.status === "PENDING"}
+								{#if invite.status?.toUpperCase() === "PENDING"}
 									<div class="flex items-center gap-3 self-start sm:self-center ml-14 sm:ml-0">
 										<button
 											onclick={() => handleAccept(invite.id)}

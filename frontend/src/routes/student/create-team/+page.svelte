@@ -1,29 +1,30 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { createTeam, getAllSeasons, getSelfProfile, getEventsInSeason } from "$lib/api"
+	import {
+		createTeam,
+		getAllSeasons,
+		getSelfProfile,
+		getEventsInSeason,
+		getInterestedParticipants
+	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 
-	function formatSemester(semester: string) {
-		if (!semester) return ""
-		return semester.charAt(0).toUpperCase() + semester.slice(1).toLowerCase()
-	}
-
 	let profile = $state<any>(null)
-	let seasons = $state<any[]>([])
-	let seasonsError = $state("")
+	let events = $state<any[]>([])
+	let eventsError = $state("")
 	let isPageLoading = $state(true)
+	let hasNoEvents = $state(false)
 
 	let teamName = $state("")
 	let teamSize = $state(4)
 	let teamDescription = $state("")
-	let selectedSeasonId = $state("")
+	let selectedEventId = $state("")
 	let isLoading = $state(false)
 	let message = $state("")
 	let isError = $state(false)
 
 	onMount(async () => {
-		// Load profile first — redirect to login if not authenticated
 		try {
 			const { data: profileData, response: profileRes } = await getSelfProfile({
 				throwOnError: false
@@ -39,20 +40,50 @@
 			return
 		}
 
-		// Load seasons
+		// Load joined events across all active seasons
 		try {
 			const { data: seasonsData, response: seasonsRes } = await getAllSeasons({
 				throwOnError: false
 			})
-			if (seasonsRes?.ok) {
-				seasons = seasonsData || []
+			if (seasonsRes?.ok && seasonsData) {
+				let joinedList: any[] = []
+				for (const season of seasonsData) {
+					let allSeasonEvents: any[] = []
+
+					const { data: eventsData, response: eventsRes } = await getEventsInSeason({
+						path: { seasonId: season.id },
+						throwOnError: false
+					})
+					if (eventsRes?.ok && eventsData) {
+						allSeasonEvents = eventsData
+					}
+
+					// 3. Check participants for each event
+					for (const event of allSeasonEvents) {
+						let hasJoined = false
+
+						const { data: participants } = await getInterestedParticipants({
+							path: { eventId: event.id },
+							throwOnError: false
+						})
+						if (participants && participants.some((p: any) => p.email === profile.email)) {
+							hasJoined = true
+						}
+
+						if (hasJoined) {
+							joinedList.push(event)
+						}
+					}
+				}
+				events = joinedList
+				if (events.length === 0) {
+					hasNoEvents = true
+				}
 			} else {
-				seasonsError = `Could not load seasons (${seasonsRes?.status || "Unknown"}).`
-				console.error("getAllSeasons failed:", seasonsRes?.status)
+				eventsError = "Could not load data."
 			}
 		} catch (err) {
-			seasonsError = "Could not connect to the server to load seasons."
-			console.error("getAllSeasons error:", err)
+			eventsError = "Could not connect to the server."
 		} finally {
 			isPageLoading = false
 		}
@@ -60,9 +91,9 @@
 
 	async function handleCreateTeam(e: Event) {
 		e.preventDefault()
-		if (!selectedSeasonId) {
+		if (!selectedEventId) {
 			isError = true
-			message = "Please select a season."
+			message = "Please select an event."
 			return
 		}
 
@@ -77,25 +108,16 @@
 
 		try {
 			const finalDescription = `[Expected Size: ${teamSize}] ${teamDescription}`
-			// 1. Resolve event ID from selected season
-			const { data: events, response: eventsRes } = await getEventsInSeason({
-				path: { seasonId: selectedSeasonId },
-				throwOnError: false
-			})
-			if (!eventsRes?.ok || !events || events.length === 0) {
-				isError = true
-				message = "No event found in the selected season to create a team for."
-				isLoading = false
-				return
-			}
-			const eventId = events[0].id
 
-			// 2. Create the team
-			const { data: teamData, response: res } = await createTeam({
+			const {
+				data: teamData,
+				error: apiErr,
+				response: res
+			} = await createTeam({
 				body: {
 					name: teamName,
 					description: finalDescription,
-					event_id: eventId
+					event_id: selectedEventId
 				},
 				throwOnError: false
 			})
@@ -103,10 +125,16 @@
 				message = "Team created successfully!"
 				teamName = ""
 				teamDescription = ""
-				selectedSeasonId = ""
+				selectedEventId = ""
+				setTimeout(() => goto("/student/teams"), 1500)
 			} else {
 				isError = true
-				message = `Failed to create team: ${res?.statusText || "Please try again."}`
+				const errBody = apiErr as any
+				message =
+					errBody?.detail ||
+					errBody?.title ||
+					res?.statusText ||
+					"Failed to create team. Please try again."
 			}
 		} catch (err) {
 			isError = true
@@ -175,30 +203,62 @@
 			</div>
 		</div>
 
-		<form onsubmit={handleCreateTeam} class="flex flex-col gap-6">
-			<!-- Field 1: Season -->
+		{#if hasNoEvents && !isPageLoading}
+			<div
+				class="p-6 rounded-xl border border-red-500/20 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-medium flex flex-col items-start gap-4 shadow-sm"
+			>
+				<div>
+					<h3 class="text-lg font-bold">Action Required: Join an Event</h3>
+					<p class="mt-1 text-sm opacity-90 leading-relaxed">
+						You must be a registered participant of at least one active event before you can create
+						a team. Return to the dashboard to find and join an event.
+					</p>
+				</div>
+				<a
+					href="/student"
+					class="px-5 py-2.5 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white rounded-xl text-sm font-bold shadow-sm transition-all flex items-center gap-2"
+				>
+					<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+						><path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M10 19l-7-7m0 0l7-7m-7 7h18"
+						></path></svg
+					>
+					Go to Dashboard
+				</a>
+			</div>
+		{/if}
+
+		<form
+			onsubmit={handleCreateTeam}
+			class="flex flex-col gap-6 {hasNoEvents ? 'opacity-50 pointer-events-none' : ''}"
+		>
+			<!-- Field 1: Event -->
 			<div class="space-y-2">
 				<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-					>Season</label
+					>Event</label
 				>
 				<select
-					bind:value={selectedSeasonId}
+					bind:value={selectedEventId}
 					required
+					disabled={hasNoEvents}
 					class="w-full rounded-xl p-3.5 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none border
                     {theme.darkMode
 						? 'bg-zinc-950 border-zinc-800 text-zinc-100'
 						: 'bg-gray-50 border-gray-200 text-gray-900'}"
 				>
 					<option value="" disabled class={theme.darkMode ? "bg-zinc-950" : ""}>
-						{isPageLoading ? "Loading seasons..." : "Select a season"}
+						{isPageLoading ? "Loading events..." : "Select an event"}
 					</option>
-					{#each seasons as season}
-						<option value={season.id} class={theme.darkMode ? "bg-zinc-950" : ""}
-							>{formatSemester(season.semester)} {season.year}</option
+					{#each events as event}
+						<option value={event.id} class={theme.darkMode ? "bg-zinc-950" : ""}
+							>{event.name}</option
 						>
 					{/each}
 				</select>
-				{#if seasonsError}
+				{#if eventsError}
 					<p class="text-sm text-red-500 flex items-center gap-1.5 mt-1">
 						<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
 							><path
@@ -208,7 +268,7 @@
 								d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 							></path></svg
 						>
-						{seasonsError}
+						{eventsError}
 					</p>
 				{/if}
 			</div>

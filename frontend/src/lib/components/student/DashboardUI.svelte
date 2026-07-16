@@ -1,19 +1,33 @@
 <script lang="ts">
 	import { theme } from "$lib/theme.svelte"
 	import { formatSeasonName } from "$lib/utils/seasons"
+	import { formatFullDate } from "$lib/utils/formatters"
 
 	let {
 		profile,
 		seasons = [],
-		activeSeason = null
+		activeSeason = null,
+		joinedEvents = [],
+		activeRounds = []
 	} = $props<{
 		profile: any
 		seasons: any[]
 		activeSeason?: any
+		joinedEvents?: any[]
+		activeRounds?: any[]
 	}>()
+
+	let nearestEvent = $derived(
+		joinedEvents.length > 0
+			? joinedEvents
+					.slice()
+					.sort((a, b) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime())[0]
+			: null
+	)
 </script>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+	<!-- Current Season (Always visible) -->
 	<div
 		class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
 	>
@@ -38,77 +52,96 @@
 					? formatSeasonName(activeSeason)
 					: seasons.length > 0
 						? formatSeasonName(seasons[0])
-						: "Spring 2026"}
+						: "---"}
 			</h3>
 		</div>
 	</div>
 
-	<div
-		class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-	>
+	{#if joinedEvents.length > 0}
+		<!-- Joined Events Count -->
 		<div
-			class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-secondary-container) text-(--md-on-secondary-container)"
+			class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
 		>
-			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
-				></path>
-			</svg>
+			<div
+				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-secondary-container) text-(--md-on-secondary-container)"
+			>
+				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
+					></path>
+				</svg>
+			</div>
+			<div>
+				<p
+					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
+				>
+					Joined Events
+				</p>
+				<h3 class="text-xl font-bold text-(--md-on-surface)">{joinedEvents.length}</h3>
+			</div>
 		</div>
-		<div>
-			<p class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)">
-				Registered Tracks
-			</p>
-			<h3 class="text-xl font-bold text-(--md-on-surface)">2</h3>
-		</div>
-	</div>
 
-	<div
-		class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-	>
+		<!-- Progress Status -->
 		<div
-			class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-tertiary-container) text-(--md-on-tertiary-container)"
+			class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
 		>
-			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-				></path>
-			</svg>
+			<div
+				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-tertiary-container) text-(--md-on-tertiary-container)"
+			>
+				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+					></path>
+				</svg>
+			</div>
+			<div>
+				<p
+					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
+				>
+					Progress Status
+				</p>
+				<h3 class="text-lg font-bold text-(--md-on-surface)">
+					{#if activeRounds && activeRounds.length > 0}
+						<span class="line-clamp-1">{activeRounds.map((r) => r.name).join(", ")}</span>
+					{:else}
+						Preparing
+					{/if}
+				</h3>
+			</div>
 		</div>
-		<div>
-			<p class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)">
-				Progress Status
-			</p>
-			<h3 class="text-lg font-bold text-(--md-on-surface)">Check submission detail</h3>
-		</div>
-	</div>
 
-	<div
-		class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-	>
+		<!-- Submission Due -->
 		<div
-			class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-error-container) text-(--md-on-error-container)"
+			class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
 		>
-			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-				></path>
-			</svg>
+			<div
+				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-error-container) text-(--md-on-error-container)"
+			>
+				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+					></path>
+				</svg>
+			</div>
+			<div>
+				<p
+					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
+				>
+					Submission Due
+				</p>
+				<h3 class="text-lg font-bold text-(--md-on-surface)">
+					{nearestEvent ? formatFullDate(nearestEvent.endTime) : "TBA"}
+				</h3>
+			</div>
 		</div>
-		<div>
-			<p class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)">
-				Submission Due
-			</p>
-			<h3 class="text-lg font-bold text-(--md-on-surface)">In 5 days</h3>
-		</div>
-	</div>
+	{/if}
 </div>

@@ -92,14 +92,27 @@
 			{#if profile.role === "STUDENT"}
 				<div class="mt-6 border-t {theme.darkMode ? 'border-zinc-800' : 'border-gray-200'} pt-6">
 					<h4 class="font-bold text-lg mb-4">Student Information</h4>
-					<div
-						class="p-6 rounded-xl border border-dashed {theme.darkMode
-							? 'bg-zinc-950/50 border-zinc-700'
-							: 'bg-gray-50 border-gray-300'}"
-					>
-						<p class="text-center text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-							No specific student data available yet. Please join a team or register for an event.
-						</p>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div
+							class="p-4 rounded-xl border {theme.darkMode
+								? 'bg-zinc-900 border-zinc-800'
+								: 'bg-white border-gray-100'}"
+						>
+							<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Student ID</p>
+							<p class="font-bold text-sm mt-1 text-[#ea580c]">
+								{profile.studentId || profile.student_id || "N/A"}
+							</p>
+						</div>
+						<div
+							class="p-4 rounded-xl border {theme.darkMode
+								? 'bg-zinc-900 border-zinc-800'
+								: 'bg-white border-gray-100'}"
+						>
+							<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">School</p>
+							<p class="font-bold text-sm mt-1 text-[#ea580c]">
+								{profile.schoolName || profile.school_name || "N/A"}
+							</p>
+						</div>
 					</div>
 				</div>
 			{:else if profile.role === "COORDINATOR"}

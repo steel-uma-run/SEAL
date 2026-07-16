@@ -5,7 +5,8 @@
 		getSelfProfile,
 		getAllSeasons,
 		getEventsInSeason,
-		getInterestedParticipants
+		getInterestedParticipants,
+		getRounds
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
@@ -17,6 +18,7 @@
 	let activeSeason: any = $state(null)
 	let activeSeasonEvents: any[] = $state([])
 	let joinedEvents: any[] = $state([])
+	let activeRounds: any[] = $state([])
 	let isLoading = $state(true)
 	let errorMessage = $state("")
 
@@ -89,7 +91,7 @@
 						// 2. Check API if not found in local storage
 						if (!hasJoined) {
 							const { data: participants } = await getInterestedParticipants({
-								path: { seasonId: activeSeason.id, eventId: event.id },
+								path: { eventId: event.id },
 								throwOnError: false
 							})
 							if (participants && participants.some((p: any) => p.email === profile.email)) {
@@ -102,6 +104,31 @@
 						}
 					}
 					joinedEvents = joinedList
+					
+					let roundsList: any[] = []
+					if (joinedEvents.length > 0) {
+						// Fetch rounds for the nearest event (or first joined event)
+						const nearestEvent = joinedEvents.slice().sort((a, b) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime())[0]
+						
+						// Check local storage for mock rounds
+						if (typeof window !== "undefined") {
+							const localRounds = localStorage.getItem(`rounds_${nearestEvent.id}`)
+							if (localRounds) {
+								roundsList = JSON.parse(localRounds)
+							}
+						}
+						
+						if (roundsList.length === 0) {
+							const { data: rounds } = await getRounds({
+								path: { eventId: nearestEvent.id },
+								throwOnError: false
+							})
+							if (rounds) {
+								roundsList = rounds
+							}
+						}
+					}
+					activeRounds = roundsList
 				}
 			}
 		} catch (err: any) {
@@ -165,7 +192,7 @@
 			</div>
 		</header>
 
-		<DashboardUI {profile} {seasons} {activeSeason} />
+		<DashboardUI {profile} {seasons} {activeSeason} {joinedEvents} {activeRounds} />
 
 		<!-- Joined Events Section -->
 		<div
