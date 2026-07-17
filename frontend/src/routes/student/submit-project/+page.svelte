@@ -51,11 +51,20 @@
 							})
 							if (participants) {
 								const me = participants.find((p: any) => p.email === profileData.email)
-								if (me && me.team_id) {
-									myEventId = event.id
-									mySeasonId = season.id
-									myTeamId = me.team_id
-									break
+								if (me && me.team_ids && me.team_ids.length > 0) {
+									const { data: eventTeams } = await getAllTeamsOfEvents({
+										path: { eventId: event.id } as any,
+										throwOnError: false
+									})
+									if (eventTeams) {
+										const team = eventTeams.find((t: any) => me.team_ids.includes(t.id))
+										if (team) {
+											myEventId = event.id
+											mySeasonId = season.id
+											myTeamId = team.id
+											break
+										}
+									}
 								}
 							}
 						}
