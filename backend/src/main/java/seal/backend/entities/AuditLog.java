@@ -24,5 +24,5 @@ public abstract class AuditLog {
 
   @Column(name = "action_time", nullable = false)
   @Nonnull
-  OffsetDateTime actionTime;
+  private OffsetDateTime actionTime;
 }
