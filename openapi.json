@@ -118,6 +118,9 @@
     },
     "/accounts/unapproved": {
       "$ref": "./openapi/paths/accounts/unapproved.json"
+    },
+    "/accounts/lecturers": {
+      "$ref": "./openapi/paths/accounts/create_lecturer.json"
     }
   }
 }
