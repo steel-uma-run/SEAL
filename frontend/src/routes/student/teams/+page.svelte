@@ -119,13 +119,13 @@
 									}
 								})
 
-								if (currentParticipant.team_ids && currentParticipant.team_ids.length > 0) {
+								if ((currentParticipant.team_ids && currentParticipant.team_ids.length > 0) || eventTeamsList.some((t: any) => t.leader_id === currentParticipant.id || t.leaderId === currentParticipant.id)) {
 									if (eventTeamsList.length > 0) {
-										const team = eventTeamsList.find((t: any) => currentParticipant.team_ids.includes(t.id))
+										const team = eventTeamsList.find((t: any) => (currentParticipant.team_ids && currentParticipant.team_ids.includes(t.id)) || t.leader_id === currentParticipant.id || t.leaderId === currentParticipant.id)
 										if (team) {
 											resolvedTeam = team as any
 											const teamMembers = participantsList
-												.filter((p: any) => p.team_ids && p.team_ids.includes(team.id))
+												.filter((p: any) => (p.team_ids && p.team_ids.includes(team.id)) || team.leader_id === p.id || team.leaderId === p.id)
 												.map((p: any) => ({
 													id: p.id,
 													name: p.fullName || p.full_name || p.name || "Unknown",
