@@ -7,10 +7,10 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,8 +32,8 @@ public class CriteriaTemplate {
   @Nonnull
   private String description;
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  private Set<Criteria> criteria = new HashSet<>();
+  @OneToMany(mappedBy = "criteriaTemplate", fetch = FetchType.LAZY)
+  private List<Criteria> criteria = new ArrayList<>();
 
   public CriteriaTemplateDto toDto() {
     return new CriteriaTemplateDto(

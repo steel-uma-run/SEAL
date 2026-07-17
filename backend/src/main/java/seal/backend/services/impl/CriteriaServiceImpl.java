@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.Criteria;
 import seal.backend.entities.CriteriaTemplate;
+import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.CriteriaTemplateRepository;
 import seal.backend.services.CriteriaService;
 import seal.openapi.model.CreateCriteriaTemplateRequestDto;
@@ -17,6 +18,7 @@ import seal.openapi.model.CriteriaTemplateDto;
 @RequiredArgsConstructor
 public class CriteriaServiceImpl implements CriteriaService {
   private final CriteriaTemplateRepository templateRepo;
+  private final CriteriaRepository criteriaRepo;
 
   @Transactional
   @Override
@@ -41,7 +43,8 @@ public class CriteriaServiceImpl implements CriteriaService {
             HttpStatus.BAD_REQUEST, "All criteria's weights must sum to 100");
       }
 
-      newTemplate.getCriteria().add(new Criteria(dto.name(), dto.weight()));
+      Criteria newCrit = new Criteria(dto.name(), dto.weight(), newTemplate);
+      criteriaRepo.save(newCrit);
     }
 
     if (totalWeight != 100) {
