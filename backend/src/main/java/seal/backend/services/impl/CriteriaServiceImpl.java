@@ -10,8 +10,8 @@ import seal.backend.entities.CriteriaTemplate;
 import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.CriteriaTemplateRepository;
 import seal.backend.services.CriteriaService;
+import seal.openapi.model.CreateCriteriaRequestDto;
 import seal.openapi.model.CreateCriteriaTemplateRequestDto;
-import seal.openapi.model.CriteriaDto;
 import seal.openapi.model.CriteriaTemplateDto;
 
 @Service
@@ -31,12 +31,12 @@ public class CriteriaServiceImpl implements CriteriaService {
   @Transactional
   @Override
   public CriteriaTemplateDto createTemplate(CreateCriteriaTemplateRequestDto request) {
-    CriteriaTemplate newTemplate = new CriteriaTemplate(request.description());
+    CriteriaTemplate newTemplate = templateRepo.save(new CriteriaTemplate(request.description()));
 
     // Constraint: all criteria in a template must sum to 100
     int totalWeight = 0;
 
-    for (CriteriaDto dto : request.criteria()) {
+    for (CreateCriteriaRequestDto dto : request.criteria()) {
       totalWeight += dto.weight();
       if (totalWeight > 100) {
         throw new ResponseStatusException(

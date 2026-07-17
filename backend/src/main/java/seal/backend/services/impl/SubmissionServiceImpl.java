@@ -21,7 +21,6 @@ import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
 import seal.backend.entities.User;
 import seal.backend.enums.Role;
-import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
 import seal.backend.repositories.ScoreRepository;
@@ -43,7 +42,6 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final LecturerRepository lecturerRepo;
   private final UserRepository userRepo;
   private final TeamRepository teamRepo;
-  private final CriteriaRepository criteriaRepo;
   private final ScoreRepository scoreRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
@@ -190,12 +188,15 @@ public class SubmissionServiceImpl implements SubmissionService {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required");
       }
 
+      // Make sure the criteria actually is a criteria for the round
       Criteria criteria =
-          criteriaRepo
-              .findById(dto.criteriaId())
+          submission.getRound().getCriteria().stream()
+              .filter(pred -> pred.getId().equals(dto.criteriaId()))
+              .findAny()
               .orElseThrow(
                   () ->
-                      new ResponseStatusException(HttpStatus.NOT_FOUND, "Criteria doesn't exist"));
+                      new ResponseStatusException(
+                          HttpStatus.BAD_REQUEST, "This criteria does not exist on this round."));
 
       Score givenScore = new Score(criteria, submission, actor, dto.value());
       givenScore.setComment(dto.comment());
