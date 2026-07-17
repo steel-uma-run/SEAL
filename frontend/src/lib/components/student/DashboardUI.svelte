@@ -108,9 +108,9 @@
 				</p>
 				<h3 class="text-lg font-bold text-(--md-on-surface)">
 					{#if activeRounds && activeRounds.length > 0}
-						<span class="line-clamp-1">{activeRounds.map((r) => r.name).join(", ")}</span>
+						<span class="line-clamp-1">Round: {activeRounds.map((r) => r.name).join(", ")}</span>
 					{:else}
-						Preparing
+						Round: asd
 					{/if}
 				</h3>
 			</div>
