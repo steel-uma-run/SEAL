@@ -77,19 +77,16 @@
 
 				for (const season of seasonsData) {
 					let seasonEvents: any[] = []
-					if (typeof window !== "undefined") {
+					const { data: eventsData, response: eventsRes } = await getEventsInSeason({
+						path: { seasonId: season.id },
+						throwOnError: false
+					})
+					if (eventsRes?.ok && eventsData && eventsData.length > 0) {
+						seasonEvents = eventsData
+					} else if (typeof window !== "undefined") {
 						const stored = localStorage.getItem(`events_${season.id}`)
 						if (stored) {
 							seasonEvents = JSON.parse(stored)
-						}
-					}
-					if (seasonEvents.length === 0) {
-						const { data: eventsData, response: eventsRes } = await getEventsInSeason({
-							path: { seasonId: season.id },
-							throwOnError: false
-						})
-						if (eventsRes?.ok && eventsData) {
-							seasonEvents = eventsData
 						}
 					}
 

@@ -2,7 +2,15 @@
 	import { onMount } from "svelte"
 	import { page } from "$app/stores"
 	import { goto } from "$app/navigation"
-	import { getSeason } from "$lib/api"
+	import {
+		getSeason,
+		getEventsInSeason,
+		createEvent,
+		createTrack,
+		updateEvent,
+		finalizeEvent,
+		getAllTracksOfEvent
+	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2, Eye, Users } from "@lucide/svelte"
 
@@ -81,15 +89,54 @@
 		}
 	}
 
-	function loadEvents() {
-		if (typeof window !== "undefined") {
-			const key = `events_${seasonId}`
-			const stored = localStorage.getItem(key)
-			if (stored) {
-				events = JSON.parse(stored)
+	async function loadEvents() {
+		try {
+			const { data, response: res } = await getEventsInSeason({
+				path: { seasonId },
+				throwOnError: false
+			})
+			if (res?.ok && data) {
+				const fetchedEvents = []
+				for (const eventItem of data) {
+					let tracks: any[] = []
+					try {
+						const trackRes = await getAllTracksOfEvent({
+							path: { eventId: eventItem.id },
+							throwOnError: false
+						})
+						if (trackRes.response?.ok && trackRes.data) {
+							tracks = trackRes.data
+						}
+					} catch (e) {
+						console.error("Error loading tracks for event", eventItem.id, e)
+					}
+					fetchedEvents.push({
+						...eventItem,
+						startTime: eventItem.start_time,
+						endTime: eventItem.end_time,
+						tracks: tracks
+					})
+				}
+				events = fetchedEvents
 			} else {
-				events = []
-				localStorage.setItem(key, JSON.stringify(events))
+				if (typeof window !== "undefined") {
+					const key = `events_${seasonId}`
+					const stored = localStorage.getItem(key)
+					if (stored) {
+						events = JSON.parse(stored)
+					} else {
+						events = []
+					}
+				}
+			}
+		} catch (err) {
+			console.error("Error loading events:", err)
+			if (typeof window !== "undefined") {
+				const key = `events_${seasonId}`
+				const stored = localStorage.getItem(key)
+				if (stored) {
+					events = JSON.parse(stored)
+				}
 			}
 		}
 	}
@@ -126,7 +173,7 @@
 		eventMessage = ""
 	}
 
-	function handleSaveEvent(e: Event) {
+	async function handleSaveEvent(e: Event) {
 		e.preventDefault()
 
 		if (!eventName.trim() || !eventDescription.trim() || !eventStartTime || !eventEndTime) {
@@ -157,42 +204,111 @@
 
 		try {
 			if (modalMode === "create") {
-				const newEvent = {
-					id: crypto.randomUUID(),
-					name: eventName,
-					description: eventDescription,
-					startTime: start.toISOString(),
-					endTime: end.toISOString(),
-					status: eventStatusState,
-					tracks: eventTracks
-				}
-				events = [...events, newEvent]
-			} else {
-				events = events.map((evt) => {
-					if (evt.id === editingEventId) {
-						return {
-							...evt,
-							name: eventName,
-							description: eventDescription,
-							startTime: start.toISOString(),
-							endTime: end.toISOString(),
-							status: eventStatusState,
-							tracks: eventTracks
+				const { data: createdEvent, response: createRes } = await createEvent({
+					body: {
+						season_id: seasonId,
+						name: eventName,
+						description: eventDescription,
+						start_time: start.toISOString(),
+						end_time: end.toISOString()
+					},
+					throwOnError: false
+				})
+
+				if (createRes?.ok && createdEvent) {
+					// Create tracks
+					if (eventTracks && eventTracks.length > 0) {
+						for (const track of eventTracks) {
+							if (track.name && track.name.trim() !== "") {
+								await createTrack({
+									path: { eventId: createdEvent.id },
+									body: {
+										name: track.name.trim(),
+										description: track.description.trim()
+									},
+									throwOnError: false
+								})
+							}
 						}
 					}
-					return evt
+
+					// Finalize event if selected
+					if (eventStatusState === "FINALIZED") {
+						await finalizeEvent({
+							path: { eventId: createdEvent.id },
+							throwOnError: false
+						})
+					}
+
+					eventMessage = "Event created successfully!"
+				} else {
+					// Fallback to local storage (mock logic)
+					const newEvent = {
+						id: crypto.randomUUID(),
+						name: eventName,
+						description: eventDescription,
+						startTime: start.toISOString(),
+						endTime: end.toISOString(),
+						status: eventStatusState,
+						tracks: eventTracks
+					}
+					events = [...events, newEvent]
+					if (typeof window !== "undefined") {
+						localStorage.setItem(`events_${seasonId}`, JSON.stringify(events))
+					}
+					eventMessage = "Event created successfully (locally/mock)!"
+				}
+			} else {
+				// Update
+				const { data: updatedEvent, response: updateRes } = await updateEvent({
+					path: { eventId: editingEventId || "" },
+					body: {
+						name: eventName,
+						description: eventDescription,
+						start_time: start.toISOString(),
+						end_time: end.toISOString()
+					},
+					throwOnError: false
 				})
+
+				if (updateRes?.ok && updatedEvent) {
+					if (eventStatusState === "FINALIZED" && updatedEvent.status !== "FINALIZED") {
+						await finalizeEvent({
+							path: { eventId: editingEventId || "" },
+							throwOnError: false
+						})
+					}
+					eventMessage = "Event updated successfully!"
+				} else {
+					// Fallback to local storage
+					events = events.map((evt) => {
+						if (evt.id === editingEventId) {
+							return {
+								...evt,
+								name: eventName,
+								description: eventDescription,
+								startTime: start.toISOString(),
+								endTime: end.toISOString(),
+								status: eventStatusState,
+								tracks: eventTracks
+							}
+						}
+						return evt
+					})
+					if (typeof window !== "undefined") {
+						localStorage.setItem(`events_${seasonId}`, JSON.stringify(events))
+					}
+					eventMessage = "Event updated successfully (locally/mock)!"
+				}
 			}
 
-			if (typeof window !== "undefined") {
-				localStorage.setItem(`events_${seasonId}`, JSON.stringify(events))
-			}
+			await loadEvents()
 
-			eventMessage = `Event ${modalMode === "create" ? "created" : "updated"} successfully!`
 			setTimeout(() => {
 				toggleEventModal()
 			}, 1000)
 		} catch (err) {
+			console.error(err)
 			eventMessage = "Failed to save event."
 		} finally {
 			isEventLoading = false

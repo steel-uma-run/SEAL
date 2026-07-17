@@ -51,24 +51,22 @@
 
 				// Fetch events for active season
 				if (activeSeason) {
-					// Check local storage for mock events (saving coordinators' actions locally)
-					if (typeof window !== "undefined") {
-						const key = `events_${activeSeason.id}`
-						const stored = localStorage.getItem(key)
-						if (stored) {
-							const allLocalEvents = JSON.parse(stored)
-							activeSeasonEvents = allLocalEvents.filter((e: any) => e.status === "FINALIZED")
-						}
-					}
-
-					// Fallback to API if no local events are found
-					if (activeSeasonEvents.length === 0) {
-						const { data: eventsData, response: eventsRes } = await getEventsInSeason({
-							path: { seasonId: activeSeason.id },
-							throwOnError: false
-						})
-						if (eventsRes?.ok) {
-							activeSeasonEvents = eventsData || []
+					// Prefer API
+					const { data: eventsData, response: eventsRes } = await getEventsInSeason({
+						path: { seasonId: activeSeason.id },
+						throwOnError: false
+					})
+					if (eventsRes?.ok && eventsData && eventsData.length > 0) {
+						activeSeasonEvents = eventsData
+					} else {
+						// Fallback to local storage for mock events
+						if (typeof window !== "undefined") {
+							const key = `events_${activeSeason.id}`
+							const stored = localStorage.getItem(key)
+							if (stored) {
+								const allLocalEvents = JSON.parse(stored)
+								activeSeasonEvents = allLocalEvents.filter((e: any) => e.status === "FINALIZED")
+							}
 						}
 					}
 
@@ -104,12 +102,14 @@
 						}
 					}
 					joinedEvents = joinedList
-					
+
 					let roundsList: any[] = []
 					if (joinedEvents.length > 0) {
 						// Fetch rounds for the nearest event (or first joined event)
-						const nearestEvent = joinedEvents.slice().sort((a, b) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime())[0]
-						
+						const nearestEvent = joinedEvents
+							.slice()
+							.sort((a, b) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime())[0]
+
 						// Check local storage for mock rounds
 						if (typeof window !== "undefined") {
 							const localRounds = localStorage.getItem(`rounds_${nearestEvent.id}`)
@@ -117,7 +117,7 @@
 								roundsList = JSON.parse(localRounds)
 							}
 						}
-						
+
 						if (roundsList.length === 0) {
 							const { data: rounds } = await getRounds({
 								path: { eventId: nearestEvent.id },
