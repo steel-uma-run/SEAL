@@ -10,7 +10,9 @@
 		getAllSeasons,
 		getEventsInSeason,
 		getInterestedParticipants,
-		getAllTeamsOfEvents
+		getAllTeamsOfEvents,
+		getAllTracksOfEvent,
+		getRounds
 	} from "$lib/api"
 	import { goto } from "$app/navigation"
 	import {
@@ -66,6 +68,7 @@
 			if (seasonsRes?.ok && seasons) {
 				let resolvedTeam: any = null
 				let resolvedStudentUuid = null
+				let resolvedEventId = null
 				let resolvedParticipants: any[] = []
 
 				// Loop through seasons and events to locate the student's registration
@@ -136,6 +139,7 @@
 														p.id === team.leader_id || p.id === team.leaderId ? "Leader" : "Member"
 												}))
 											resolvedTeam.members = teamMembers
+											resolvedEventId = event.id
 										}
 									}
 								}
@@ -144,6 +148,31 @@
 						}
 					}
 					if (resolvedStudentUuid) break
+				}
+
+				if (resolvedTeam && resolvedEventId) {
+					try {
+						if (resolvedTeam.track_id || resolvedTeam.trackId) {
+							const trackId = resolvedTeam.track_id || resolvedTeam.trackId
+							const { data: tracksData } = await getAllTracksOfEvent({ path: { eventId: resolvedEventId }, throwOnError: false })
+							if (tracksData && Array.isArray(tracksData)) {
+								const track = tracksData.find((t: any) => t.id === trackId)
+								if (track) resolvedTeam.track_name = track.name || track.title || "Unknown Track"
+							}
+						}
+						
+						const { data: roundsData } = await getRounds({ path: { eventId: resolvedEventId }, throwOnError: false })
+						if (roundsData && Array.isArray(roundsData)) {
+							const activeRound = roundsData.find((r: any) => r.status === "ACTIVE")
+							if (activeRound) {
+								resolvedTeam.round_name = activeRound.name || activeRound.title || "Active Round"
+							} else {
+								resolvedTeam.round_name = "No Active Round"
+							}
+						}
+					} catch (e) {
+						console.error("Failed to fetch track or round info", e)
+					}
 				}
 
 				studentUuid = resolvedStudentUuid
@@ -529,6 +558,35 @@
 							{studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
 								? "Team Leader"
 								: "Member"}
+						</p>
+					</div>
+				</div>
+
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-8">
+					<div
+						class="p-5 rounded-2xl border {theme.darkMode
+							? 'bg-zinc-950/50 border-zinc-800'
+							: 'bg-white border-gray-100'}"
+					>
+						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Track</p>
+						<p
+							class="font-semibold text-sm {theme.darkMode
+								? 'text-zinc-300'
+								: 'text-gray-700'}"
+						>
+							{myTeam.track_name || "N/A"}
+						</p>
+					</div>
+					<div
+						class="p-5 rounded-2xl border {theme.darkMode
+							? 'bg-zinc-950/50 border-zinc-800'
+							: 'bg-white border-gray-100'}"
+					>
+						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Active Round</p>
+						<p
+							class="font-semibold text-sm text-blue-500"
+						>
+							{myTeam.round_name || "N/A"}
 						</p>
 					</div>
 				</div>

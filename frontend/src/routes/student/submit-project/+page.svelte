@@ -8,7 +8,8 @@
 		getEventsInSeason,
 		getInterestedParticipants,
 		submitWork,
-		getAllSubmissions
+		getAllSubmissions,
+		getAllTeamsOfEvents
 	} from "$lib/api"
 
 	let title = $state("")
