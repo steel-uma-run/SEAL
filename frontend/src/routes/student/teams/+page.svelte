@@ -40,6 +40,7 @@
 	let studentUuid = $state<string | null>(null)
 	let allParticipants = $state<any[]>([])
 	let availableStudents = $state<any[]>([])
+	let globalTeamsCache: any[] = []
 
 	async function loadData() {
 		try {
@@ -57,6 +58,8 @@
 			// Initialize team and invites to default values in case search yields nothing
 			myTeam = null
 			invites = []
+			
+			globalTeamsCache = []
 
 			// 2. Fetch all seasons to find the student's team
 			const { data: seasons, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
@@ -105,6 +108,7 @@
 								})
 								if (teamsRes?.ok && teams && teams.length > 0) {
 									eventTeamsList = teams
+									globalTeamsCache.push(...teams)
 								}
 								// Store this globally or on the invite processing step so invites can use it
 								// Since this is per-event, and invites are global, we will just use it to resolve resolvedTeam if they have one
@@ -115,14 +119,13 @@
 									}
 								})
 
-								if (currentParticipant.team_id || currentParticipant.teamId) {
+								if ((currentParticipant.team_ids && currentParticipant.team_ids.length > 0) || eventTeamsList.some((t: any) => t.leader_id === currentParticipant.id || t.leaderId === currentParticipant.id)) {
 									if (eventTeamsList.length > 0) {
-										const teamId = currentParticipant.team_id || currentParticipant.teamId
-										const team = eventTeamsList.find((t: any) => t.id === teamId)
+										const team = eventTeamsList.find((t: any) => (currentParticipant.team_ids && currentParticipant.team_ids.includes(t.id)) || t.leader_id === currentParticipant.id || t.leaderId === currentParticipant.id)
 										if (team) {
 											resolvedTeam = team as any
 											const teamMembers = participantsList
-												.filter((p: any) => p.team_id === team.id || p.teamId === team.id)
+												.filter((p: any) => (p.team_ids && p.team_ids.includes(team.id)) || team.leader_id === p.id || team.leaderId === p.id)
 												.map((p: any) => ({
 													id: p.id,
 													name: p.fullName || p.full_name || p.name || "Unknown",
@@ -147,7 +150,7 @@
 				myTeam = resolvedTeam
 				allParticipants = resolvedParticipants
 				availableStudents = resolvedParticipants.filter(
-					(p: any) => !p.team_id && !p.teamId && p.id !== resolvedStudentUuid
+					(p: any) => !(p.team_ids && p.team_ids.length > 0) && p.id !== resolvedStudentUuid
 				)
 			}
 
@@ -173,14 +176,15 @@
 				const acceptedInvite = invites.find((i: any) => i.status === "ACCEPTED")
 				if (acceptedInvite && allParticipants.length > 0) {
 					const targetTeamId = acceptedInvite.inviting_team_id
-					let fallbackTeam = acceptedInvite.team || {
+					const cachedTeam = globalTeamsCache.find((t: any) => t.id === targetTeamId)
+					let fallbackTeam = cachedTeam || acceptedInvite.team || {
 						id: targetTeamId,
 						name: targetTeamId,
 						status: "APPROVED"
 					}
 
 					const existingMembers = allParticipants
-						.filter((p: any) => p.team_id === targetTeamId || p.teamId === targetTeamId)
+						.filter((p: any) => p.team_ids && p.team_ids.includes(targetTeamId))
 						.map((p: any) => ({
 							id: p.id,
 							name: p.fullName || p.full_name || p.name || "Unknown",
@@ -235,11 +239,12 @@
 				if (!myTeam && acceptedInvite) {
 					// Find the team in the teams list we just fetched (if it was cached) or from the invite
 					const targetTeamId = acceptedInvite.inviting_team_id
-					let fallbackTeam = acceptedInvite.team || { id: targetTeamId, name: targetTeamId }
+					const cachedTeam = globalTeamsCache.find((t: any) => t.id === targetTeamId)
+					let fallbackTeam = cachedTeam || acceptedInvite.team || { id: targetTeamId, name: targetTeamId }
 
 					// Find existing members in allParticipants
 					const existingMembers = allParticipants
-						.filter((p: any) => p.team_id === targetTeamId || p.teamId === targetTeamId)
+						.filter((p: any) => p.team_ids && p.team_ids.includes(targetTeamId))
 						.map((p: any) => ({
 							id: p.id,
 							name: p.fullName || p.full_name || p.name || "Unknown",
@@ -475,20 +480,22 @@
 								>Status: Approved</span
 							>
 						{/if}
-						<a
-							href="/student/submit-project"
-							class="px-4 py-1.5 bg-[#f26f21] hover:bg-[#d85c14] text-white rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-2"
-						>
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-								><path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-								></path></svg
+						{#if myTeam.leader_id === profile.id}
+							<a
+								href="/student/submit-project"
+								class="px-4 py-1.5 bg-[#f26f21] hover:bg-[#d85c14] text-white rounded-lg font-bold text-sm shadow-sm transition-colors flex items-center gap-2"
 							>
-							Submission
-						</a>
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+									><path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+									></path></svg
+								>
+								Submission
+							</a>
+						{/if}
 					</div>
 				</div>
 

@@ -105,7 +105,7 @@
 		students.filter(
 			(s) =>
 				s.status === "ACTIVE" &&
-				!(s.team_id || s.teamId) &&
+				!getStudentTeamId(s) &&
 				s.id !== (targetStudent ? targetStudent.id : null)
 		)
 	)
@@ -113,6 +113,14 @@
 	function getTeamName(teamId: string) {
 		const team = teams.find((t) => t.id === teamId)
 		return team ? team.name : `#${teamId}`
+	}
+
+	function getStudentTeamId(student: any) {
+		if (student.team_ids && student.team_ids.length > 0) {
+			const team = teams.find((t) => student.team_ids.includes(t.id))
+			if (team) return team.id
+		}
+		return null
 	}
 
 	function getStudentName(studentId: string) {
@@ -1024,8 +1032,8 @@
 											{student.is_external ? "External" : "FPT"}
 										</td>
 										<td class="py-3 px-4 text-xs font-semibold text-(--md-primary)">
-											{#if student.team_id || student.teamId}
-												{getTeamName(student.team_id || student.teamId)}
+											{#if getStudentTeamId(student)}
+												{getTeamName(getStudentTeamId(student))}
 											{:else}
 												<div class="flex items-center gap-2">
 													<span class="text-zinc-500 italic">No Team</span>

@@ -65,16 +65,14 @@
 
 				if (participants) {
 					const me = participants.find((p: any) => p.email === profile.email)
-					if (me && (me.team_id || me.teamId)) {
-						const teamId = me.team_id || me.teamId
-
+					if (me && me.team_ids && me.team_ids.length > 0) {
 						const { data: teams } = await getAllTeamsOfEvents({
 							path: { eventId: event.id } as any,
 							throwOnError: false
 						})
 
 						if (teams) {
-							const team = teams.find((t: any) => t.id === teamId)
+							const team = teams.find((t: any) => me.team_ids.includes(t.id))
 							if (team) {
 								resolvedTeam = team
 								break

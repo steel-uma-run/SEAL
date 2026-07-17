@@ -14,6 +14,7 @@ import seal.backend.entities.TeamInvite;
 import seal.backend.enums.InviteStatus;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.TeamInviteRepository;
+import seal.backend.repositories.TeamRepository;
 import seal.backend.services.InviteService;
 import seal.openapi.model.TeamInviteDto;
 
@@ -22,6 +23,7 @@ import seal.openapi.model.TeamInviteDto;
 public class InviteServiceImpl implements InviteService {
   private final TeamInviteRepository inviteRepository;
   private final StudentRepository studentRepository;
+  private final TeamRepository teamRepository;
 
   @Override
   public List<TeamInviteDto> getAllInvites() {
@@ -38,6 +40,7 @@ public class InviteServiceImpl implements InviteService {
   }
 
   @Override
+  @jakarta.transaction.Transactional
   public void acceptInvite(UUID inviteId) {
     TeamInvite invite =
         inviteRepository
@@ -56,15 +59,22 @@ public class InviteServiceImpl implements InviteService {
           HttpStatus.FORBIDDEN, "This event is not opened for team registration");
     }
 
+    if (invite.getInvitee().getTeams().stream().anyMatch(t -> t.getHackathonEvent().getId().equals(team.getHackathonEvent().getId()))) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "You are already in a team for this event.");
+    }
+
     if (team.getMembers().size() >= 5) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Team is already full.");
     }
 
     invite.setStatus(InviteStatus.ACCEPTED);
     invite.getInvitee().getTeams().add(team);
+    team.getMembers().add(invite.getInvitee());
 
     inviteRepository.save(invite);
     studentRepository.save(invite.getInvitee());
+    teamRepository.save(team);
   }
 
   @Override

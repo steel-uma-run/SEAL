@@ -24,6 +24,8 @@
 	let myEventId = $state<string | null>(null)
 	let mySeasonId = $state<string | null>(null)
 	let myTeamId = $state<string | null>(null)
+	let myTeamLeaderId = $state<string | null>(null)
+	let profileId = $state<string | null>(null)
 	let submissionsHistory = $state<any[]>([])
 
 	onMount(async () => {
@@ -35,6 +37,7 @@
 				goto("/auth/login")
 				return
 			}
+			profileId = profileData.id
 
 			const { data: seasons } = await getAllSeasons({ throwOnError: false })
 			if (seasons) {
@@ -51,11 +54,21 @@
 							})
 							if (participants) {
 								const me = participants.find((p: any) => p.email === profileData.email)
-								if (me && me.team_id) {
-									myEventId = event.id
-									mySeasonId = season.id
-									myTeamId = me.team_id
-									break
+								if (me && me.team_ids && me.team_ids.length > 0) {
+									const { data: eventTeams } = await getAllTeamsOfEvents({
+										path: { eventId: event.id } as any,
+										throwOnError: false
+									})
+									if (eventTeams) {
+										const team = eventTeams.find((t: any) => me.team_ids.includes(t.id))
+										if (team) {
+											myEventId = event.id
+											mySeasonId = season.id
+											myTeamId = team.id
+											myTeamLeaderId = team.leader_id
+											break
+										}
+									}
 								}
 							}
 						}
@@ -200,7 +213,14 @@
 			</div>
 		</div>
 
-		<form onsubmit={handleSubmit} class="flex flex-col gap-6">
+		{#if myTeamLeaderId !== profileId}
+			<div class="mt-8 p-8 rounded-3xl bg-(--md-surface-container) border border-(--md-outline-variant) text-center">
+				<svg class="w-16 h-16 mx-auto text-(--md-on-surface-variant) mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+				<h2 class="text-xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'} mb-2">Only the Team Leader can submit</h2>
+				<p class="{theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">You are a member of this team. Please ask your team leader to submit the project.</p>
+			</div>
+		{:else}
+			<form onsubmit={handleSubmit} class="flex flex-col gap-6">
 			<div class="space-y-2">
 				<label class="text-sm font-semibold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
 					>Project Title (Required)</label
@@ -367,6 +387,7 @@
 				{isLoading ? "Submitting..." : "Submit Project"}
 			</button>
 		</form>
+		{/if}
 	</div>
 
 	{#if submissionsHistory.length > 0}
