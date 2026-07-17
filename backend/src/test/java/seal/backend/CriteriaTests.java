@@ -4,15 +4,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.web.server.ResponseStatusException;
+import seal.backend.entities.CriteriaTemplate;
+import seal.backend.entities.HackathonEvent;
+import seal.backend.enums.EventStatus;
 import seal.backend.services.CriteriaService;
+import seal.backend.services.RoundService;
 import seal.openapi.model.CreateCriteriaRequestDto;
 import seal.openapi.model.CreateCriteriaTemplateRequestDto;
 
@@ -20,7 +26,9 @@ import seal.openapi.model.CreateCriteriaTemplateRequestDto;
 @AutoConfigureMockMvc
 class CriteriaTests {
   @Autowired private CriteriaService criteriaService;
+  @Autowired private RoundService roundService;
   @Autowired private CreateUtils createUtils;
+  @Autowired private EntityManager em;
 
   @Test
   @Transactional
@@ -57,5 +65,18 @@ class CriteriaTests {
                         criterias.toArray(CreateCriteriaRequestDto[]::new))));
 
     assertTrue(ex.getMessage().contains("sum to 100"));
+  }
+
+  @Test
+  @Transactional
+  void assignToRound() throws Exception {
+    CriteriaTemplate template = createUtils.createCriteriaTemplate();
+    HackathonEvent event = createUtils.createOngoingEvent();
+
+    event.setStatus(EventStatus.DRAFT);
+
+    roundService.assignCriteria(
+        event.getActiveRound().get().getId(),
+        template.getCriteria().stream().map(crit -> crit.getId()).toArray(UUID[]::new));
   }
 }

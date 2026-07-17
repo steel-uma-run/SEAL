@@ -1,14 +1,19 @@
 package seal.backend.services.impl;
 
+import jakarta.transaction.Transactional;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import seal.backend.entities.Criteria;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Round;
 import seal.backend.enums.EventStatus;
+import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.RoundRepository;
 import seal.backend.services.RoundService;
@@ -20,6 +25,7 @@ import seal.openapi.model.RoundDto;
 public class RoundServiceImpl implements RoundService {
   private final HackathonEventRepository eventRepository;
   private final RoundRepository roundRepository;
+  private final CriteriaRepository criteriaRepo;
 
   @Override
   public RoundDto createRound(UUID eventId, CreateRoundRequestDto request) {
@@ -82,16 +88,30 @@ public class RoundServiceImpl implements RoundService {
 
   @Override
   public List<RoundDto> getRounds(UUID eventId) {
-    return roundRepository.findByEventId(eventId).stream()
-        .map(
-            round ->
-                new RoundDto(
-                    round.getId(),
-                    round.getName(),
-                    round.getDescription(),
-                    round.getStartTime(),
-                    round.getEndTime(),
-                    eventId))
-        .toList();
+    return roundRepository.findByEventId(eventId).stream().map(round -> round.toDto()).toList();
+  }
+
+  @Override
+  @Transactional
+  public void assignCriteria(UUID roundId, UUID[] criteriaIds) {
+    Round round =
+        roundRepository
+            .findById(roundId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Round not found"));
+
+    if (round.getEvent().getStatus() != EventStatus.DRAFT) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot assign criteria. Event is not in DRAFT status.");
+    }
+
+    List<Criteria> criterias = criteriaRepo.findAllById(Arrays.asList(criteriaIds));
+    if (criterias.size() < criteriaIds.length) {
+      // some IDs were nonexistent
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Some criteria were invalid");
+    }
+
+    round.setCriteria(new HashSet<>(criterias));
+    roundRepository.save(round);
   }
 }

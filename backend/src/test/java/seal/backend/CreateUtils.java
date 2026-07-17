@@ -3,8 +3,10 @@ package seal.backend;
 import java.time.OffsetDateTime;
 import java.util.Random;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import seal.backend.entities.Coordinator;
+import seal.backend.entities.Criteria;
+import seal.backend.entities.CriteriaTemplate;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Round;
 import seal.backend.entities.Season;
@@ -15,18 +17,22 @@ import seal.backend.enums.Semester;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
 import seal.backend.repositories.CoordinatorRepository;
+import seal.backend.repositories.CriteriaRepository;
+import seal.backend.repositories.CriteriaTemplateRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.RoundRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
 
-@Component
+@Service
 public class CreateUtils {
   @Autowired private CoordinatorRepository coordRepo;
   @Autowired private StudentRepository studentRepo;
   @Autowired private SeasonRepository seasonRepo;
   @Autowired private HackathonEventRepository eventRepo;
   @Autowired private RoundRepository roundRepo;
+  @Autowired private CriteriaRepository criteraRepo;
+  @Autowired private CriteriaTemplateRepository criteriaTemplateRepo;
 
   public final String randomString(int len) {
     int leftLimit = 97; // letter 'a'
@@ -94,13 +100,25 @@ public class CreateUtils {
     Round round =
         new Round(
             randomString(50),
-            OffsetDateTime.now(),
+            OffsetDateTime.now().minusDays(1),
             OffsetDateTime.now().plusDays(1),
             randomString(50),
             event);
 
+    event.getRounds().add(round);
     roundRepo.save(round);
 
     return event;
+  }
+
+  public final CriteriaTemplate createCriteriaTemplate() {
+    CriteriaTemplate template = criteriaTemplateRepo.save(new CriteriaTemplate(randomString(50)));
+
+    for (int i = 0; i < 5; i++) {
+      Criteria crit = new Criteria(randomString(15), 20, template);
+      criteraRepo.save(crit);
+    }
+
+    return criteriaTemplateRepo.save(template);
   }
 }
