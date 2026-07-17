@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import seal.backend.config.GlobalConfig;
@@ -23,5 +24,13 @@ public class RoundController implements RoundsApi {
   public ResponseEntity<Void> deleteRound(@PathVariable(name = "roundId") @NotNull UUID roundId) {
     roundService.deleteRound(roundId);
     return ResponseEntity.ok().build();
+  }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<Void> assignCriteria(
+      @PathVariable(name = "roundId") @NotNull UUID roundId, @RequestBody @NotNull UUID[] body) {
+    roundService.assignCriteria(roundId, body);
+    return ResponseEntity.noContent().build();
   }
 }

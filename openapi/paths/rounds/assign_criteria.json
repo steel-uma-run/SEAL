@@ -1,0 +1,36 @@
+{
+  "parameters": [
+    {
+      "name": "roundId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "post": {
+    "tags": ["rounds"],
+    "operationId": "assign_criteria",
+    "summary": "Assign criteria to a round",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/AssignCriteriaRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "204": {
+        "description": "Criteria assigned successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
