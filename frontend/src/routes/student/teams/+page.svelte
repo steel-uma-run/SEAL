@@ -376,9 +376,8 @@
 				inviteStudentId = ""
 			} else {
 				inviteError = true
-				const errorDetails = error || await res?.json().catch(() => null)
-				inviteMessage =
-					`Failed to send invite: ${errorDetails?.detail || errorDetails?.message || errorDetails?.title || res?.statusText || "User may already be in a team or has pending invites."}`
+				const errorDetails = error || (await res?.json().catch(() => null))
+				inviteMessage = `Failed to send invite: ${errorDetails?.detail || errorDetails?.message || errorDetails?.title || res?.statusText || "User may already be in a team or has pending invites."}`
 			}
 		} catch (err: any) {
 			inviteError = true

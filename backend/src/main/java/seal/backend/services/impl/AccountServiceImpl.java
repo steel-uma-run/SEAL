@@ -7,13 +7,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import seal.backend.entities.Lecturer;
 import seal.backend.entities.Student;
 import seal.backend.entities.User;
 import seal.backend.enums.Role;
 import seal.backend.enums.StudentStatus;
+import seal.backend.repositories.LecturerRepository;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.AccountService;
+import seal.openapi.model.CreateLecturerRequestDto;
 import seal.openapi.model.StudentDto;
 
 @Service
