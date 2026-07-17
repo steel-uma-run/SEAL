@@ -295,6 +295,13 @@
 								</svg>
 								Joined Event
 							</div>
+						{:else if !eventDetail.open_for_registration}
+							<button
+								disabled
+								class="px-8 py-3 rounded-xl text-sm font-bold bg-(--md-surface-container-highest) text-(--md-on-surface-variant) border border-(--md-outline-variant) cursor-not-allowed flex items-center gap-2"
+							>
+								Registration Closed
+							</button>
 						{:else}
 							<button
 								onclick={handleJoinEvent}

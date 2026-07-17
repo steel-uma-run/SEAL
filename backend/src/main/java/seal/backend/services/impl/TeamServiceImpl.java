@@ -161,6 +161,11 @@ public class TeamServiceImpl implements TeamService {
           HttpStatus.FORBIDDEN, "Team is not allowed to send invites.");
     }
 
+    if (!team.getHackathonEvent().isOpenForRegistration()) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "This event is not opened for team registration");
+    }
+
     Student actor =
         studentRepository
             .findByEmail(auth.getName())
