@@ -70,6 +70,7 @@ public class Submission {
 
   public SubmissionDto toDto() {
     return new SubmissionDto(
+        getId(),
         getTitle(),
         getDescription(),
         getGithubLink(),

@@ -2,7 +2,7 @@
   "type": "array",
   "items": {
     "type": "object",
-    "required": ["id", "value"],
+    "required": ["criteria_id", "value"],
     "properties": {
       "criteria_id": {
         "type": "string",
