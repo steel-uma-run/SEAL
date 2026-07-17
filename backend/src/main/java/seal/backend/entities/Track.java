@@ -51,6 +51,10 @@ public class Track {
   private List<Lecturer> mentors = new ArrayList<>();
 
   @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(
+      name = "track_judges",
+      joinColumns = @JoinColumn(name = "track_id"),
+      inverseJoinColumns = @JoinColumn(name = "lecturer_id"))
   private List<Lecturer> judges = new ArrayList<>();
 
   public TrackDto toDto() {
