@@ -7,10 +7,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,8 +34,10 @@ public class Criteria {
   @Nonnull
   private Integer weight;
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  private Set<CriteriaTemplate> criteriaTemplates = new HashSet<>();
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "template_id", nullable = false)
+  @Nonnull
+  private CriteriaTemplate criteriaTemplate;
 
   public CriteriaDto toDto() {
     return new CriteriaDto(id, name, weight);
