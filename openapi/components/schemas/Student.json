@@ -31,9 +31,12 @@
         "school_name": {
           "type": "string"
         },
-        "team_id": {
-          "type": "string",
-          "format": "uuid"
+        "team_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          }
         },
         "status": {
           "$ref": "./StudentStatus.json"
