@@ -9,6 +9,30 @@
     "description": {
       "type": "string",
       "description": "New description of the track"
+    },
+    "mentor_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "New list of mentor IDs"
+    },
+    "judge_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "New list of judge IDs"
+    },
+    "team_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "New list of team IDs"
     }
   }
 }

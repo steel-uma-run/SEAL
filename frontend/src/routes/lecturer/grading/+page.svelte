@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
-	import { FileText, ArrowLeft, CheckCircle, Clock } from "lucide-svelte"
+	import { FileText, ArrowLeft, CheckCircle, Clock } from "@lucide/svelte"
 	import {
 		getSelfProfile,
 		getAllSeasons,
@@ -57,7 +57,7 @@
 					// Filter tracks where this lecturer is a judge
 					const judgingTracks = tracks.filter((t: any) => t.judge_ids?.includes(profile.id))
 					const judgingTrackIds = judgingTracks.map((t: any) => t.id)
-					
+
 					if (judgingTrackIds.length > 0) {
 						// Fetch teams
 						const { data: teams } = await getAllTeamsOfEvents({
@@ -77,7 +77,7 @@
 									path: { teamId: team.id },
 									throwOnError: false
 								})
-								
+
 								if (submissions) {
 									submissions.forEach((sub: any) => {
 										allSubmissionsForJudging.push({
@@ -95,7 +95,9 @@
 				}
 			}
 
-			judgingSubmissions = allSubmissionsForJudging.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+			judgingSubmissions = allSubmissionsForJudging.sort(
+				(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+			)
 		} catch (error: any) {
 			console.error("Failed to load submissions", error)
 			errorMessage = error.message || "Failed to load submissions for judging."
@@ -112,18 +114,26 @@
 <div class="max-w-6xl mx-auto w-full p-4 md:p-8">
 	<a
 		href="/lecturer"
-		class="inline-flex items-center gap-2 transition-colors mb-6 font-medium {theme.darkMode ? 'text-zinc-400 hover:text-green-400' : 'text-gray-500 hover:text-green-600'}"
+		class="inline-flex items-center gap-2 transition-colors mb-6 font-medium {theme.darkMode
+			? 'text-zinc-400 hover:text-green-400'
+			: 'text-gray-500 hover:text-green-600'}"
 	>
 		<ArrowLeft class="w-4 h-4" />
 		Back to Dashboard
 	</a>
 
 	<div class="flex items-center gap-3 mb-8">
-		<div class="p-3 rounded-xl {theme.darkMode ? 'bg-green-950/40 text-green-400' : 'bg-green-100 text-green-600'}">
+		<div
+			class="p-3 rounded-xl {theme.darkMode
+				? 'bg-green-950/40 text-green-400'
+				: 'bg-green-100 text-green-600'}"
+		>
 			<FileText class="w-6 h-6" />
 		</div>
 		<div>
-			<h1 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">Grading</h1>
+			<h1 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
+				Grading
+			</h1>
 			<p class="text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
 				Submissions from teams you are assigned to judge.
 			</p>
@@ -139,7 +149,11 @@
 			{errorMessage}
 		</div>
 	{:else if judgingSubmissions.length === 0}
-		<div class="text-center py-16 border-2 border-dashed rounded-2xl {theme.darkMode ? 'border-zinc-800 text-zinc-500' : 'border-gray-200 text-gray-400'}">
+		<div
+			class="text-center py-16 border-2 border-dashed rounded-2xl {theme.darkMode
+				? 'border-zinc-800 text-zinc-500'
+				: 'border-gray-200 text-gray-400'}"
+		>
 			<FileText class="w-12 h-12 mx-auto mb-4 opacity-50" />
 			<h3 class="text-lg font-medium">No Submissions</h3>
 			<p class="text-sm mt-1">There are no submissions available for you to grade right now.</p>
@@ -147,23 +161,35 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-4">
 			{#each judgingSubmissions as sub}
-				<div class="p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 {theme.darkMode ? 'bg-zinc-900 border-zinc-800 hover:border-zinc-700' : 'bg-white border-gray-200 shadow-sm hover:shadow-md'}">
+				<div
+					class="p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 {theme.darkMode
+						? 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
+						: 'bg-white border-gray-200 shadow-sm hover:shadow-md'}"
+				>
 					<div class="flex-grow">
 						<div class="flex items-center gap-2 mb-1">
 							<h3 class="font-bold text-lg {theme.darkMode ? 'text-zinc-100' : 'text-gray-900'}">
 								{sub.team_name}
 							</h3>
-							<span class="text-xs font-semibold px-2 py-0.5 rounded-full {theme.darkMode ? 'bg-zinc-800 text-zinc-300' : 'bg-gray-100 text-gray-700'}">
+							<span
+								class="text-xs font-semibold px-2 py-0.5 rounded-full {theme.darkMode
+									? 'bg-zinc-800 text-zinc-300'
+									: 'bg-gray-100 text-gray-700'}"
+							>
 								{sub.track_name}
 							</span>
 						</div>
-						<p class="font-medium mb-2 {theme.darkMode ? 'text-green-400' : 'text-green-600'}">{sub.title}</p>
-						<p class="text-sm line-clamp-2 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">{sub.description}</p>
+						<p class="font-medium mb-2 {theme.darkMode ? 'text-green-400' : 'text-green-600'}">
+							{sub.title}
+						</p>
+						<p class="text-sm line-clamp-2 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
+							{sub.description}
+						</p>
 					</div>
-					
+
 					<div class="flex items-center gap-4 shrink-0">
 						<!-- Basic logic for check if already graded isn't present in API response yet, assuming all need grading or user can re-grade -->
-						<a 
+						<a
 							href="/lecturer/grading/{sub.id}"
 							class="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors text-sm shadow-sm"
 						>
