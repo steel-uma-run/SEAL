@@ -65,9 +65,7 @@ public class Submission {
   @Nonnull
   private Round round;
 
-  @OneToMany(fetch = FetchType.LAZY)
-  @JoinColumn(nullable = false)
-  @Nonnull
+  @OneToMany(mappedBy = "submission", fetch = FetchType.LAZY)
   private List<Score> scores = new ArrayList<>();
 
   public SubmissionDto toDto() {
