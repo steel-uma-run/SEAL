@@ -12,7 +12,9 @@
 		getAllTracksOfEvent,
 		createRound,
 		getRounds,
-		updateTrack
+		updateTrack,
+		getAllCriteriaTemplates,
+		assignCriteria
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Clock, X, Plus } from "@lucide/svelte"
@@ -82,6 +84,21 @@
 	let isCreatingRound = $state(false)
 	let createRoundMessage = $state("")
 	let createRoundError = $state(false)
+
+	// Assign Criteria Modal State
+	let showAssignCriteriaModal = $state(false)
+	let assigningRound = $state<any>(null)
+	let criteriaTemplates = $state<any[]>([])
+	let selectedTemplateId = $state("")
+	let isAssigningCriteria = $state(false)
+	let assignCriteriaMessage = $state("")
+	let assignCriteriaError = $state(false)
+	$effect(() => {
+		if (selectedTemplateId) {
+			assignCriteriaMessage = ""
+			assignCriteriaError = false
+		}
+	})
 
 	// Computed: Active teamless students for selection
 	let activeTeamlessStudents = $derived(
@@ -332,6 +349,59 @@
 		createRoundMessage = ""
 		createRoundError = false
 		showCreateRoundModal = true
+	}
+
+	async function openAssignCriteriaModal(round: any) {
+		assigningRound = round
+		selectedTemplateId = ""
+		assignCriteriaMessage = ""
+		assignCriteriaError = false
+		criteriaTemplates = []
+		showAssignCriteriaModal = true
+		try {
+			const { data } = await getAllCriteriaTemplates({ throwOnError: false })
+			if (data) criteriaTemplates = data
+		} catch {
+			// silently fail, user will see empty list
+		}
+	}
+
+	async function handleAssignCriteria() {
+		if (!selectedTemplateId) {
+			assignCriteriaMessage = "Please select a criteria template."
+			assignCriteriaError = true
+			return
+		}
+		const template = criteriaTemplates.find((t) => t.id === selectedTemplateId)
+		if (!template || !template.criteria?.length) {
+			assignCriteriaMessage = "Selected template has no criteria."
+			assignCriteriaError = true
+			return
+		}
+		isAssigningCriteria = true
+		assignCriteriaMessage = ""
+		assignCriteriaError = false
+		try {
+			const criteriaIds = template.criteria.map((c: any) => c.id)
+			const { response } = await assignCriteria({
+				path: { roundId: assigningRound.id },
+				body: criteriaIds,
+				throwOnError: false
+			})
+			if (response?.ok) {
+				showAssignCriteriaModal = false
+				await loadEventRounds()
+				alert(`Criteria assigned to round "${assigningRound.name}" successfully!`)
+			} else {
+				assignCriteriaMessage = "Failed to assign criteria. Please try again."
+				assignCriteriaError = true
+			}
+		} catch (err: any) {
+			assignCriteriaMessage = err.message || "An error occurred."
+			assignCriteriaError = true
+		} finally {
+			isAssigningCriteria = false
+		}
 	}
 
 	async function handleCreateRound(e: Event) {
@@ -1103,6 +1173,10 @@
 										<th class="py-3 px-4">Description</th>
 										<th class="py-3 px-4">Start Time</th>
 										<th class="py-3 px-4">End Time</th>
+										<th class="py-3 px-4">Criteria</th>
+										{#if event.status?.toUpperCase() === "DRAFT"}
+											<th class="py-3 px-4">Actions</th>
+										{/if}
 									</tr>
 								</thead>
 								<tbody class="text-sm">
@@ -1120,6 +1194,33 @@
 											<td class="py-3 px-4 text-xs"
 												>{formatDateTime(round.endTime || round.end_time)}</td
 											>
+											<td class="py-3 px-4">
+												{#if round.criteria && round.criteria.length > 0}
+													<div class="flex flex-wrap gap-1">
+														{#each round.criteria as criterion}
+															<span
+																class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-(--md-primary)/15 text-(--md-primary) border border-(--md-primary)/30"
+															>
+																{criterion.name}
+																<span class="opacity-60">({criterion.weight}%)</span>
+															</span>
+														{/each}
+													</div>
+												{:else}
+													<span class="text-xs italic text-(--md-on-surface-variant)">None assigned</span>
+												{/if}
+											</td>
+											{#if event.status?.toUpperCase() === "DRAFT"}
+												<td class="py-3 px-4">
+													<button
+														id="assign-criteria-btn-{round.id}"
+														onclick={() => openAssignCriteriaModal(round)}
+														class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-(--md-secondary-container) text-(--md-on-secondary-container) hover:opacity-90 transition-all cursor-pointer border-0"
+													>
+														{round.criteria && round.criteria.length > 0 ? 'Reassign' : 'Assign Criteria'}
+													</button>
+												</td>
+											{/if}
 										</tr>
 									{/each}
 								</tbody>
@@ -1825,6 +1926,111 @@
 					</button>
 				</div>
 			</form>
+		</div>
+	</div>
+{/if}
+
+{#if showAssignCriteriaModal && assigningRound}
+	<div
+		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+	>
+		<div
+			class="w-full max-w-lg rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low)"
+		>
+			<div class="flex justify-between items-center mb-6">
+				<div>
+					<h3 class="text-xl font-extrabold text-(--md-on-surface)">Assign Criteria</h3>
+					<p class="text-xs text-(--md-on-surface-variant) mt-0.5">Round: <span class="font-semibold">{assigningRound.name}</span></p>
+				</div>
+				<button
+					id="close-assign-criteria-modal"
+					onclick={() => (showAssignCriteriaModal = false)}
+					class="text-(--md-on-surface-variant) hover:text-(--md-on-surface) transition-colors cursor-pointer bg-transparent border-0 p-1"
+				>
+					<X class="w-5 h-5" />
+				</button>
+			</div>
+
+			{#if assignCriteriaMessage}
+				<div
+					class="mb-4 p-3.5 rounded-xl border text-sm font-medium {assignCriteriaError
+						? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
+						: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
+				>
+					{assignCriteriaMessage}
+				</div>
+			{/if}
+
+			<div class="space-y-4">
+				<div>
+					<label
+						for="criteria-template-select"
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Select Template *
+					</label>
+					{#if criteriaTemplates.length === 0}
+						<p class="text-sm italic text-(--md-on-surface-variant) py-2">
+							Loading templates… or none available. Create templates in Template Management first.
+						</p>
+					{:else}
+						<select
+							id="criteria-template-select"
+							bind:value={selectedTemplateId}
+							class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
+						>
+							<option value="">-- Choose a template --</option>
+							{#each criteriaTemplates as template}
+								<option value={template.id}>{template.description}</option>
+							{/each}
+						</select>
+					{/if}
+				</div>
+
+				{#if selectedTemplateId}
+					{@const previewTemplate = criteriaTemplates.find((t) => t.id === selectedTemplateId)}
+					{#if previewTemplate?.criteria?.length > 0}
+						<div class="rounded-2xl border border-(--md-outline-variant) overflow-hidden">
+							<div class="px-4 py-2.5 bg-(--md-surface-container) border-b border-(--md-outline-variant)">
+								<p class="text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider">
+									Criteria Preview
+								</p>
+							</div>
+							<div class="divide-y divide-(--md-outline-variant)/50">
+								{#each previewTemplate.criteria as criterion}
+									<div class="flex items-center justify-between px-4 py-2.5">
+										<span class="text-sm font-medium text-(--md-on-surface)">{criterion.name}</span>
+										<span
+											class="text-xs font-bold px-2.5 py-1 rounded-full bg-(--md-primary)/15 text-(--md-primary)"
+										>
+											{criterion.weight}%
+										</span>
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+				{/if}
+
+				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
+					<button
+						type="button"
+						onclick={() => (showAssignCriteriaModal = false)}
+						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
+					>
+						Cancel
+					</button>
+					<button
+						id="confirm-assign-criteria-btn"
+						type="button"
+						onclick={handleAssignCriteria}
+						disabled={isAssigningCriteria || !selectedTemplateId}
+						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+					>
+						{isAssigningCriteria ? 'Assigning...' : 'Assign Criteria'}
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
 {/if}

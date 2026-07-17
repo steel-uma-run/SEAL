@@ -19,6 +19,7 @@ import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import seal.openapi.model.CriteriaDto;
 import seal.openapi.model.RoundDto;
 
 @Entity
@@ -61,6 +62,12 @@ public class Round {
 
   public RoundDto toDto() {
     return new RoundDto(
-        getId(), getName(), getDescription(), getStartTime(), getEndTime(), getEvent().getId());
+        getId(),
+        getName(),
+        getDescription(),
+        getStartTime(),
+        getEndTime(),
+        getEvent().getId(),
+        getCriteria().stream().map(Criteria::toDto).toArray(CriteriaDto[]::new));
   }
 }
