@@ -59,7 +59,8 @@ public class Team {
   @JoinColumn(name = "track_id", nullable = true)
   private Track track;
 
-  @ManyToMany(fetch = FetchType.LAZY)
+  // eager to make the tests work
+  @ManyToMany(fetch = FetchType.EAGER)
   private List<Student> members = new ArrayList<>();
 
   // Returns whether the team is eligible to participate in an event.
