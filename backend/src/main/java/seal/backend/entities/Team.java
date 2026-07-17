@@ -10,8 +10,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +59,7 @@ public class Team {
   @JoinColumn(name = "track_id", nullable = true)
   private Track track;
 
-  @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
+  @ManyToMany(fetch = FetchType.LAZY)
   private List<Student> members = new ArrayList<>();
 
   // Returns whether the team is eligible to participate in an event.

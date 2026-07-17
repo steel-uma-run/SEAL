@@ -9,8 +9,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import lombok.Builder;
@@ -44,9 +45,9 @@ public class Student extends User {
   @Nonnull
   private String studentId;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "team_id", nullable = true)
-  private Team team;
+  @ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
+  @Builder.Default
+  private List<Team> teams = new ArrayList<>();
 
   @Column(columnDefinition = "TEXT", nullable = false)
   @Nonnull
@@ -64,14 +65,9 @@ public class Student extends User {
     return studentType != StudentType.FPT;
   }
 
-  // Returns whether this Student is the leader of their team.
-  public boolean isTeamLeader() {
-    return team != null && isTeamLeaderOf(team);
-  }
-
   // Returns whether this Student is the leader of a specific team.
   public boolean isTeamLeaderOf(Team team) {
-    return team.getLeader().getId().equals(getId());
+    return team.getLeader().equals(this);
   }
 
   public StudentDto toDto() {
@@ -83,7 +79,7 @@ public class Student extends User {
         getStudentId(),
         isExternal(),
         getSchoolName(),
-        getTeam() != null ? getTeam().getId() : null,
+        getTeams().stream().map(team -> team.getId()).toArray(UUID[]::new),
         StudentStatusDto.fromValue(getStudentStatus().name()),
         getEvents().stream().map(event -> event.getId()).toArray(UUID[]::new));
   }
