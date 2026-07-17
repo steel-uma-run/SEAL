@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import java.util.UUID;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,9 +26,11 @@ import seal.openapi.model.UserDto;
 @Getter
 @Setter
 @SuperBuilder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class User {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
+  @EqualsAndHashCode.Include
   private UUID id;
 
   @Column(nullable = false, columnDefinition = "TEXT")
