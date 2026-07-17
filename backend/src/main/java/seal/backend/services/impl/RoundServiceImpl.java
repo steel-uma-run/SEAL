@@ -87,6 +87,7 @@ public class RoundServiceImpl implements RoundService {
   }
 
   @Override
+  @Transactional
   public List<RoundDto> getRounds(UUID eventId) {
     return roundRepository.findByEventId(eventId).stream().map(round -> round.toDto()).toList();
   }

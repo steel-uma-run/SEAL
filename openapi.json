@@ -96,7 +96,7 @@
     "/rounds/{roundId}": {
       "$ref": "./openapi/paths/rounds/delete.json"
     },
-    "/rounds/assign-criteria": {
+    "/rounds/{roundId}/assign-criteria": {
       "$ref": "./openapi/paths/rounds/assign_criteria.json"
     },
 

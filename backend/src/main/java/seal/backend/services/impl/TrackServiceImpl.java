@@ -87,14 +87,14 @@ public class TrackServiceImpl implements TrackService {
     // 3. Assign new mentors
     if (request.mentorIds() != null) {
       for (UUID id : request.mentorIds()) {
-        assignMentor(track, id);
+        track = assignMentor(track, id);
       }
     }
 
     // 4. Assign new judges
     if (request.judgeIds() != null) {
       for (UUID id : request.judgeIds()) {
-        assignJudge(track, id);
+        track = assignJudge(track, id);
       }
     }
 
@@ -117,7 +117,7 @@ public class TrackServiceImpl implements TrackService {
     return savedTrack.toDto();
   }
 
-  private void assignMentor(Track track, UUID mentorId) {
+  private Track assignMentor(Track track, UUID mentorId) {
     Lecturer mentor =
         lecturerRepository
             .findById(mentorId)
@@ -153,10 +153,10 @@ public class TrackServiceImpl implements TrackService {
     }
 
     track.getMentors().add(mentor);
-    trackRepository.save(track);
+    return trackRepository.save(track);
   }
 
-  private void assignJudge(Track track, UUID judgeId) {
+  private Track assignJudge(Track track, UUID judgeId) {
     Lecturer judge =
         lecturerRepository
             .findById(judgeId)
@@ -192,7 +192,7 @@ public class TrackServiceImpl implements TrackService {
     }
 
     track.getJudges().add(judge);
-    trackRepository.save(track);
+    return trackRepository.save(track);
   }
 
   private void assignTeam(Track track, UUID teamId) {
@@ -201,6 +201,11 @@ public class TrackServiceImpl implements TrackService {
             .findById(teamId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
+
+    if (!team.getHackathonEvent().getId().equals(track.getEvent().getId())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "The team and track must belong to the same event.");
+    }
 
     team.setTrack(track);
     teamRepository.save(team);

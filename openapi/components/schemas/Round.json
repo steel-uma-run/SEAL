@@ -7,7 +7,8 @@
     "description",
     "start_time",
     "end_time",
-    "event_id"
+    "event_id",
+    "criteria"
   ],
   "properties": {
     "id": {
@@ -31,6 +32,12 @@
     "event_id": {
       "type": "string",
       "format": "uuid"
+    },
+    "criteria": {
+      "type": "array",
+      "items": {
+        "$ref": "./Criteria.json"
+      }
     }
   }
 }
