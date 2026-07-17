@@ -9,12 +9,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import seal.openapi.model.ScoreDto;
 import seal.openapi.model.SubmissionDto;
 
 @Entity
@@ -61,6 +65,9 @@ public class Submission {
   @Nonnull
   private Round round;
 
+  @OneToMany(mappedBy = "submission", fetch = FetchType.LAZY)
+  private List<Score> scores = new ArrayList<>();
+
   public SubmissionDto toDto() {
     return new SubmissionDto(
         getTitle(),
@@ -68,6 +75,7 @@ public class Submission {
         getGithubLink(),
         getYtLink(),
         getSlideLink(),
-        getSubmitTime());
+        getSubmitTime(),
+        scores.stream().map(Score::toDto).toArray(ScoreDto[]::new));
   }
 }

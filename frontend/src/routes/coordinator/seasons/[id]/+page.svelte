@@ -2,7 +2,15 @@
 	import { onMount } from "svelte"
 	import { page } from "$app/stores"
 	import { goto } from "$app/navigation"
-	import { getSeason } from "$lib/api"
+	import {
+		getSeason,
+		getEventsInSeason,
+		createEvent,
+		createTrack,
+		updateEvent,
+		finalizeEvent,
+		getAllTracksOfEvent
+	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2, Eye, Users } from "@lucide/svelte"
 
@@ -81,15 +89,54 @@
 		}
 	}
 
-	function loadEvents() {
-		if (typeof window !== "undefined") {
-			const key = `events_${seasonId}`
-			const stored = localStorage.getItem(key)
-			if (stored) {
-				events = JSON.parse(stored)
+	async function loadEvents() {
+		try {
+			const { data, response: res } = await getEventsInSeason({
+				path: { seasonId },
+				throwOnError: false
+			})
+			if (res?.ok && data) {
+				const fetchedEvents = []
+				for (const eventItem of data) {
+					let tracks: any[] = []
+					try {
+						const trackRes = await getAllTracksOfEvent({
+							path: { eventId: eventItem.id },
+							throwOnError: false
+						})
+						if (trackRes.response?.ok && trackRes.data) {
+							tracks = trackRes.data
+						}
+					} catch (e) {
+						console.error("Error loading tracks for event", eventItem.id, e)
+					}
+					fetchedEvents.push({
+						...eventItem,
+						startTime: eventItem.start_time,
+						endTime: eventItem.end_time,
+						tracks: tracks
+					})
+				}
+				events = fetchedEvents
 			} else {
-				events = []
-				localStorage.setItem(key, JSON.stringify(events))
+				if (typeof window !== "undefined") {
+					const key = `events_${seasonId}`
+					const stored = localStorage.getItem(key)
+					if (stored) {
+						events = JSON.parse(stored)
+					} else {
+						events = []
+					}
+				}
+			}
+		} catch (err) {
+			console.error("Error loading events:", err)
+			if (typeof window !== "undefined") {
+				const key = `events_${seasonId}`
+				const stored = localStorage.getItem(key)
+				if (stored) {
+					events = JSON.parse(stored)
+				}
 			}
 		}
 	}
@@ -102,10 +149,7 @@
 		eventStartTime = ""
 		eventEndTime = ""
 		eventStatusState = "DRAFT"
-		eventTracks = [
-			{ name: "", description: "" },
-			{ name: "", description: "" }
-		]
+		eventTracks = []
 		showEventModal = true
 		eventMessage = ""
 	}
@@ -129,7 +173,7 @@
 		eventMessage = ""
 	}
 
-	function handleSaveEvent(e: Event) {
+	async function handleSaveEvent(e: Event) {
 		e.preventDefault()
 
 		if (!eventName.trim() || !eventDescription.trim() || !eventStartTime || !eventEndTime) {
@@ -143,14 +187,6 @@
 		if (start >= end) {
 			eventMessage = "Start time must be before end time."
 			return
-		}
-
-		// Validate tracks
-		for (let i = 0; i < eventTracks.length; i++) {
-			if (!eventTracks[i].name.trim() || !eventTracks[i].description.trim()) {
-				eventMessage = `Track ${i + 1} name and description cannot be empty.`
-				return
-			}
 		}
 
 		// Prompt confirmation if status is being set to FINALIZED
@@ -168,42 +204,111 @@
 
 		try {
 			if (modalMode === "create") {
-				const newEvent = {
-					id: crypto.randomUUID(),
-					name: eventName,
-					description: eventDescription,
-					startTime: start.toISOString(),
-					endTime: end.toISOString(),
-					status: eventStatusState,
-					tracks: eventTracks
-				}
-				events = [...events, newEvent]
-			} else {
-				events = events.map((evt) => {
-					if (evt.id === editingEventId) {
-						return {
-							...evt,
-							name: eventName,
-							description: eventDescription,
-							startTime: start.toISOString(),
-							endTime: end.toISOString(),
-							status: eventStatusState,
-							tracks: eventTracks
+				const { data: createdEvent, response: createRes } = await createEvent({
+					body: {
+						season_id: seasonId,
+						name: eventName,
+						description: eventDescription,
+						start_time: start.toISOString(),
+						end_time: end.toISOString()
+					},
+					throwOnError: false
+				})
+
+				if (createRes?.ok && createdEvent) {
+					// Create tracks
+					if (eventTracks && eventTracks.length > 0) {
+						for (const track of eventTracks) {
+							if (track.name && track.name.trim() !== "") {
+								await createTrack({
+									path: { eventId: createdEvent.id },
+									body: {
+										name: track.name.trim(),
+										description: track.description.trim()
+									},
+									throwOnError: false
+								})
+							}
 						}
 					}
-					return evt
+
+					// Finalize event if selected
+					if (eventStatusState === "FINALIZED") {
+						await finalizeEvent({
+							path: { eventId: createdEvent.id },
+							throwOnError: false
+						})
+					}
+
+					eventMessage = "Event created successfully!"
+				} else {
+					// Fallback to local storage (mock logic)
+					const newEvent = {
+						id: crypto.randomUUID(),
+						name: eventName,
+						description: eventDescription,
+						startTime: start.toISOString(),
+						endTime: end.toISOString(),
+						status: eventStatusState,
+						tracks: eventTracks
+					}
+					events = [...events, newEvent]
+					if (typeof window !== "undefined") {
+						localStorage.setItem(`events_${seasonId}`, JSON.stringify(events))
+					}
+					eventMessage = "Event created successfully (locally/mock)!"
+				}
+			} else {
+				// Update
+				const { data: updatedEvent, response: updateRes } = await updateEvent({
+					path: { eventId: editingEventId || "" },
+					body: {
+						name: eventName,
+						description: eventDescription,
+						start_time: start.toISOString(),
+						end_time: end.toISOString()
+					},
+					throwOnError: false
 				})
+
+				if (updateRes?.ok && updatedEvent) {
+					if (eventStatusState === "FINALIZED" && updatedEvent.status !== "FINALIZED") {
+						await finalizeEvent({
+							path: { eventId: editingEventId || "" },
+							throwOnError: false
+						})
+					}
+					eventMessage = "Event updated successfully!"
+				} else {
+					// Fallback to local storage
+					events = events.map((evt) => {
+						if (evt.id === editingEventId) {
+							return {
+								...evt,
+								name: eventName,
+								description: eventDescription,
+								startTime: start.toISOString(),
+								endTime: end.toISOString(),
+								status: eventStatusState,
+								tracks: eventTracks
+							}
+						}
+						return evt
+					})
+					if (typeof window !== "undefined") {
+						localStorage.setItem(`events_${seasonId}`, JSON.stringify(events))
+					}
+					eventMessage = "Event updated successfully (locally/mock)!"
+				}
 			}
 
-			if (typeof window !== "undefined") {
-				localStorage.setItem(`events_${seasonId}`, JSON.stringify(events))
-			}
+			await loadEvents()
 
-			eventMessage = `Event ${modalMode === "create" ? "created" : "updated"} successfully!`
 			setTimeout(() => {
 				toggleEventModal()
 			}, 1000)
 		} catch (err) {
+			console.error(err)
 			eventMessage = "Failed to save event."
 		} finally {
 			isEventLoading = false
@@ -335,9 +440,9 @@
 											{event.description}
 										</p>
 
-										{#if event.tracks && event.tracks.length > 0}
+										{#if event.tracks && event.tracks.filter((t: any) => t.name && t.name.trim() !== "").length > 0}
 											<div class="flex flex-wrap gap-1.5 mt-2">
-												{#each event.tracks as track}
+												{#each event.tracks.filter((t: any) => t.name && t.name.trim() !== "") as track}
 													<span
 														class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-(--md-surface-container-high) text-(--md-on-surface-variant) border border-(--md-outline-variant)"
 														title={track.description}
@@ -480,64 +585,6 @@
 						placeholder="Briefly describe the round milestones, guidelines, and rules..."
 						class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all resize-none bg-(--md-surface-container-highest) text-(--md-on-surface) placeholder-(--md-on-surface-variant) opacity-70 focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
 					></textarea>
-				</div>
-
-				<!-- Tracks Section -->
-				<div class="space-y-3 border-t pt-4 mt-2 border-(--md-outline-variant)">
-					<div class="flex items-center justify-between">
-						<label class="text-sm font-bold text-(--md-on-surface)">
-							Event Tracks ({eventTracks.length})
-						</label>
-						<button
-							type="button"
-							onclick={addTrack}
-							class="text-[10px] flex items-center gap-1 bg-(--md-primary-container) hover:bg-(--md-primary-container)/80 text-(--md-on-primary-container) py-1.5 px-3 rounded-lg border border-(--md-outline-variant) transition-all font-bold cursor-pointer"
-						>
-							<Plus class="w-3 h-3" />
-							Add Track
-						</button>
-					</div>
-
-					<div class="space-y-3 max-h-[180px] overflow-y-auto pr-1">
-						{#each eventTracks as track, index}
-							<div
-								class="p-3.5 rounded-xl border relative bg-(--md-surface-container-low) border-(--md-outline-variant)"
-							>
-								{#if eventTracks.length > 1}
-									<button
-										type="button"
-										onclick={() => removeTrack(index)}
-										class="absolute top-2 right-2 p-1 rounded-md hover:bg-red-500/10 text-red-500 hover:text-red-600 transition-colors border-0 bg-transparent cursor-pointer"
-										title="Remove Track"
-									>
-										<X class="w-3.5 h-3.5" />
-									</button>
-								{/if}
-
-								<span
-									class="text-[10px] font-bold uppercase tracking-wider text-(--md-primary) block mb-1.5"
-									>Track #{index + 1}</span
-								>
-
-								<div class="space-y-2">
-									<input
-										type="text"
-										bind:value={track.name}
-										required
-										placeholder="Track Name (e.g. Cybersecurity)"
-										class="w-full text-xs rounded-lg border border-(--md-outline) p-2.5 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
-									/>
-									<textarea
-										bind:value={track.description}
-										required
-										rows="2"
-										placeholder="Track Description..."
-										class="w-full text-xs rounded-lg border border-(--md-outline) p-2.5 outline-none transition-all resize-none bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
-									></textarea>
-								</div>
-							</div>
-						{/each}
-					</div>
 				</div>
 
 				<div class="space-y-1">

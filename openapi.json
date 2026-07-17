@@ -118,6 +118,17 @@
     },
     "/accounts/unapproved": {
       "$ref": "./openapi/paths/accounts/unapproved.json"
+    },
+    "/accounts/lecturers": {
+      "$ref": "./openapi/paths/accounts/create_lecturer.json"
+    },
+
+    "/criteria-template": {
+      "$ref": "./openapi/paths/criteria/index.json"
+    },
+
+    "/submission/{submissionId}/grade": {
+      "$ref": "./openapi/paths/submission/grade.json"
     }
   }
 }

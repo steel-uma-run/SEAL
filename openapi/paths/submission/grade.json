@@ -1,0 +1,37 @@
+{
+  "parameters": [
+    {
+      "name": "submissionId",
+      "description": "ID of the submissions",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "post": {
+    "tags": ["submission"],
+    "operationId": "grade_submission",
+    "summary": "Submit grades a submission",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/GradeSubmissionRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "204": {
+        "description": "Graded successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

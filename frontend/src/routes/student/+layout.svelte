@@ -16,10 +16,7 @@
 			{ href: "/student/profile", label: "Profile", icon: User }
 		]
 		if (profile?.status !== "PENDING") {
-			baseItems.push(
-				{ href: "/student/teams", label: "Teams", icon: Users },
-				{ href: "/student/submit-project", label: "Submission", icon: UploadCloud }
-			)
+			baseItems.push({ href: "/student/teams", label: "Teams", icon: Users })
 		}
 		baseItems.push({ href: "#", label: "Settings", icon: Settings })
 		return baseItems

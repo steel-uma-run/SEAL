@@ -14,6 +14,7 @@ import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import seal.openapi.model.ScoreDto;
 
 @Entity
 @Table(name = "scores")
@@ -21,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Data
 public class Score {
-
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -45,4 +45,11 @@ public class Score {
   @Column(name = "value", nullable = false)
   @Nonnull
   private Integer value;
+
+  @Column(columnDefinition = "TEXT")
+  private String comment;
+
+  public ScoreDto toDto() {
+    return new ScoreDto(id, value, lecturer.getId(), criteria.getId(), submission.getId(), comment);
+  }
 }

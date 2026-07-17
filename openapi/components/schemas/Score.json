@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "required": ["id", "value", "lecturer_id", "criteria_id", "submission_id"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "value": {
+      "type": "integer"
+    },
+    "lecturer_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "criteria_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "submission_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "comment": {
+      "type": "string"
+    }
+  }
+}

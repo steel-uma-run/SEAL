@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "required": ["name", "weight"],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "weight": {
+      "type": "integer"
+    }
+  }
+}

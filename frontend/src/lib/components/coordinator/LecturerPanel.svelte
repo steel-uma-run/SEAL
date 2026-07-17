@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { onMount } from "svelte"
-	import { getAllAccounts, getAllSeasons, getEventsInSeason, getAllTeamsOfEvents } from "$lib/api"
+	import {
+		getAllAccounts,
+		getAllSeasons,
+		getEventsInSeason,
+		getAllTeamsOfEvents,
+		createLecturer
+	} from "$lib/api"
 	import { Plus, X, Shield, Edit2, Eye, User, Mail, Search } from "@lucide/svelte"
 
 	// 1. DATA LOADER & STATES
@@ -163,12 +169,12 @@
 		showExpertModal = false
 	}
 
-	function handleSaveExpert(e: Event) {
+	async function handleSaveExpert(e: Event) {
 		e.preventDefault()
 		isExpertLoading = true
 		expertMessage = ""
 
-		setTimeout(() => {
+		try {
 			if (editingId) {
 				expertsList = expertsList.map((exp) =>
 					exp.id === editingId
@@ -180,24 +186,47 @@
 						: exp
 				)
 				expertMessage = "Lecturer details updated successfully!"
+				isExpertLoading = false
+				setTimeout(() => {
+					closeExpertForm()
+				}, 1200)
 			} else {
-				const newExpert = {
-					id: Date.now().toString(),
-					name: formName,
-					role: "Lecturer",
-					email: formEmail,
-					assignedTeamsCount: 0,
-					assignedTeams: []
-				}
-				expertsList = [newExpert, ...expertsList]
-				expertMessage = "New lecturer account created!"
-			}
+				const { data, response } = await createLecturer({
+					body: {
+						email: formEmail,
+						name: formName
+					}
+				})
 
+				if (response?.ok && data) {
+					expertMessage = "New lecturer account created in database!"
+					await loadLecturersData()
+					isExpertLoading = false
+					setTimeout(() => {
+						closeExpertForm()
+					}, 1200)
+				} else {
+					let detail = ""
+					if (response && response.status === 409) {
+						detail = "This email is already registered."
+					} else {
+						detail = "Failed to create lecturer account."
+					}
+					expertMessage = "Error: " + detail
+					isExpertLoading = false
+				}
+			}
+		} catch (err: any) {
+			console.error("Error saving lecturer:", err)
+			let detail = ""
+			if (err.body) {
+				detail = err.body.detail || err.body.title || JSON.stringify(err.body)
+			} else {
+				detail = err.message || "Failed to save."
+			}
+			expertMessage = "Error: " + detail
 			isExpertLoading = false
-			setTimeout(() => {
-				closeExpertForm()
-			}, 1200)
-		}, 600)
+		}
 	}
 
 	// 4. LOGIC VIEW PROFILE

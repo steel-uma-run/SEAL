@@ -8,14 +8,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.util.Set;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import seal.openapi.model.CriteriaDto;
 
 @Entity
 @Table(name = "criteria")
@@ -23,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Data
 public class Criteria {
-
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -33,12 +31,15 @@ public class Criteria {
   private String name;
 
   @Column(nullable = false)
+  @Nonnull
   private Integer weight;
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(
-      name = "criteria_criteria_template",
-      joinColumns = @JoinColumn(name = "criteria_id", nullable = false),
-      inverseJoinColumns = @JoinColumn(name = "criteria_template_id", nullable = false))
-  private Set<CriteriaTemplate> criteriaTemplates;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "template_id", nullable = false)
+  @Nonnull
+  private CriteriaTemplate criteriaTemplate;
+
+  public CriteriaDto toDto() {
+    return new CriteriaDto(id, name, weight);
+  }
 }

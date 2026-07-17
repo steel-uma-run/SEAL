@@ -64,7 +64,7 @@ public class Team {
 
   // Returns whether the team is eligible to participate in an event.
   public boolean isTeamValid() {
-    return teamStatus == TeamStatus.ACTIVE && members.size() >= 3 && members.size() <= 5;
+    return teamStatus == TeamStatus.APPROVED && members.size() >= 3 && members.size() <= 5;
   }
 
   public TeamDto toDto() {

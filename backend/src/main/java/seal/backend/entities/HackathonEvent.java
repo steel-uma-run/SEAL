@@ -70,6 +70,9 @@ public class HackathonEvent {
   @Column(columnDefinition = "boolean default false", nullable = false)
   private boolean openForRegistration = false;
 
+  @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
+  private Set<Student> students = new HashSet<>();
+
   @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
   private List<Round> rounds = new ArrayList<>();
 
@@ -84,9 +87,6 @@ public class HackathonEvent {
             })
         .findFirst();
   }
-
-  @ManyToMany(mappedBy = "events")
-  private Set<Student> students = new HashSet<>();
 
   public HackathonEventDto toDto() {
     return new HackathonEventDto(

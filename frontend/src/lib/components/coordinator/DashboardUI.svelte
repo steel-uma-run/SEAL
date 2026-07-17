@@ -11,19 +11,32 @@
 		Plus,
 		Megaphone,
 		Download,
-		Zap
+		Zap,
+		ArrowRight
 	} from "@lucide/svelte"
 
 	let {
 		profile,
 		seasonsCount = 0,
 		activeParticipantsCount = 0,
-		totalLecturersCount = 0
+		totalLecturersCount = 0,
+		totalTeamsCount = 0,
+		pendingTeamsCount = 0,
+		pendingStudentsCount = 0,
+		unassignedJudgesCount = 0,
+		activeEvents = [],
+		currentSeason = null
 	} = $props<{
 		profile: any
 		seasonsCount?: number
 		activeParticipantsCount?: number
 		totalLecturersCount?: number
+		totalTeamsCount?: number
+		pendingTeamsCount?: number
+		pendingStudentsCount?: number
+		unassignedJudgesCount?: number
+		activeEvents?: any[]
+		currentSeason?: any
 	}>()
 </script>
 
@@ -42,7 +55,15 @@
 					<button
 						class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) hover:bg-(--md-surface-container-highest) cursor-pointer"
 					>
-						<span>Season 4: Summer Hackathon 2026</span>
+						<span>
+							{#if currentSeason}
+								Season: {currentSeason.semester.charAt(0) +
+									currentSeason.semester.slice(1).toLowerCase()}
+								{currentSeason.year}
+							{:else}
+								No Active Season
+							{/if}
+						</span>
 						<ChevronDown class="w-3.5 h-3.5 text-(--md-primary)" />
 					</button>
 				</div>
@@ -109,15 +130,24 @@
 					>
 						Total Teams
 					</p>
-					<h3 class="text-2xl font-bold text-(--md-on-surface)">32</h3>
+					<h3 class="text-2xl font-bold text-(--md-on-surface)">{totalTeamsCount}</h3>
 				</div>
 			</div>
 			<div class="mt-4">
-				<span
-					class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-error-container) text-(--md-on-error-container) border border-(--md-error)"
-				>
-					4 teams pending approval
-				</span>
+				{#if pendingTeamsCount > 0}
+					<span
+						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-error-container) text-(--md-on-error-container) border border-(--md-error)"
+					>
+						{pendingTeamsCount}
+						{pendingTeamsCount === 1 ? "team" : "teams"} pending approval
+					</span>
+				{:else}
+					<span
+						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)"
+					>
+						All teams approved
+					</span>
+				{/if}
 			</div>
 		</div>
 
@@ -140,7 +170,21 @@
 					<h3 class="text-2xl font-bold text-(--md-on-surface)">{activeParticipantsCount}</h3>
 				</div>
 			</div>
-			<p class="text-xs font-semibold mt-4 text-(--md-primary)">+12 new registrations this week</p>
+			<div class="mt-4">
+				{#if pendingStudentsCount > 0}
+					<span
+						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-error-container) text-(--md-on-error-container) border border-(--md-error)"
+					>
+						{pendingStudentsCount} pending student approvals
+					</span>
+				{:else}
+					<span
+						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)"
+					>
+						No pending accounts
+					</span>
+				{/if}
+			</div>
 		</div>
 
 		<!-- Card 4: Total Lecturers/Judges -->
@@ -163,202 +207,93 @@
 				</div>
 			</div>
 			<div class="mt-4">
-				<span
-					class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-error-container) text-(--md-on-error-container) border border-(--md-error)"
-				>
-					2 judges unassigned to rooms
-				</span>
+				{#if unassignedJudgesCount > 0}
+					<span
+						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-error-container) text-(--md-on-error-container) border border-(--md-error)"
+					>
+						{unassignedJudgesCount}
+						{unassignedJudgesCount === 1 ? "judge" : "judges"} unassigned to tracks
+					</span>
+				{:else}
+					<span
+						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)"
+					>
+						All judges assigned
+					</span>
+				{/if}
 			</div>
 		</div>
 	</div>
 
-	<!-- 3. ROW 2: TIMELINE (2/3) & QUICK ACTIONS (1/3) -->
-	<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-		<!-- Hackathon Timeline (2 cols) -->
+	<!-- 3. ROW 2: ACTIVE EVENTS (Full width) -->
+	<div class="mb-8">
+		<!-- Active Events -->
 		<div
-			class="lg:col-span-2 p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-colors duration-300 shadow-sm"
+			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-colors duration-300 shadow-sm"
 		>
-			<h2 class="text-xl font-bold mb-8 text-(--md-on-surface)">Hackathon Timeline</h2>
+			<div class="flex justify-between items-center mb-6">
+				<h2 class="text-xl font-bold text-(--md-on-surface)">Active Events</h2>
+			</div>
 
-			<div
-				class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-(--md-outline-variant)"
-			>
-				<!-- Timeline Point 1: Done -->
-				<div class="relative flex items-center gap-4">
-					<div
-						class="w-10 h-10 rounded-full border border-(--md-primary) bg-(--md-primary-container) text-(--md-on-primary-container) flex items-center justify-center shrink-0 z-10"
-					>
-						<Check class="w-5 h-5 stroke-[2.5]" />
-					</div>
-					<div
-						class="flex items-center justify-between flex-1 bg-(--md-surface-container-low) p-3 rounded-2xl border border-(--md-outline-variant)"
-					>
-						<div>
-							<h4 class="font-bold text-sm line-through text-(--md-on-surface-variant)">
-								Team Formation Deadline
-							</h4>
-							<p class="text-xs mt-0.5 text-(--md-on-surface-variant) opacity-70">June 10, 2026</p>
-						</div>
-						<span
-							class="px-2.5 py-1 rounded-lg text-xs font-bold bg-(--md-secondary-container) text-(--md-on-secondary-container) uppercase tracking-wider"
-							>Done ✓</span
+			{#if activeEvents.length === 0}
+				<div
+					class="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-(--md-outline-variant) rounded-3xl"
+				>
+					<Calendar class="w-12 h-12 text-(--md-on-surface-variant) opacity-50 mb-3" />
+					<h3 class="font-bold text-sm text-(--md-on-surface)">No active events found</h3>
+					<p class="text-xs text-(--md-on-surface-variant) mt-1 max-w-sm">
+						Go to Season & Event management to finalize and activate events.
+					</p>
+				</div>
+			{:else}
+				<div class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+					{#each activeEvents as event}
+						<div
+							class="p-5 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) hover:bg-(--md-surface-container-high) transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
 						>
-					</div>
-				</div>
-
-				<!-- Timeline Point 2: ACTIVE -->
-				<div class="relative flex items-center gap-4">
-					<div
-						class="w-10 h-10 rounded-full border border-(--md-primary) bg-(--md-primary-container) text-(--md-on-primary-container) flex items-center justify-center shrink-0 z-10"
-					>
-						<Calendar class="w-4 h-4" />
-					</div>
-					<div
-						class="flex items-center justify-between flex-1 bg-(--md-surface-container-high) p-3.5 rounded-2xl border-2 border-(--md-primary)"
-					>
-						<div>
-							<h4 class="font-bold text-sm text-(--md-primary) font-extrabold">
-								Project Submission
-							</h4>
-							<p class="text-xs mt-0.5 text-(--md-on-surface-variant)">June 13, 2026 - 11:59 PM</p>
+							<div class="flex-1">
+								<div class="flex items-center gap-2 mb-1.5 flex-wrap">
+									<span
+										class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)"
+									>
+										{event.seasonSemester}
+										{event.seasonYear}
+									</span>
+									<span
+										class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-(--md-tertiary-container) text-(--md-on-tertiary-container)"
+									>
+										{event.teamsCount}
+										{event.teamsCount === 1 ? "Team" : "Teams"}
+									</span>
+								</div>
+								<h3 class="text-base font-bold text-(--md-on-surface) mb-1">
+									{event.name}
+								</h3>
+								<p class="text-xs text-(--md-on-surface-variant) line-clamp-2 mb-3">
+									{event.description}
+								</p>
+								<div class="flex items-center gap-4 text-xs text-(--md-on-surface-variant)">
+									<div class="flex items-center gap-1.5">
+										<Calendar class="w-3.5 h-3.5 text-(--md-primary)" />
+										<span>
+											{new Date(event.startTime || event.start_time).toLocaleDateString()} - {new Date(
+												event.endTime || event.end_time
+											).toLocaleDateString()}
+										</span>
+									</div>
+								</div>
+							</div>
+							<a
+								href="/coordinator/seasons/{event.seasonId}/events/{event.id}"
+								class="shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 cursor-pointer no-underline border-0"
+							>
+								<span>View Event Details</span>
+								<ArrowRight class="w-4 h-4" />
+							</a>
 						</div>
-						<span
-							class="px-3 py-1 rounded-lg text-xs font-black bg-(--md-primary) text-(--md-on-primary) uppercase tracking-wider"
-							>Current Phase</span
-						>
-					</div>
+					{/each}
 				</div>
-
-				<!-- Timeline Point 3: Future -->
-				<div class="relative flex items-center gap-4 opacity-55">
-					<div
-						class="w-10 h-10 rounded-full border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface-variant) flex items-center justify-center shrink-0 z-10"
-					>
-						<Users class="w-4 h-4" />
-					</div>
-					<div
-						class="flex items-center justify-between flex-1 p-3 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low)"
-					>
-						<div>
-							<h4 class="font-bold text-sm text-(--md-on-surface-variant)">Pitching & Judging</h4>
-							<p class="text-xs mt-0.5 text-(--md-on-surface-variant) opacity-70">June 15, 2026</p>
-						</div>
-						<span class="text-xs font-semibold text-(--md-on-surface-variant)">Upcoming</span>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Quick Actions (1 col - 2x2 Grid) -->
-		<div
-			class="lg:col-span-1 p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
-		>
-			<div>
-				<h2 class="text-xl font-bold mb-6 text-(--md-on-surface)">Quick Actions</h2>
-				<p class="text-xs mb-6 text-(--md-on-surface-variant)">
-					Frequently used administrative tools for this season.
-				</p>
-			</div>
-
-			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3.5 mt-auto">
-				<button
-					class="w-full py-3.5 px-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 transition-all bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 cursor-pointer border-0"
-				>
-					<Plus class="w-4 h-4 stroke-[2.5]" />
-					<span>+ New Season</span>
-				</button>
-
-				<button
-					class="w-full py-3.5 px-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 transition-all bg-(--md-secondary-container) text-(--md-on-secondary-container) hover:opacity-90 cursor-pointer border-0"
-				>
-					<Megaphone class="w-4 h-4" />
-					<span>Global Notice</span>
-				</button>
-
-				<button
-					class="w-full py-3.5 px-4 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2.5 transition-all border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) cursor-pointer"
-				>
-					<Download class="w-4 h-4" />
-					<span>Export Teams</span>
-				</button>
-
-				<button
-					class="w-full py-3.5 px-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 transition-all bg-(--md-tertiary-container) text-(--md-on-tertiary-container) hover:opacity-90 cursor-pointer border-0"
-				>
-					<Zap class="w-4 h-4" />
-					<span>Generate Judges</span>
-				</button>
-			</div>
-		</div>
-	</div>
-
-	<!-- 4. ROW 3: ATTENTION REQUIRED (System Alerts) -->
-	<div
-		class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) mb-8 transition-colors duration-300 shadow-sm"
-	>
-		<div class="flex items-center gap-3 mb-6">
-			<AlertTriangle class="w-6 h-6 text-(--md-error)" />
-			<h2 class="text-xl font-bold text-(--md-on-surface)">
-				Attention Required <span class="text-sm font-normal text-(--md-on-surface-variant)"
-					>(System Alerts)</span
-				>
-			</h2>
-		</div>
-
-		<div class="space-y-3 font-sans">
-			<!-- Alert 1 -->
-			<div
-				class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl transition-all border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface)"
-			>
-				<div class="flex items-center gap-3 mb-3 sm:mb-0">
-					<span class="text-(--md-error) font-bold">⚠️</span>
-					<p class="text-sm">
-						Team <strong class="text-(--md-primary)">"FPT_NinhKieu"</strong> has 0 members registered
-						in the system.
-					</p>
-				</div>
-				<button
-					class="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold transition-all border border-(--md-outline) bg-transparent hover:bg-(--md-surface-container-high) text-(--md-on-surface) cursor-pointer"
-				>
-					[ View Team ]
-				</button>
-			</div>
-
-			<!-- Alert 2 -->
-			<div
-				class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl transition-all border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface)"
-			>
-				<div class="flex items-center gap-3 mb-3 sm:mb-0">
-					<span class="text-(--md-error) font-bold">⚠️</span>
-					<p class="text-sm">
-						Project Submission deadline in <strong class="text-(--md-error)">6 hours</strong> (14 teams
-						missing link).
-					</p>
-				</div>
-				<button
-					class="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold transition-all border border-(--md-outline) bg-transparent hover:bg-(--md-surface-container-high) text-(--md-on-surface) cursor-pointer"
-				>
-					[ Send Reminders ]
-				</button>
-			</div>
-
-			<!-- Alert 3 -->
-			<div
-				class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl transition-all border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface)"
-			>
-				<div class="flex items-center gap-3 mb-3 sm:mb-0">
-					<span class="text-(--md-error) font-bold">⚠️</span>
-					<p class="text-sm">
-						Judge <strong class="text-(--md-primary)">Nguyễn Văn A</strong> rejected the invitation to
-						join Season 4.
-					</p>
-				</div>
-				<button
-					class="w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold transition-all border border-(--md-outline) bg-transparent hover:bg-(--md-surface-container-high) text-(--md-on-surface) cursor-pointer"
-				>
-					[ Re-assign Judge ]
-				</button>
-			</div>
+			{/if}
 		</div>
 	</div>
 </div>

@@ -93,7 +93,7 @@ class SubmissionControllerTests {
   @Order(2)
   void approveTeam() throws Exception {
     Team team = teamRepo.findAll().getFirst();
-    team.setTeamStatus(TeamStatus.ACTIVE);
+    team.setTeamStatus(TeamStatus.APPROVED);
     teamRepo.save(team);
   }
 

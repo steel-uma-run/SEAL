@@ -1,0 +1,55 @@
+{
+  "get": {
+    "tags": ["criteria"],
+    "operationId": "get_all_criteria_templates",
+    "summary": "Get a list of all templates",
+    "responses": {
+      "200": {
+        "description": "Criteria templates data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/CriteriaTemplate.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  },
+  "post": {
+    "tags": ["criteria"],
+    "operationId": "create_criteria_template",
+    "summary": "Create a criteria template",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/CreateCriteriaTemplateRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Created successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/CriteriaTemplate.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
