@@ -18,7 +18,8 @@
 				{ href: "/coordinator/seasons", label: "Seasons & Events" },
 				{ href: "/coordinator/teams", label: "Teams" },
 				{ href: "/coordinator/experts", label: "Lecturers" },
-				{ href: "/coordinator/users", label: "Users" }
+				{ href: "/coordinator/users", label: "Users" },
+				{ href: "/coordinator/templates", label: "Template" }
 			]
 		},
 		{ href: "/coordinator/profile", label: "Profile", icon: User },

@@ -1361,8 +1361,8 @@
 					<label
 						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
 					>
-						Select Mentors (2 or 3 required)
-					</label
+						Select Mentors (maximum 3)
+					</label>
 					<div
 						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
 					>
