@@ -69,25 +69,12 @@
 				for (const season of seasons) {
 					let allSeasonEvents: any[] = []
 
-					// 1. Check LocalStorage for mock events
-					if (typeof window !== "undefined") {
-						const key = `events_${season.id}`
-						const stored = localStorage.getItem(key)
-						if (stored) {
-							allSeasonEvents = JSON.parse(stored).filter(
-								(e: any) => e.status === "FINALIZED" || e.status === "ACTIVE"
-							)
-						}
-					}
-
-					// 2. Fallback to API if no local events
-					if (allSeasonEvents.length === 0) {
-						const { data: events, response: eventsRes } = await getEventsInSeason({
-							path: { seasonId: season.id },
-							throwOnError: false
-						})
-						if (eventsRes?.ok && events) allSeasonEvents = events
-					}
+					// 2. Fetch from API
+					const { data: events, response: eventsRes } = await getEventsInSeason({
+						path: { seasonId: season.id },
+						throwOnError: false
+					})
+					if (eventsRes?.ok && events) allSeasonEvents = events
 
 					for (const event of allSeasonEvents) {
 						let participantsList: any[] = []
@@ -100,14 +87,6 @@
 							})
 						if (participantsRes?.ok && participants && participants.length > 0) {
 							participantsList = participants
-						} else {
-							// 2. Check local storage for participants fallback
-							if (typeof window !== "undefined") {
-								const localParts = localStorage.getItem(`participants_${event.id}`)
-								if (localParts) {
-									participantsList = JSON.parse(localParts)
-								}
-							}
 						}
 
 						if (participantsList.length > 0) {
@@ -126,13 +105,6 @@
 								})
 								if (teamsRes?.ok && teams && teams.length > 0) {
 									eventTeamsList = teams
-								} else {
-									if (typeof window !== "undefined") {
-										const localTeams = localStorage.getItem(`teams_${event.id}`)
-										if (localTeams) {
-											eventTeamsList = JSON.parse(localTeams)
-										}
-									}
 								}
 								// Store this globally or on the invite processing step so invites can use it
 								// Since this is per-event, and invites are global, we will just use it to resolve resolvedTeam if they have one
@@ -314,21 +286,6 @@
 				const idx = invites.findIndex((i) => i.id === inviteId)
 				if (idx !== -1) invites[idx].status = "DECLINED"
 			} else {
-				// MOCK FALLBACK
-				if (typeof window !== "undefined") {
-					const mockInvitesStr = localStorage.getItem("mock_invites")
-					if (mockInvitesStr) {
-						let mockInvites = JSON.parse(mockInvitesStr)
-						const mIdx = mockInvites.findIndex((i: any) => i.id === inviteId)
-						if (mIdx !== -1) {
-							mockInvites[mIdx].status = "DECLINED"
-							localStorage.setItem("mock_invites", JSON.stringify(mockInvites))
-							const idx = invites.findIndex((i) => i.id === inviteId)
-							if (idx !== -1) invites[idx].status = "DECLINED"
-							return
-						}
-					}
-				}
 				alert("Failed to decline invite.")
 			}
 		} catch (error) {

@@ -4,7 +4,7 @@
 	import { getSelfProfile } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import Sidebar from "$lib/components/common/Sidebar.svelte"
-	import { LayoutDashboard, FolderKanban, User } from "@lucide/svelte"
+	import { LayoutDashboard, FolderKanban, User, Settings } from "@lucide/svelte"
 
 	let { children } = $props()
 	let isLoading = $state(true)
@@ -18,10 +18,12 @@
 				{ href: "/coordinator/seasons", label: "Seasons & Events" },
 				{ href: "/coordinator/teams", label: "Teams" },
 				{ href: "/coordinator/experts", label: "Lecturers" },
-				{ href: "/coordinator/users", label: "Users" }
+				{ href: "/coordinator/users", label: "Users" },
+				{ href: "/coordinator/templates", label: "Template" }
 			]
 		},
-		{ href: "/coordinator/profile", label: "Profile", icon: User }
+		{ href: "/coordinator/profile", label: "Profile", icon: User },
+		{ href: "/coordinator/settings", label: "Settings", icon: Settings }
 	]
 
 	onMount(async () => {

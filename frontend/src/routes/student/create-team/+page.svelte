@@ -70,7 +70,7 @@
 							hasJoined = true
 						}
 
-						if (hasJoined) {
+						if (hasJoined && event.open_for_registration) {
 							joinedList.push(event)
 						}
 					}

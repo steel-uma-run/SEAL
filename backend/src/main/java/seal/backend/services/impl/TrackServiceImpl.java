@@ -1,7 +1,6 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -12,18 +11,12 @@ import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Lecturer;
 import seal.backend.entities.Team;
 import seal.backend.entities.Track;
-import seal.backend.enums.EventStatus;
-import seal.backend.enums.TeamStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.TrackRepository;
 import seal.backend.services.TrackService;
-import seal.openapi.model.AssignJudgeRequestDto;
-import seal.openapi.model.AssignMentorRequestDto;
-import seal.openapi.model.AssignTeamRequestDto;
 import seal.openapi.model.CreateTrackRequestDto;
-import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
 import seal.openapi.model.UpdateTrackRequestDto;
 
@@ -78,23 +71,32 @@ public class TrackServiceImpl implements TrackService {
       track.setDescription(request.description());
     }
 
-    Track savedTrack = trackRepository.save(track);
+    if (request.mentorIds() != null) {
+      for (UUID id : request.mentorIds()) {
+        assignMentor(track, id);
+      }
+    }
 
+    if (request.judgeIds() != null) {
+      for (UUID id : request.mentorIds()) {
+        assignJudge(track, id);
+      }
+    }
+
+    if (request.teamIds() != null) {
+      for (UUID id : request.mentorIds()) {
+        assignTeam(track, id);
+      }
+    }
+
+    Track savedTrack = trackRepository.save(track);
     return savedTrack.toDto();
   }
 
-  @Override
-  @Transactional
-  public TrackDto assignMentor(UUID trackId, AssignMentorRequestDto request) {
-    Track track =
-        trackRepository
-            .findById(trackId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
-
+  private void assignMentor(Track track, UUID mentorId) {
     Lecturer mentor =
         lecturerRepository
-            .findById(request.mentorId())
+            .findById(mentorId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecturer not found."));
 
@@ -113,7 +115,7 @@ public class TrackServiceImpl implements TrackService {
     List<Track> allTracksInEvent = trackRepository.findByEventId(track.getEvent().getId());
     for (Track currentTrack : allTracksInEvent) {
       if (currentTrack.getMentors().contains(mentor)) {
-        if (currentTrack.getId().equals(trackId)) {
+        if (currentTrack.getId().equals(track.getId())) {
           throw new ResponseStatusException(
               HttpStatus.BAD_REQUEST, "This lecturer is already a mentor for this track.");
         } else {
@@ -125,23 +127,13 @@ public class TrackServiceImpl implements TrackService {
     }
 
     track.getMentors().add(mentor);
-    Track savedTrack = trackRepository.save(track);
-
-    return savedTrack.toDto();
+    trackRepository.save(track);
   }
 
-  @Override
-  @Transactional
-  public TrackDto assignJudge(UUID trackId, AssignJudgeRequestDto request) {
-    Track track =
-        trackRepository
-            .findById(trackId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
-
+  private void assignJudge(Track track, UUID judgeId) {
     Lecturer judge =
         lecturerRepository
-            .findById(request.judgeId())
+            .findById(judgeId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecturer not found."));
 
@@ -172,49 +164,17 @@ public class TrackServiceImpl implements TrackService {
     }
 
     track.getJudges().add(judge);
-    Track savedTrack = trackRepository.save(track);
-
-    return savedTrack.toDto();
+    trackRepository.save(track);
   }
 
-  @Override
-  @Transactional
-  public TeamDto assignTeam(UUID trackId, AssignTeamRequestDto request) {
-    Track track =
-        trackRepository
-            .findById(trackId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
-    HackathonEvent event = track.getEvent();
-
+  private void assignTeam(Track track, UUID teamId) {
     Team team =
         teamRepository
-            .findById(request.teamId())
+            .findById(teamId)
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
 
-    if (!team.getHackathonEvent().getId().equals(event.getId())) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Team and Track do not belong to the same Hackathon Event.");
-    }
-
-    if (team.getTeamStatus() != TeamStatus.APPROVED) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Team has not been approved yet.");
-    }
-
-    if (event.getStatus() != EventStatus.FINALIZED) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Cannot assign team. The event is not finalized yet.");
-    }
-
-    if (event.getStartTime().isBefore(OffsetDateTime.now())) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Cannot assign team. The event has already started.");
-    }
-
     team.setTrack(track);
-    Team savedTeam = teamRepository.save(team);
-
-    return savedTeam.toDto();
+    teamRepository.save(team);
   }
 }

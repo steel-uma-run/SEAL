@@ -13,10 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import seal.backend.config.GlobalConfig;
 import seal.backend.services.TrackService;
 import seal.openapi.api.TracksApi;
-import seal.openapi.model.AssignJudgeRequestDto;
-import seal.openapi.model.AssignMentorRequestDto;
-import seal.openapi.model.AssignTeamRequestDto;
-import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
 import seal.openapi.model.UpdateTrackRequestDto;
 
@@ -39,33 +35,5 @@ public class TrackController implements TracksApi {
       @RequestBody @Valid @NotNull UpdateTrackRequestDto body) {
     TrackDto updatedTrack = trackService.updateTrack(trackId, body);
     return ResponseEntity.ok(updatedTrack);
-  }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<TrackDto> assignMentor(
-      @PathVariable(name = "trackId") @NotNull UUID trackId,
-      @RequestBody @Valid @NotNull AssignMentorRequestDto body) {
-
-    TrackDto updatedTrack = trackService.assignMentor(trackId, body);
-    return ResponseEntity.ok(updatedTrack);
-  }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<TeamDto> assignTeamToTrack(
-      @PathVariable(name = "trackId") @NotNull UUID trackId,
-      @RequestBody @Valid @NotNull AssignTeamRequestDto body) {
-    TeamDto updatedTeam = trackService.assignTeam(trackId, body);
-    return ResponseEntity.ok(updatedTeam);
-  }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<TrackDto> assignJudge(
-      @PathVariable(name = "trackId") @NotNull UUID trackId,
-      @RequestBody @Valid @NotNull AssignJudgeRequestDto body) {
-    TrackDto responseDto = trackService.assignJudge(trackId, body);
-    return ResponseEntity.ok(responseDto);
   }
 }

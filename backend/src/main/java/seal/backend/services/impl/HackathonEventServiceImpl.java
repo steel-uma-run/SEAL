@@ -113,6 +113,11 @@ public class HackathonEventServiceImpl implements HackathonEventService {
           HttpStatus.FORBIDDEN, "Only active students are allowed to register for events.");
     }
 
+    if (!event.isOpenForRegistration()) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "This event is not opened for registration.");
+    }
+
     boolean changed = student.getEvents().add(event);
     if (changed) {
       studentRepository.save(student);

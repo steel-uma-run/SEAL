@@ -14,7 +14,8 @@
 		createTrack,
 		getAllTracksOfEvent,
 		createRound,
-		getRounds
+		getRounds,
+		updateTrack
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Clock, X, Plus } from "@lucide/svelte"
@@ -54,11 +55,23 @@
 	let newTrackName = $state("")
 	let newTrackDescription = $state("")
 	let selectedTeamsForTrack = $state<string[]>([])
-	let selectedMentorForTrack = $state<string>("")
+	let selectedMentorsForTrack = $state<string[]>([])
 	let selectedJudgesForTrack = $state<string[]>([])
 	let isCreatingTrack = $state(false)
 	let createTrackMessage = $state("")
 	let createTrackError = $state(false)
+
+	// Edit Track Modal State
+	let showEditTrackModal = $state(false)
+	let editingTrackId = $state("")
+	let editTrackName = $state("")
+	let editTrackDescription = $state("")
+	let selectedMentorsForEditTrack = $state<string[]>([])
+	let selectedJudgesForEditTrack = $state<string[]>([])
+	let selectedTeamsForEditTrack = $state<string[]>([])
+	let isSavingEditTrack = $state(false)
+	let editTrackMessage = $state("")
+	let editTrackError = $state(false)
 
 	// Event Rounds list
 	let eventRounds = $state<any[]>([])
@@ -216,46 +229,10 @@
 				await fetchEventDetails()
 				alert(`Team "${teamNameInput}" created successfully!`)
 			} else {
-				if (typeof window !== "undefined") {
-					const mockTeamId = crypto.randomUUID()
-					const mockTeam = {
-						id: mockTeamId,
-						name: teamNameInput.trim(),
-						description: teamDescriptionInput.trim(),
-						status: "APPROVED",
-						leader_id: targetStudent.id,
-						leaderId: targetStudent.id,
-						members: [targetStudent.id, ...selectedMembers]
-					}
-
-					const keyParts = `participants_${eventId}`
-					const storedParts = localStorage.getItem(keyParts)
-					if (storedParts) {
-						let participants = JSON.parse(storedParts)
-						participants = participants.map((p: any) => {
-							if (p.id === targetStudent.id || selectedMembers.includes(p.id)) {
-								return { ...p, team_id: mockTeamId, teamId: mockTeamId }
-							}
-							return p
-						})
-						localStorage.setItem(keyParts, JSON.stringify(participants))
-					}
-
-					const keyTeams = `teams_${eventId}`
-					const storedTeams = localStorage.getItem(keyTeams)
-					let localTeams = storedTeams ? JSON.parse(storedTeams) : []
-					localTeams.push(mockTeam)
-					localStorage.setItem(keyTeams, JSON.stringify(localTeams))
-
-					showCreateTeamModal = false
-					await fetchEventDetails()
-					alert(`Team "${teamNameInput}" created successfully!`)
-				} else {
-					const errBody = apiErr as any
-					createTeamMessage =
-						errBody?.detail || errBody?.title || response?.statusText || "Failed to create team."
-					createTeamError = true
-				}
+				const errBody = apiErr as any
+				createTeamMessage =
+					errBody?.detail || errBody?.title || response?.statusText || "Failed to create team."
+				createTeamError = true
 			}
 		} catch (err: any) {
 			console.error("Error creating team:", err)
@@ -442,7 +419,7 @@
 		newTrackName = ""
 		newTrackDescription = ""
 		selectedTeamsForTrack = []
-		selectedMentorForTrack = ""
+		selectedMentorsForTrack = []
 		selectedJudgesForTrack = []
 		createTrackMessage = ""
 		createTrackError = false
@@ -453,6 +430,12 @@
 		e.preventDefault()
 		if (!newTrackName.trim() || !newTrackDescription.trim()) {
 			createTrackMessage = "Track name and description are required."
+			createTrackError = true
+			return
+		}
+
+		if (selectedMentorsForTrack.length > 3) {
+			createTrackMessage = "You can assign at most 3 mentors."
 			createTrackError = true
 			return
 		}
@@ -489,11 +472,11 @@
 			if (response?.ok && newTrack) {
 				const trackId = newTrack.id
 
-				// 2. Assign Mentor if selected
-				if (selectedMentorForTrack) {
+				// 2. Assign Mentors if selected
+				for (const mentorId of selectedMentorsForTrack) {
 					await assignMentor({
 						path: { trackId },
-						body: { mentor_id: selectedMentorForTrack },
+						body: { mentor_id: mentorId },
 						throwOnError: false
 					})
 				}
@@ -529,7 +512,7 @@
 						name: newTrackName.trim(),
 						description: newTrackDescription.trim(),
 						event_id: eventId,
-						mentor_ids: selectedMentorForTrack ? [selectedMentorForTrack] : [],
+						mentor_ids: selectedMentorsForTrack,
 						judge_ids: selectedJudgesForTrack
 					}
 
@@ -580,6 +563,138 @@
 			createTrackError = true
 		} finally {
 			isCreatingTrack = false
+		}
+	}
+
+	function openEditTrackModal(track: any) {
+		editingTrackId = track.id || ""
+		editTrackName = track.name || ""
+		editTrackDescription = track.description || ""
+
+		const mentors = track.mentor_ids || track.mentorIds || []
+		selectedMentorsForEditTrack = [...mentors]
+
+		selectedJudgesForEditTrack = [...(track.judge_ids || track.judgeIds || [])]
+
+		selectedTeamsForEditTrack = teams
+			.filter((t) => t.track_id === track.id || t.trackId === track.id)
+			.map((t) => t.id)
+
+		editTrackMessage = ""
+		editTrackError = false
+		showEditTrackModal = true
+	}
+
+	async function handleUpdateTrack(e: Event) {
+		e.preventDefault()
+		if (!editTrackName.trim() || !editTrackDescription.trim()) {
+			editTrackMessage = "Track name and description are required."
+			editTrackError = true
+			return
+		}
+
+		if (selectedMentorsForEditTrack.length > 3) {
+			editTrackMessage = "You can assign at most 3 mentors."
+			editTrackError = true
+			return
+		}
+
+		if (
+			selectedJudgesForEditTrack.length > 0 &&
+			selectedJudgesForEditTrack.length !== 2 &&
+			selectedJudgesForEditTrack.length !== 3
+		) {
+			editTrackMessage = "You must assign either 2 or 3 judges (or none)."
+			editTrackError = true
+			return
+		}
+
+		isSavingEditTrack = true
+		editTrackMessage = ""
+		editTrackError = false
+
+		try {
+			const {
+				response,
+				data: updatedTrack,
+				error: apiErr
+			} = await updateTrack({
+				path: { trackId: editingTrackId },
+				body: {
+					name: editTrackName.trim(),
+					description: editTrackDescription.trim(),
+					mentor_ids: selectedMentorsForEditTrack,
+					judge_ids: selectedJudgesForEditTrack,
+					team_ids: selectedTeamsForEditTrack
+				},
+				throwOnError: false
+			})
+
+			if (response?.ok && updatedTrack) {
+				showEditTrackModal = false
+				await fetchEventDetails()
+				await loadEventTracks()
+				alert(`Track "${editTrackName}" updated successfully!`)
+			} else {
+				if (typeof window !== "undefined") {
+					const key = `events_${seasonId}`
+					const stored = localStorage.getItem(key)
+					if (stored) {
+						let localEvents = JSON.parse(stored)
+						localEvents = localEvents.map((evt: any) => {
+							if (evt.id === eventId) {
+								const existingTracks = evt.tracks || []
+								const updatedTracks = existingTracks.map((t: any) => {
+									if (t.id === editingTrackId || t.name === editTrackName) {
+										return {
+											...t,
+											name: editTrackName.trim(),
+											description: editTrackDescription.trim(),
+											mentor_ids: selectedMentorsForEditTrack,
+											judge_ids: selectedJudgesForEditTrack
+										}
+									}
+									return t
+								})
+								return { ...evt, tracks: updatedTracks }
+							}
+							return evt
+						})
+						localStorage.setItem(key, JSON.stringify(localEvents))
+					}
+
+					const keyTeams = `teams_${eventId}`
+					const storedTeams = localStorage.getItem(keyTeams)
+					if (storedTeams) {
+						let localTeams = JSON.parse(storedTeams)
+						localTeams = localTeams.map((t: any) => {
+							if (selectedTeamsForEditTrack.includes(t.id)) {
+								return { ...t, track_id: editingTrackId, trackId: editingTrackId }
+							}
+							if (t.track_id === editingTrackId || t.trackId === editingTrackId) {
+								return { ...t, track_id: null, trackId: null }
+							}
+							return t
+						})
+						localStorage.setItem(keyTeams, JSON.stringify(localTeams))
+					}
+
+					showEditTrackModal = false
+					await fetchEventDetails()
+					await loadEventTracks()
+					alert(`Track updated successfully!`)
+				} else {
+					const errBody = apiErr as any
+					editTrackMessage = errBody?.detail || response?.statusText || "Failed to update track."
+					editTrackError = true
+				}
+			}
+		} catch (err: any) {
+			console.error("Error updating track:", err)
+			editTrackMessage = err.message || "An error occurred."
+			editTrackError = true
+		} finally {
+			isSavingEditTrack = false
 		}
 	}
 
@@ -678,13 +793,15 @@
 						Manage and configure track details, assigned mentors, judges, and teams.
 					</p>
 				</div>
-				<button
-					onclick={openCreateTrackModal}
-					class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
-				>
-					<Plus class="w-4 h-4" />
-					Create Track
-				</button>
+				{#if event.status?.toUpperCase() === "DRAFT"}
+					<button
+						onclick={openCreateTrackModal}
+						class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
+					>
+						<Plus class="w-4 h-4" />
+						Create Track
+					</button>
+				{/if}
 			</div>
 
 			{#if eventTracks.length > 0}
@@ -693,11 +810,20 @@
 						<div
 							class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) space-y-4"
 						>
-							<div>
-								<h3 class="text-base font-bold text-(--md-primary) m-0">{track.name}</h3>
-								<p class="text-xs text-(--md-on-surface-variant) mt-1 leading-relaxed">
-									{track.description}
-								</p>
+							<div class="flex justify-between items-start">
+								<div>
+									<h3 class="text-base font-bold text-(--md-primary) m-0">{track.name}</h3>
+									<p class="text-xs text-(--md-on-surface-variant) mt-1 leading-relaxed">
+										{track.description}
+									</p>
+								</div>
+								<button
+									type="button"
+									onclick={() => openEditTrackModal(track)}
+									class="flex items-center bg-transparent text-[11px] font-bold py-1.5 px-3 rounded-lg border border-(--md-outline) text-(--md-primary) hover:bg-(--md-surface-container-high) transition-all cursor-pointer whitespace-nowrap"
+								>
+									Edit
+								</button>
 							</div>
 
 							<div class="space-y-2 border-t pt-3 border-(--md-outline-variant)">
@@ -972,13 +1098,15 @@
 				<div class="space-y-6">
 					<div class="flex justify-between items-center">
 						<h3 class="text-base font-bold text-(--md-on-surface) m-0">Event Rounds</h3>
-						<button
-							onclick={openCreateRoundModal}
-							class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
-						>
-							<Plus class="w-4 h-4" />
-							Create Round
-						</button>
+						{#if event.status?.toUpperCase() === "DRAFT"}
+							<button
+								onclick={openCreateRoundModal}
+								class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
+							>
+								<Plus class="w-4 h-4" />
+								Create Round
+							</button>
+						{/if}
 					</div>
 
 					{#if eventRounds.length > 0}
@@ -1231,23 +1359,46 @@
 				<!-- Mentor Selection -->
 				<div>
 					<label
-						for="new-track-mentor"
 						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
 					>
-						Select Mentor
+						Select Mentors (maximum 3)
 					</label>
-					<select
-						id="new-track-mentor"
-						bind:value={selectedMentorForTrack}
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all cursor-pointer"
+					<div
+						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
 					>
-						<option value="">-- None / Unassigned --</option>
 						{#each lecturers.filter((l) => !selectedJudgesForTrack.includes(l.id)) as lecturer}
-							<option value={lecturer.id}
-								>{lecturer.fullName || lecturer.name} ({lecturer.email})</option
+							<label
+								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
 							>
+								<input
+									type="checkbox"
+									value={lecturer.id}
+									checked={selectedMentorsForTrack.includes(lecturer.id)}
+									onchange={(e) => {
+										if (e.currentTarget.checked) {
+											selectedMentorsForTrack = [...selectedMentorsForTrack, lecturer.id]
+										} else {
+											selectedMentorsForTrack = selectedMentorsForTrack.filter(
+												(id) => id !== lecturer.id
+											)
+										}
+									}}
+									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
+								/>
+								<div class="text-xs">
+									<p class="font-bold text-(--md-on-surface)">
+										{lecturer.fullName || lecturer.name}
+									</p>
+									<p class="text-(--md-on-surface-variant) mt-0.5">
+										{lecturer.email}
+									</p>
+								</div>
+							</label>
 						{/each}
-					</select>
+					</div>
+					<p class="text-[10px] text-zinc-500 mt-1 italic">
+						Selected: {selectedMentorsForTrack.length} mentor(s)
+					</p>
 				</div>
 
 				<!-- Judges Selection -->
@@ -1260,7 +1411,7 @@
 					<div
 						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
 					>
-						{#each lecturers.filter((l) => l.id !== selectedMentorForTrack) as lecturer}
+						{#each lecturers.filter((l) => !selectedMentorsForTrack.includes(l.id)) as lecturer}
 							<label
 								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
 							>
@@ -1349,6 +1500,228 @@
 						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
 					>
 						{isCreatingTrack ? "Creating..." : "Create Track"}
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
+
+{#if showEditTrackModal}
+	<div
+		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+	>
+		<div
+			class="w-full max-w-md rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low) max-h-[90vh] overflow-y-auto"
+		>
+			<div class="flex justify-between items-center mb-6">
+				<h3 class="text-xl font-extrabold text-(--md-on-surface)">Edit Track</h3>
+				<button
+					onclick={() => (showEditTrackModal = false)}
+					class="p-1 rounded-full hover:bg-(--md-surface-container-high) border-0 bg-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer"
+				>
+					<X class="w-5 h-5" />
+				</button>
+			</div>
+
+			<form onsubmit={handleUpdateTrack} class="space-y-4">
+				{#if editTrackMessage}
+					<div
+						class="p-3.5 rounded-xl border text-sm font-medium {editTrackError
+							? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
+							: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
+					>
+						{editTrackMessage}
+					</div>
+				{/if}
+
+				<div>
+					<label
+						for="edit-track-name"
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Track Name *
+					</label>
+					<input
+						type="text"
+						id="edit-track-name"
+						bind:value={editTrackName}
+						placeholder="Cybersecurity"
+						required
+						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
+					/>
+				</div>
+
+				<div>
+					<label
+						for="edit-track-desc"
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Description *
+					</label>
+					<textarea
+						id="edit-track-desc"
+						bind:value={editTrackDescription}
+						placeholder="Enter track description..."
+						required
+						rows="2"
+						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all resize-none"
+					></textarea>
+				</div>
+
+				<!-- Mentor Selection -->
+				<div>
+					<label
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Select Mentors (maximum 3)
+					</label>
+					<div
+						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
+					>
+						{#each lecturers.filter((l) => !selectedJudgesForEditTrack.includes(l.id)) as lecturer}
+							<label
+								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
+							>
+								<input
+									type="checkbox"
+									value={lecturer.id}
+									checked={selectedMentorsForEditTrack.includes(lecturer.id)}
+									onchange={(e) => {
+										if (e.currentTarget.checked) {
+											selectedMentorsForEditTrack = [...selectedMentorsForEditTrack, lecturer.id]
+										} else {
+											selectedMentorsForEditTrack = selectedMentorsForEditTrack.filter(
+												(id) => id !== lecturer.id
+											)
+										}
+									}}
+									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
+								/>
+								<div class="text-xs">
+									<p class="font-bold text-(--md-on-surface)">
+										{lecturer.fullName || lecturer.name}
+									</p>
+									<p class="text-(--md-on-surface-variant) mt-0.5">
+										{lecturer.email}
+									</p>
+								</div>
+							</label>
+						{/each}
+					</div>
+					<p class="text-[10px] text-zinc-500 mt-1 italic">
+						Selected: {selectedMentorsForEditTrack.length} mentor(s)
+					</p>
+				</div>
+
+				<!-- Judges Selection -->
+				<div>
+					<label
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Select Judges (2 or 3 required)
+					</label>
+					<div
+						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
+					>
+						{#each lecturers.filter((l) => !selectedMentorsForEditTrack.includes(l.id)) as lecturer}
+							<label
+								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
+							>
+								<input
+									type="checkbox"
+									value={lecturer.id}
+									checked={selectedJudgesForEditTrack.includes(lecturer.id)}
+									onchange={(e) => {
+										if (e.currentTarget.checked) {
+											selectedJudgesForEditTrack = [...selectedJudgesForEditTrack, lecturer.id]
+										} else {
+											selectedJudgesForEditTrack = selectedJudgesForEditTrack.filter(
+												(id) => id !== lecturer.id
+											)
+										}
+									}}
+									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
+								/>
+								<div class="text-xs">
+									<p class="font-bold text-(--md-on-surface)">
+										{lecturer.fullName || lecturer.name}
+									</p>
+									<p class="text-(--md-on-surface-variant) mt-0.5">
+										{lecturer.email}
+									</p>
+								</div>
+							</label>
+						{/each}
+					</div>
+					<p class="text-[10px] text-zinc-500 mt-1 italic">
+						Selected: {selectedJudgesForEditTrack.length} judge(s)
+					</p>
+				</div>
+
+				<!-- Teams Selection -->
+				<div>
+					<label
+						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
+					>
+						Assign Teams
+					</label>
+					<div
+						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
+					>
+						{#each teams as team}
+							<label
+								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
+							>
+								<input
+									type="checkbox"
+									value={team.id}
+									checked={selectedTeamsForEditTrack.includes(team.id)}
+									onchange={(e) => {
+										if (e.currentTarget.checked) {
+											selectedTeamsForEditTrack = [...selectedTeamsForEditTrack, team.id]
+										} else {
+											selectedTeamsForEditTrack = selectedTeamsForEditTrack.filter(
+												(id) => id !== team.id
+											)
+										}
+									}}
+									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
+								/>
+								<div class="text-xs">
+									<p class="font-bold text-(--md-on-surface)">{team.name}</p>
+									<p class="text-(--md-on-surface-variant) mt-0.5">
+										Leader: {getStudentName(team.leader_id || team.leaderId)}
+										{#if team.track_id && team.track_id !== editingTrackId}
+											<span class="text-amber-500 font-bold ml-1"
+												>(Currently in: {getTrackName(team.track_id)})</span
+											>
+										{:else if team.trackId && team.trackId !== editingTrackId}
+											<span class="text-amber-500 font-bold ml-1"
+												>(Currently in: {getTrackName(team.trackId)})</span
+											>
+										{/if}
+									</p>
+								</div>
+							</label>
+						{/each}
+					</div>
+				</div>
+
+				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
+					<button
+						type="button"
+						onclick={() => (showEditTrackModal = false)}
+						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
+					>
+						Cancel
+					</button>
+					<button
+						type="submit"
+						disabled={isSavingEditTrack}
+						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+					>
+						{isSavingEditTrack ? "Saving..." : "Save Changes"}
 					</button>
 				</div>
 			</form>

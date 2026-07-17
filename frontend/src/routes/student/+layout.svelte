@@ -18,7 +18,7 @@
 		if (profile?.status !== "PENDING") {
 			baseItems.push({ href: "/student/teams", label: "Teams", icon: Users })
 		}
-		baseItems.push({ href: "#", label: "Settings", icon: Settings })
+		baseItems.push({ href: "/student/settings", label: "Settings", icon: Settings })
 		return baseItems
 	})
 
