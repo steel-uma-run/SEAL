@@ -15,19 +15,24 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import seal.openapi.model.TrackDto;
 
 @Entity
 @Table(name = "tracks")
 @NoArgsConstructor
 @RequiredArgsConstructor
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Track {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
+  @EqualsAndHashCode.Include
   private UUID id;
 
   @Column(nullable = false, columnDefinition = "TEXT")
@@ -67,3 +72,4 @@ public class Track {
         getJudges().stream().map(Lecturer::getId).toArray(UUID[]::new));
   }
 }
+
