@@ -7,7 +7,8 @@
 		getAllSeasons,
 		getEventsInSeason,
 		getInterestedParticipants,
-		markInterested
+		markInterested,
+		getAllTracksOfEvent
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { formatFullDate } from "$lib/utils/formatters.js"
@@ -142,6 +143,7 @@
 			const { data: seasons } = await getAllSeasons({ throwOnError: false })
 			if (seasons) {
 				for (const season of seasons) {
+					// 1. Prefer database
 					const { data: events } = await getEventsInSeason({
 						path: { seasonId: season.id },
 						throwOnError: false
@@ -149,9 +151,39 @@
 					if (events) {
 						let found = events.find((e: any) => e.id === eventId)
 						if (found) {
-							eventDetail = found
+							let tracks: any[] = []
+							try {
+								const trackRes = await getAllTracksOfEvent({
+									path: { eventId: found.id },
+									throwOnError: false
+								})
+								if (trackRes.response?.ok && trackRes.data) {
+									tracks = trackRes.data
+								}
+							} catch (e) {
+								console.error("Error loading tracks for event", found.id, e)
+							}
+							eventDetail = {
+								...found,
+								tracks: tracks
+							}
 							seasonId = season.id
 							break
+						}
+					}
+
+					// 2. Fallback to localStorage mock events
+					if (typeof window !== "undefined") {
+						const key = `events_${season.id}`
+						const stored = localStorage.getItem(key)
+						if (stored) {
+							const allLocalEvents = JSON.parse(stored)
+							const found = allLocalEvents.find((e: any) => e.id === eventId)
+							if (found) {
+								eventDetail = found
+								seasonId = season.id
+								break
+							}
 						}
 					}
 				}

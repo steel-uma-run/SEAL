@@ -62,6 +62,14 @@ public class HackathonEventServiceImpl implements HackathonEventService {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Event is finalized");
     }
 
+    if (request.name() != null) {
+      event.setName(request.name());
+    }
+
+    if (request.description() != null) {
+      event.setDescription(request.description());
+    }
+
     if (request.endTime() != null) {
       if (event.getStartTime() != null && !request.endTime().isAfter(event.getStartTime())) {
         throw new ResponseStatusException(
