@@ -9,4 +9,6 @@ public interface AccountService {
   public void approve(UUID id);
 
   public StudentDto[] getUnapprovedStudents();
+
+  public Object createLecturer(CreateLecturerRequestDto request);
 }
