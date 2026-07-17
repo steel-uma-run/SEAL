@@ -76,6 +76,9 @@ public class HackathonEvent {
   @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
   private List<Round> rounds = new ArrayList<>();
 
+  @OneToMany(mappedBy = "hackathonEvent", fetch = FetchType.LAZY)
+  private List<Team> teams = new ArrayList<>();
+
   // Returns the currently active round. According to business rules/constraints an event can only
   // have 1 active round at any given time.
   public Optional<Round> getActiveRound() {

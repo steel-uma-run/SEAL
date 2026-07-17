@@ -56,7 +56,7 @@ public class InviteServiceImpl implements InviteService {
     }
 
     invite.setStatus(InviteStatus.ACCEPTED);
-    invite.getInvitee().setTeam(team);
+    invite.getInvitee().getTeams().add(team);
 
     inviteRepository.save(invite);
     studentRepository.save(invite.getInvitee());

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Lecturer;
-import seal.backend.entities.Student;
 import seal.backend.entities.Team;
 import seal.backend.entities.Track;
 import seal.backend.enums.EventStatus;
@@ -215,8 +214,6 @@ public class TrackServiceImpl implements TrackService {
 
     team.setTrack(track);
     Team savedTeam = teamRepository.save(team);
-
-    UUID[] memberIds = savedTeam.getMembers().stream().map(Student::getId).toArray(UUID[]::new);
 
     return savedTeam.toDto();
   }

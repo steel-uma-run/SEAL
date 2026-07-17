@@ -2,8 +2,6 @@ package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -65,14 +63,7 @@ public class TeamServiceImpl implements TeamService {
                       new ResponseStatusException(
                           HttpStatus.NOT_FOUND, "Student leader not found."));
     } else {
-      leader =
-          studentRepository
-              .findById(currentUser.getId())
-              .orElseThrow(
-                  () ->
-                      new ResponseStatusException(
-                          HttpStatus.FORBIDDEN, "Only Student accounts can create a team."));
-      leader = studentRepository.findById(leader.getId()).orElse(leader);
+      leader = studentRepository.findById(currentUser.getId()).get();
     }
 
     HackathonEvent hackathonEvent =
@@ -83,7 +74,7 @@ public class TeamServiceImpl implements TeamService {
 
     if (!hackathonEvent.isOpenForRegistration()) {
       throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "This event is not opened for team registration");
+          HttpStatus.FORBIDDEN, "This event is not open for team registration.");
     }
 
     if (leader.getStudentStatus() != StudentStatus.ACTIVE) {
@@ -91,25 +82,20 @@ public class TeamServiceImpl implements TeamService {
           HttpStatus.FORBIDDEN, "Only ACTIVE students are allowed to create a team.");
     }
 
-    if (leader.getTeam() != null) {
+    // This student is already in a team within this event
+    if (leader.getTeams().stream()
+        .anyMatch(pred -> pred.getHackathonEvent().equals(hackathonEvent))) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
           "This student is already in a team and cannot create another one.");
     }
 
-    Team newTeam = new Team();
-    newTeam.setName(request.name());
-    newTeam.setDescription(request.description());
-    newTeam.setTeamStatus(TeamStatus.PENDING);
-    newTeam.setHackathonEvent(hackathonEvent);
-    newTeam.setLeader(leader);
+    Team newTeam =
+        new Team(request.name(), request.description(), TeamStatus.PENDING, hackathonEvent, leader);
+    newTeam.getMembers().add(leader);
 
-    Team savedTeam = teamRepository.save(newTeam);
-
-    leader.setTeam(savedTeam);
     studentRepository.save(leader);
 
-    List<UUID> memberUuids = new ArrayList<>();
     if (currentUser.getRole() == Role.COORDINATOR && request.memberIds() != null) {
       for (UUID memberId : request.memberIds()) {
         if (memberId.equals(leader.getId())) {
@@ -129,20 +115,19 @@ public class TeamServiceImpl implements TeamService {
               HttpStatus.BAD_REQUEST, "Student member is not ACTIVE: " + member.getFullName());
         }
 
-        if (member.getTeam() != null) {
+        // This member is already in another team within the same event
+        if (member.getTeams().stream()
+            .anyMatch(pred -> pred.getHackathonEvent().equals(hackathonEvent))) {
           throw new ResponseStatusException(
               HttpStatus.BAD_REQUEST,
               "Student member is already in a team: " + member.getFullName());
         }
 
-        member.setTeam(savedTeam);
-        studentRepository.save(member);
-        memberUuids.add(memberId);
-        savedTeam.getMembers().add(member);
+        newTeam.getMembers().add(member);
       }
     }
 
-    return savedTeam.toDto();
+    return teamRepository.save(newTeam).toDto();
   }
 
   @Override

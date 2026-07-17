@@ -76,11 +76,20 @@ public class SubmissionServiceImpl implements SubmissionService {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     Student actor = studentRepo.findByEmail(auth.getName()).get();
 
-    if (!actor.isTeamLeader()) {
+    Team studentTeam =
+        actor.getTeams().stream()
+            .filter(pred -> pred.getHackathonEvent().equals(event))
+            .findFirst()
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Not in a team"));
+
+    if (!actor.isTeamLeaderOf(studentTeam)) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only team leader can submit works.");
     }
 
-    if (!actor.getTeam().isTeamValid()) {
+    System.out.println(studentTeam.getTeamStatus());
+    System.out.println(studentTeam.getMembers().size());
+
+    if (!studentTeam.isTeamValid()) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Team is not eligible to participate.");
     }
@@ -93,7 +102,7 @@ public class SubmissionServiceImpl implements SubmissionService {
             request.githubLink(),
             request.youtubeLink(),
             request.slideLink(),
-            actor.getTeam(),
+            studentTeam,
             activeRound);
 
     submissionRepo.save(submission);
@@ -119,7 +128,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     if (actor.getRole() == Role.STUDENT) {
       // does this actor belong to the team they want to view?
       Student student = studentRepo.findById(actor.getId()).get();
-      if (!targetTeam.equals(student.getTeam())) {
+      if (!student.getTeams().contains(targetTeam)) {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't belong to this team.");
       }
 
