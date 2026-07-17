@@ -1,6 +1,7 @@
 package seal.backend.services;
 
 import java.util.UUID;
+import seal.openapi.model.CreateLecturerRequestDto;
 import seal.openapi.model.StudentDto;
 
 public interface AccountService {
