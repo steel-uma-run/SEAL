@@ -2,7 +2,7 @@
 	import { onMount } from "svelte"
 	import { page } from "$app/stores"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Save, AlertCircle } from "lucide-svelte"
+	import { ArrowLeft, Save, AlertCircle } from "@lucide/svelte"
 	import { getAllCriteriaTemplates, gradeSubmission } from "$lib/api"
 	import { goto } from "$app/navigation"
 

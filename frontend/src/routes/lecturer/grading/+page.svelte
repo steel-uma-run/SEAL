@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
-	import { FileText, ArrowLeft, CheckCircle, Clock } from "lucide-svelte"
+	import { FileText, ArrowLeft, CheckCircle, Clock } from "@lucide/svelte"
 	import {
 		getSelfProfile,
 		getAllSeasons,
@@ -112,14 +112,14 @@
 <div class="max-w-6xl mx-auto w-full p-4 md:p-8">
 	<a
 		href="/lecturer"
-		class="inline-flex items-center gap-2 transition-colors mb-6 font-medium {theme.darkMode ? 'text-zinc-400 hover:text-green-400' : 'text-gray-500 hover:text-green-600'}"
+		class="inline-flex items-center gap-2 transition-colors mb-6 font-medium {theme.darkMode ? 'text-zinc-400 hover:text-orange-400' : 'text-gray-500 hover:text-orange-600'}"
 	>
 		<ArrowLeft class="w-4 h-4" />
 		Back to Dashboard
 	</a>
 
 	<div class="flex items-center gap-3 mb-8">
-		<div class="p-3 rounded-xl {theme.darkMode ? 'bg-green-950/40 text-green-400' : 'bg-green-100 text-green-600'}">
+		<div class="p-3 rounded-xl {theme.darkMode ? 'bg-orange-950/40 text-orange-400' : 'bg-orange-100 text-orange-600'}">
 			<FileText class="w-6 h-6" />
 		</div>
 		<div>
@@ -132,7 +132,7 @@
 
 	{#if isLoading}
 		<div class="flex justify-center py-12">
-			<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
+			<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
 		</div>
 	{:else if errorMessage}
 		<div class="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200">
@@ -157,7 +157,7 @@
 								{sub.track_name}
 							</span>
 						</div>
-						<p class="font-medium mb-2 {theme.darkMode ? 'text-green-400' : 'text-green-600'}">{sub.title}</p>
+						<p class="font-medium mb-2 {theme.darkMode ? 'text-orange-400' : 'text-orange-600'}">{sub.title}</p>
 						<p class="text-sm line-clamp-2 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">{sub.description}</p>
 					</div>
 					
@@ -165,7 +165,7 @@
 						<!-- Basic logic for check if already graded isn't present in API response yet, assuming all need grading or user can re-grade -->
 						<a 
 							href="/lecturer/grading/{sub.id}"
-							class="px-5 py-2.5 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors text-sm shadow-sm"
+							class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-colors text-sm shadow-sm"
 						>
 							Grade Submission
 						</a>

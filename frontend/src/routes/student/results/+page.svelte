@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Award, FileText, CheckCircle, Clock } from "lucide-svelte"
+	import { ArrowLeft, Award, FileText, CheckCircle, Clock } from "@lucide/svelte"
 	import {
 		getSelfProfile,
 		getAllSeasons,

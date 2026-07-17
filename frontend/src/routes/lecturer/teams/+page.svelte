@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
-	import { Users, ArrowLeft } from "lucide-svelte"
+	import { Users, ArrowLeft } from "@lucide/svelte"
 	import {
 		getSelfProfile,
 		getAllSeasons,
@@ -112,14 +112,14 @@
 <div class="max-w-6xl mx-auto w-full p-4 md:p-8">
 	<a
 		href="/lecturer"
-		class="inline-flex items-center gap-2 transition-colors mb-6 font-medium {theme.darkMode ? 'text-zinc-400 hover:text-blue-400' : 'text-gray-500 hover:text-blue-600'}"
+		class="inline-flex items-center gap-2 transition-colors mb-6 font-medium {theme.darkMode ? 'text-zinc-400 hover:text-orange-400' : 'text-gray-500 hover:text-orange-600'}"
 	>
 		<ArrowLeft class="w-4 h-4" />
 		Back to Dashboard
 	</a>
 
 	<div class="flex items-center gap-3 mb-8">
-		<div class="p-3 rounded-xl {theme.darkMode ? 'bg-blue-950/40 text-blue-400' : 'bg-blue-100 text-blue-600'}">
+		<div class="p-3 rounded-xl {theme.darkMode ? 'bg-orange-950/40 text-orange-400' : 'bg-orange-100 text-orange-600'}">
 			<Users class="w-6 h-6" />
 		</div>
 		<div>
@@ -132,7 +132,7 @@
 
 	{#if isLoading}
 		<div class="flex justify-center py-12">
-			<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+			<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
 		</div>
 	{:else if errorMessage}
 		<div class="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200">
@@ -157,7 +157,7 @@
 								{team.status}
 							</span>
 						</div>
-						<p class="text-xs font-medium {theme.darkMode ? 'text-blue-400' : 'text-blue-600'}">
+						<p class="text-xs font-medium {theme.darkMode ? 'text-orange-400' : 'text-orange-600'}">
 							Track: {teamTrackMap[team.track_id] || 'Unknown Track'}
 						</p>
 					</div>
@@ -168,7 +168,7 @@
 							{@const latestSub = team.submissions[team.submissions.length - 1]}
 							<div class="p-3 rounded-lg text-sm {theme.darkMode ? 'bg-zinc-950/50' : 'bg-gray-50'}">
 								<p class="font-medium mb-1 truncate {theme.darkMode ? 'text-zinc-200' : 'text-gray-800'}">{latestSub.title}</p>
-								<div class="flex gap-3 mt-2 text-blue-500">
+								<div class="flex gap-3 mt-2 text-orange-500">
 									{#if latestSub.github_link}
 										<a href={latestSub.github_link} target="_blank" class="hover:underline">GitHub</a>
 									{/if}
