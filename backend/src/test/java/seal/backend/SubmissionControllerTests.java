@@ -79,6 +79,7 @@ class SubmissionControllerTests {
   void createTeam() throws Exception {
     String token = loginAndGetToken("student@example.com", "hunter2");
 
+    // Create 2 teams, one in each and one in ongoingEvent
     mvc.perform(
             MockMvcRequestBuilders.post(GlobalConfig.API_BASE + "/teams")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -87,14 +88,25 @@ class SubmissionControllerTests {
                         new CreateTeamRequestPayloadDto("Team", "", testEvent.getId(), null, null)))
                 .header("Authorization", "Bearer " + token))
         .andExpectAll(MockMvcResultMatchers.status().isCreated());
+
+    mvc.perform(
+            MockMvcRequestBuilders.post(GlobalConfig.API_BASE + "/teams")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    objMapper.writeValueAsString(
+                        new CreateTeamRequestPayloadDto(
+                            "Team", "", ongoingEvent.getId(), null, null)))
+                .header("Authorization", "Bearer " + token))
+        .andExpectAll(MockMvcResultMatchers.status().isCreated());
   }
 
   @Test
   @Order(2)
   void approveTeam() throws Exception {
-    Team team = teamRepo.findAll().getFirst();
-    team.setTeamStatus(TeamStatus.APPROVED);
-    teamRepo.save(team);
+    for (Team team : teamRepo.findAll()) {
+      team.setTeamStatus(TeamStatus.APPROVED);
+      teamRepo.save(team);
+    }
   }
 
   @Test
@@ -165,15 +177,14 @@ class SubmissionControllerTests {
   @Test
   @Order(4)
   void addMembersToTeam() {
-    Team team = teamRepo.findAll().getFirst();
+    for (Team team : teamRepo.findAll()) {
+      for (int i = 0; i < 3; i++) {
+        Student student = createUtils.createStudent();
+        team.getMembers().add(student);
+      }
 
-    for (int i = 0; i < 3; i++) {
-      Student student = createUtils.createStudent();
-      student.setTeam(team);
-      studentRepo.save(student);
+      teamRepo.save(team);
     }
-
-    teamRepo.save(team);
   }
 
   @Test
