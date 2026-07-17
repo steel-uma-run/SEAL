@@ -51,6 +51,11 @@ public class InviteServiceImpl implements InviteService {
     }
 
     Team team = invite.getInvitingTeam();
+    if (!team.getHackathonEvent().isOpenForRegistration()) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "This event is not opened for team registration");
+    }
+
     if (team.getMembers().size() >= 5) {
       throw new ResponseStatusException(HttpStatus.CONFLICT, "Team is already full.");
     }

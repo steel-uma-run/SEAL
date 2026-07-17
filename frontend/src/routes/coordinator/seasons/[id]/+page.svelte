@@ -9,7 +9,9 @@
 		createTrack,
 		updateEvent,
 		finalizeEvent,
-		getAllTracksOfEvent
+		getAllTracksOfEvent,
+		openRegistration,
+		closeRegistration
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2, Eye, Users } from "@lucide/svelte"
@@ -315,6 +317,40 @@
 		}
 	}
 
+	async function handleOpenRegistration(eventId: string) {
+		try {
+			const { response } = await openRegistration({
+				path: { eventId },
+				throwOnError: false
+			})
+			if (response?.ok) {
+				await loadEvents()
+			} else {
+				alert("Failed to open registration. Ensure the event is finalized.")
+			}
+		} catch (err) {
+			console.error(err)
+			alert("An error occurred while opening registration.")
+		}
+	}
+
+	async function handleCloseRegistration(eventId: string) {
+		try {
+			const { response } = await closeRegistration({
+				path: { eventId },
+				throwOnError: false
+			})
+			if (response?.ok) {
+				await loadEvents()
+			} else {
+				alert("Failed to close registration.")
+			}
+		} catch (err) {
+			console.error(err)
+			alert("An error occurred while closing registration.")
+		}
+	}
+
 	onMount(() => {
 		fetchSeasonDetails()
 		loadEvents()
@@ -478,13 +514,32 @@
 											Edit
 										</button>
 									{:else}
-										<a
-											href="/coordinator/seasons/{seasonId}/events/{event.id}"
-											class="flex items-center gap-1.5 bg-transparent border border-(--md-outline) hover:bg-(--md-surface-container-highest) text-(--md-on-surface) px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer no-underline"
-										>
-											<Eye class="w-3.5 h-3.5" />
-											View Details
-										</a>
+										<div class="flex items-center gap-2">
+											{#if event.open_for_registration}
+												<button
+													onclick={() => handleCloseRegistration(event.id)}
+													class="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border-0"
+												>
+													<X class="w-3.5 h-3.5" />
+													Close Registration
+												</button>
+											{:else}
+												<button
+													onclick={() => handleOpenRegistration(event.id)}
+													class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border-0"
+												>
+													<Plus class="w-3.5 h-3.5" />
+													Open Registration
+												</button>
+											{/if}
+											<a
+												href="/coordinator/seasons/{seasonId}/events/{event.id}"
+												class="flex items-center gap-1.5 bg-transparent border border-(--md-outline) hover:bg-(--md-surface-container-highest) text-(--md-on-surface) px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer no-underline"
+											>
+												<Eye class="w-3.5 h-3.5" />
+												View Details
+											</a>
+										</div>
 									{/if}
 								</div>
 							{/each}
