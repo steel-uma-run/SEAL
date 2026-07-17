@@ -21,7 +21,7 @@
 	let isLoading = $state(true)
 	let activeSeason: any = $state(null)
 	let activeSeasonEvents: any[] = $state([])
-	let assignedEvents: any[] = $state([])
+	let assignedTracks: any[] = $state([])
 
 	onMount(async () => {
 		try {
@@ -46,8 +46,7 @@
 
 			let mentoredTeams = 0
 			let submissionsToGrade = 0
-			let allMentoredTeams: any[] = []
-			let trackNameMap: Record<string, string> = {}
+			let allAssignedTracks: any[] = []
 
 			for (const event of events) {
 				const { data: tracks } = await getAllTracksOfEvent({
@@ -56,48 +55,48 @@
 				})
 
 				if (tracks) {
-					const mentoredTrackIds = tracks.filter((t: any) => t.mentor_ids?.includes(profile.id)).map((t: any) => t.id)
-					const judgingTrackIds = tracks.filter((t: any) => t.judge_ids?.includes(profile.id)).map((t: any) => t.id)
-					
-					tracks.forEach((t: any) => { trackNameMap[t.id] = t.name })
-
-					if (mentoredTrackIds.length > 0 || judgingTrackIds.length > 0) {
-						const { data: teams } = await getAllTeamsOfEvents({
-							path: { eventId: event.id } as any,
-							throwOnError: false
-						})
-
-						if (teams) {
-							// For mentored teams
-							const eventMentoredTeams = teams.filter((t: any) => mentoredTrackIds.includes(t.track_id))
-							mentoredTeams += eventMentoredTeams.length
+					for (const track of tracks) {
+						let isMentor = track.mentor_ids?.includes(profile.id)
+						let isJudge = track.judge_ids?.includes(profile.id)
+						
+						if (isMentor || isJudge) {
+							let trackTeams: any[] = []
 							
-							for (let team of eventMentoredTeams) {
-								const { data: subs } = await getAllSubmissions({
-									path: { teamId: team.id },
-									throwOnError: false
-								})
-								team.submissions = subs || []
-								team.trackName = trackNameMap[team.track_id] || 'Unknown Track'
-								team.eventName = event.name
-								allMentoredTeams.push(team)
+							const { data: teams } = await getAllTeamsOfEvents({
+								path: { eventId: event.id } as any,
+								throwOnError: false
+							})
+
+							if (teams) {
+								trackTeams = teams.filter((t: any) => t.track_id === track.id || t.trackId === track.id)
 							}
 
-							// Count submissions for judging tracks
-							const judgingTeams = teams.filter((t: any) => judgingTrackIds.includes(t.track_id))
-							for (const team of judgingTeams) {
-								const { data: subs } = await getAllSubmissions({
-									path: { teamId: team.id },
-									throwOnError: false
-								})
-								if (subs) submissionsToGrade += subs.length
+							if (isMentor) {
+								mentoredTeams += trackTeams.length
 							}
+
+							if (isJudge) {
+								for (const team of trackTeams) {
+									const { data: subs } = await getAllSubmissions({
+										path: { teamId: team.id },
+										throwOnError: false
+									})
+									if (subs) submissionsToGrade += subs.length
+								}
+							}
+
+							allAssignedTracks.push({
+								...track,
+								eventName: event.name,
+								role: isMentor && isJudge ? "Mentor & Judge" : isMentor ? "Mentor" : "Judge",
+								teams: trackTeams
+							})
 						}
 					}
 				}
 			}
 
-			assignedEvents = allMentoredTeams
+			assignedTracks = allAssignedTracks
 			stats = {
 				mentoredTeamsCount: mentoredTeams,
 				submissionsToGradeCount: submissionsToGrade
@@ -200,63 +199,52 @@
 			</div>
 		</div>
 
-		<!-- Mentored Teams Section -->
+		<!-- Assigned Tracks Section -->
 		<div class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) mb-8 transition-colors duration-300">
 			<div class="mb-6">
-				<h2 class="text-xl font-bold text-(--md-on-surface)">My Mentored Teams</h2>
+				<h2 class="text-xl font-bold text-(--md-on-surface)">My Assigned Tracks</h2>
 				<p class="text-sm mt-1 text-(--md-on-surface-variant)">
-					Teams you are assigned to mentor this season.
+					Tracks you are assigned to mentor or judge this season.
 				</p>
 			</div>
 
-			{#if assignedEvents.length === 0}
+			{#if assignedTracks.length === 0}
 				<div class="text-center py-10 border border-dashed rounded-2xl border-(--md-outline-variant) bg-(--md-surface-container)">
-					<Users class="w-12 h-12 mx-auto mb-3 text-(--md-on-surface-variant) opacity-60" />
+					<FileText class="w-12 h-12 mx-auto mb-3 text-(--md-on-surface-variant) opacity-60" />
 					<p class="text-base font-medium text-(--md-on-surface)">
-						You haven't been assigned to mentor any teams yet.
+						You haven't been assigned to any tracks yet.
 					</p>
 				</div>
 			{:else}
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{#each assignedEvents as team}
+					{#each assignedTracks as track}
 						<div class="border border-(--md-outline-variant) rounded-2xl p-6 flex flex-col justify-between bg-(--md-surface-container) hover:bg-(--md-surface-container-high) transition-all duration-300 shadow-sm h-full">
 							<div class="mb-4">
 								<div class="flex justify-between items-start mb-2">
 									<h3 class="font-extrabold text-lg text-(--md-on-surface line-clamp-1)">
-										{team.name}
+										{track.name}
 									</h3>
-									<span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {team.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'} shrink-0">
-										{team.status}
+									<span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {track.role === 'Mentor & Judge' ? 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20' : track.role === 'Mentor' ? 'bg-violet-500/10 text-violet-500 border border-violet-500/20' : 'bg-sky-500/10 text-sky-500 border border-sky-500/20'} shrink-0">
+										{track.role}
 									</span>
 								</div>
-								<p class="text-xs font-semibold text-(--md-primary) mb-1">
-									{team.trackName}
-								</p>
 								<p class="text-xs text-(--md-on-surface-variant) mb-4">
-									Event: {team.eventName}
+									Event: <span class="font-bold text-(--md-primary)">{track.eventName}</span>
 								</p>
 							</div>
 
 							<div class="flex-grow pt-4 border-t border-(--md-outline-variant)">
-								<h4 class="text-xs text-(--md-on-surface-variant) mb-2 uppercase font-bold tracking-wider">Latest Submission</h4>
-								{#if team.submissions && team.submissions.length > 0}
-									{@const latestSub = team.submissions[team.submissions.length - 1]}
-									<div class="p-3 rounded-xl bg-(--md-surface-container-highest)">
-										<p class="font-medium text-sm text-(--md-on-surface) mb-2 truncate">{latestSub.title}</p>
-										<div class="flex gap-4 mt-2 text-xs font-bold text-(--md-primary)">
-											{#if latestSub.github_link}
-												<a href={latestSub.github_link} target="_blank" class="hover:underline flex items-center gap-1">GitHub</a>
-											{/if}
-											{#if latestSub.youtube_link}
-												<a href={latestSub.youtube_link} target="_blank" class="hover:underline text-red-500 flex items-center gap-1">YouTube</a>
-											{/if}
-											{#if latestSub.slide_link}
-												<a href={latestSub.slide_link} target="_blank" class="hover:underline text-orange-500 flex items-center gap-1">Slides</a>
-											{/if}
-										</div>
+								<h4 class="text-xs text-(--md-on-surface-variant) mb-2 uppercase font-bold tracking-wider">Assigned Teams</h4>
+								{#if track.teams && track.teams.length > 0}
+									<div class="flex flex-wrap gap-1">
+										{#each track.teams as team}
+											<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-500/10 text-emerald-500 font-medium">
+												{team.name}
+											</span>
+										{/each}
 									</div>
 								{:else}
-									<p class="text-xs italic text-(--md-on-surface-variant) opacity-75">No submissions yet.</p>
+									<p class="text-xs italic text-(--md-on-surface-variant) opacity-75">No teams assigned yet.</p>
 								{/if}
 							</div>
 						</div>
