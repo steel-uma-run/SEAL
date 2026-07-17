@@ -86,9 +86,6 @@ public class SubmissionServiceImpl implements SubmissionService {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only team leader can submit works.");
     }
 
-    System.out.println(studentTeam.getTeamStatus());
-    System.out.println(studentTeam.getMembers().size());
-
     if (!studentTeam.isTeamValid()) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Team is not eligible to participate.");
