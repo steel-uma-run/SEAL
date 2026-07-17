@@ -71,20 +71,44 @@ public class TrackServiceImpl implements TrackService {
       track.setDescription(request.description());
     }
 
+    // 1. Clear old mentors if new list is provided
+    if (request.mentorIds() != null) {
+      track.getMentors().clear();
+    }
+
+    // 2. Clear old judges if new list is provided
+    if (request.judgeIds() != null) {
+      track.getJudges().clear();
+    }
+
+    // Save the track state (cleared lists) so constraints are evaluated against the clean state.
+    track = trackRepository.save(track);
+
+    // 3. Assign new mentors
     if (request.mentorIds() != null) {
       for (UUID id : request.mentorIds()) {
         assignMentor(track, id);
       }
     }
 
+    // 4. Assign new judges
     if (request.judgeIds() != null) {
-      for (UUID id : request.mentorIds()) {
+      for (UUID id : request.judgeIds()) {
         assignJudge(track, id);
       }
     }
 
+    // 5. Clear and assign new teams
     if (request.teamIds() != null) {
-      for (UUID id : request.mentorIds()) {
+      List<Team> currentTeams = teamRepository.findByHackathonEventId(track.getEvent().getId());
+      for (Team team : currentTeams) {
+        if (team.getTrack() != null && team.getTrack().getId().equals(trackId)) {
+          team.setTrack(null);
+          teamRepository.save(team);
+        }
+      }
+
+      for (UUID id : request.teamIds()) {
         assignTeam(track, id);
       }
     }
@@ -114,14 +138,16 @@ public class TrackServiceImpl implements TrackService {
 
     List<Track> allTracksInEvent = trackRepository.findByEventId(track.getEvent().getId());
     for (Track currentTrack : allTracksInEvent) {
-      if (currentTrack.getMentors().contains(mentor)) {
-        if (currentTrack.getId().equals(track.getId())) {
-          throw new ResponseStatusException(
-              HttpStatus.BAD_REQUEST, "This lecturer is already a mentor for this track.");
-        } else {
+      if (!currentTrack.getId().equals(track.getId())) {
+        if (currentTrack.getMentors().contains(mentor) || currentTrack.getJudges().contains(mentor)) {
           throw new ResponseStatusException(
               HttpStatus.BAD_REQUEST,
               "This lecturer is already assigned to another track within the same event.");
+        }
+      } else {
+        if (track.getMentors().contains(mentor)) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST, "This lecturer is already a mentor for this track.");
         }
       }
     }
@@ -149,17 +175,19 @@ public class TrackServiceImpl implements TrackService {
           "Cannot assign more judges. This track already has the maximum of 3 judges.");
     }
 
-    if (track.getJudges().contains(judge)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "This lecturer is already assigned to this track.");
-    }
-
     List<Track> allTracksInEvent = trackRepository.findByEventId(track.getEvent().getId());
     for (Track currentTrack : allTracksInEvent) {
-      if (currentTrack.getJudges().contains(judge)) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "This lecturer is already assigned to another track within the same event.");
+      if (!currentTrack.getId().equals(track.getId())) {
+        if (currentTrack.getMentors().contains(judge) || currentTrack.getJudges().contains(judge)) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "This lecturer is already assigned to another track within the same event.");
+        }
+      } else {
+        if (track.getJudges().contains(judge)) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST, "This lecturer is already assigned to this track.");
+        }
       }
     }
 

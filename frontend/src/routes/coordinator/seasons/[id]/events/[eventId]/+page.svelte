@@ -469,32 +469,18 @@
 			if (response?.ok && newTrack) {
 				const trackId = newTrack.id
 
-				// 2. Assign Mentors if selected
-				for (const mentorId of selectedMentorsForTrack) {
-					await assignMentor({
-						path: { trackId },
-						body: { mentor_id: mentorId },
-						throwOnError: false
-					})
-				}
-
-				// 3. Assign Judges if selected
-				for (const judgeId of selectedJudgesForTrack) {
-					await assignJudge({
-						path: { trackId },
-						body: { judge_id: judgeId },
-						throwOnError: false
-					})
-				}
-
-				// 4. Assign Teams if selected
-				for (const teamId of selectedTeamsForTrack) {
-					await assignTeamToTrack({
-						path: { trackId },
-						body: { team_id: teamId },
-						throwOnError: false
-					})
-				}
+				// 2. Assign Mentors, Judges, and Teams if selected
+				await updateTrack({
+					path: { trackId },
+					body: {
+						name: newTrackName.trim(),
+						description: newTrackDescription.trim(),
+						mentor_ids: selectedMentorsForTrack,
+						judge_ids: selectedJudgesForTrack,
+						team_ids: selectedTeamsForTrack
+					},
+					throwOnError: false
+				})
 
 				showCreateTrackModal = false
 				await fetchEventDetails()

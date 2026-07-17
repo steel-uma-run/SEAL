@@ -506,13 +506,22 @@
 									</div>
 
 									{#if event.status !== "FINALIZED"}
-										<button
-											onclick={() => openEditModal(event)}
-											class="flex items-center gap-1.5 bg-transparent border border-(--md-outline) hover:bg-(--md-surface-container-highest) text-(--md-on-surface) px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
-										>
-											<Edit2 class="w-3.5 h-3.5" />
-											Edit
-										</button>
+										<div class="flex items-center gap-2">
+											<button
+												onclick={() => openEditModal(event)}
+												class="flex items-center gap-1.5 bg-transparent border border-(--md-outline) hover:bg-(--md-surface-container-highest) text-(--md-on-surface) px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+											>
+												<Edit2 class="w-3.5 h-3.5" />
+												Edit
+											</button>
+											<a
+												href="/coordinator/seasons/{seasonId}/events/{event.id}"
+												class="flex items-center gap-1.5 bg-transparent border border-(--md-outline) hover:bg-(--md-surface-container-highest) text-(--md-on-surface) px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer no-underline"
+											>
+												<Eye class="w-3.5 h-3.5" />
+												View Details
+											</a>
+										</div>
 									{:else}
 										<div class="flex items-center gap-2">
 											{#if event.open_for_registration}
