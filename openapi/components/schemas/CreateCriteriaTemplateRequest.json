@@ -8,7 +8,7 @@
     "criteria": {
       "type": "array",
       "items": {
-        "$ref": "./Criteria.json"
+        "$ref": "./CreateCriteriaRequest.json"
       }
     }
   }
