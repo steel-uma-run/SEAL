@@ -216,46 +216,10 @@
 				await fetchEventDetails()
 				alert(`Team "${teamNameInput}" created successfully!`)
 			} else {
-				if (typeof window !== "undefined") {
-					const mockTeamId = crypto.randomUUID()
-					const mockTeam = {
-						id: mockTeamId,
-						name: teamNameInput.trim(),
-						description: teamDescriptionInput.trim(),
-						status: "APPROVED",
-						leader_id: targetStudent.id,
-						leaderId: targetStudent.id,
-						members: [targetStudent.id, ...selectedMembers]
-					}
-
-					const keyParts = `participants_${eventId}`
-					const storedParts = localStorage.getItem(keyParts)
-					if (storedParts) {
-						let participants = JSON.parse(storedParts)
-						participants = participants.map((p: any) => {
-							if (p.id === targetStudent.id || selectedMembers.includes(p.id)) {
-								return { ...p, team_id: mockTeamId, teamId: mockTeamId }
-							}
-							return p
-						})
-						localStorage.setItem(keyParts, JSON.stringify(participants))
-					}
-
-					const keyTeams = `teams_${eventId}`
-					const storedTeams = localStorage.getItem(keyTeams)
-					let localTeams = storedTeams ? JSON.parse(storedTeams) : []
-					localTeams.push(mockTeam)
-					localStorage.setItem(keyTeams, JSON.stringify(localTeams))
-
-					showCreateTeamModal = false
-					await fetchEventDetails()
-					alert(`Team "${teamNameInput}" created successfully!`)
-				} else {
-					const errBody = apiErr as any
-					createTeamMessage =
-						errBody?.detail || errBody?.title || response?.statusText || "Failed to create team."
-					createTeamError = true
-				}
+				const errBody = apiErr as any
+				createTeamMessage =
+					errBody?.detail || errBody?.title || response?.statusText || "Failed to create team."
+				createTeamError = true
 			}
 		} catch (err: any) {
 			console.error("Error creating team:", err)
