@@ -59,7 +59,8 @@ public class InviteServiceImpl implements InviteService {
           HttpStatus.FORBIDDEN, "This event is not opened for team registration");
     }
 
-    if (invite.getInvitee().getTeams().stream().anyMatch(t -> t.getHackathonEvent().getId().equals(team.getHackathonEvent().getId()))) {
+    if (invite.getInvitee().getTeams().stream()
+        .anyMatch(t -> t.getHackathonEvent().getId().equals(team.getHackathonEvent().getId()))) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "You are already in a team for this event.");
     }
