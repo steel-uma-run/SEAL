@@ -139,7 +139,8 @@ public class TrackServiceImpl implements TrackService {
     List<Track> allTracksInEvent = trackRepository.findByEventId(track.getEvent().getId());
     for (Track currentTrack : allTracksInEvent) {
       if (!currentTrack.getId().equals(track.getId())) {
-        if (currentTrack.getMentors().contains(mentor) || currentTrack.getJudges().contains(mentor)) {
+        if (currentTrack.getMentors().contains(mentor)
+            || currentTrack.getJudges().contains(mentor)) {
           throw new ResponseStatusException(
               HttpStatus.BAD_REQUEST,
               "This lecturer is already assigned to another track within the same event.");

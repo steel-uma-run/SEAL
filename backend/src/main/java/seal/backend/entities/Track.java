@@ -72,4 +72,3 @@ public class Track {
         getJudges().stream().map(Lecturer::getId).toArray(UUID[]::new));
   }
 }
-

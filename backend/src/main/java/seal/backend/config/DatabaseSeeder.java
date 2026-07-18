@@ -39,8 +39,8 @@ import seal.backend.repositories.TrackRepository;
 import seal.backend.repositories.UserRepository;
 
 @Component
-@Profile("!test")
 @RequiredArgsConstructor
+@Profile("!test")
 @Slf4j
 public class DatabaseSeeder implements CommandLineRunner {
 

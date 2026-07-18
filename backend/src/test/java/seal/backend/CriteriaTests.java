@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.CriteriaTemplate;
 import seal.backend.entities.HackathonEvent;
@@ -24,6 +25,7 @@ import seal.openapi.model.CreateCriteriaTemplateRequestDto;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class CriteriaTests {
   @Autowired private CriteriaService criteriaService;
   @Autowired private RoundService roundService;
