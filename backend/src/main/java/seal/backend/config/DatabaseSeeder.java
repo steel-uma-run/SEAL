@@ -8,6 +8,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import seal.backend.entities.Coordinator;
@@ -38,6 +39,7 @@ import seal.backend.repositories.TrackRepository;
 import seal.backend.repositories.UserRepository;
 
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
 @Slf4j
 public class DatabaseSeeder implements CommandLineRunner {
