@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.ActiveProfiles;
 import seal.backend.entities.AuditLog;
 import seal.backend.entities.audit.AccountApprovedLog;
 import seal.backend.entities.audit.AccountBannedLog;
@@ -13,6 +14,7 @@ import seal.backend.repositories.AuditLogRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class AuditLogTests {
   @Autowired private AuditLogRepository<AuditLog> repo;
   @Autowired private CreateUtils createUtils;
