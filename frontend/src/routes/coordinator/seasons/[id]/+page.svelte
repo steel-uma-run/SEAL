@@ -17,7 +17,7 @@
 	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2, Eye, Users } from "@lucide/svelte"
 
 	// Route Param
-	const seasonId = $page.params.id || ""
+	let seasonId = $derived($page.params.id || "")
 
 	// Season Details State
 	let season = $state<any>(null)
@@ -121,25 +121,11 @@
 				}
 				events = fetchedEvents
 			} else {
-				if (typeof window !== "undefined") {
-					const key = `events_${seasonId}`
-					const stored = localStorage.getItem(key)
-					if (stored) {
-						events = JSON.parse(stored)
-					} else {
-						events = []
-					}
-				}
+				events = []
 			}
 		} catch (err) {
 			console.error("Error loading events:", err)
-			if (typeof window !== "undefined") {
-				const key = `events_${seasonId}`
-				const stored = localStorage.getItem(key)
-				if (stored) {
-					events = JSON.parse(stored)
-				}
-			}
+			events = []
 		}
 	}
 
@@ -244,21 +230,7 @@
 
 					eventMessage = "Event created successfully!"
 				} else {
-					// Fallback to local storage (mock logic)
-					const newEvent = {
-						id: crypto.randomUUID(),
-						name: eventName,
-						description: eventDescription,
-						startTime: start.toISOString(),
-						endTime: end.toISOString(),
-						status: eventStatusState,
-						tracks: eventTracks
-					}
-					events = [...events, newEvent]
-					if (typeof window !== "undefined") {
-						localStorage.setItem(`events_${seasonId}`, JSON.stringify(events))
-					}
-					eventMessage = "Event created successfully (locally/mock)!"
+					eventMessage = "Failed to create event on server."
 				}
 			} else {
 				// Update
@@ -282,25 +254,7 @@
 					}
 					eventMessage = "Event updated successfully!"
 				} else {
-					// Fallback to local storage
-					events = events.map((evt) => {
-						if (evt.id === editingEventId) {
-							return {
-								...evt,
-								name: eventName,
-								description: eventDescription,
-								startTime: start.toISOString(),
-								endTime: end.toISOString(),
-								status: eventStatusState,
-								tracks: eventTracks
-							}
-						}
-						return evt
-					})
-					if (typeof window !== "undefined") {
-						localStorage.setItem(`events_${seasonId}`, JSON.stringify(events))
-					}
-					eventMessage = "Event updated successfully (locally/mock)!"
+					eventMessage = "Failed to update event on server."
 				}
 			}
 
@@ -351,9 +305,11 @@
 		}
 	}
 
-	onMount(() => {
-		fetchSeasonDetails()
-		loadEvents()
+	$effect(() => {
+		if (seasonId) {
+			fetchSeasonDetails()
+			loadEvents()
+		}
 	})
 </script>
 

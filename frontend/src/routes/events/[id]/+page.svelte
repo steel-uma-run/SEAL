@@ -13,7 +13,7 @@
 	import { theme } from "$lib/theme.svelte"
 	import { formatFullDate } from "$lib/utils/formatters.js"
 
-	let eventId = $page.params.id as string
+	let eventId = $derived($page.params.id as string)
 	let eventDetail: any = $state(null)
 	let seasonId = $state("")
 	let profile: any = $state(null)
@@ -128,83 +128,73 @@
 		}
 	}
 
-	onMount(async () => {
-		try {
-			const { data: profileData, response: profileRes } = await getSelfProfile({
-				throwOnError: false
-			})
-			if (!profileRes?.ok || !profileData) {
-				goto("/auth/login")
-				return
-			}
-			profile = profileData
-			await resolveStudentId(profile.email)
-
-			const { data: seasons } = await getAllSeasons({ throwOnError: false })
-			if (seasons) {
-				for (const season of seasons) {
-					// 1. Prefer database
-					const { data: events } = await getEventsInSeason({
-						path: { seasonId: season.id },
+	$effect(() => {
+		if (eventId) {
+			const init = async () => {
+				try {
+					const { data: profileData, response: profileRes } = await getSelfProfile({
 						throwOnError: false
 					})
-					if (events) {
-						let found = events.find((e: any) => e.id === eventId)
-						if (found) {
-							let tracks: any[] = []
-							try {
-								const trackRes = await getAllTracksOfEvent({
-									path: { eventId: found.id },
-									throwOnError: false
-								})
-								if (trackRes.response?.ok && trackRes.data) {
-									tracks = trackRes.data
+					if (!profileRes?.ok || !profileData) {
+						goto("/auth/login")
+						return
+					}
+					profile = profileData
+					await resolveStudentId(profile.email)
+
+					const { data: seasons } = await getAllSeasons({ throwOnError: false })
+					if (seasons) {
+						for (const season of seasons) {
+							// 1. Prefer database
+							const { data: events } = await getEventsInSeason({
+								path: { seasonId: season.id },
+								throwOnError: false
+							})
+							if (events) {
+								let found = events.find((e: any) => e.id === eventId)
+								if (found) {
+									let tracks: any[] = []
+									try {
+										const trackRes = await getAllTracksOfEvent({
+											path: { eventId: found.id },
+											throwOnError: false
+										})
+										if (trackRes.response?.ok && trackRes.data) {
+											tracks = trackRes.data
+										}
+									} catch (e) {
+										console.error("Error loading tracks for event", found.id, e)
+									}
+									eventDetail = {
+										...found,
+										tracks: tracks
+									}
+									seasonId = season.id
+									break
 								}
-							} catch (e) {
-								console.error("Error loading tracks for event", found.id, e)
-							}
-							eventDetail = {
-								...found,
-								tracks: tracks
-							}
-							seasonId = season.id
-							break
-						}
-					}
-
-					// 2. Fallback to localStorage mock events
-					if (typeof window !== "undefined") {
-						const key = `events_${season.id}`
-						const stored = localStorage.getItem(key)
-						if (stored) {
-							const allLocalEvents = JSON.parse(stored)
-							const found = allLocalEvents.find((e: any) => e.id === eventId)
-							if (found) {
-								eventDetail = found
-								seasonId = season.id
-								break
 							}
 						}
 					}
-				}
-			}
 
-			if (!eventDetail) {
-				errorMessage = "Event not found."
-			} else {
-				// Check registration status from the API.
-				const { data: participants } = await getInterestedParticipants({
-					path: { eventId: eventId },
-					throwOnError: false
-				})
-				if (participants) {
-					isRegistered = participants.some((p: any) => p.email === profile.email)
+					if (!eventDetail) {
+						errorMessage = "Event not found."
+					} else {
+						// Check registration status from the API.
+						const { data: participants } = await getInterestedParticipants({
+							path: { eventId: eventId },
+							throwOnError: false
+						})
+						if (participants) {
+							isRegistered = participants.some((p: any) => p.email === profile.email)
+						}
+					}
+				} catch (err) {
+					errorMessage = "Error loading event details."
+				} finally {
+					isLoading = false
 				}
 			}
-		} catch (err) {
-			errorMessage = "Error loading event details."
-		} finally {
-			isLoading = false
+			init()
 		}
 	})
 </script>
