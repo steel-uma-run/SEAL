@@ -885,16 +885,16 @@
 										class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
 									>
 										<td class="py-3 px-4 font-mono text-xs font-semibold">
-											{student.is_external
-												? "NONE"
-												: student.student_id || student.studentId || "N/A"}
+											{student.student_id || student.studentId || "NONE"}
 										</td>
 										<td class="py-3 px-4 font-bold">
 											{student.fullName || student.name || "N/A"}
 										</td>
 										<td class="py-3 px-4 text-xs">{student.email}</td>
 										<td class="py-3 px-4 text-xs font-medium">
-											{student.is_external ? "External" : "FPT"}
+											{student.is_external
+												? student.school_name || student.schoolName || "External"
+												: "FPT"}
 										</td>
 										<td class="py-3 px-4 text-xs font-semibold text-(--md-primary)">
 											{#if getStudentTeamId(student)}
@@ -1225,7 +1225,9 @@
 											{student.fullName || student.name}
 										</p>
 										<p class="text-(--md-on-surface-variant) mt-0.5">
-											{student.is_external ? "External" : "FPT"} &bull; {student.email}
+											{student.is_external
+												? student.school_name || student.schoolName || "External"
+												: "FPT"} &bull; {student.email}
 										</p>
 									</div>
 								</label>
