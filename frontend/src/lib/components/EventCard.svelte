@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { HackathonEvent } from "$lib/api"
+	import { Button, Icon } from "m3-svelte"
+	import iconArrowForward from "@ktibow/iconset-material-symbols/arrow-forward"
 
 	import ElevatedCard from "./ElevatedCard.svelte"
-
-	import "@material/web/button/filled-tonal-button"
 
 	interface Props {
 		event: HackathonEvent
@@ -25,12 +25,9 @@
 			<p class="name">{event.name}</p>
 			<p class="desc">{event.description}</p>
 
-			<md-filled-tonal-button href="/events/{event.id}">
-				<span>Details</span>
-				<div slot="icon" style="display: contents">
-					<span class="material-symbols-rounded">arrow_forward</span>
-				</div>
-			</md-filled-tonal-button>
+			<Button variant="tonal" iconType="left" href="/events/{event.id}"
+				><Icon icon={iconArrowForward} /> Details</Button
+			>
 		</div>
 	</div>
 </ElevatedCard>

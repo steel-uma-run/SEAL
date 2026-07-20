@@ -1,21 +1,23 @@
 <script lang="ts">
 	import { theme } from "$lib/theme.svelte"
+	import { Button, Icon } from "m3-svelte"
 
-	import "@material/web/iconbutton/filled-icon-button"
+	import iconDarkMode from "@ktibow/iconset-material-symbols/dark-mode"
+	import iconLightMode from "@ktibow/iconset-material-symbols/light-mode"
 </script>
 
 <header>
 	<div>
-		<a href={"/coordinator"} class="logo">
+		<a href={"/"} class="logo">
 			<img src="https://upload.wikimedia.org/wikipedia/commons/1/11/FPT_logo_2010.svg" alt="Logo" />
 			<p>SEAL</p>
 		</a>
 	</div>
 
 	<div>
-		<md-filled-icon-button toggle type="button" oninput={() => (theme.darkMode = !theme.darkMode)}>
-			<span class="material-symbols-outlined">{theme.darkMode ? "dark_mode" : "light_mode"}</span>
-		</md-filled-icon-button>
+		<Button variant="tonal" onclick={() => (theme.darkMode = !theme.darkMode)}>
+			<Icon icon={theme.darkMode ? iconDarkMode : iconLightMode} />
+		</Button>
 	</div>
 </header>
 

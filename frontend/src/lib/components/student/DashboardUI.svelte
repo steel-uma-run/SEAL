@@ -26,15 +26,11 @@
 	)
 </script>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+<div class="dashboard-stats">
 	<!-- Current Season (Always visible) -->
-	<div
-		class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-	>
-		<div
-			class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-primary-container) text-(--md-on-primary-container)"
-		>
-			<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	<div class="dashboard-stats__card">
+		<div class="dashboard-stats__icon dashboard-stats__icon--primary">
+			<svg class="dashboard-stats__icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -43,11 +39,9 @@
 				></path>
 			</svg>
 		</div>
-		<div>
-			<p class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)">
-				Current Season
-			</p>
-			<h3 class="text-xl font-bold text-(--md-on-surface)">
+		<div class="dashboard-stats__content">
+			<p class="dashboard-stats__label">Current Season</p>
+			<h3 class="dashboard-stats__value">
 				{activeSeason
 					? formatSeasonName(activeSeason)
 					: seasons.length > 0
@@ -59,13 +53,14 @@
 
 	{#if joinedEvents.length > 0}
 		<!-- Joined Events Count -->
-		<div
-			class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-		>
-			<div
-				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-secondary-container) text-(--md-on-secondary-container)"
-			>
-				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<div class="dashboard-stats__card">
+			<div class="dashboard-stats__icon dashboard-stats__icon--secondary">
+				<svg
+					class="dashboard-stats__icon-svg"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -74,24 +69,21 @@
 					></path>
 				</svg>
 			</div>
-			<div>
-				<p
-					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-				>
-					Joined Events
-				</p>
-				<h3 class="text-xl font-bold text-(--md-on-surface)">{joinedEvents.length}</h3>
+			<div class="dashboard-stats__content">
+				<p class="dashboard-stats__label">Joined Events</p>
+				<h3 class="dashboard-stats__value">{joinedEvents.length}</h3>
 			</div>
 		</div>
 
 		<!-- Progress Status -->
-		<div
-			class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-		>
-			<div
-				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-tertiary-container) text-(--md-on-tertiary-container)"
-			>
-				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<div class="dashboard-stats__card">
+			<div class="dashboard-stats__icon dashboard-stats__icon--tertiary">
+				<svg
+					class="dashboard-stats__icon-svg"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -100,15 +92,13 @@
 					></path>
 				</svg>
 			</div>
-			<div>
-				<p
-					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-				>
-					Progress Status
-				</p>
-				<h3 class="text-lg font-bold text-(--md-on-surface)">
+			<div class="dashboard-stats__content">
+				<p class="dashboard-stats__label">Progress Status</p>
+				<h3 class="dashboard-stats__value dashboard-stats__value--sm">
 					{#if activeRounds && activeRounds.length > 0}
-						<span class="line-clamp-1">Round: {activeRounds.map((r) => r.name).join(", ")}</span>
+						<span class="dashboard-stats__clamp"
+							>Round: {activeRounds.map((r) => r.name).join(", ")}</span
+						>
 					{:else}
 						Round: asd
 					{/if}
@@ -117,13 +107,14 @@
 		</div>
 
 		<!-- Submission Due -->
-		<div
-			class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-		>
-			<div
-				class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-error-container) text-(--md-on-error-container)"
-			>
-				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<div class="dashboard-stats__card">
+			<div class="dashboard-stats__icon dashboard-stats__icon--error">
+				<svg
+					class="dashboard-stats__icon-svg"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -132,16 +123,132 @@
 					></path>
 				</svg>
 			</div>
-			<div>
-				<p
-					class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-				>
-					Submission Due
-				</p>
-				<h3 class="text-lg font-bold text-(--md-on-surface)">
+			<div class="dashboard-stats__content">
+				<p class="dashboard-stats__label">Submission Due</p>
+				<h3 class="dashboard-stats__value dashboard-stats__value--sm">
 					{nearestEvent ? formatFullDate(nearestEvent.endTime) : "TBA"}
 				</h3>
 			</div>
 		</div>
 	{/if}
 </div>
+
+<style lang="scss">
+	// ============================================================================
+	// Dashboard Stats Grid - SCSS Conversion
+	// grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8
+	// ============================================================================
+	$bp-sm: 640px;
+	$bp-md: 768px;
+	$bp-lg: 1024px;
+
+	.dashboard-stats {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1rem; // gap-4
+		margin-bottom: 2rem; // mb-8
+
+		@media (min-width: $bp-sm) {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		@media (min-width: $bp-md) {
+			gap: 1.5rem; // md:gap-6
+		}
+
+		@media (min-width: $bp-lg) {
+			grid-template-columns: repeat(4, 1fr);
+		}
+
+		// --------------------------------------------------------------------------
+		// Card
+		// rounded-2xl p-6 border border-(--md-outline-variant)/50
+		// bg-(--md-surface-container-lowest) flex items-center gap-5
+		// transition-all duration-300 hover:bg-(--md-surface-container-low)
+		// --------------------------------------------------------------------------
+		&__card {
+			border-radius: 1rem; // rounded-2xl
+			padding: 1.5rem; // p-6
+			border: 1px solid color-mix(in srgb, var(--md-outline-variant) 50%, transparent);
+			background-color: var(--md-surface-container-lowest);
+			display: flex;
+			align-items: center;
+			gap: 1.25rem; // gap-5
+			transition: all 0.3s ease;
+
+			&:hover {
+				background-color: var(--md-surface-container-low);
+			}
+		}
+
+		&__icon {
+			width: 3rem; // w-12
+			height: 3rem; // h-12
+			border-radius: 0.75rem; // rounded-xl
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0; // shrink-0
+
+			&--primary {
+				background-color: var(--md-primary-container);
+				color: var(--md-on-primary-container);
+			}
+
+			&--secondary {
+				background-color: var(--md-secondary-container);
+				color: var(--md-on-secondary-container);
+			}
+
+			&--tertiary {
+				background-color: var(--md-tertiary-container);
+				color: var(--md-on-tertiary-container);
+			}
+
+			&--error {
+				background-color: var(--md-error-container);
+				color: var(--md-on-error-container);
+			}
+		}
+
+		&__icon-svg {
+			width: 1.5rem; // w-6
+			height: 1.5rem; // h-6
+		}
+
+		&__content {
+			min-width: 0; // allow truncation inside flex
+			flex: 1;
+		}
+
+		&__label {
+			font-size: 0.75rem; // text-xs
+			font-weight: 600; // font-semibold
+			text-transform: uppercase;
+			letter-spacing: 0.05em; // tracking-wider
+			margin-bottom: 0.25rem; // mb-1
+			color: var(--md-on-surface-variant);
+		}
+
+		&__value {
+			font-size: 1.25rem; // text-xl
+			font-weight: 700; // font-bold
+			color: var(--md-on-surface);
+			line-height: 1.2;
+
+			&--sm {
+				font-size: 1.125rem; // text-lg for longer values
+			}
+		}
+
+		&__clamp {
+			// line-clamp-1
+			display: -webkit-box;
+			-webkit-line-clamp: 1;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+			// standard property for future
+			line-clamp: 1;
+		}
+	}
+</style>

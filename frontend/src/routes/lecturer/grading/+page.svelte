@@ -120,132 +120,72 @@
 	<title>Submissions to Grade - SEAL</title>
 </svelte:head>
 
-<div class="max-w-6xl mx-auto w-full p-4 md:p-8">
-	<a
-		href="/lecturer"
-		class="inline-flex items-center gap-2 transition-colors mb-6 font-medium {theme.darkMode
-			? 'text-zinc-400 hover:text-orange-400'
-			: 'text-gray-500 hover:text-orange-600'}"
-	>
-		<ArrowLeft class="w-4 h-4" />
+<div class="grading-page">
+	<a href="/lecturer" class:dark={theme.darkMode} class="back-link">
+		<ArrowLeft class="icon-sm" />
 		Back to Dashboard
 	</a>
 
-	<div class="flex items-center gap-3 mb-8">
-		<div
-			class="p-3 rounded-xl {theme.darkMode
-				? 'bg-orange-950/40 text-orange-400'
-				: 'bg-orange-100 text-orange-600'}"
-		>
-			<FileText class="w-6 h-6" />
+	<div class="page-header">
+		<div class:dark={theme.darkMode} class="header-icon">
+			<FileText class="icon-md" />
 		</div>
 		<div>
-			<h1 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
-				Grading
-			</h1>
-			<p class="text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-				Submissions from teams you are assigned to judge.
-			</p>
+			<h1 class:dark={theme.darkMode}>Grading</h1>
+			<p class:dark={theme.darkMode}>Submissions from teams you are assigned to judge.</p>
 		</div>
 	</div>
 
 	{#if isLoading}
-		<div class="flex justify-center py-12">
-			<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
+		<div class="loading-wrap">
+			<div class="spinner"></div>
 		</div>
 	{:else if errorMessage}
-		<div class="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200">
-			{errorMessage}
-		</div>
+		<div class="error-box">{errorMessage}</div>
 	{:else if myJudgingTracks.length === 0}
-		<div
-			class="text-center py-16 border-2 border-dashed rounded-2xl {theme.darkMode
-				? 'border-zinc-800 text-zinc-500'
-				: 'border-gray-200 text-gray-400'}"
-		>
-			<FileText class="w-12 h-12 mx-auto mb-4 opacity-50" />
-			<h3 class="text-lg font-medium">No Judging Tracks</h3>
-			<p class="text-sm mt-1">
-				You haven't been assigned as a judge to any tracks in the active season.
-			</p>
+		<div class:dark={theme.darkMode} class="empty-state">
+			<FileText class="icon-lg" />
+			<h3>No Judging Tracks</h3>
+			<p>You haven't been assigned as a judge to any tracks in the active season.</p>
 		</div>
 	{:else}
-		<div class="space-y-8">
+		<div class="tracks-list">
 			{#each myJudgingTracks as track}
-				<div
-					class="rounded-2xl border transition-all overflow-hidden {theme.darkMode
-						? 'bg-zinc-900 border-zinc-800'
-						: 'bg-white border-gray-200 shadow-sm'}"
-				>
-					<div class="p-6 border-b {theme.darkMode ? 'border-zinc-800' : 'border-gray-200'}">
-						<div class="flex justify-between items-start mb-2">
-							<h2 class="font-bold text-2xl {theme.darkMode ? 'text-zinc-100' : 'text-gray-900'}">
-								{track.name}
-							</h2>
-							<span
-								class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-sky-100 text-sky-700"
-							>
-								Judge
-							</span>
+				<div class:dark={theme.darkMode} class="track-card">
+					<div class:dark={theme.darkMode} class="track-card__header">
+						<div class="track-card__title-row">
+							<h2 class:dark={theme.darkMode}>{track.name}</h2>
+							<span class="judge-badge">Judge</span>
 						</div>
-						<p class="text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-							Event: <span class="font-bold {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}"
-								>{track.eventName}</span
-							>
+						<p class:dark={theme.darkMode}>
+							Event: <span class:dark={theme.darkMode}>{track.eventName}</span>
 						</p>
 					</div>
 
-					<div class="p-6">
+					<div class="track-card__body">
 						{#if track.submissions && track.submissions.length > 0}
-							<div class="grid grid-cols-1 gap-4">
+							<div class="submissions-grid">
 								{#each track.submissions as sub}
-									<div
-										class="p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 {theme.darkMode
-											? 'bg-zinc-950/50 border-zinc-800 hover:border-zinc-700'
-											: 'bg-gray-50 border-gray-200 shadow-sm hover:shadow-md'}"
-									>
-										<div class="flex-grow">
-											<div class="flex items-center gap-2 mb-1">
-												<h3
-													class="font-bold text-lg {theme.darkMode
-														? 'text-zinc-100'
-														: 'text-gray-900'}"
-												>
-													{sub.team_name}
-												</h3>
+									<div class:dark={theme.darkMode} class="submission-card">
+										<div class="submission-card__content">
+											<div class="submission-card__title-row">
+												<h3 class:dark={theme.darkMode}>{sub.team_name}</h3>
 											</div>
-											<p
-												class="font-medium mb-2 {theme.darkMode
-													? 'text-orange-400'
-													: 'text-orange-600'}"
-											>
-												{sub.title}
-											</p>
-											<p
-												class="text-sm line-clamp-2 {theme.darkMode
-													? 'text-zinc-400'
-													: 'text-gray-500'}"
-											>
+											<p class:dark={theme.darkMode} class="submission-title">{sub.title}</p>
+											<p class:dark={theme.darkMode} class="submission-description">
 												{sub.description}
 											</p>
 										</div>
 
-										<div class="flex items-center gap-4 shrink-0">
-											<a
-												href="/lecturer/grading/{sub.id}"
-												class="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-colors text-sm shadow-sm"
-											>
-												Grade Submission
-											</a>
+										<div class="submission-card__actions">
+											<a href="/lecturer/grading/{sub.id}" class="grade-btn"> Grade Submission </a>
 										</div>
 									</div>
 								{/each}
 							</div>
 						{:else}
-							<div class="text-center py-8">
-								<p class="text-sm italic {theme.darkMode ? 'text-zinc-500' : 'text-gray-400'}">
-									No submissions to grade for this track yet.
-								</p>
+							<div class="track-empty">
+								<p class:dark={theme.darkMode}>No submissions to grade for this track yet.</p>
 							</div>
 						{/if}
 					</div>
@@ -254,3 +194,352 @@
 		</div>
 	{/if}
 </div>
+
+<style lang="scss">
+	.grading-page {
+		width: 100%;
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: 1rem;
+
+		@media (min-width: 768px) {
+			padding: 2rem;
+		}
+	}
+
+	.back-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 1.5rem;
+		font-weight: 500;
+		transition: color 0.2s ease;
+		color: #6b7280;
+
+		&:hover {
+			color: #ea580c;
+		}
+
+		&.dark {
+			color: #a1a1aa;
+
+			&:hover {
+				color: #fb923c;
+			}
+		}
+	}
+
+	.page-header {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 2rem;
+
+		h1 {
+			font-size: 1.5rem;
+			line-height: 2rem;
+			font-weight: 700;
+			color: #1f2937;
+
+			&.dark {
+				color: #f4f4f5;
+			}
+		}
+
+		p {
+			font-size: 0.875rem;
+			line-height: 1.25rem;
+			color: #6b7280;
+
+			&.dark {
+				color: #a1a1aa;
+			}
+		}
+	}
+
+	.header-icon {
+		padding: 0.75rem;
+		border-radius: 0.75rem;
+		background: #ffedd5;
+		color: #ea580c;
+
+		&.dark {
+			background: rgba(69, 26, 3, 0.4);
+			color: #fb923c;
+		}
+	}
+
+	.track-card,
+	.submission-card,
+	.empty-state {
+		border-radius: 1rem;
+	}
+
+	.loading-wrap {
+		display: flex;
+		justify-content: center;
+		padding: 3rem 0;
+	}
+
+	.spinner {
+		width: 2rem;
+		height: 2rem;
+		border: 2px solid transparent;
+		border-top-color: #f97316;
+		border-bottom-color: #f97316;
+		border-radius: 9999px;
+		animation: spin 1s linear infinite;
+	}
+
+	.error-box {
+		padding: 1rem;
+		background: #fef2f2;
+		color: #dc2626;
+		border: 1px solid #fecaca;
+		border-radius: 0.75rem;
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: 4rem 1rem;
+		border: 2px dashed #e5e7eb;
+		color: #9ca3af;
+
+		&.dark {
+			border-color: #27272a;
+			color: #71717a;
+		}
+
+		h3 {
+			font-size: 1.125rem;
+			font-weight: 500;
+			margin-top: 0.5rem;
+		}
+
+		p {
+			font-size: 0.875rem;
+			margin-top: 0.25rem;
+		}
+	}
+
+	.tracks-list {
+		display: grid;
+		gap: 2rem;
+	}
+
+	.track-card {
+		overflow: hidden;
+		border: 1px solid #e5e7eb;
+		background: #fff;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+		&.dark {
+			border-color: #27272a;
+			background: #18181b;
+		}
+	}
+
+	.track-card__header {
+		padding: 1.5rem;
+		border-bottom: 1px solid #e5e7eb;
+
+		&.dark {
+			border-bottom-color: #27272a;
+		}
+
+		p {
+			font-size: 0.875rem;
+			color: #6b7280;
+
+			&.dark {
+				color: #a1a1aa;
+			}
+
+			span {
+				font-weight: 700;
+				color: #374151;
+
+				&.dark {
+					color: #d4d4d8;
+				}
+			}
+		}
+	}
+
+	.track-card__title-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 1rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.track-card h2 {
+		font-size: 1.5rem;
+		line-height: 2rem;
+		font-weight: 700;
+		color: #111827;
+
+		&.dark {
+			color: #f4f4f5;
+		}
+	}
+
+	.judge-badge {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+		background: #e0f2fe;
+		color: #0369a1;
+	}
+
+	.track-card__body {
+		padding: 1.5rem;
+	}
+
+	.submissions-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+
+	.submission-card {
+		padding: 1.25rem;
+		border: 1px solid #e5e7eb;
+		background: #f9fafb;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		transition: all 0.2s ease;
+		justify-content: space-between;
+
+		@media (min-width: 768px) {
+			flex-direction: row;
+			align-items: center;
+		}
+
+		&:hover {
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+		}
+
+		&.dark {
+			background: rgba(9, 9, 11, 0.5);
+			border-color: #27272a;
+
+			&:hover {
+				border-color: #3f3f46;
+			}
+		}
+	}
+
+	.submission-card__content {
+		flex: 1 1 auto;
+	}
+
+	.submission-card__title-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.submission-card h3 {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: #111827;
+
+		&.dark {
+			color: #f4f4f5;
+		}
+	}
+
+	.submission-title {
+		font-weight: 500;
+		margin-bottom: 0.5rem;
+		color: #ea580c;
+
+		&.dark {
+			color: #fb923c;
+		}
+	}
+
+	.submission-description {
+		font-size: 0.875rem;
+		color: #6b7280;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+
+		&.dark {
+			color: #a1a1aa;
+		}
+	}
+
+	.submission-card__actions {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.grade-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.625rem 1.25rem;
+		border-radius: 0.75rem;
+		background: #f97316;
+		color: #fff;
+		font-size: 0.875rem;
+		font-weight: 600;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+		transition: background-color 0.2s ease;
+
+		&:hover {
+			background: #ea580c;
+		}
+	}
+
+	.track-empty {
+		text-align: center;
+		padding: 2rem 0;
+
+		p {
+			font-size: 0.875rem;
+			font-style: italic;
+			color: #9ca3af;
+
+			&.dark {
+				color: #71717a;
+			}
+		}
+	}
+
+	.icon-sm {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	.icon-md {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	.icon-lg {
+		width: 3rem;
+		height: 3rem;
+		margin: 0 auto 1rem;
+		opacity: 0.5;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>

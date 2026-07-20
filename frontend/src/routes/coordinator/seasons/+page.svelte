@@ -1,52 +1,49 @@
 <script lang="ts">
-	import { onMount } from "svelte"
-	import { getAllSeasons } from "$lib/api"
-	import ManageSeason from "$lib/components/coordinator/ManageSeason.svelte"
-
-	let seasons: any[] = $state([])
-	let seasonsError = $state("")
-	let isLoading = $state(true)
-
-	async function fetchSeasons() {
-		try {
-			seasonsError = ""
-			const { data, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
-			if (seasonsRes?.ok) {
-				seasons = data || []
-			} else {
-				console.error("Failed to fetch seasons:", seasonsRes?.status)
-				seasonsError = `Failed to load seasons (${seasonsRes?.status || "Unknown"}).`
-			}
-		} catch (err) {
-			console.error("Error fetching seasons:", err)
-			seasonsError = "Cannot connect to server."
-		} finally {
-			isLoading = false
-		}
-	}
-
-	onMount(() => {
-		fetchSeasons()
-	})
+	import KaomojiError from "$lib/components/KaomojiError.svelte"
+	import { Button, Tabs } from "m3-svelte"
 </script>
 
 <svelte:head>
 	<title>Season Management - SEAL</title>
 </svelte:head>
 
-{#if isLoading}
-	<div class="flex justify-center items-center h-[60vh]">
-		<div
-			class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
-		></div>
+<div class="header">
+	<div>
+		<h1>Events management</h1>
+		<p>Manage all hackathon events, timelines, tracks, and configurations.</p>
 	</div>
-{:else if seasonsError && seasons.length === 0}
-	<div
-		class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r text-(--md-on-error-container) m-6"
-	>
-		<h3 class="text-sm font-bold">Error loading seasons</h3>
-		<p class="text-sm mt-1">{seasonsError}</p>
+
+	<div>
+		<Button href="/coordinator/events/create">Create event</Button>
 	</div>
-{:else}
-	<ManageSeason {seasons} refreshSeasons={fetchSeasons} />
-{/if}
+</div>
+
+<Tabs
+	tab="all"
+	items={[
+		{ value: "all", name: "All" },
+		{ value: "ongoing", name: "Ongoing" },
+		{ value: "draft", name: "Draft" },
+		{ value: "completed", name: "Completed" }
+	]}
+/>
+
+<div class="kao">
+	<KaomojiError kind="good" text="No events found. Start creating one now!" />
+</div>
+
+<style lang="scss">
+	* {
+		margin: 0;
+	}
+
+	.header {
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 2rem;
+	}
+
+	.kao {
+		margin-top: 2rem;
+	}
+</style>

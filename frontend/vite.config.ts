@@ -1,7 +1,7 @@
 import { defineConfig } from "vite"
-import tailwindcss from "@tailwindcss/vite"
 import { sveltekit } from "@sveltejs/kit/vite"
 import { heyApiPlugin } from "@hey-api/vite-plugin"
+import { functionsMixins } from "vite-plugin-functions-mixins"
 
 export default defineConfig({
 	plugins: [
@@ -9,8 +9,7 @@ export default defineConfig({
 			config: {
 				input: "../openapi.json",
 				output: {
-					path: "src/lib/api",
-					postProcess: ["prettier"]
+					path: "src/lib/api"
 				},
 				plugins: [
 					"@hey-api/typescript",
@@ -30,7 +29,7 @@ export default defineConfig({
 				]
 			}
 		}),
-		tailwindcss(),
+		functionsMixins({ deps: ["m3-svelte"] }),
 		sveltekit()
 	]
 })

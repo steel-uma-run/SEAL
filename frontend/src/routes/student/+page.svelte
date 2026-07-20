@@ -147,46 +147,35 @@
 	<title>Student Dashboard - SEAL</title>
 </svelte:head>
 
-<div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full">
+<div class="dashboard-page">
 	{#if isLoading}
-		<div class="flex justify-center items-center h-[60vh]">
-			<div
-				class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
-			></div>
+		<div class="loading-state">
+			<div class="loading-state__spinner"></div>
 		</div>
 	{:else if errorMessage}
-		<div
-			class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r mb-6 text-(--md-on-error-container)"
-		>
-			<h3 class="text-sm font-bold">Error loading dashboard</h3>
-			<p class="text-sm mt-1">{errorMessage}</p>
+		<div class="error-banner">
+			<h3 class="error-banner__title">Error loading dashboard</h3>
+			<p class="error-banner__message">{errorMessage}</p>
 		</div>
 	{:else if profile}
 		<!-- Top Header -->
-		<header
-			class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)"
-		>
-			<div>
-				<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-(--md-on-surface)">
+		<header class="dashboard-header">
+			<div class="dashboard-header__intro">
+				<h1 class="dashboard-header__title">
 					Welcome back, {profile?.name || "Student"}!
 				</h1>
-				<p class="mt-1 text-sm md:text-base text-(--md-on-surface-variant)">
-					Here is your project progress.
-				</p>
+				<p class="dashboard-header__subtitle">Here is your project progress.</p>
 			</div>
-
-			<div class="flex items-center gap-4 mt-4 md:mt-0">
-				<div class="text-right hidden sm:block">
-					<p class="font-bold leading-tight text-(--md-on-surface)">
+			<div class="dashboard-header__profile">
+				<div class="user-meta">
+					<p class="user-meta__name">
 						{profile?.name || "Student"}
 					</p>
-					<p class="text-xs font-semibold text-(--md-primary) uppercase tracking-wider">
+					<p class="user-meta__role">
 						{profile?.role}
 					</p>
 				</div>
-				<div
-					class="w-12 h-12 rounded-full flex items-center justify-center text-(--md-on-primary-container) font-bold text-xl bg-(--md-primary-container) border border-(--md-outline-variant)"
-				>
+				<div class="user-avatar">
 					{profile?.name?.charAt(0).toUpperCase() || "S"}
 				</div>
 			</div>
@@ -195,26 +184,17 @@
 		<DashboardUI {profile} {seasons} {activeSeason} {joinedEvents} {activeRounds} />
 
 		<!-- Joined Events Section -->
-		<div
-			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) mb-8 transition-colors duration-300"
-		>
-			<div class="mb-6">
-				<h2 class="text-xl font-bold text-(--md-on-surface)">Joined Events</h2>
-				<p class="text-sm mt-1 text-(--md-on-surface-variant)">
+		<div class="events-panel">
+			<div class="events-panel__header">
+				<h2 class="events-panel__title">Joined Events</h2>
+				<p class="events-panel__subtitle">
 					Events you are currently registered for in this season.
 				</p>
 			</div>
 
 			{#if joinedEvents.length === 0}
-				<div
-					class="text-center py-10 border border-dashed rounded-2xl border-(--md-outline-variant) bg-(--md-surface-container)"
-				>
-					<svg
-						class="w-12 h-12 mx-auto mb-3 text-(--md-on-surface-variant) opacity-60"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
+				<div class="empty-events">
+					<svg class="empty-events__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -222,45 +202,27 @@
 							d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
 						></path>
 					</svg>
-					<p class="text-base font-medium text-(--md-on-surface)">
-						You haven't joined any events yet.
-					</p>
-					<p class="text-xs mt-1 text-(--md-on-surface-variant)">
-						Select an active event below to join!
-					</p>
+					<p class="empty-events__title">You haven't joined any events yet.</p>
+					<p class="empty-events__desc">Select an active event below to join!</p>
 				</div>
 			{:else}
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<div class="events-grid">
 					{#each joinedEvents as event}
-						<div
-							class="border border-(--md-outline-variant) rounded-2xl p-6 flex flex-col justify-between bg-(--md-surface-container) hover:bg-(--md-surface-container-high) transition-all duration-300 shadow-sm"
-						>
-							<div>
-								<div class="flex justify-between items-start gap-4 mb-3">
-									<h3 class="font-extrabold text-lg text-(--md-on-surface line-clamp-1)">
+						<div class="event-card">
+							<div class="event-card__body">
+								<div class="event-card__header">
+									<h3 class="event-card__name">
 										{event.name}
 									</h3>
-									<span
-										class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shrink-0"
-									>
-										Joined
-									</span>
+									<span class="event-card__badge"> Joined </span>
 								</div>
-								<p class="text-sm text-(--md-on-surface-variant) line-clamp-2 leading-relaxed mb-4">
+								<p class="event-card__description">
 									{event.description}
 								</p>
 							</div>
-
-							<div
-								class="pt-4 border-t border-(--md-outline-variant) flex justify-between items-center"
-							>
-								<span class="text-xs text-(--md-on-surface-variant)"> Active Season Event </span>
-								<a
-									href="/events/{event.id}"
-									class="text-xs font-bold text-(--md-primary) hover:underline cursor-pointer"
-								>
-									View details &rarr;
-								</a>
+							<div class="event-card__footer">
+								<span class="event-card__meta"> Active Season Event </span>
+								<a href="/events/{event.id}" class="event-card__link"> View details &rarr; </a>
 							</div>
 						</div>
 					{/each}
@@ -271,3 +233,340 @@
 		<ActiveSeasonEvents {activeSeason} events={activeSeasonEvents} />
 	{/if}
 </div>
+
+<style lang="scss">
+	// ============================================================================
+	// Student Dashboard - SCSS Conversion
+	// ============================================================================
+	$bp-sm: 640px;
+	$bp-md: 768px;
+	$bp-lg: 1024px;
+
+	// ----------------------------------------------------------------------------
+	// Page Wrapper
+	// p-6 md:p-10 max-w-[1600px] mx-auto w-full
+	// ----------------------------------------------------------------------------
+	.dashboard-page {
+		max-width: 1600px;
+		width: 100%;
+	}
+
+	// ----------------------------------------------------------------------------
+	// Loading State
+	// flex justify-center items-center h-[60vh]
+	// animate-spin rounded-full h-12 w-12 border-t-2 border-b-2
+	// ----------------------------------------------------------------------------
+	.loading-state {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 60vh;
+
+		&__spinner {
+			width: 3rem; // h-12 w-12
+			height: 3rem;
+			border-radius: 9999px;
+			border-top: 2px solid var(--md-primary);
+			border-bottom: 2px solid var(--md-primary);
+			border-left: 2px solid transparent;
+			border-right: 2px solid transparent;
+			animation: spin 1s linear infinite;
+		}
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	// ----------------------------------------------------------------------------
+	// Error Banner
+	// bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r mb-6
+	// ----------------------------------------------------------------------------
+	.error-banner {
+		background-color: var(--md-error-container);
+		border-left: 4px solid var(--md-error);
+		padding: 1rem; // p-4
+		border-radius: 0 0.5rem 0.5rem 0; // rounded-r
+		margin-bottom: 1.5rem; // mb-6
+		color: var(--md-on-error-container);
+
+		&__title {
+			font-size: 0.875rem; // text-sm
+			font-weight: 700; // font-bold
+		}
+
+		&__message {
+			font-size: 0.875rem;
+			margin-top: 0.25rem; // mt-1
+		}
+	}
+
+	// ----------------------------------------------------------------------------
+	// Dashboard Header
+	// flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6
+	// ----------------------------------------------------------------------------
+	.dashboard-header {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 2rem; // mb-8
+		border-bottom: 1px solid var(--md-outline-variant);
+		padding-bottom: 1.5rem; // pb-6
+
+		@media (min-width: $bp-md) {
+			flex-direction: row;
+			align-items: center;
+		}
+
+		&__title {
+			font-size: 1.5rem; // text-2xl
+			font-weight: 800; // font-extrabold
+			letter-spacing: -0.025em; // tracking-tight
+			color: var(--md-on-surface);
+
+			@media (min-width: $bp-md) {
+				font-size: 1.875rem; // md:text-3xl
+			}
+		}
+
+		&__subtitle {
+			margin-top: 0.25rem;
+			font-size: 0.875rem; // text-sm
+			color: var(--md-on-surface-variant);
+
+			@media (min-width: $bp-md) {
+				font-size: 1rem; // md:text-base
+			}
+		}
+
+		&__profile {
+			display: flex;
+			align-items: center;
+			gap: 1rem; // gap-4
+			margin-top: 1rem; // mt-4
+
+			@media (min-width: $bp-md) {
+				margin-top: 0;
+			}
+		}
+	}
+
+	.user-meta {
+		text-align: right;
+		display: none; // hidden
+
+		@media (min-width: $bp-sm) {
+			display: block; // sm:block
+		}
+
+		&__name {
+			font-weight: 700; // font-bold
+			line-height: 1.25; // leading-tight
+			color: var(--md-on-surface);
+		}
+
+		&__role {
+			font-size: 0.75rem; // text-xs
+			font-weight: 600; // font-semibold
+			color: var(--md-primary);
+			text-transform: uppercase; // uppercase
+			letter-spacing: 0.05em; // tracking-wider
+		}
+	}
+
+	.user-avatar {
+		width: 3rem; // w-12
+		height: 3rem; // h-12
+		border-radius: 9999px; // rounded-full
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--md-on-primary-container);
+		font-weight: 700; // font-bold
+		font-size: 1.25rem; // text-xl
+		background-color: var(--md-primary-container);
+		border: 1px solid var(--md-outline-variant);
+		flex-shrink: 0;
+	}
+
+	// ----------------------------------------------------------------------------
+	// Events Panel
+	// p-8 rounded-3xl border bg-(--md-surface-container-low) mb-8 transition-colors duration-300
+	// ----------------------------------------------------------------------------
+	.events-panel {
+		padding: 2rem; // p-8
+		border-radius: 1.5rem; // rounded-3xl
+		border: 1px solid var(--md-outline-variant);
+		background-color: var(--md-surface-container-low);
+		margin-bottom: 2rem; // mb-8
+		transition:
+			background-color 0.3s ease,
+			color 0.3s ease;
+
+		&__header {
+			margin-bottom: 1.5rem; // mb-6
+		}
+
+		&__title {
+			font-size: 1.25rem; // text-xl
+			font-weight: 700; // font-bold
+			color: var(--md-on-surface);
+		}
+
+		&__subtitle {
+			font-size: 0.875rem; // text-sm
+			margin-top: 0.25rem; // mt-1
+			color: var(--md-on-surface-variant);
+		}
+	}
+
+	// ----------------------------------------------------------------------------
+	// Empty Events
+	// text-center py-10 border border-dashed rounded-2xl
+	// ----------------------------------------------------------------------------
+	.empty-events {
+		text-align: center;
+		padding-top: 2.5rem; // py-10
+		padding-bottom: 2.5rem;
+		border: 1px dashed var(--md-outline-variant);
+		border-radius: 1rem; // rounded-2xl
+		background-color: var(--md-surface-container);
+
+		&__icon {
+			width: 3rem; // w-12 h-12
+			height: 3rem;
+			margin-left: auto;
+			margin-right: auto;
+			margin-bottom: 0.75rem; // mb-3
+			color: var(--md-on-surface-variant);
+			opacity: 0.6;
+		}
+
+		&__title {
+			font-size: 1rem; // text-base
+			font-weight: 500; // font-medium
+			color: var(--md-on-surface);
+		}
+
+		&__desc {
+			font-size: 0.75rem; // text-xs
+			margin-top: 0.25rem; // mt-1
+			color: var(--md-on-surface-variant);
+		}
+	}
+
+	// ----------------------------------------------------------------------------
+	// Events Grid
+	// grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6
+	// ----------------------------------------------------------------------------
+	.events-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.5rem; // gap-6
+
+		@media (min-width: $bp-md) {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		@media (min-width: $bp-lg) {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	// ----------------------------------------------------------------------------
+	// Event Card
+	// border rounded-2xl p-6 flex flex-col justify-between bg-(--md-surface-container)
+	// hover:bg-(--md-surface-container-high) transition-all duration-300 shadow-sm
+	// ----------------------------------------------------------------------------
+	.event-card {
+		border: 1px solid var(--md-outline-variant);
+		border-radius: 1rem; // rounded-2xl
+		padding: 1.5rem; // p-6
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		background-color: var(--md-surface-container);
+		transition: all 0.3s ease;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // shadow-sm
+
+		&:hover {
+			background-color: var(--md-surface-container-high);
+		}
+
+		&__header {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			gap: 1rem; // gap-4
+			margin-bottom: 0.75rem; // mb-3
+		}
+
+		&__name {
+			font-weight: 800; // font-extrabold
+			font-size: 1.125rem; // text-lg
+			color: var(--md-on-surface);
+			// line-clamp-1
+			display: -webkit-box;
+			-webkit-line-clamp: 1;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+			line-clamp: 1;
+		}
+
+		&__badge {
+			display: inline-flex;
+			padding: 0.125rem 0.625rem; // px-2.5 py-0.5
+			border-radius: 9999px; // rounded-full
+			font-size: 0.625rem; // text-[10px]
+			font-weight: 700; // font-bold
+			text-transform: uppercase;
+			letter-spacing: 0.05em; // tracking-wider
+			background-color: rgba(16, 185, 129, 0.1); // bg-emerald-500/10
+			color: #10b981; // text-emerald-500
+			border: 1px solid rgba(16, 185, 129, 0.2); // border-emerald-500/20
+			flex-shrink: 0; // shrink-0
+			white-space: nowrap;
+		}
+
+		&__description {
+			font-size: 0.875rem; // text-sm
+			color: var(--md-on-surface-variant);
+			line-height: 1.625; // leading-relaxed
+			margin-bottom: 1rem; // mb-4
+			// line-clamp-2
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+			line-clamp: 2;
+		}
+
+		&__footer {
+			padding-top: 1rem; // pt-4
+			border-top: 1px solid var(--md-outline-variant);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		&__meta {
+			font-size: 0.75rem; // text-xs
+			color: var(--md-on-surface-variant);
+		}
+
+		&__link {
+			font-size: 0.75rem; // text-xs
+			font-weight: 700; // font-bold
+			color: var(--md-primary);
+			cursor: pointer;
+			text-decoration: none;
+
+			&:hover {
+				text-decoration: underline; // hover:underline
+			}
+		}
+	}
+</style>
