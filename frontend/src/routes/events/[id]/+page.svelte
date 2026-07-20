@@ -4,9 +4,12 @@
 
 	import ElevatedCard from "$lib/components/ElevatedCard.svelte"
 	import KaomojiError from "$lib/components/KaomojiError.svelte"
+	import Leaderboard from "./Leaderboard.svelte"
+	import { Button, Card, Chip, Icon, pathAnimatableCircle } from "m3-svelte"
 
-	import "@material/web/button/filled-button"
-	import "@material/web/button/text-button"
+	import iconArrowBack from "@ktibow/iconset-material-symbols/arrow-back"
+	import iconAdd from "@ktibow/iconset-material-symbols/add"
+	import iconGavel from "@ktibow/iconset-material-symbols/gavel"
 
 	const id = page.params.id
 	const data = $derived.by(async () => {
@@ -30,12 +33,10 @@
 
 	<div class="container">
 		<section class="back">
-			<md-text-button href="/">
-				<span>Back to events</span>
-				<div slot="icon" style="display:contents">
-					<span class="material-symbols-outlined">arrow_back</span>
-				</div>
-			</md-text-button>
+			<Button href="/" variant="text" iconType="left">
+				<Icon icon={iconArrowBack} />
+				Back to events</Button
+			>
 		</section>
 
 		{#if event.open_for_registration}
@@ -76,64 +77,126 @@
 						<h1 class="name">{event.name}</h1>
 						<p class="desc">{event.description}</p>
 
-						<md-filled-button disabled={!event.open_for_registration}>
-							<span>Register now</span>
-							<div slot="icon" style="display: contents">
-								<span class="material-symbols-rounded">add</span>
-							</div>
-						</md-filled-button>
+						<hr style="color: var(--md-sys-color-outline-variant)" />
+
+						<div class="team-size">
+							<p>Team size</p>
+							<p>3 - 5 members</p>
+						</div>
+
+						<div class="max-teams">
+							<p>Max teams</p>
+							<p>30 teams</p>
+						</div>
+
+						<Button iconType="left" disabled={!event.open_for_registration}>
+							<Icon icon={iconAdd} />
+							Register now
+						</Button>
 					</div>
 				</div>
 			</ElevatedCard>
 		</section>
 
-		<section class="tracks">
-			<h2>Tracks</h2>
+		<Leaderboard />
 
-			<div class="body">
-				{#each tracks as track}
-					<ElevatedCard>
-						<div class="track">
+		<section class="tracks">
+			<div class="title">
+				<h2>Tracks</h2>
+				<Button variant="tonal">New track</Button>
+			</div>
+
+			{#if tracks.length <= 0}
+				<KaomojiError kind="neutral" text="It's empty here..." />
+			{:else}
+				<div class="body">
+					{#each tracks as track}
+						<Card variant="elevated">
 							<h3>{track.name}</h3>
 							<p>{track.description}</p>
-						</div>
 
-						<hr />
+							<div class="judges">
+								<p><Icon icon={iconGavel} /> Judges</p>
 
-						<div class="track">
-							<md-text-button>More details</md-text-button>
-						</div>
-					</ElevatedCard>
-				{/each}
-			</div>
+								<div>
+									{#each track.judges as judge}
+										<Chip variant="general" onclick={() => {}}>{judge.name}</Chip>
+									{/each}
+								</div>
+							</div>
+
+							<div class="mentors">
+								<p><Icon icon={iconGavel} /> Mentors</p>
+
+								<div>
+									{#each track.mentors as mentor}
+										<Chip variant="general" onclick={() => {}}>{mentor.name}</Chip>
+									{/each}
+								</div>
+							</div>
+						</Card>
+					{/each}
+				</div>
+			{/if}
 		</section>
 
 		<section class="rounds">
-			<h2>Rounds</h2>
-
-			<div class="body">
-				{#each data.rounds as round}
-					{@const now = Date.now()}
-					{@const active =
-						now >= new Date(round.start_time).getTime() &&
-						now <= new Date(round.end_time).getTime()}
-
-					<ElevatedCard>
-						<div class="round-card {active ? '' : 'disabled'}">
-							<div class="round">
-								<h3>{round.name}</h3>
-								<p>{round.description}</p>
-							</div>
-
-							<hr />
-
-							<div class="round">
-								<md-text-button disabled={!active}>More details</md-text-button>
-							</div>
-						</div>
-					</ElevatedCard>
-				{/each}
+			<div class="title">
+				<h2>Rounds</h2>
+				<Button variant="tonal">New round</Button>
 			</div>
+
+			{#if tracks.length <= 0}
+				<KaomojiError kind="neutral" text="Kickstart the event with a few rounds!" />
+			{:else}
+				<div class="body">
+					{#each data.rounds as round}
+						{@const now = Date.now()}
+						{@const active =
+							now >= new Date(round.start_time).getTime() &&
+							now <= new Date(round.end_time).getTime()}
+
+						<div
+							style="display: flex; flex-direction: column; align-items: center; justify-content: center"
+						>
+							<svg width="2rem" viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
+								<path
+									d={pathAnimatableCircle}
+									fill={active
+										? "var(--md-sys-color-primary)"
+										: "var(--md-sys-color-surface-container)"}
+								/>
+							</svg>
+
+							<div
+								style="width: 0.2rem; margin-top: 8px; height: 100%; background-color: {active
+									? 'var(--md-sys-color-primary)'
+									: 'var(--md-sys-color-surface-container)'}"
+							></div>
+						</div>
+
+						<div style:opacity={active ? "" : "70%"}>
+							<p style="font-weight: bold; font-size: 1.1rem">{round.name}</p>
+							<p>{round.description}</p>
+
+							<p style="color: var(--md-sys-color-tertiary)">
+								{new Date(round.start_time).toLocaleString(undefined, {
+									month: "short",
+									day: "numeric",
+									hour: "numeric",
+									minute: "numeric"
+								})} -
+								{new Date(round.end_time).toLocaleString(undefined, {
+									month: "short",
+									day: "numeric",
+									hour: "numeric",
+									minute: "numeric"
+								})}
+							</p>
+						</div>
+					{/each}
+				</div>
+			{/if}
 		</section>
 	</div>
 {:catch}
@@ -197,54 +260,76 @@
 				font-size: 0.9rem;
 				margin-bottom: 1rem;
 			}
+
+			.team-size {
+				margin-top: 3rem;
+				margin-bottom: 1rem;
+
+				:nth-child(1) {
+					font-weight: bold;
+				}
+			}
+
+			.max-teams {
+				margin-bottom: 1rem;
+
+				:nth-child(1) {
+					font-weight: bold;
+				}
+			}
 		}
 	}
 
+	.title {
+		margin-bottom: 1rem;
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+	}
+
 	.tracks {
-		> h2 {
-			margin-bottom: 1rem;
-		}
-
-		hr {
-			color: var(--md-sys-color-outline-variant);
-			opacity: 50%;
-		}
-
 		.body {
 			display: flex;
 			flex-direction: column;
 			gap: 8px;
+		}
+	}
 
-			.track {
-				padding: 16px;
-			}
+	.judges {
+		margin-top: 1rem;
+
+		:nth-child(1) {
+			font-weight: bold;
+			color: var(--md-sys-color-on-primary-container);
+			margin-bottom: 0.3rem;
+		}
+
+		div {
+			display: flex;
+			gap: 0.2rem;
+		}
+	}
+
+	.mentors {
+		margin-top: 1rem;
+
+		:nth-child(1) {
+			font-weight: bold;
+			color: var(--md-sys-color-on-tertiary-container);
+			margin-bottom: 0.3rem;
+		}
+
+		div {
+			display: flex;
+			gap: 0.2rem;
 		}
 	}
 
 	.rounds {
-		> h2 {
-			margin-bottom: 1rem;
-		}
-
-		hr {
-			color: var(--md-sys-color-outline-variant);
-			opacity: 50%;
-		}
-
 		.body {
-			display: flex;
-			flex-direction: column;
-			gap: 8px;
-
-			.round-card {
-				&.disabled {
-					opacity: 50%;
-				}
-
-				.round {
-					padding: 16px;
-				}
-			}
+			display: grid;
+			grid-template-columns: 1fr 8fr;
+			gap: 1rem;
 		}
 	}
 </style>

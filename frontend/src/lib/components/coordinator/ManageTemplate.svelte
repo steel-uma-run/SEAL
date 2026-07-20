@@ -160,107 +160,77 @@
 	}
 </script>
 
-<div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full font-sans text-(--md-on-surface)">
-	<!-- Header Section -->
-	<header
-		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)"
-	>
+<div class="template-management">
+	<header class="page-header">
 		<div>
-			<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-(--md-on-surface)">
-				Template Management
-			</h1>
-			<p class="mt-1 text-sm text-(--md-on-surface-variant)">
-				Prepare and manage criteria templates for grading rounds.
-			</p>
+			<h1>Template Management</h1>
+			<p>Prepare and manage criteria templates for grading rounds.</p>
 		</div>
-		<div class="flex items-center gap-3 mt-4 md:mt-0">
-			<button
-				onclick={openModal}
-				class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer border-0 shadow-none"
-			>
-				<Plus class="w-4 h-4" />
+
+		<div class="header-actions">
+			<button onclick={openModal} class="primary-btn">
+				<Plus class="icon-sm" />
 				New Template
 			</button>
 		</div>
 	</header>
 
-	<!-- Main Card Content -->
-	<div
-		class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-all shadow-none"
-	>
-		<!-- Search and stats bar -->
-		<div
-			class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 pb-6 border-b border-(--md-outline-variant)"
-		>
-			<!-- Search bar -->
-			<div class="relative w-full sm:w-80">
-				<span
-					class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-(--md-on-surface-variant)"
-				>
-					<Search class="w-4 h-4" />
+	<div class="main-card">
+		<div class="toolbar">
+			<div class="search-wrap">
+				<span class="search-icon">
+					<Search class="icon-sm" />
 				</span>
+
 				<input
 					type="text"
 					bind:value={searchQuery}
 					placeholder="Search templates or criteria..."
-					class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-(--md-outline) bg-(--md-surface-container-low) text-(--md-on-surface) placeholder-(--md-on-surface-variant)/60 focus:ring-2 focus:ring-(--md-primary) outline-none transition-all text-sm shadow-none"
+					class="search-input"
 				/>
+
 				{#if searchQuery}
-					<button
-						type="button"
-						onclick={() => (searchQuery = "")}
-						class="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-xs font-bold text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer border-0 bg-transparent"
-					>
+					<button type="button" onclick={() => (searchQuery = "")} class="clear-btn">
 						Clear
 					</button>
 				{/if}
 			</div>
 
-			<!-- Stats -->
-			<div class="text-xs font-semibold text-(--md-on-surface-variant)">
-				Showing <strong class="text-(--md-primary) font-black">{filteredTemplates.length}</strong>
-				of {templatesList.length} templates
+			<div class="stats">
+				Showing <strong>{filteredTemplates.length}</strong> of {templatesList.length} templates
 			</div>
 		</div>
 
-		<!-- List of Templates -->
-		<div class="overflow-x-auto">
-			<table class="w-full text-left border-collapse min-w-[800px]">
+		<div class="table-wrap">
+			<table class="templates-table">
 				<thead>
-					<tr
-						class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
-					>
-						<th class="py-3.5 px-4">Template Description</th>
-						<th class="py-3.5 px-4">Criteria Categories</th>
-						<th class="py-3.5 px-4">Total Weight</th>
-						<th class="py-3.5 px-4">Actions</th>
+					<tr>
+						<th>Template Description</th>
+						<th>Criteria Categories</th>
+						<th>Total Weight</th>
+						<th>Actions</th>
 					</tr>
 				</thead>
-				<tbody class="text-sm">
+
+				<tbody>
 					{#if isLoading}
 						<tr>
-							<td colspan="4" class="py-16 text-center">
-								<div class="flex flex-col items-center justify-center gap-3">
-									<div
-										class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-(--md-primary)"
-									></div>
-									<span class="text-sm text-(--md-on-surface-variant)"
-										>Loading templates data...</span
-									>
+							<td colspan="4" class="empty-cell">
+								<div class="loading-state">
+									<div class="spinner"></div>
+									<span>Loading templates data...</span>
 								</div>
 							</td>
 						</tr>
 					{:else}
 						{#if filteredTemplates.length === 0}
 							<tr>
-								<td colspan="4" class="py-16 text-center">
-									<div class="max-w-xs mx-auto space-y-2">
-										<p class="text-3xl">🔍</p>
-										<p class="font-bold text-(--md-on-surface)">No templates found</p>
-										<p class="text-xs text-(--md-on-surface-variant)">
-											We couldn't find any templates matching <strong class="text-(--md-primary)"
-												>"{searchQuery}"</strong
-											>.
+								<td colspan="4" class="empty-cell">
+									<div class="empty-state">
+										<p class="emoji">🔍</p>
+										<p class="empty-title">No templates found</p>
+										<p class="empty-text">
+											We couldn't find any templates matching <strong>"{searchQuery}"</strong>.
 										</p>
 									</div>
 								</td>
@@ -270,58 +240,41 @@
 
 					{#each filteredTemplates as template (template.id)}
 						{@const isExpanded = expandedTemplateId === template.id}
-						<tr
-							class="border-b border-(--md-outline-variant)/50 transition-colors hover:bg-(--md-surface-container-highest)/30 text-(--md-on-surface)"
-						>
-							<td class="py-4 px-4 font-bold">{template.description}</td>
-							<td class="py-4 px-4 text-xs font-semibold text-(--md-on-surface-variant)">
+						<tr class="template-row">
+							<td class="cell-bold">{template.description}</td>
+							<td class="cell-muted">
 								{template.criteria ? template.criteria.length : 0} categories
 							</td>
-							<td class="py-4 px-4">
-								<span
-									class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-none"
-								>
-									100% Weight
-								</span>
+							<td>
+								<span class="weight-pill">100% Weight</span>
 							</td>
-							<td class="py-4 px-4">
-								<button
-									onclick={() => toggleExpand(template.id)}
-									class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface) hover:bg-(--md-surface-container-high) shadow-none"
-								>
+							<td>
+								<button onclick={() => toggleExpand(template.id)} class="details-btn">
 									{#if isExpanded}
-										<ChevronUp class="w-3.5 h-3.5" /> Hide Details
+										<ChevronUp class="icon-xs" /> Hide Details
 									{:else}
-										<ChevronDown class="w-3.5 h-3.5" /> View Details
+										<ChevronDown class="icon-xs" /> View Details
 									{/if}
 								</button>
 							</td>
 						</tr>
+
 						{#if isExpanded}
 							<tr>
-								<td
-									colspan="4"
-									class="py-4 px-8 bg-(--md-surface-container-low)/30 border-b border-(--md-outline-variant)/50"
-								>
-									<div class="overflow-x-auto">
-										<table class="w-full text-left border-collapse">
+								<td colspan="4" class="expanded-cell">
+									<div class="table-wrap nested">
+										<table class="nested-table">
 											<thead>
-												<tr
-													class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
-												>
-													<th class="py-2 px-3">Criteria Category</th>
-													<th class="py-2 px-3 text-right">Weight</th>
+												<tr>
+													<th>Criteria Category</th>
+													<th class="text-right">Weight</th>
 												</tr>
 											</thead>
-											<tbody class="text-sm">
+											<tbody>
 												{#each template.criteria as item}
-													<tr
-														class="border-b border-(--md-outline-variant) last:border-0 text-(--md-on-surface)"
-													>
-														<td class="py-2.5 px-3 font-semibold">{item.name}</td>
-														<td class="py-2.5 px-3 text-right font-bold text-(--md-primary)"
-															>{item.weight}%</td
-														>
+													<tr>
+														<td class="cell-semibold">{item.name}</td>
+														<td class="text-right cell-primary">{item.weight}%</td>
 													</tr>
 												{/each}
 											</tbody>
@@ -337,91 +290,62 @@
 	</div>
 </div>
 
-<!-- Create Template Modal -->
 {#if showModal}
-	<div
-		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 font-sans text-(--md-on-surface)"
-	>
-		<div
-			class="w-full max-w-2xl rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) p-8 relative transition-all shadow-none flex flex-col max-h-[90vh]"
-		>
-			<!-- Close button -->
-			<button
-				onclick={closeModal}
-				class="absolute top-4 right-4 p-1 rounded-lg hover:bg-(--md-surface-container-highest) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
-			>
-				<X class="w-5 h-5" />
+	<div class="modal-overlay">
+		<div class="modal">
+			<button onclick={closeModal} class="modal-close">
+				<X class="icon-md" />
 			</button>
 
-			<h3 class="text-xl font-bold mb-4 flex items-center gap-2">
-				<ClipboardList class="w-5 h-5 text-(--md-primary)" />
+			<h3 class="modal-title">
+				<ClipboardList class="icon-md icon-primary" />
 				Create Criteria Template
 			</h3>
 
-			<!-- Modal Message Banner -->
 			{#if modalMessage}
-				<div
-					class="mb-4 p-3.5 rounded-xl text-sm flex items-start gap-2.5 border {modalError
-						? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-						: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'}"
-				>
+				<div class:modal-error={modalError} class:modal-success={!modalError} class="modal-banner">
 					{#if modalError}
-						<AlertCircle class="w-5 h-5 shrink-0" />
+						<AlertCircle class="icon-md shrink-0" />
 					{:else}
-						<CheckCircle2 class="w-5 h-5 shrink-0" />
+						<CheckCircle2 class="icon-md shrink-0" />
 					{/if}
 					<span>{modalMessage}</span>
 				</div>
 			{/if}
 
-			<form onsubmit={handleSubmit} class="flex flex-col gap-4 overflow-y-auto pr-1 flex-1">
-				<!-- Template Description Name -->
-				<div class="space-y-1.5">
-					<label
-						for="template-desc-input"
-						class="text-sm font-semibold text-(--md-on-surface-variant)"
-						>Template Name/Description *</label
-					>
+			<form onsubmit={handleSubmit} class="modal-form">
+				<div class="field">
+					<label for="template-desc-input">Template Name/Description *</label>
 					<input
 						id="template-desc-input"
 						type="text"
 						bind:value={templateDescription}
 						placeholder="e.g., Hackathon Round 1 Presentation Template"
 						required
-						class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)"
+						class="input"
 					/>
 				</div>
 
-				<!-- Criteria Rows Section -->
-				<div class="space-y-2">
-					<div class="flex justify-between items-center">
-						<span class="text-sm font-semibold text-(--md-on-surface-variant)">Criteria List *</span
-						>
-						<button
-							type="button"
-							onclick={addCriteriaRow}
-							class="text-xs font-bold text-(--md-primary) hover:underline bg-transparent border-0 cursor-pointer"
-						>
-							+ Add Row
-						</button>
+				<div class="field">
+					<div class="field-header">
+						<span>Criteria List *</span>
+						<button type="button" onclick={addCriteriaRow} class="add-row-btn">+ Add Row</button>
 					</div>
 
-					<div class="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
+					<div class="criteria-list">
 						{#each criteriaItems as item, index (item.id)}
-							<div class="flex gap-3 items-center">
-								<!-- Criteria name -->
-								<div class="flex-1">
+							<div class="criteria-row">
+								<div class="criteria-name">
 									<input
 										type="text"
 										bind:value={item.name}
 										placeholder="Criteria Category Name"
 										required
-										class="w-full rounded-xl border border-(--md-outline) p-2.5 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) text-sm"
+										class="input small"
 									/>
 								</div>
 
-								<!-- Criteria weight -->
-								<div class="w-28 flex items-center gap-1.5">
+								<div class="criteria-weight">
 									<input
 										type="number"
 										bind:value={item.weight}
@@ -429,70 +353,48 @@
 										min="1"
 										max="100"
 										required
-										class="w-full rounded-xl border border-(--md-outline) p-2.5 outline-none text-center bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) text-sm"
+										class="input small center"
 									/>
-									<span class="text-sm text-(--md-on-surface-variant)">%</span>
+									<span>%</span>
 								</div>
 
-								<!-- Delete button -->
 								<button
 									type="button"
 									onclick={() => removeCriteriaRow(item.id)}
 									disabled={criteriaItems.length <= 1}
-									class="p-2 rounded-xl hover:bg-(--md-surface-container-highest) transition-colors text-rose-500 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer border-0 bg-transparent"
+									class="icon-btn danger"
 								>
-									<Trash2 class="w-4 h-4" />
+									<Trash2 class="icon-sm" />
 								</button>
 							</div>
 						{/each}
 					</div>
 				</div>
 
-				<!-- Live Weight Validation Indicator -->
-				<div
-					class="mt-2 p-4 rounded-2xl bg-(--md-surface-container-low) border border-(--md-outline-variant) flex justify-between items-center"
-				>
-					<div class="text-sm font-semibold text-(--md-on-surface)">
+				<div class="weight-status">
+					<div class="weight-total">
 						Total Weight:
-						<span
-							class={totalWeight === 100
-								? "text-emerald-500 font-bold"
-								: "text-amber-500 font-bold"}
-						>
+						<span class:good={totalWeight === 100} class:warn={totalWeight !== 100}>
 							{totalWeight}%
 						</span>
 					</div>
-					<div class="text-xs text-(--md-on-surface-variant)">
+
+					<div class="weight-note">
 						{#if totalWeight === 100}
-							<span class="text-emerald-500 font-bold flex items-center gap-1">
-								✓ Weights sum to 100%
-							</span>
+							<span class="good-text">✓ Weights sum to 100%</span>
 						{:else if totalWeight < 100}
 							<span>Need {100 - totalWeight}% more</span>
 						{:else}
-							<span class="text-rose-500 font-semibold">Exceeds 100% by {totalWeight - 100}%</span>
+							<span class="bad-text">Exceeds 100% by {totalWeight - 100}%</span>
 						{/if}
 					</div>
 				</div>
 
-				<!-- Action Buttons -->
-				<div class="flex justify-end gap-3 mt-4 pt-4 border-t border-(--md-outline-variant)">
-					<button
-						type="button"
-						onclick={closeModal}
-						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-transparent text-(--md-on-surface-variant) hover:bg-(--md-surface-container-highest) transition-colors cursor-pointer border-0"
-					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						disabled={!isFormValid || modalLoading}
-						class="flex items-center justify-center gap-2 bg-(--md-primary) disabled:opacity-50 disabled:cursor-not-allowed text-(--md-on-primary) px-6 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
-					>
+				<div class="modal-actions">
+					<button type="button" onclick={closeModal} class="secondary-btn">Cancel</button>
+					<button type="submit" disabled={!isFormValid || modalLoading} class="primary-btn">
 						{#if modalLoading}
-							<div
-								class="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-current"
-							></div>
+							<div class="spinner small"></div>
 						{/if}
 						Save Template
 					</button>
@@ -501,3 +403,586 @@
 		</div>
 	</div>
 {/if}
+
+<style lang="scss">
+	.page-header {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 1rem;
+		margin-bottom: 2rem;
+		padding-bottom: 1.5rem;
+		border-bottom: 1px solid var(--md-outline-variant);
+
+		@media (min-width: 768px) {
+			flex-direction: row;
+			align-items: center;
+		}
+		h1 {
+			margin: 0;
+			font-size: 1.5rem;
+			font-weight: 800;
+			letter-spacing: -0.025em;
+
+			@media (min-width: 768px) {
+				font-size: 1.875rem;
+			}
+		}
+
+		p {
+			margin: 0.25rem 0 0;
+			font-size: 0.875rem;
+			color: var(--md-on-surface-variant);
+		}
+	}
+
+	.header-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 1rem;
+
+		@media (min-width: 768px) {
+			margin-top: 0;
+		}
+	}
+
+	.main-card,
+	.modal {
+		border: 1px solid var(--md-outline-variant);
+		background: var(--md-surface-container-lowest);
+		border-radius: 1.5rem;
+		box-shadow: none;
+		transition: all 0.2s;
+	}
+
+	.main-card {
+		padding: 2rem;
+	}
+
+	.toolbar {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+		padding-bottom: 1.5rem;
+		border-bottom: 1px solid var(--md-outline-variant);
+
+		@media (min-width: 640px) {
+			flex-direction: row;
+		}
+	}
+
+	.search-wrap {
+		position: relative;
+		width: 100%;
+
+		@media (min-width: 640px) {
+			width: 20rem;
+		}
+	}
+
+	.search-icon {
+		position: absolute;
+		inset: 0 auto 0 0;
+		padding-left: 0.75rem;
+		display: flex;
+		align-items: center;
+		pointer-events: none;
+		color: var(--md-on-surface-variant);
+	}
+
+	.search-input,
+	.input {
+		width: 100%;
+		border: 1px solid var(--md-outline);
+		background: var(--md-surface-container-low);
+		color: var(--md-on-surface);
+		outline: none;
+		transition: all 0.2s;
+	}
+
+	.search-input {
+		padding: 0.625rem 1rem 0.625rem 2.5rem;
+		border-radius: 0.75rem;
+		font-size: 0.875rem;
+		box-shadow: none;
+
+		&::placeholder {
+			color: color-mix(in srgb, var(--md-on-surface-variant) 60%, transparent);
+		}
+	}
+
+	.clear-btn,
+	.add-row-btn,
+	.secondary-btn,
+	.primary-btn,
+	.details-btn,
+	.icon-btn,
+	.modal-close {
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+	}
+
+	.clear-btn {
+		position: absolute;
+		right: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		padding: 0.25rem;
+		border-radius: 0.375rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--md-on-surface-variant);
+	}
+
+	.stats {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--md-on-surface-variant);
+
+		strong {
+			font-weight: 900;
+			color: var(--md-primary);
+		}
+	}
+
+	.table-wrap {
+		overflow-x: auto;
+
+		&.nested {
+			border: 0;
+		}
+	}
+
+	.templates-table,
+	.nested-table {
+		width: 100%;
+		border-collapse: collapse;
+		text-align: left;
+	}
+
+	.templates-table {
+		min-width: 800px;
+
+		thead tr,
+		.nested-table thead tr {
+			border-bottom: 1px solid var(--md-outline-variant);
+			color: var(--md-on-surface-variant);
+			font-size: 0.75rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+		}
+
+		th,
+		td {
+			padding: 0.875rem 1rem;
+		}
+	}
+
+	.template-row {
+		border-bottom: 1px solid color-mix(in srgb, var(--md-outline-variant) 50%, transparent);
+		color: var(--md-on-surface);
+		transition: background-color 0.2s;
+
+		&:hover {
+			background: color-mix(in srgb, var(--md-surface-container-highest) 30%, transparent);
+		}
+	}
+
+	.cell-bold,
+	.cell-semibold {
+		font-weight: 700;
+	}
+
+	.cell-muted {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--md-on-surface-variant);
+	}
+
+	.weight-pill {
+		display: inline-block;
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		background: rgba(16, 185, 129, 0.1);
+		color: #10b981;
+		border: 1px solid rgba(16, 185, 129, 0.2);
+	}
+
+	.details-btn,
+	.primary-btn,
+	.secondary-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		border-radius: 0.75rem;
+		font-size: 0.875rem;
+		font-weight: 700;
+		transition: all 0.2s;
+	}
+
+	.details-btn {
+		padding: 0.375rem 0.75rem;
+		font-size: 0.75rem;
+		border: 1px solid var(--md-outline-variant);
+		background: var(--md-surface-container-low);
+		color: var(--md-on-surface);
+
+		&:hover {
+			background: var(--md-surface-container-high);
+		}
+	}
+
+	.expanded-cell {
+		padding: 1rem 2rem;
+		background: color-mix(in srgb, var(--md-surface-container-low) 30%, transparent);
+		border-bottom: 1px solid color-mix(in srgb, var(--md-outline-variant) 50%, transparent);
+	}
+
+	.nested-table {
+		thead tr {
+			font-size: 0.75rem;
+		}
+		td,
+		th {
+			padding: 0.625rem 0.75rem;
+			border-bottom: 1px solid var(--md-outline-variant);
+		}
+		tr:last-child td {
+			border-bottom: 0;
+		}
+	}
+
+	.text-right {
+		text-align: right;
+	}
+
+	.cell-primary {
+		font-weight: 700;
+		color: var(--md-primary);
+	}
+
+	.empty-cell {
+		padding: 4rem 1rem;
+		text-align: center;
+	}
+
+	.loading-state,
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+	}
+
+	.empty-state {
+		max-width: 20rem;
+		margin: 0 auto;
+		gap: 0.5rem;
+	}
+
+	.emoji {
+		font-size: 1.875rem;
+		margin: 0;
+	}
+
+	.empty-title {
+		font-weight: 700;
+		margin: 0;
+	}
+
+	.empty-text,
+	.loading-state span {
+		font-size: 0.875rem;
+		color: var(--md-on-surface-variant);
+		margin: 0;
+	}
+
+	.modal-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 2000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		background: rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(2px);
+		font-family: sans-serif;
+		color: var(--md-on-surface);
+	}
+
+	.modal {
+		position: relative;
+		width: 100%;
+		max-width: 42rem;
+		padding: 2rem;
+		display: flex;
+		flex-direction: column;
+		max-height: 90vh;
+		background: var(--md-surface-container-low);
+	}
+
+	.modal-close {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		padding: 0.25rem;
+		border-radius: 0.5rem;
+		color: var(--md-on-surface-variant);
+
+		&:hover {
+			background: var(--md-surface-container-highest);
+		}
+	}
+
+	.modal-title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0 0 1rem;
+		font-size: 1.25rem;
+		font-weight: 700;
+	}
+
+	.icon-sm {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	.icon-md {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+
+	.icon-xs {
+		width: 0.875rem;
+		height: 0.875rem;
+	}
+
+	.icon-primary {
+		color: var(--md-primary);
+	}
+
+	.modal-banner {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.625rem;
+		margin-bottom: 1rem;
+		padding: 0.875rem;
+		border: 1px solid;
+		border-radius: 0.75rem;
+		font-size: 0.875rem;
+	}
+
+	.modal-error {
+		background: rgba(244, 63, 94, 0.1);
+		color: #f43f5e;
+		border-color: rgba(244, 63, 94, 0.2);
+	}
+
+	.modal-success {
+		background: rgba(16, 185, 129, 0.1);
+		color: #10b981;
+		border-color: rgba(16, 185, 129, 0.2);
+	}
+
+	.modal-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		overflow-y: auto;
+		padding-right: 0.25rem;
+		flex: 1;
+	}
+
+	.field {
+		display: grid;
+		gap: 0.375rem;
+
+		label,
+		span {
+			font-size: 0.875rem;
+			font-weight: 600;
+			color: var(--md-on-surface-variant);
+		}
+	}
+
+	.field-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.add-row-btn {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: var(--md-primary);
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+	.input {
+		padding: 0.75rem;
+		border-radius: 0.75rem;
+		background: var(--md-surface-container-highest);
+
+		&.small {
+			padding: 0.625rem;
+			font-size: 0.875rem;
+		}
+
+		&.center {
+			text-align: center;
+		}
+	}
+
+	.criteria-list {
+		display: grid;
+		gap: 0.5rem;
+		max-height: 40vh;
+		overflow-y: auto;
+		padding-right: 0.25rem;
+	}
+
+	.criteria-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.criteria-name {
+		flex: 1;
+	}
+
+	.criteria-weight {
+		width: 7rem;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.icon-btn {
+		padding: 0.5rem;
+		border-radius: 0.75rem;
+		background: transparent;
+
+		&:hover {
+			background: var(--md-surface-container-highest);
+		}
+		&.danger {
+			color: #f43f5e;
+		}
+		&:disabled {
+			opacity: 0.3;
+			cursor: not-allowed;
+		}
+	}
+
+	.weight-status {
+		margin-top: 0.5rem;
+		padding: 1rem;
+		border-radius: 1rem;
+		background: var(--md-surface-container-low);
+		border: 1px solid var(--md-outline-variant);
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.weight-total {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--md-on-surface);
+	}
+
+	.good {
+		color: #10b981;
+		font-weight: 700;
+	}
+
+	.warn {
+		color: #f59e0b;
+		font-weight: 700;
+	}
+
+	.good-text {
+		color: #10b981;
+		font-weight: 700;
+	}
+
+	.bad-text {
+		color: #f43f5e;
+		font-weight: 600;
+	}
+
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.75rem;
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--md-outline-variant);
+	}
+
+	.secondary-btn {
+		padding: 0.625rem 1.25rem;
+		color: var(--md-on-surface-variant);
+
+		&:hover {
+			background: var(--md-surface-container-highest);
+		}
+	}
+
+	.primary-btn {
+		padding: 0.625rem 1.5rem;
+		background: var(--md-primary);
+		color: var(--md-on-primary);
+		border: 0;
+		box-shadow: none;
+
+		&:hover {
+			opacity: 0.9;
+		}
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+	}
+
+	.spinner {
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: 9999px;
+		border-top: 2px solid var(--md-primary);
+		border-bottom: 2px solid var(--md-primary);
+		animation: spin 1s linear infinite;
+
+		&.small {
+			width: 1rem;
+			height: 1rem;
+			border-color: currentColor;
+			border-top-width: 2px;
+			border-bottom-width: 2px;
+		}
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>

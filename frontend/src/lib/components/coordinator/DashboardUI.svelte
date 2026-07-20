@@ -1,19 +1,10 @@
 <script lang="ts">
-	import { theme } from "$lib/theme.svelte"
-	import {
-		Calendar,
-		Users,
-		UserCheck,
-		Shield,
-		ChevronDown,
-		Check,
-		AlertTriangle,
-		Plus,
-		Megaphone,
-		Download,
-		Zap,
-		ArrowRight
-	} from "@lucide/svelte"
+	import { Icon } from "m3-svelte"
+	import EventsListing from "$lib/components/EventsListing.svelte"
+
+	import iconCalendar from "@ktibow/iconset-material-symbols/calendar-today"
+	import iconPerson from "@ktibow/iconset-material-symbols/person"
+	import iconShield from "@ktibow/iconset-material-symbols/shield"
 
 	let {
 		profile,
@@ -40,260 +31,513 @@
 	}>()
 </script>
 
-<div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full">
-	<!-- 1. HEADER SECTION -->
-	<header
-		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)"
-	>
+<div class="dashboard">
+	<header class="dashboard__header">
 		<div>
-			<div class="flex flex-col sm:flex-row sm:items-center gap-3">
-				<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-(--md-on-surface)">
-					Coordinator Dashboard
-				</h1>
-				<!-- Global Season Selector Dropdown -->
-				<div class="relative mt-1 sm:mt-0">
-					<button
-						class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface) hover:bg-(--md-surface-container-highest) cursor-pointer"
-					>
-						<span>
-							{#if currentSeason}
-								Season: {currentSeason.semester.charAt(0) +
-									currentSeason.semester.slice(1).toLowerCase()}
-								{currentSeason.year}
-							{:else}
-								No Active Season
-							{/if}
-						</span>
-						<ChevronDown class="w-3.5 h-3.5 text-(--md-primary)" />
-					</button>
-				</div>
+			<div class="dashboard__title-row">
+				<h1 class="dashboard__title">Dashboard</h1>
 			</div>
-			<p class="mt-2 text-sm md:text-base text-(--md-on-surface-variant)">
-				Welcome back, {profile?.name || "Coordinator"}! Here's an overview of the hackathon seasons.
+
+			<p class="dashboard__subtitle">
+				Welcome back, {profile?.name || "Coordinator"}! Here's an overview of the system.
 			</p>
 		</div>
 
-		<div class="flex items-center gap-4 mt-4 md:mt-0">
-			<div class="text-right hidden sm:block">
-				<p class="font-bold leading-tight text-(--md-on-surface)">
-					{profile?.name || "Nguyễn Hùng Cường"}
-				</p>
-				<p class="text-xs font-semibold text-(--md-primary) uppercase tracking-wider">
-					COORDINATOR
-				</p>
+		<div class="dashboard__profile">
+			<div class="dashboard__profile-text">
+				<p class="dashboard__profile-name">{profile?.name || "Nguyễn Hùng Cường"}</p>
+				<p class="dashboard__profile-role">COORDINATOR</p>
 			</div>
-			<div
-				class="w-12 h-12 rounded-full flex items-center justify-center text-(--md-on-primary-container) font-bold text-xl bg-(--md-primary-container) border border-(--md-outline-variant)"
-			>
+
+			<div class="dashboard__avatar">
 				{profile?.name?.charAt(0).toUpperCase() || "N"}
 			</div>
 		</div>
 	</header>
 
-	<!-- 2. METRIC CARDS (With Actionable Sub-texts) -->
-	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-		<!-- Card 1: Total Seasons -->
-		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
-		>
-			<div class="flex items-center gap-4">
-				<div
-					class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-primary-container) text-(--md-on-primary-container)"
-				>
-					<Calendar class="w-6 h-6" />
+	<div class="metrics-grid">
+		<div class="metric-card">
+			<div class="metric-card__top">
+				<div class="metric-card__icon metric-card__icon--primary">
+					<Icon icon={iconCalendar} />
 				</div>
 				<div>
-					<p
-						class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-					>
-						Total Seasons
-					</p>
-					<h3 class="text-2xl font-bold text-(--md-on-surface)">{seasonsCount}</h3>
+					<p class="metric-card__label">Total Seasons</p>
+					<h3 class="metric-card__value">{seasonsCount}</h3>
 				</div>
 			</div>
-			<p class="text-xs font-medium mt-4 text-(--md-on-surface-variant)">(All active seasons)</p>
+			<p class="metric-card__footer">(All active seasons)</p>
 		</div>
 
-		<!-- Card 2: Total Teams -->
-		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
-		>
-			<div class="flex items-center gap-4">
-				<div
-					class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-primary-container) text-(--md-on-primary-container)"
-				>
-					<Users class="w-6 h-6" />
+		<div class="metric-card">
+			<div class="metric-card__top">
+				<div class="metric-card__icon metric-card__icon--primary">
+					<Icon icon={iconPerson} />
 				</div>
 				<div>
-					<p
-						class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-					>
-						Total Teams
-					</p>
-					<h3 class="text-2xl font-bold text-(--md-on-surface)">{totalTeamsCount}</h3>
+					<p class="metric-card__label">Total Teams</p>
+					<h3 class="metric-card__value">{totalTeamsCount}</h3>
 				</div>
 			</div>
-			<div class="mt-4">
+
+			<div class="metric-card__status">
 				{#if pendingTeamsCount > 0}
-					<span
-						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-error-container) text-(--md-on-error-container) border border-(--md-error)"
-					>
+					<span class="badge badge--error">
 						{pendingTeamsCount}
 						{pendingTeamsCount === 1 ? "team" : "teams"} pending approval
 					</span>
 				{:else}
-					<span
-						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)"
-					>
-						All teams approved
-					</span>
+					<span class="badge badge--success">All teams approved</span>
 				{/if}
 			</div>
 		</div>
 
-		<!-- Card 3: Active Participants -->
-		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
-		>
-			<div class="flex items-center gap-4">
-				<div
-					class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-secondary-container) text-(--md-on-secondary-container)"
-				>
-					<UserCheck class="w-6 h-6" />
+		<div class="metric-card">
+			<div class="metric-card__top">
+				<div class="metric-card__icon metric-card__icon--secondary">
+					<Icon icon={iconPerson} />
 				</div>
 				<div>
-					<p
-						class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-					>
-						Active Participants
-					</p>
-					<h3 class="text-2xl font-bold text-(--md-on-surface)">{activeParticipantsCount}</h3>
+					<p class="metric-card__label">Active Participants</p>
+					<h3 class="metric-card__value">{activeParticipantsCount}</h3>
 				</div>
 			</div>
-			<div class="mt-4">
+
+			<div class="metric-card__status">
 				{#if pendingStudentsCount > 0}
-					<span
-						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-error-container) text-(--md-on-error-container) border border-(--md-error)"
-					>
+					<span class="badge badge--error">
 						{pendingStudentsCount} pending student approvals
 					</span>
 				{:else}
-					<span
-						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)"
-					>
-						No pending accounts
-					</span>
+					<span class="badge badge--success">No pending accounts</span>
 				{/if}
 			</div>
 		</div>
 
-		<!-- Card 4: Total Lecturers/Judges -->
-		<div
-			class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) flex flex-col justify-between transition-colors duration-300 shadow-sm"
-		>
-			<div class="flex items-center gap-4">
-				<div
-					class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-(--md-tertiary-container) text-(--md-on-tertiary-container)"
-				>
-					<Shield class="w-6 h-6" />
+		<div class="metric-card">
+			<div class="metric-card__top">
+				<div class="metric-card__icon metric-card__icon--tertiary">
+					<Icon icon={iconShield} />
 				</div>
 				<div>
-					<p
-						class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-					>
-						Total Lecturers/Judges
-					</p>
-					<h3 class="text-2xl font-bold text-(--md-on-surface)">{totalLecturersCount}</h3>
+					<p class="metric-card__label">Total Lecturers/Judges</p>
+					<h3 class="metric-card__value">{totalLecturersCount}</h3>
 				</div>
 			</div>
-			<div class="mt-4">
+
+			<div class="metric-card__status">
 				{#if unassignedJudgesCount > 0}
-					<span
-						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-error-container) text-(--md-on-error-container) border border-(--md-error)"
-					>
+					<span class="badge badge--error">
 						{unassignedJudgesCount}
 						{unassignedJudgesCount === 1 ? "judge" : "judges"} unassigned to tracks
 					</span>
 				{:else}
-					<span
-						class="inline-block px-2.5 py-1 rounded-md text-xs font-semibold bg-(--md-secondary-container) text-(--md-on-secondary-container) border border-(--md-outline-variant)"
-					>
-						All judges assigned
-					</span>
+					<span class="badge badge--success">All judges assigned</span>
 				{/if}
 			</div>
 		</div>
 	</div>
 
-	<!-- 3. ROW 2: ACTIVE EVENTS (Full width) -->
-	<div class="mb-8">
-		<!-- Active Events -->
-		<div
-			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-colors duration-300 shadow-sm"
-		>
-			<div class="flex justify-between items-center mb-6">
-				<h2 class="text-xl font-bold text-(--md-on-surface)">Active Events</h2>
-			</div>
-
-			{#if activeEvents.length === 0}
-				<div
-					class="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-(--md-outline-variant) rounded-3xl"
-				>
-					<Calendar class="w-12 h-12 text-(--md-on-surface-variant) opacity-50 mb-3" />
-					<h3 class="font-bold text-sm text-(--md-on-surface)">No active events found</h3>
-					<p class="text-xs text-(--md-on-surface-variant) mt-1 max-w-sm">
-						Go to Season & Event management to finalize and activate events.
-					</p>
-				</div>
-			{:else}
-				<div class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-					{#each activeEvents as event}
-						<div
-							class="p-5 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) hover:bg-(--md-surface-container-high) transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-						>
-							<div class="flex-1">
-								<div class="flex items-center gap-2 mb-1.5 flex-wrap">
-									<span
-										class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)"
-									>
-										{event.seasonSemester}
-										{event.seasonYear}
-									</span>
-									<span
-										class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-(--md-tertiary-container) text-(--md-on-tertiary-container)"
-									>
-										{event.teamsCount}
-										{event.teamsCount === 1 ? "Team" : "Teams"}
-									</span>
-								</div>
-								<h3 class="text-base font-bold text-(--md-on-surface) mb-1">
-									{event.name}
-								</h3>
-								<p class="text-xs text-(--md-on-surface-variant) line-clamp-2 mb-3">
-									{event.description}
-								</p>
-								<div class="flex items-center gap-4 text-xs text-(--md-on-surface-variant)">
-									<div class="flex items-center gap-1.5">
-										<Calendar class="w-3.5 h-3.5 text-(--md-primary)" />
-										<span>
-											{new Date(event.startTime || event.start_time).toLocaleDateString()} - {new Date(
-												event.endTime || event.end_time
-											).toLocaleDateString()}
-										</span>
-									</div>
-								</div>
-							</div>
-							<a
-								href="/coordinator/seasons/{event.seasonId}/events/{event.id}"
-								class="shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 cursor-pointer no-underline border-0"
-							>
-								<span>View Event Details</span>
-								<ArrowRight class="w-4 h-4" />
-							</a>
-						</div>
-					{/each}
-				</div>
-			{/if}
-		</div>
+	<div class="events-list">
+		<EventsListing />
 	</div>
 </div>
+
+<style lang="scss">
+	.dashboard {
+		width: 100%;
+	}
+
+	.dashboard__header {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 2rem;
+		padding-bottom: 1.5rem;
+		border-bottom: 1px solid var(--md-outline-variant);
+
+		@media (min-width: 768px) {
+			flex-direction: row;
+			align-items: center;
+		}
+	}
+
+	.dashboard__title-row {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+
+		@media (min-width: 640px) {
+			flex-direction: row;
+			align-items: center;
+		}
+	}
+
+	.dashboard__title {
+		font-size: 1.5rem;
+		line-height: 2rem;
+		font-weight: 800;
+		letter-spacing: -0.025em;
+		color: var(--md-on-surface);
+
+		@media (min-width: 768px) {
+			font-size: 1.875rem;
+			line-height: 2.25rem;
+		}
+	}
+
+	.season-selector {
+		position: relative;
+		margin-top: 0.25rem;
+
+		@media (min-width: 640px) {
+			margin-top: 0;
+		}
+	}
+
+	.season-selector__button,
+	.event-card__button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		border: 1px solid var(--md-outline-variant);
+		transition: all 0.2s ease;
+		cursor: pointer;
+		text-decoration: none;
+	}
+
+	.season-selector__button {
+		padding: 0.375rem 0.75rem;
+		border-radius: 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		background: var(--md-surface-container-high);
+		color: var(--md-on-surface);
+
+		&:hover {
+			background: var(--md-surface-container-highest);
+		}
+	}
+
+	.dashboard__subtitle {
+		margin-top: 0.5rem;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: var(--md-on-surface-variant);
+
+		@media (min-width: 768px) {
+			font-size: 1rem;
+			line-height: 1.5rem;
+		}
+	}
+
+	.dashboard__profile {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-top: 1rem;
+
+		@media (min-width: 768px) {
+			margin-top: 0;
+		}
+	}
+
+	.dashboard__profile-text {
+		display: none;
+		text-align: right;
+
+		@media (min-width: 640px) {
+			display: block;
+		}
+	}
+
+	.dashboard__profile-name {
+		font-weight: 700;
+		line-height: 1.25;
+		color: var(--md-on-surface);
+	}
+
+	.dashboard__profile-role {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--md-primary);
+	}
+
+	.dashboard__avatar {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 9999px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--md-on-primary-container);
+		background: var(--md-primary-container);
+		border: 1px solid var(--md-outline-variant);
+	}
+
+	.metrics-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+		margin-bottom: 2rem;
+
+		@media (min-width: 640px) {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		@media (min-width: 1024px) {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
+	}
+
+	.metric-card {
+		padding: 1.5rem;
+		border-radius: 1.5rem;
+		border: 1px solid var(--md-outline-variant);
+		background: var(--md-surface-container-lowest);
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+		transition:
+			color 0.3s ease,
+			background-color 0.3s ease;
+	}
+
+	.metric-card__top {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.metric-card__icon {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 0.75rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+
+		&--primary {
+			background: var(--md-primary-container);
+			color: var(--md-on-primary-container);
+		}
+
+		&--secondary {
+			background: var(--md-secondary-container);
+			color: var(--md-on-secondary-container);
+		}
+
+		&--tertiary {
+			background: var(--md-tertiary-container);
+			color: var(--md-on-tertiary-container);
+		}
+	}
+
+	.metric-card__label {
+		margin-bottom: 0.25rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--md-on-surface-variant);
+	}
+
+	.metric-card__value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.metric-card__footer {
+		margin-top: 1rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--md-on-surface-variant);
+	}
+
+	.metric-card__status {
+		margin-top: 1rem;
+	}
+
+	.badge,
+	.chip {
+		display: inline-block;
+		font-size: 0.75rem;
+		font-weight: 600;
+		border-radius: 0.375rem;
+	}
+
+	.badge {
+		padding: 0.25rem 0.625rem;
+		border: 1px solid transparent;
+
+		&--error {
+			background: var(--md-error-container);
+			color: var(--md-on-error-container);
+			border-color: var(--md-error);
+		}
+
+		&--success {
+			background: var(--md-secondary-container);
+			color: var(--md-on-secondary-container);
+			border-color: var(--md-outline-variant);
+		}
+	}
+
+	.events-panel {
+		margin-bottom: 2rem;
+		padding: 2rem;
+		border-radius: 1.5rem;
+		border: 1px solid var(--md-outline-variant);
+		background: var(--md-surface-container-lowest);
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+	}
+
+	.events-panel__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.5rem;
+	}
+
+	.events-panel__title {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 3rem 1rem;
+		text-align: center;
+		border: 1px dashed var(--md-outline-variant);
+		border-radius: 1.5rem;
+	}
+
+	.empty-state__title {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.empty-state__text {
+		margin-top: 0.25rem;
+		max-width: 24rem;
+		font-size: 0.75rem;
+		color: var(--md-on-surface-variant);
+	}
+
+	.events-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding-right: 0.5rem;
+	}
+
+	.event-card {
+		padding: 1.25rem;
+		border-radius: 1rem;
+		border: 1px solid var(--md-outline-variant);
+		background: var(--md-surface-container-low);
+		transition: all 0.2s ease;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 1rem;
+
+		&:hover {
+			background: var(--md-surface-container-high);
+		}
+
+		@media (min-width: 768px) {
+			flex-direction: row;
+			align-items: center;
+		}
+	}
+
+	.event-card__content {
+		flex: 1;
+	}
+
+	.event-card__chips {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.375rem;
+		flex-wrap: wrap;
+	}
+
+	.chip {
+		padding: 0.125rem 0.625rem;
+		border-radius: 9999px;
+		font-size: 0.625rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+
+		&--primary {
+			background: var(--md-primary-container);
+			color: var(--md-on-primary-container);
+			border: 1px solid var(--md-outline-variant);
+		}
+
+		&--tertiary {
+			background: var(--md-tertiary-container);
+			color: var(--md-on-tertiary-container);
+		}
+	}
+
+	.event-card__title {
+		margin-bottom: 0.25rem;
+		font-size: 1rem;
+		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.event-card__description,
+	.event-card__meta {
+		font-size: 0.75rem;
+		color: var(--md-on-surface-variant);
+	}
+
+	.event-card__description {
+		margin-bottom: 0.75rem;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		overflow: hidden;
+	}
+
+	.event-card__meta-row {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+	}
+
+	.event-card__button {
+		padding: 0.625rem 1rem;
+		border-radius: 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		background: var(--md-primary);
+		color: var(--md-on-primary);
+		border: 0;
+		flex-shrink: 0;
+
+		&:hover {
+			opacity: 0.9;
+		}
+	}
+</style>

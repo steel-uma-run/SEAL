@@ -1,9 +1,7 @@
 <script lang="ts">
-	import "../../tailwind.css"
-
 	import { register } from "$lib/api"
-	import { Eye, EyeOff } from "@lucide/svelte"
 	import { goto } from "$app/navigation"
+	import { Button, Checkbox, TextField } from "m3-svelte"
 
 	let email = $state("")
 	let name = $state("")
@@ -75,165 +73,214 @@
 	}
 </script>
 
-<main class="min-w-screen min-h-screen flex justify-center items-center bg-(--md-surface) py-8">
-	<div
-		class="max-w-md w-full m-auto flex flex-col items-center rounded-2xl p-8 border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface) transition-colors duration-300"
-	>
-		<h1 class="text-2xl font-black mb-6 text-(--md-on-surface)">Create an account</h1>
+<main class="register-page">
+	<div class="register-card">
+		<h1>Create an account</h1>
 
-		<form class="w-full flex flex-col gap-4 font-sans" onsubmit={handleSubmit}>
-			<div class="flex flex-col">
-				<label for="name" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
-					>Name</label
-				>
-				<input
-					id="name"
-					class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
-					type="text"
-					placeholder="Enter your name"
-					required
-					bind:value={name}
-				/>
-			</div>
+		<form onsubmit={handleSubmit}>
+			<TextField label="Name" required bind:value={name} />
+			<TextField label="Email" required type="email" bind:value={email} />
 
-			<div class="flex flex-col">
-				<label for="email" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
-					>Email</label
-				>
-				<input
-					id="email"
-					class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
-					type="email"
-					placeholder="Enter email"
-					required
-					bind:value={email}
-				/>
-			</div>
+			<TextField label="Password" required type="password" bind:value={password} />
+			<TextField label="Confirm password" required type="password" bind:value={confirmPassword} />
 
-			<div class="flex flex-col">
-				<label for="password" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
-					>Password</label
-				>
-				<div class="relative w-full">
-					<input
-						id="password"
-						placeholder="Enter your password"
-						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 pr-10 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
-						type={showPassword ? "text" : "password"}
-						required
-						bind:value={password}
-					/>
-					<button
-						type="button"
-						onclick={togglePassword}
-						class="absolute right-3 top-1/2 -translate-y-1/2 text-(--md-on-surface-variant) hover:text-(--md-on-surface) hover:cursor-pointer opacity-70 hover:opacity-100 transition-all"
-						aria-label={showPassword ? "Hide password" : "Show password"}
-					>
-						{#if showPassword}
-							<EyeOff size={20} />
-						{:else}
-							<Eye size={20} />
-						{/if}
-					</button>
-				</div>
-			</div>
+			<div class="inline-row">
+				<TextField label="Student ID" required bind:value={studentId} />
 
-			<div class="flex flex-col">
-				<label
-					for="confirmPassword"
-					class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
-					>Confirm password</label
-				>
-				<div class="relative w-full">
-					<input
-						id="confirmPassword"
-						placeholder="Confirm your password"
-						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 pr-10 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
-						type={showConfirmPassword ? "text" : "password"}
-						required
-						bind:value={confirmPassword}
-					/>
-					<button
-						type="button"
-						onclick={toggleConfirmPassword}
-						class="absolute right-3 top-1/2 -translate-y-1/2 text-(--md-on-surface-variant) hover:text-(--md-on-surface) hover:cursor-pointer opacity-70 hover:opacity-100 transition-all"
-						aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-					>
-						{#if showConfirmPassword}
-							<EyeOff size={20} />
-						{:else}
-							<Eye size={20} />
-						{/if}
-					</button>
-				</div>
-			</div>
-
-			<div class="mt-2 flex items-center gap-3">
-				<div class="flex-1 flex flex-col">
-					<label for="studentId" class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5"
-						>Student ID</label
-					>
-					<input
-						type="text"
-						id="studentId"
-						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
-						placeholder="Enter Student ID"
-						required
-						bind:value={studentId}
-					/>
-				</div>
-				<label
-					class="flex cursor-pointer items-center gap-2 mt-6 text-sm text-(--md-on-surface-variant) whitespace-nowrap"
-				>
-					<input
-						type="checkbox"
-						class="h-5 w-5 rounded border-(--md-outline) bg-(--md-surface-bright) checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary) focus:ring-0"
-						bind:checked={isFptuStudent}
-					/>
+				<label>
+					<Checkbox>
+						<input type="checkbox" bind:checked={isFptuStudent} />
+					</Checkbox>
 					I am a student of FPTU
 				</label>
 			</div>
 
 			{#if !isFptuStudent}
-				<div class="flex flex-col">
-					<label
-						for="schoolName"
-						class="text-sm font-semibold text-(--md-on-surface-variant) mb-1.5">School Name</label
-					>
-					<input
-						type="text"
-						id="schoolName"
-						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) p-3 focus:ring-2 focus:ring-(--md-primary) transition-all outline-none"
-						placeholder="Enter your school name"
-						required
-						bind:value={schoolName}
-					/>
-				</div>
+				<TextField label="School name" required bind:value={schoolName} />
 			{/if}
 
 			{#if errorMessage}
-				<span class="text-(--md-error) text-sm font-medium">{errorMessage}</span>
+				<span class="error-message">{errorMessage}</span>
 			{/if}
 
-			<button
-				type="submit"
-				disabled={isLoading}
-				class="mt-2 w-full bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 active:scale-98 rounded-xl py-3.5 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer border-0"
+			<Button type="submit" disabled={isLoading}>{isLoading ? "Registering..." : "Register"}</Button
 			>
-				{isLoading ? "Registering..." : "Register"}
-			</button>
 		</form>
 
-		<span class="mt-6 text-sm text-(--md-on-surface-variant)">
+		<span class="bottom-text">
 			Already have an account?
-			<a href="/auth/login" class="text-(--md-primary) hover:underline font-semibold">Login now</a>
+			<a href="/auth/login" class="auth-link">Login now</a>
 		</span>
 	</div>
 </main>
 
 <style>
-	input::placeholder {
-		color: var(--md-on-surface);
-		opacity: 0.55;
+	main.register-page {
+		min-width: 100vw;
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--md-surface);
+
+		.register-card {
+			width: 100%;
+			max-width: 28rem;
+			margin: auto;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		h1 {
+			margin-bottom: 1.5rem;
+			font-size: 1.5rem;
+			font-weight: 900;
+			color: var(--md-on-surface);
+		}
+
+		form {
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+			font-family: inherit;
+		}
+
+		.field {
+			display: flex;
+			flex-direction: column;
+		}
+
+		label {
+			margin-bottom: 0.375rem;
+			font-size: 0.875rem;
+			font-weight: 600;
+			color: var(--md-on-surface-variant);
+		}
+
+		input[type="text"],
+		input[type="email"],
+		input[type="password"] {
+			width: 100%;
+			padding: 0.75rem;
+			border: 1px solid var(--md-outline);
+			border-radius: 0.75rem;
+			background: var(--md-surface-bright);
+			color: var(--md-on-surface);
+			outline: none;
+			transition: all 150ms;
+
+			&:focus {
+				box-shadow: 0 0 0 2px var(--md-primary);
+			}
+		}
+
+		.password-wrap {
+			position: relative;
+			width: 100%;
+		}
+
+		.password-input {
+			padding-right: 2.5rem;
+		}
+
+		.toggle-password {
+			position: absolute;
+			right: 0.75rem;
+			top: 50%;
+			transform: translateY(-50%);
+			color: var(--md-on-surface-variant);
+			opacity: 0.7;
+			transition: all 150ms;
+			cursor: pointer;
+
+			&:hover {
+				color: var(--md-on-surface);
+				opacity: 1;
+			}
+		}
+
+		.inline-row {
+			margin-top: 0.5rem;
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+		}
+
+		.student-field {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.checkbox-label {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			margin-top: 1.5rem;
+			font-size: 0.875rem;
+			color: var(--md-on-surface-variant);
+			white-space: nowrap;
+			cursor: pointer;
+		}
+
+		.checkbox-label input[type="checkbox"] {
+			width: 1.25rem;
+			height: 1.25rem;
+			border-radius: 0.25rem;
+			border: 1px solid var(--md-outline);
+			background: var(--md-surface-bright);
+			accent-color: var(--md-primary);
+			flex-shrink: 0;
+		}
+
+		.error-message {
+			color: var(--md-error);
+			font-size: 0.875rem;
+			font-weight: 500;
+		}
+
+		.submit-button {
+			width: 100%;
+			margin-top: 0.5rem;
+			padding: 0.875rem 1rem;
+			border: 0;
+			border-radius: 0.75rem;
+			background: var(--md-primary);
+			color: var(--md-on-primary);
+			font-weight: 700;
+			transition: all 150ms;
+			cursor: pointer;
+
+			&:hover {
+				opacity: 0.9;
+			}
+
+			&:active {
+				transform: scale(0.98);
+			}
+
+			&:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+				transform: none;
+			}
+		}
+
+		.bottom-text {
+			margin-top: 1.5rem;
+			font-size: 0.875rem;
+			color: var(--md-on-surface-variant);
+		}
+
+		.auth-link {
+			color: var(--md-primary);
+			font-weight: 600;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
 	}
 </style>
