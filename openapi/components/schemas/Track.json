@@ -1,14 +1,7 @@
 {
   "description": "A track within an event",
   "type": "object",
-  "required": [
-    "id",
-    "name",
-    "description",
-    "event_id",
-    "mentor_ids",
-    "judge_ids"
-  ],
+  "required": ["id", "name", "description", "event_id", "mentors", "judges"],
   "properties": {
     "id": {
       "type": "string",
