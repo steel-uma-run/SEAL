@@ -12,7 +12,8 @@
 		getInterestedParticipants,
 		getAllTeamsOfEvents,
 		getAllTracksOfEvent,
-		getRounds
+		getRounds,
+		getAllAccounts
 	} from "$lib/api"
 	import { goto } from "$app/navigation"
 	import {
@@ -60,7 +61,7 @@
 			// Initialize team and invites to default values in case search yields nothing
 			myTeam = null
 			invites = []
-			
+
 			globalTeamsCache = []
 
 			// 2. Fetch all seasons to find the student's team
@@ -122,19 +123,37 @@
 									}
 								})
 
-								if ((currentParticipant.team_ids && currentParticipant.team_ids.length > 0) || eventTeamsList.some((t: any) => t.leader_id === currentParticipant.id || t.leaderId === currentParticipant.id)) {
+								if (
+									(currentParticipant.team_ids && currentParticipant.team_ids.length > 0) ||
+									eventTeamsList.some(
+										(t: any) =>
+											t.leader_id === currentParticipant.id || t.leaderId === currentParticipant.id
+									)
+								) {
 									if (eventTeamsList.length > 0) {
-										const team = eventTeamsList.find((t: any) => (currentParticipant.team_ids && currentParticipant.team_ids.includes(t.id)) || t.leader_id === currentParticipant.id || t.leaderId === currentParticipant.id)
+										const team = eventTeamsList.find(
+											(t: any) =>
+												(currentParticipant.team_ids &&
+													currentParticipant.team_ids.includes(t.id)) ||
+												t.leader_id === currentParticipant.id ||
+												t.leaderId === currentParticipant.id
+										)
 										if (team) {
 											resolvedTeam = team as any
 											const teamMembers = participantsList
-												.filter((p: any) => (p.team_ids && p.team_ids.includes(team.id)) || team.leader_id === p.id || team.leaderId === p.id)
+												.filter(
+													(p: any) =>
+														(p.team_ids && p.team_ids.includes(team.id)) ||
+														team.leader_id === p.id ||
+														team.leaderId === p.id
+												)
 												.map((p: any) => ({
 													id: p.id,
 													name: p.fullName || p.full_name || p.name || "Unknown",
 													email: p.email,
 													student_id: p.studentId || p.student_id || "",
 													is_external: p.isExternal || p.is_external || false,
+													school_name: p.schoolName || p.school_name || "",
 													role:
 														p.id === team.leader_id || p.id === team.leaderId ? "Leader" : "Member"
 												}))
@@ -154,16 +173,42 @@
 					try {
 						if (resolvedTeam.track_id || resolvedTeam.trackId) {
 							const trackId = resolvedTeam.track_id || resolvedTeam.trackId
-							const { data: tracksData } = await getAllTracksOfEvent({ path: { eventId: resolvedEventId }, throwOnError: false })
-							if (tracksData && Array.isArray(tracksData)) {
-								const track = tracksData.find((t: any) => t.id === trackId)
-								if (track) resolvedTeam.track_name = track.name || track.title || "Unknown Track"
+							const [tracksRes, accountsRes] = await Promise.all([
+								getAllTracksOfEvent({
+									path: { eventId: resolvedEventId },
+									throwOnError: false
+								}),
+								getAllAccounts({
+									throwOnError: false
+								})
+							])
+							if (tracksRes.data && Array.isArray(tracksRes.data)) {
+								const track = tracksRes.data.find((t: any) => t.id === trackId) as any
+								if (track) {
+									resolvedTeam.track_name = track.name || track.title || "Unknown Track"
+									if (
+										track.mentor_ids &&
+										track.mentor_ids.length > 0 &&
+										accountsRes.data &&
+										Array.isArray(accountsRes.data)
+									) {
+										const mentors = accountsRes.data.filter((acc: any) =>
+											track.mentor_ids.includes(acc.id)
+										)
+										resolvedTeam.mentors = mentors.map((m: any) => m.fullName || m.name || m.email)
+									} else {
+										resolvedTeam.mentors = []
+									}
+								}
 							}
 						}
-						
-						const { data: roundsData } = await getRounds({ path: { eventId: resolvedEventId }, throwOnError: false })
+
+						const { data: roundsData } = await getRounds({
+							path: { eventId: resolvedEventId },
+							throwOnError: false
+						})
 						if (roundsData && Array.isArray(roundsData)) {
-							const activeRound = roundsData.find((r: any) => r.status === "ACTIVE")
+							const activeRound = roundsData.find((r: any) => r.status === "ACTIVE") as any
 							if (activeRound) {
 								resolvedTeam.round_name = activeRound.name || activeRound.title || "Active Round"
 							} else {
@@ -206,11 +251,12 @@
 				if (acceptedInvite && allParticipants.length > 0) {
 					const targetTeamId = acceptedInvite.inviting_team_id
 					const cachedTeam = globalTeamsCache.find((t: any) => t.id === targetTeamId)
-					let fallbackTeam = cachedTeam || acceptedInvite.team || {
-						id: targetTeamId,
-						name: targetTeamId,
-						status: "APPROVED"
-					}
+					let fallbackTeam = cachedTeam ||
+						acceptedInvite.team || {
+							id: targetTeamId,
+							name: targetTeamId,
+							status: "APPROVED"
+						}
 
 					const existingMembers = allParticipants
 						.filter((p: any) => p.team_ids && p.team_ids.includes(targetTeamId))
@@ -220,6 +266,7 @@
 							email: p.email,
 							student_id: p.studentId || p.student_id || "",
 							is_external: p.isExternal || p.is_external || false,
+							school_name: p.schoolName || p.school_name || "",
 							role:
 								p.id === fallbackTeam.leader_id || p.id === fallbackTeam.leaderId
 									? "Leader"
@@ -269,7 +316,8 @@
 					// Find the team in the teams list we just fetched (if it was cached) or from the invite
 					const targetTeamId = acceptedInvite.inviting_team_id
 					const cachedTeam = globalTeamsCache.find((t: any) => t.id === targetTeamId)
-					let fallbackTeam = cachedTeam || acceptedInvite.team || { id: targetTeamId, name: targetTeamId }
+					let fallbackTeam = cachedTeam ||
+						acceptedInvite.team || { id: targetTeamId, name: targetTeamId }
 
 					// Find existing members in allParticipants
 					const existingMembers = allParticipants
@@ -280,6 +328,7 @@
 							email: p.email,
 							student_id: p.studentId || p.student_id || "",
 							is_external: p.isExternal || p.is_external || false,
+							school_name: p.schoolName || p.school_name || "",
 							role:
 								p.id === fallbackTeam.leader_id || p.id === fallbackTeam.leaderId
 									? "Leader"
@@ -500,12 +549,12 @@
 					<div class="flex items-center gap-3">
 						{#if myTeam.status === "PENDING"}
 							<span
-								class="text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-200 dark:border-amber-500/20 font-semibold text-sm"
+								class="text-amber-800 dark:text-amber-400 bg-amber-100/70 dark:bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-500/20 font-bold text-sm shadow-sm"
 								>Status: Pending Approval</span
 							>
 						{:else if myTeam.status === "APPROVED"}
 							<span
-								class="text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-950/30 px-3 py-1 rounded-lg border border-green-200 dark:border-green-900/50 font-semibold text-sm"
+								class="text-emerald-700 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-500/20 font-bold text-sm shadow-sm"
 								>Status: Approved</span
 							>
 						{/if}
@@ -562,18 +611,14 @@
 					</div>
 				</div>
 
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-8">
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 mb-8">
 					<div
 						class="p-5 rounded-2xl border {theme.darkMode
 							? 'bg-zinc-950/50 border-zinc-800'
 							: 'bg-white border-gray-100'}"
 					>
 						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Track</p>
-						<p
-							class="font-semibold text-sm {theme.darkMode
-								? 'text-zinc-300'
-								: 'text-gray-700'}"
-						>
+						<p class="font-semibold text-sm {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">
 							{myTeam.track_name || "N/A"}
 						</p>
 					</div>
@@ -582,10 +627,34 @@
 							? 'bg-zinc-950/50 border-zinc-800'
 							: 'bg-white border-gray-100'}"
 					>
-						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Active Round</p>
-						<p
-							class="font-semibold text-sm text-blue-500"
-						>
+						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">
+							Mentor(s)
+						</p>
+						{#if myTeam.mentors && myTeam.mentors.length > 0}
+							<div class="flex flex-wrap gap-1.5 mt-1">
+								{#each myTeam.mentors as mentor}
+									<span
+										class="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-lg bg-violet-100 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400"
+									>
+										{mentor}
+									</span>
+								{/each}
+							</div>
+						{:else}
+							<p class="font-semibold text-sm {theme.darkMode ? 'text-zinc-300' : 'text-gray-700'}">
+								N/A
+							</p>
+						{/if}
+					</div>
+					<div
+						class="p-5 rounded-2xl border {theme.darkMode
+							? 'bg-zinc-950/50 border-zinc-800'
+							: 'bg-white border-gray-100'}"
+					>
+						<p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">
+							Active Round
+						</p>
+						<p class="font-semibold text-sm text-blue-500">
 							{myTeam.round_name || "N/A"}
 						</p>
 					</div>
@@ -606,35 +675,75 @@
 										? 'bg-zinc-950/50 border-zinc-800'
 										: 'bg-white border-gray-100'}"
 								>
-									<div class="flex items-center gap-3">
-										<div>
-											<p
-												class="text-sm font-bold {theme.darkMode
-													? 'text-zinc-300'
-													: 'text-gray-700'}"
-											>
-												{member.name || "Unknown Member"}
+									<!-- Main Info Section -->
+									<div class="w-full mr-4 overflow-hidden">
+										<div
+											class="grid grid-cols-1 md:grid-cols-[minmax(140px,2fr)_auto_minmax(90px,1fr)_auto_minmax(160px,3fr)_auto_minmax(100px,1.5fr)] items-center gap-y-2 md:gap-x-4 w-full text-sm"
+										>
+											<!-- 1. Name -->
+											<div class="flex items-center gap-2 truncate">
+												<span class="font-bold">
+													{member.name || "Unknown Member"}
+												</span>
 												{#if member.id === studentUuid}
-													<span class="text-xs font-medium text-gray-400 ml-1">(You)</span>
+													<span class="text-xs font-medium text-gray-500 shrink-0">(You)</span>
 												{/if}
-											</p>
-											<p class="text-xs text-gray-500 mt-0.5">
+											</div>
+
+											<span class="text-gray-300 dark:text-zinc-700 hidden md:inline">|</span>
+
+											<!-- 2. Student ID -->
+											<div class="truncate">
+												{#if member.student_id}
+													<span
+														class="font-mono bg-zinc-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded text-[11px] font-semibold text-zinc-700 dark:text-zinc-300"
+													>
+														{member.student_id}
+													</span>
+												{:else}
+													<span class="text-xs text-gray-500 font-mono">NONE</span>
+												{/if}
+											</div>
+
+											<span class="text-gray-300 dark:text-zinc-700 hidden md:inline">|</span>
+
+											<!-- 3. Gmail -->
+											<div class="truncate text-xs text-gray-600 dark:text-zinc-400">
 												{member.email || "No Email"}
-												{member.is_external ? " (External)" : ""}
-											</p>
+											</div>
+
+											<span class="text-gray-300 dark:text-zinc-700 hidden md:inline">|</span>
+
+											<!-- 4. School -->
+											<div class="truncate">
+												{#if member.is_external}
+													<span class="text-xs font-medium text-orange-500 dark:text-orange-400">
+														{member.school_name || "External"}
+													</span>
+												{:else}
+													<span class="text-xs font-medium text-[#ea580c] dark:text-orange-400">
+														FPT University
+													</span>
+												{/if}
+											</div>
 										</div>
 									</div>
-									{#if member.role === "Leader" || member.id === myTeam.leader_id || member.id === myTeam.leaderId}
-										<span
-											class="text-xs font-bold text-orange-500 bg-orange-100 dark:bg-orange-500/10 px-2 py-1 rounded"
-											>Leader</span
-										>
-									{:else}
-										<span
-											class="text-xs font-semibold text-black bg-white border border-gray-300 dark:text-white dark:bg-black dark:border-zinc-700 px-2 py-1 rounded"
-											>Member</span
-										>
-									{/if}
+
+									<div class="shrink-0 flex items-center">
+										{#if member.role === "Leader" || member.id === myTeam.leader_id || member.id === myTeam.leaderId}
+											<span
+												class="inline-flex justify-center w-20 text-xs font-bold text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-500/10 py-1.5 rounded-md"
+											>
+												Leader
+											</span>
+										{:else}
+											<span
+												class="inline-flex justify-center w-20 text-xs font-semibold text-white bg-black border border-transparent dark:bg-zinc-800 dark:border-zinc-700 py-1.5 rounded-md"
+											>
+												Member
+											</span>
+										{/if}
+									</div>
 								</div>
 							{/each}
 						{/if}
@@ -731,7 +840,7 @@
 																student.studentId || student.student_id || student.email || ""
 															handleInviteMember()
 														}}
-														class="text-xs font-bold px-4 py-2 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:hover:bg-orange-900/50 transition-colors"
+														class="text-xs font-bold px-4.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-white shadow-sm transition-all cursor-pointer"
 													>
 														Invite
 													</button>

@@ -20,8 +20,8 @@
 	import { ArrowLeft, Clock, X, Plus } from "@lucide/svelte"
 
 	// Route Params
-	const seasonId = $page.params.id || ""
-	const eventId = $page.params.eventId || ""
+	let seasonId = $derived($page.params.id || "")
+	let eventId = $derived($page.params.eventId || "")
 
 	// Event Details State
 	let event = $state<any>(null)
@@ -147,21 +147,22 @@
 		try {
 			// 1. Fetch Event Details
 			let eventItem = null
-			try {
-				const res = await getEvent({ path: { eventId }, throwOnError: false })
-				if (res.response?.ok && res.data) {
-					eventItem = res.data
-				}
-			} catch (err) {
-				console.error("Error fetching event via API:", err)
-			}
 
-			if (!eventItem && typeof window !== "undefined") {
-				// Fallback to local storage
-				const storedEvents = localStorage.getItem(`events_${seasonId}`)
-				if (storedEvents) {
-					const eventsList = JSON.parse(storedEvents)
-					eventItem = eventsList.find((e: any) => e.id === eventId)
+			// Try API — with one automatic retry on failure to handle transient errors
+			for (let attempt = 0; attempt < 2 && !eventItem; attempt++) {
+				try {
+					const res = await getEvent({ path: { eventId }, throwOnError: false })
+					if (res.response?.ok && res.data) {
+						eventItem = res.data
+					} else if (attempt === 0) {
+						// Small delay before retry
+						await new Promise((r) => setTimeout(r, 300))
+					}
+				} catch (err) {
+					console.error(`Error fetching event via API (attempt ${attempt + 1}):`, err)
+					if (attempt === 0) {
+						await new Promise((r) => setTimeout(r, 300))
+					}
 				}
 			}
 
@@ -185,20 +186,14 @@
 
 			if (participantsRes.response?.ok && participantsRes.data) {
 				students = participantsRes.data
-			} else if (typeof window !== "undefined") {
-				const localParts = localStorage.getItem(`participants_${eventId}`)
-				if (localParts) {
-					students = JSON.parse(localParts)
-				}
+			} else {
+				students = []
 			}
 
 			if (teamsRes.response?.ok && teamsRes.data) {
 				teams = teamsRes.data
-			} else if (typeof window !== "undefined") {
-				const localTeams = localStorage.getItem(`teams_${eventId}`)
-				if (localTeams) {
-					teams = JSON.parse(localTeams)
-				}
+			} else {
+				teams = []
 			}
 		} catch (err: any) {
 			console.error("Error loading event details:", err)
@@ -295,26 +290,13 @@
 				path: { eventId },
 				throwOnError: false
 			})
-			if (response?.ok && data && data.length > 0) {
+			if (response?.ok && data) {
 				eventTracks = data
-				return
+			} else {
+				eventTracks = []
 			}
 		} catch (err) {
 			console.error("Error loading event tracks from API:", err)
-		}
-
-		// Fallback to local storage event tracks
-		if (event && event.tracks && event.tracks.length > 0) {
-			eventTracks = event.tracks
-				.filter((t: any) => t.name && t.name.trim() !== "")
-				.map((t: any, idx: number) => ({
-					id: t.id || t.name || `track-${idx + 1}`,
-					name: t.name,
-					description: t.description || "",
-					mentor_ids: t.mentor_ids || t.mentorIds || [],
-					judge_ids: t.judge_ids || t.judgeIds || []
-				}))
-		} else {
 			eventTracks = []
 		}
 	}
@@ -330,23 +312,15 @@
 				path: { eventId },
 				throwOnError: false
 			})
-			if (response?.ok && data && data.length > 0) {
+			if (response?.ok && data) {
 				eventRounds = data
-				return
+			} else {
+				eventRounds = []
 			}
 		} catch (err) {
 			console.error("Error loading event rounds from API:", err)
+			eventRounds = []
 		}
-
-		// Fallback to local storage
-		let localRounds: any[] = []
-		if (typeof window !== "undefined") {
-			const storedRounds = localStorage.getItem(`rounds_${eventId}`)
-			if (storedRounds) {
-				localRounds = JSON.parse(storedRounds)
-			}
-		}
-		eventRounds = localRounds
 	}
 
 	function openCreateRoundModal() {
@@ -466,21 +440,8 @@
 				await loadEventRounds()
 				alert(`Round "${newRoundName}" created successfully!`)
 			} else {
-				// Local storage mock fallback
-				const mockRound = {
-					id: crypto.randomUUID(),
-					name: newRoundName.trim(),
-					description: newRoundDescription.trim(),
-					startTime: start.toISOString(),
-					endTime: end.toISOString(),
-					eventId
-				}
-				eventRounds = [...eventRounds, mockRound]
-				if (typeof window !== "undefined") {
-					localStorage.setItem(`rounds_${eventId}`, JSON.stringify(eventRounds))
-				}
-				showCreateRoundModal = false
-				alert(`Round "${newRoundName}" created successfully!`)
+				createRoundMessage = "Failed to create round on server."
+				createRoundError = true
 			}
 		} catch (err: any) {
 			createRoundMessage = err.message || "An error occurred."
@@ -565,58 +526,9 @@
 				await loadEventTracks()
 				alert(`Track "${newTrackName}" and assignments saved successfully!`)
 			} else {
-				// Local storage mock fallback
-				if (typeof window !== "undefined") {
-					const trackId = crypto.randomUUID()
-					const mockTrack = {
-						id: trackId,
-						name: newTrackName.trim(),
-						description: newTrackDescription.trim(),
-						event_id: eventId,
-						mentor_ids: selectedMentorsForTrack,
-						judge_ids: selectedJudgesForTrack
-					}
-
-					// Update events list
-					const key = `events_${seasonId}`
-					const stored = localStorage.getItem(key)
-					if (stored) {
-						let localEvents = JSON.parse(stored)
-						localEvents = localEvents.map((evt: any) => {
-							if (evt.id === eventId) {
-								const existingTracks = evt.tracks || []
-								return { ...evt, tracks: [...existingTracks, mockTrack] }
-							}
-							return evt
-						})
-						localStorage.setItem(key, JSON.stringify(localEvents))
-					}
-
-					// Assign teams to this track in localStorage
-					if (selectedTeamsForTrack.length > 0) {
-						const keyTeams = `teams_${eventId}`
-						const storedTeams = localStorage.getItem(keyTeams)
-						if (storedTeams) {
-							let localTeams = JSON.parse(storedTeams)
-							localTeams = localTeams.map((t: any) => {
-								if (selectedTeamsForTrack.includes(t.id)) {
-									return { ...t, track_id: trackId, trackId: trackId }
-								}
-								return t
-							})
-							localStorage.setItem(keyTeams, JSON.stringify(localTeams))
-						}
-					}
-
-					showCreateTrackModal = false
-					await fetchEventDetails()
-					await loadEventTracks()
-					alert(`Track and assignments saved successfully!`)
-				} else {
-					const errBody = apiErr as any
-					createTrackMessage = errBody?.detail || response?.statusText || "Failed to create track."
-					createTrackError = true
-				}
+				const errBody = apiErr as any
+				createTrackMessage = errBody?.detail || response?.statusText || "Failed to create track."
+				createTrackError = true
 			}
 		} catch (err: any) {
 			console.error("Error creating track and assignments:", err)
@@ -697,58 +609,9 @@
 				await loadEventTracks()
 				alert(`Track "${editTrackName}" updated successfully!`)
 			} else {
-				if (typeof window !== "undefined") {
-					const key = `events_${seasonId}`
-					const stored = localStorage.getItem(key)
-					if (stored) {
-						let localEvents = JSON.parse(stored)
-						localEvents = localEvents.map((evt: any) => {
-							if (evt.id === eventId) {
-								const existingTracks = evt.tracks || []
-								const updatedTracks = existingTracks.map((t: any) => {
-									if (t.id === editingTrackId || t.name === editTrackName) {
-										return {
-											...t,
-											name: editTrackName.trim(),
-											description: editTrackDescription.trim(),
-											mentor_ids: selectedMentorsForEditTrack,
-											judge_ids: selectedJudgesForEditTrack
-										}
-									}
-									return t
-								})
-								return { ...evt, tracks: updatedTracks }
-							}
-							return evt
-						})
-						localStorage.setItem(key, JSON.stringify(localEvents))
-					}
-
-					const keyTeams = `teams_${eventId}`
-					const storedTeams = localStorage.getItem(keyTeams)
-					if (storedTeams) {
-						let localTeams = JSON.parse(storedTeams)
-						localTeams = localTeams.map((t: any) => {
-							if (selectedTeamsForEditTrack.includes(t.id)) {
-								return { ...t, track_id: editingTrackId, trackId: editingTrackId }
-							}
-							if (t.track_id === editingTrackId || t.trackId === editingTrackId) {
-								return { ...t, track_id: null, trackId: null }
-							}
-							return t
-						})
-						localStorage.setItem(keyTeams, JSON.stringify(localTeams))
-					}
-
-					showEditTrackModal = false
-					await fetchEventDetails()
-					await loadEventTracks()
-					alert(`Track updated successfully!`)
-				} else {
-					const errBody = apiErr as any
-					editTrackMessage = errBody?.detail || response?.statusText || "Failed to update track."
-					editTrackError = true
-				}
+				const errBody = apiErr as any
+				editTrackMessage = errBody?.detail || response?.statusText || "Failed to update track."
+				editTrackError = true
 			}
 		} catch (err: any) {
 			console.error("Error updating track:", err)
@@ -764,11 +627,13 @@
 		return lec ? lec.fullName || lec.name : lecturerId
 	}
 
-	onMount(async () => {
-		await fetchEventDetails()
-		await loadLecturers()
-		await loadEventTracks()
-		await loadEventRounds()
+	$effect(() => {
+		if (seasonId && eventId) {
+			fetchEventDetails()
+			loadLecturers()
+			loadEventTracks()
+			loadEventRounds()
+		}
 	})
 </script>
 
@@ -1020,16 +885,16 @@
 										class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
 									>
 										<td class="py-3 px-4 font-mono text-xs font-semibold">
-											{student.is_external
-												? "NONE"
-												: student.student_id || student.studentId || "N/A"}
+											{student.student_id || student.studentId || "NONE"}
 										</td>
 										<td class="py-3 px-4 font-bold">
 											{student.fullName || student.name || "N/A"}
 										</td>
 										<td class="py-3 px-4 text-xs">{student.email}</td>
 										<td class="py-3 px-4 text-xs font-medium">
-											{student.is_external ? "External" : "FPT"}
+											{student.is_external
+												? student.school_name || student.schoolName || "External"
+												: "FPT"}
 										</td>
 										<td class="py-3 px-4 text-xs font-semibold text-(--md-primary)">
 											{#if getStudentTeamId(student)}
@@ -1215,7 +1080,9 @@
 														{/each}
 													</div>
 												{:else}
-													<span class="text-xs italic text-(--md-on-surface-variant)">None assigned</span>
+													<span class="text-xs italic text-(--md-on-surface-variant)"
+														>None assigned</span
+													>
 												{/if}
 											</td>
 											{#if event.status?.toUpperCase() === "DRAFT"}
@@ -1225,7 +1092,9 @@
 														onclick={() => openAssignCriteriaModal(round)}
 														class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-(--md-secondary-container) text-(--md-on-secondary-container) hover:opacity-90 transition-all cursor-pointer border-0"
 													>
-														{round.criteria && round.criteria.length > 0 ? 'Reassign' : 'Assign Criteria'}
+														{round.criteria && round.criteria.length > 0
+															? "Reassign"
+															: "Assign Criteria"}
 													</button>
 												</td>
 											{/if}
@@ -1356,7 +1225,9 @@
 											{student.fullName || student.name}
 										</p>
 										<p class="text-(--md-on-surface-variant) mt-0.5">
-											{student.is_external ? "External" : "FPT"} &bull; {student.email}
+											{student.is_external
+												? student.school_name || student.schoolName || "External"
+												: "FPT"} &bull; {student.email}
 										</p>
 									</div>
 								</label>
@@ -1948,7 +1819,9 @@
 			<div class="flex justify-between items-center mb-6">
 				<div>
 					<h3 class="text-xl font-extrabold text-(--md-on-surface)">Assign Criteria</h3>
-					<p class="text-xs text-(--md-on-surface-variant) mt-0.5">Round: <span class="font-semibold">{assigningRound.name}</span></p>
+					<p class="text-xs text-(--md-on-surface-variant) mt-0.5">
+						Round: <span class="font-semibold">{assigningRound.name}</span>
+					</p>
 				</div>
 				<button
 					id="close-assign-criteria-modal"
@@ -1999,8 +1872,12 @@
 					{@const previewTemplate = criteriaTemplates.find((t) => t.id === selectedTemplateId)}
 					{#if previewTemplate?.criteria?.length > 0}
 						<div class="rounded-2xl border border-(--md-outline-variant) overflow-hidden">
-							<div class="px-4 py-2.5 bg-(--md-surface-container) border-b border-(--md-outline-variant)">
-								<p class="text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider">
+							<div
+								class="px-4 py-2.5 bg-(--md-surface-container) border-b border-(--md-outline-variant)"
+							>
+								<p
+									class="text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider"
+								>
 									Criteria Preview
 								</p>
 							</div>
@@ -2035,7 +1912,7 @@
 						disabled={isAssigningCriteria || !selectedTemplateId}
 						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
 					>
-						{isAssigningCriteria ? 'Assigning...' : 'Assign Criteria'}
+						{isAssigningCriteria ? "Assigning..." : "Assign Criteria"}
 					</button>
 				</div>
 			</div>

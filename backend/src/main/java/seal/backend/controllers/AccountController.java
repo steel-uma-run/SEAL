@@ -25,7 +25,7 @@ public class AccountController implements AccountsApi {
   private final AccountService accountService;
 
   @Override
-  @PreAuthorize("hasRole('COORDINATOR')")
+  @PreAuthorize("hasAnyRole('COORDINATOR', 'STUDENT')")
   public ResponseEntity<Object[]> getAllAccounts() {
     return ResponseEntity.ok(accountService.getAllAccounts());
   }

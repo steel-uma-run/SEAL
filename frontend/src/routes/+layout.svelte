@@ -53,7 +53,7 @@
 		return request
 	})
 
-	client.setConfig({ baseUrl: "http://localhost:8080/" })
+	client.setConfig({ baseUrl: "http://localhost:8080/api/v0" })
 </script>
 
 <svelte:head>
