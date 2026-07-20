@@ -1,4 +1,6 @@
 <script lang="ts">
+	import "../../tailwind.css"
+
 	import { register } from "$lib/api"
 	import { Eye, EyeOff } from "@lucide/svelte"
 	import { goto } from "$app/navigation"

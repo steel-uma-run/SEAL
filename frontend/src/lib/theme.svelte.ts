@@ -1,6 +1,6 @@
 class ThemeStore {
-	primaryColor = $state("#F26F21")
-	darkMode = $state(false)
+	primaryColor = $state("#ff028d")
+	darkMode = $state(true)
 }
 
 export const theme = new ThemeStore()

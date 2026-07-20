@@ -1,57 +1,27 @@
-@import "tailwindcss";
-@plugin "@tailwindcss/forms";
+@import "material-symbols";
 
 :root {
 	font-family: Inter, sans-serif;
 	font-feature-settings:
 		"liga" 1,
 		"calt" 1; /* fix for Chrome */
+
+	color: var(--md-sys-color-on-surface);
+
+	--md-ref-typeface-brand: Inter, sans-serif;
+	--md-ref-typeface-plain: Inter, sans-serif;
 }
+
 @supports (font-variation-settings: normal) {
 	:root {
 		font-family: InterVariable, sans-serif;
+		--md-ref-typeface-brand: InterVariable, sans-serif;
+		--md-ref-typeface-plain: InterVariable, sans-serif;
 	}
-}
-*,
-*::before,
-*::after {
-	box-sizing: border-box;
 }
 
 html,
 body {
-	margin: 0;
 	padding: 0;
-}
-
-@theme {
-	/* https://m3.material.io/styles/motion/overview/specs */
-	--ease-standard: cubic-bezier(0.2, 0, 0, 1);
-}
-
-@theme {
-	/* Override Tailwind's default orange and amber to be vibrant FPT Orange instead of earthy/muddy */
-	--color-orange-50: #fff4ed;
-	--color-orange-100: #ffede3;
-	--color-orange-200: #ffcdb3;
-	--color-orange-300: #ffb591;
-	--color-orange-400: #ff9d6c;
-	--color-orange-500: #f26f21; /* Primary Vibrant FPT Orange */
-	--color-orange-600: #d65900;
-	--color-orange-700: #a34300;
-	--color-orange-800: #7a3200;
-	--color-orange-900: #522100;
-	--color-orange-950: #291100;
-
-	--color-amber-50: #fff4ed;
-	--color-amber-100: #ffede3;
-	--color-amber-200: #ffcdb3;
-	--color-amber-300: #ffb591;
-	--color-amber-400: #ff9d6c;
-	--color-amber-500: #f26f21; /* Primary Vibrant FPT Orange */
-	--color-amber-600: #d65900;
-	--color-amber-700: #a34300;
-	--color-amber-800: #7a3200;
-	--color-amber-900: #522100;
-	--color-amber-950: #291100;
+	margin: 0;
 }

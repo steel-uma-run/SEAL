@@ -1,371 +1,250 @@
 <script lang="ts">
-	import { page } from "$app/stores"
-	import { onMount } from "svelte"
-	import { goto } from "$app/navigation"
-	import {
-		getSelfProfile,
-		getAllSeasons,
-		getEventsInSeason,
-		getInterestedParticipants,
-		markInterested,
-		getAllTracksOfEvent
-	} from "$lib/api"
-	import { theme } from "$lib/theme.svelte"
-	import { formatFullDate } from "$lib/utils/formatters.js"
+	import { page } from "$app/state"
+	import { getAllTracksOfEvent, getEvent, getRounds } from "$lib/api"
 
-	let eventId = $derived($page.params.id as string)
-	let eventDetail: any = $state(null)
-	let seasonId = $state("")
-	let profile: any = $state(null)
-	let isRegistered = $state(false)
-	let isLoading = $state(true)
-	let errorMessage = $state("")
+	import ElevatedCard from "$lib/components/ElevatedCard.svelte"
+	import KaomojiError from "$lib/components/KaomojiError.svelte"
 
-	let isJoining = $state(false)
-	let actionMessage = $state("")
-	let actionError = $state(false)
-	let studentIdResolved = $state("")
+	import "@material/web/button/filled-button"
+	import "@material/web/button/text-button"
 
-	async function resolveStudentId(email: string) {
-		if (!email) return "NONE"
+	const id = page.params.id
+	const data = $derived.by(async () => {
+		const event = await getEvent({ path: { eventId: id! } })
+		const tracks = await getAllTracksOfEvent({ path: { eventId: id! } })
+		const rounds = await getRounds({ path: { eventId: id! } })
 
-		// If it's not an FPT email, it's an external student, so their student ID should be NONE
-		if (!email.endsWith("@fpt.edu.vn")) {
-			studentIdResolved = "NONE"
-			return "NONE"
-		}
-
-		// 1. Try cached local storage
-		const cachedKey = `student_id_${email}`
-		if (typeof window !== "undefined") {
-			const cached = localStorage.getItem(cachedKey)
-			if (cached) {
-				studentIdResolved = cached
-				return cached
-			}
-		}
-
-		// 2. Try extracting from FPT email pattern (e.g., cuongnhhe170560@fpt.edu.vn -> HE170560)
-		const match = email.match(/[a-zA-Z]{2}\d{6}/)
-		if (match) {
-			const id = match[0].toUpperCase()
-			if (typeof window !== "undefined") {
-				localStorage.setItem(cachedKey, id)
-			}
-			studentIdResolved = id
-			return id
-		}
-
-		// 3. Scan all seasons and events to locate the student's registration
-		try {
-			const { data: seasons } = await getAllSeasons({ throwOnError: false })
-			if (seasons) {
-				for (const season of seasons) {
-					const { data: events } = await getEventsInSeason({
-						path: { seasonId: season.id },
-						throwOnError: false
-					})
-					if (events) {
-						for (const event of events) {
-							const { data: participants } = await getInterestedParticipants({
-								path: { eventId: event.id },
-								throwOnError: false
-							})
-							if (participants) {
-								const self = participants.find((p: any) => p.email === email) as any
-								if (self && (self.student_id || self.studentId)) {
-									const id = self.student_id || self.studentId
-									if (typeof window !== "undefined") {
-										localStorage.setItem(cachedKey, id)
-									}
-									studentIdResolved = id
-									return id
-								}
-							}
-						}
-					}
-				}
-			}
-		} catch (e) {
-			console.error("Error scanning student ID:", e)
-		}
-
-		// 4. Default fallback: use email prefix
-		const prefix = email.split("@")[0].toUpperCase()
-		studentIdResolved = prefix
-		return prefix
-	}
-
-	async function handleJoinEvent() {
-		isJoining = true
-		actionMessage = ""
-		actionError = false
-
-		try {
-			const { response } = await markInterested({
-				path: { eventId: eventId },
-				throwOnError: false
-			})
-
-			if (response?.ok) {
-				isRegistered = true
-				actionMessage =
-					"Successfully joined the event! You can now create a team or join an existing team."
-				actionError = false
-			} else if (response?.status === 403) {
-				actionMessage =
-					"Only approved (active) students are allowed to join events. Please contact the coordinator."
-				actionError = true
-			} else {
-				actionMessage = "Failed to join the event. Please try again."
-				actionError = true
-			}
-		} catch (error) {
-			actionMessage = "An error occurred. Please try again later."
-			actionError = true
-		} finally {
-			isJoining = false
-		}
-	}
-
-	$effect(() => {
-		if (eventId) {
-			const init = async () => {
-				try {
-					const { data: profileData, response: profileRes } = await getSelfProfile({
-						throwOnError: false
-					})
-					if (!profileRes?.ok || !profileData) {
-						goto("/auth/login")
-						return
-					}
-					profile = profileData
-					await resolveStudentId(profile.email)
-
-					const { data: seasons } = await getAllSeasons({ throwOnError: false })
-					if (seasons) {
-						for (const season of seasons) {
-							// 1. Prefer database
-							const { data: events } = await getEventsInSeason({
-								path: { seasonId: season.id },
-								throwOnError: false
-							})
-							if (events) {
-								let found = events.find((e: any) => e.id === eventId)
-								if (found) {
-									let tracks: any[] = []
-									try {
-										const trackRes = await getAllTracksOfEvent({
-											path: { eventId: found.id },
-											throwOnError: false
-										})
-										if (trackRes.response?.ok && trackRes.data) {
-											tracks = trackRes.data
-										}
-									} catch (e) {
-										console.error("Error loading tracks for event", found.id, e)
-									}
-									eventDetail = {
-										...found,
-										tracks: tracks
-									}
-									seasonId = season.id
-									break
-								}
-							}
-						}
-					}
-
-					if (!eventDetail) {
-						errorMessage = "Event not found."
-					} else {
-						// Check registration status from the API.
-						const { data: participants } = await getInterestedParticipants({
-							path: { eventId: eventId },
-							throwOnError: false
-						})
-						if (participants) {
-							isRegistered = participants.some((p: any) => p.email === profile.email)
-						}
-					}
-				} catch (err) {
-					errorMessage = "Error loading event details."
-				} finally {
-					isLoading = false
-				}
-			}
-			init()
+		return {
+			event: event.data,
+			tracks: tracks.data,
+			rounds: rounds.data
 		}
 	})
 </script>
 
-<svelte:head>
-	<title>{eventDetail ? eventDetail.name : "Event Detail"} - SEAL</title>
-</svelte:head>
+{#await data}
+	<p>Loading...</p>
+{:then data}
+	{@const event = data.event}
+	{@const tracks = data.tracks}
 
-<div class="max-w-4xl mx-auto w-full p-6 md:p-10">
-	<button
-		onclick={() => history.back()}
-		class="inline-flex items-center gap-2 transition-colors mb-8 font-medium bg-transparent border-0 cursor-pointer text-(--md-on-surface-variant) hover:text-(--md-primary)"
-	>
-		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M10 19l-7-7m0 0l7-7m-7 7h18"
-			></path>
-		</svg>
-		Back
-	</button>
-
-	{#if isLoading}
-		<div class="flex justify-center py-20">
-			<div
-				class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
-			></div>
-		</div>
-	{:else if errorMessage}
-		<div
-			class="bg-(--md-error-container) text-(--md-on-error-container) p-6 rounded-2xl border border-(--md-error)"
-		>
-			<h2 class="text-lg font-bold">Error</h2>
-			<p>{errorMessage}</p>
-		</div>
-	{:else if eventDetail}
-		<div
-			class="p-8 md:p-10 rounded-3xl transition-all border bg-(--md-surface-container-low) border-(--md-outline-variant) shadow-sm"
-		>
-			{#if actionMessage}
-				<div
-					class="mb-6 p-4 rounded-xl border text-sm font-medium {actionError
-						? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
-						: 'bg-(--md-secondary-container) text-(--md-on-secondary-container) border-(--md-outline-variant)'}"
-				>
-					{actionMessage}
+	<div class="container">
+		<section class="back">
+			<md-text-button href="/">
+				<span>Back to events</span>
+				<div slot="icon" style="display:contents">
+					<span class="material-symbols-outlined">arrow_back</span>
 				</div>
-			{/if}
+			</md-text-button>
+		</section>
 
-			<div
-				class="mb-8 border-b pb-8 border-(--md-outline-variant) flex flex-col md:flex-row md:items-center justify-between gap-6"
-			>
-				<div class="flex-1">
-					<h1 class="text-3xl font-extrabold text-(--md-on-surface)">
-						{eventDetail.name}
-					</h1>
-					<p class="mt-4 text-lg leading-relaxed text-(--md-on-surface-variant)">
-						{eventDetail.description}
-					</p>
-				</div>
-				<div class="shrink-0">
-					{#if profile && profile.role === "STUDENT"}
-						{#if profile.status !== "ACTIVE"}
-							<div class="flex flex-col items-end gap-1.5">
-								<button
-									disabled
-									class="px-8 py-3 rounded-xl text-sm font-bold bg-(--md-surface-container-highest) text-(--md-on-surface-variant) border border-(--md-outline-variant) cursor-not-allowed flex items-center gap-2"
-								>
-									Awaiting Approval
-								</button>
-								<span class="text-[10px] text-(--md-error) font-semibold max-w-[200px] text-right">
-									Requires active student status
-								</span>
+		{#if event.open_for_registration}
+			<section class="registration-notice">
+				<h2>Open for registration!</h2>
+			</section>
+		{/if}
+
+		<section>
+			<ElevatedCard>
+				<div class="summary-card">
+					<div class="header">
+						<img
+							src="https://images.unsplash.com/photo-1631350397792-8e0c2de5b637?q=80&w=870&auto=format&fit=crop"
+							alt="Shut up"
+						/>
+					</div>
+
+					<div class="body">
+						<div class="date-time">
+							<span class="material-symbols-rounded">event_upcoming</span>
+							<span>
+								{new Date(event.start_time).toLocaleString(undefined, {
+									month: "short",
+									day: "numeric",
+									hour: "numeric",
+									minute: "numeric"
+								})} -
+								{new Date(event.end_time).toLocaleString(undefined, {
+									month: "short",
+									day: "numeric",
+									hour: "numeric",
+									minute: "numeric"
+								})}
+							</span>
+						</div>
+
+						<h1 class="name">{event.name}</h1>
+						<p class="desc">{event.description}</p>
+
+						<md-filled-button disabled={!event.open_for_registration}>
+							<span>Register now</span>
+							<div slot="icon" style="display: contents">
+								<span class="material-symbols-rounded">add</span>
 							</div>
-						{:else if isRegistered}
-							<div
-								class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-							>
-								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-									></path>
-								</svg>
-								Joined Event
-							</div>
-						{:else if !eventDetail.open_for_registration}
-							<button
-								disabled
-								class="px-8 py-3 rounded-xl text-sm font-bold bg-(--md-surface-container-highest) text-(--md-on-surface-variant) border border-(--md-outline-variant) cursor-not-allowed flex items-center gap-2"
-							>
-								Registration Closed
-							</button>
-						{:else}
-							<button
-								onclick={handleJoinEvent}
-								disabled={isJoining}
-								class="px-8 py-3 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer border-0 flex items-center gap-2"
-							>
-								{#if isJoining}
-									<div
-										class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"
-									></div>
-									Joining...
-								{:else}
-									Join Event
-								{/if}
-							</button>
-						{/if}
-					{/if}
-				</div>
-			</div>
-
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-				<div
-					class="p-5 rounded-2xl border bg-(--md-surface-container) border-(--md-outline-variant)"
-				>
-					<p
-						class="text-sm font-semibold uppercase tracking-wider mb-2 text-(--md-on-surface-variant)"
-					>
-						Event Start
-					</p>
-					<p class="font-bold text-lg text-(--md-on-surface)">
-						{formatFullDate(eventDetail.start_time || eventDetail.startTime)}
-					</p>
-				</div>
-				<div
-					class="p-5 rounded-2xl border bg-(--md-secondary-container) border-(--md-outline-variant)"
-				>
-					<p class="text-sm font-semibold uppercase tracking-wider mb-2 text-(--md-primary)">
-						Submission Deadline
-					</p>
-					<p class="font-bold text-lg text-(--md-on-surface) flex items-center gap-2">
-						<svg
-							class="w-5 h-5 text-(--md-primary)"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							><path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-							></path></svg
-						>
-						{formatFullDate(eventDetail.end_time || eventDetail.endTime)}
-					</p>
-					<p class="text-xs text-(--md-on-surface-variant) mt-1">
-						All work must be submitted by this accurate deadline pulled from the event
-						configuration.
-					</p>
-				</div>
-			</div>
-
-			{#if eventDetail.tracks && eventDetail.tracks.length > 0}
-				<div>
-					<h3 class="text-xl font-bold mb-4 text-(--md-on-surface)">Available Tracks</h3>
-					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-						{#each eventDetail.tracks as track}
-							<div class="p-4 rounded-xl border border-(--md-outline-variant) bg-(--md-surface)">
-								<h4 class="font-bold text-md text-(--md-on-surface)">{track.name}</h4>
-								<p class="text-sm mt-1 text-(--md-on-surface-variant)">{track.description}</p>
-							</div>
-						{/each}
+						</md-filled-button>
 					</div>
 				</div>
-			{/if}
-		</div>
-	{/if}
-</div>
+			</ElevatedCard>
+		</section>
+
+		<section class="tracks">
+			<h2>Tracks</h2>
+
+			<div class="body">
+				{#each tracks as track}
+					<ElevatedCard>
+						<div class="track">
+							<h3>{track.name}</h3>
+							<p>{track.description}</p>
+						</div>
+
+						<hr />
+
+						<div class="track">
+							<md-text-button>More details</md-text-button>
+						</div>
+					</ElevatedCard>
+				{/each}
+			</div>
+		</section>
+
+		<section class="rounds">
+			<h2>Rounds</h2>
+
+			<div class="body">
+				{#each data.rounds as round}
+					{@const now = Date.now()}
+					{@const active =
+						now >= new Date(round.start_time).getTime() &&
+						now <= new Date(round.end_time).getTime()}
+
+					<ElevatedCard>
+						<div class="round-card {active ? '' : 'disabled'}">
+							<div class="round">
+								<h3>{round.name}</h3>
+								<p>{round.description}</p>
+							</div>
+
+							<hr />
+
+							<div class="round">
+								<md-text-button disabled={!active}>More details</md-text-button>
+							</div>
+						</div>
+					</ElevatedCard>
+				{/each}
+			</div>
+		</section>
+	</div>
+{:catch}
+	<KaomojiError kind="bad" text="An error occurred!" />
+{/await}
+
+<style lang="scss">
+	* {
+		margin: 0;
+	}
+
+	.container {
+		max-width: 768px;
+		min-height: 100dvh;
+		margin: auto;
+		padding: 0.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.registration-notice {
+		text-align: center;
+		padding: 0.5rem;
+		border-radius: 12px;
+
+		background-color: var(--md-sys-color-primary-container);
+
+		* {
+			color: var(--md-sys-color-on-primary-container);
+		}
+	}
+
+	.summary-card {
+		.header {
+			img {
+				max-height: 200px;
+				width: 100%;
+				object-fit: cover;
+			}
+		}
+
+		.body {
+			padding: 16px;
+
+			.date-time {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-size: 0.8rem;
+				opacity: 90%;
+				margin-bottom: 0.5rem;
+			}
+
+			.name {
+				font-weight: bold;
+			}
+
+			.desc {
+				opacity: 70%;
+				font-size: 0.9rem;
+				margin-bottom: 1rem;
+			}
+		}
+	}
+
+	.tracks {
+		> h2 {
+			margin-bottom: 1rem;
+		}
+
+		hr {
+			color: var(--md-sys-color-outline-variant);
+			opacity: 50%;
+		}
+
+		.body {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+
+			.track {
+				padding: 16px;
+			}
+		}
+	}
+
+	.rounds {
+		> h2 {
+			margin-bottom: 1rem;
+		}
+
+		hr {
+			color: var(--md-sys-color-outline-variant);
+			opacity: 50%;
+		}
+
+		.body {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+
+			.round-card {
+				&.disabled {
+					opacity: 50%;
+				}
+
+				.round {
+					padding: 16px;
+				}
+			}
+		}
+	}
+</style>

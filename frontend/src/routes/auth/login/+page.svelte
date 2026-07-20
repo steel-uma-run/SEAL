@@ -1,7 +1,10 @@
 <script lang="ts">
+	import "../../tailwind.css"
+
 	import { login, getSelfProfile } from "$lib/api"
 	import { goto } from "$app/navigation"
 	import { Eye, EyeOff } from "@lucide/svelte"
+	import FilledButton from "$lib/components/FilledButton.svelte"
 
 	let email = $state("")
 	let password = $state("")
@@ -81,9 +84,7 @@
 </script>
 
 <main class="w-screen h-screen flex justify-center items-center bg-(--md-surface)">
-	<div
-		class="max-w-md w-full m-auto flex flex-col items-center rounded-2xl p-8 border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface) transition-colors duration-300"
-	>
+	<div class="max-w-md w-full m-auto flex flex-col items-center rounded-2xl">
 		<h1 class="text-2xl font-black mb-2 text-(--md-on-surface)">Welcome back</h1>
 		<p class="mb-6 text-sm text-(--md-on-surface-variant) text-center">Login with your account</p>
 
@@ -140,13 +141,7 @@
 				<span class="text-(--md-error) text-sm font-medium">{errorMessage}</span>
 			{/if}
 
-			<button
-				type="submit"
-				disabled={isLoading}
-				class="mt-2 w-full bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 active:scale-98 rounded-xl py-3.5 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:cursor-pointer border-0"
-			>
-				{isLoading ? "Logging in..." : "Login"}
-			</button>
+			<FilledButton text="Login" size="md" type="submit" />
 		</form>
 
 		<span class="mt-6 text-sm text-(--md-on-surface-variant)">
