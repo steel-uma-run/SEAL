@@ -6,6 +6,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import seal.backend.entities.AuditLog;
@@ -15,6 +16,7 @@ import seal.backend.entities.Student;
 @Entity
 @SuperBuilder
 @NoArgsConstructor
+@Getter
 public class AccountApprovedLog extends AuditLog {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "actor_id", nullable = false)

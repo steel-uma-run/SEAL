@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "required": ["id", "action_time", "log_type", "actor_email", "details"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "action_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "log_type": {
+      "type": "string"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    }
+  }
+}

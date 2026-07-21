@@ -26,6 +26,7 @@ import seal.backend.entities.User;
 import seal.backend.entities.notification.RegradeNotif;
 import seal.backend.entities.notification.ScoreDeviationNotif;
 import seal.backend.enums.Role;
+import seal.backend.repositories.AuditLogRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
 import seal.backend.repositories.RegradeNotifRepository;
@@ -54,6 +55,7 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final ScoreRepository scoreRepo;
   private final ScoreDeviationNotifRepository notifRepo;
   private final RegradeNotifRepository regradeNotifRepo;
+  private final AuditLogRepository auditLogRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
   private final Pattern ytPattern = Pattern.compile("^(https?://)?youtube\\.com");
@@ -281,6 +283,9 @@ public class SubmissionServiceImpl implements SubmissionService {
 
     Submission submission = submissionRepo.findById(submissionId).get();
 
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    User actor = userRepo.findByEmail(auth.getName()).get();
+
     for (RegradeNotif notif : pendingNotifs) {
       notif.setResolved(true);
 
@@ -288,6 +293,22 @@ public class SubmissionServiceImpl implements SubmissionService {
           submission.getScores().stream()
               .filter(s -> s.getLecturer().getId().equals(notif.getLecturer().getId()))
               .toList();
+
+      for (Score oldScore : oldScores) {
+        seal.backend.entities.audit.GradingLog gradingLog =
+            seal.backend.entities.audit.GradingLog.builder()
+                .actionTime(OffsetDateTime.now())
+                .actor(actor)
+                .submission(submission)
+                .action("DELETED_SCORE")
+                .details(
+                    "Coordinator approved regrade. Deleted old score value: "
+                        + oldScore.getValue()
+                        + " graded by lecturer ID: "
+                        + oldScore.getLecturer().getId())
+                .build();
+        auditLogRepo.save(gradingLog);
+      }
 
       scoreRepo.deleteAll(oldScores);
       submission.getScores().removeAll(oldScores);
