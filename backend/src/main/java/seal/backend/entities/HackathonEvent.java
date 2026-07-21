@@ -67,6 +67,10 @@ public class HackathonEvent {
   @Nonnull
   private Season season;
 
+  @Column(columnDefinition = "TEXT")
+  @Nonnull
+  private String price;
+
   @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
   private Set<Student> students = new HashSet<>();
 
@@ -96,6 +100,7 @@ public class HackathonEvent {
         HackathonEventStatusDto.fromValue(getStatus().name()),
         getStartTime(),
         getEndTime(),
-        getSeason().getId());
+        getSeason().getId(),
+        getPrice());
   }
 }

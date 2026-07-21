@@ -71,6 +71,10 @@ public class HackathonEventServiceImpl implements HackathonEventService {
       event.setDescription(request.description());
     }
 
+    if (request.price() != null) {
+      event.setPrice(request.price());
+    }
+
     if (request.endTime() != null) {
       if (event.getStartTime() != null && !request.endTime().isAfter(event.getStartTime())) {
         throw new ResponseStatusException(
@@ -198,7 +202,8 @@ public class HackathonEventServiceImpl implements HackathonEventService {
             request.startTime(),
             request.endTime(),
             EventStatus.DRAFT,
-            season);
+            season,
+            request.price());
 
     hackathonEventRepository.save(hackathonEvent);
 
