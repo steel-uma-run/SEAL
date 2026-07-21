@@ -1,5 +1,6 @@
 {
   "type": "object",
+  "required": ["token", "user"],
   "properties": {
     "token": {
       "type": "string"
