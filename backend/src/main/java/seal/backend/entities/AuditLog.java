@@ -10,6 +10,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
@@ -17,6 +18,7 @@ import lombok.experimental.SuperBuilder;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @SuperBuilder
 @NoArgsConstructor
+@Getter
 public abstract class AuditLog {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,4 +27,6 @@ public abstract class AuditLog {
   @Column(name = "action_time", nullable = false)
   @Nonnull
   private OffsetDateTime actionTime;
+
+  public abstract Object toDto();
 }

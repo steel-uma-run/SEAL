@@ -67,8 +67,9 @@ public class HackathonEvent {
   @Nonnull
   private Season season;
 
-  @Column(columnDefinition = "boolean default false", nullable = false)
-  private boolean openForRegistration = false;
+  @Column(columnDefinition = "TEXT")
+  @Nonnull
+  private String price;
 
   @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
   private Set<Student> students = new HashSet<>();
@@ -100,6 +101,6 @@ public class HackathonEvent {
         getStartTime(),
         getEndTime(),
         getSeason().getId(),
-        isOpenForRegistration());
+        getPrice());
   }
 }

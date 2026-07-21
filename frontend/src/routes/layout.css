@@ -1,4 +1,6 @@
 @import "material-symbols";
+@import "m3-svelte/etc/styles.css";
+@import "m3-svelte/etc/recommended-styles.css";
 
 :root {
 	font-family: Inter, sans-serif;
@@ -20,8 +22,14 @@
 	}
 }
 
-html,
-body {
+* {
 	padding: 0;
 	margin: 0;
+}
+
+@function --m3-density(--size) {
+	result: var(--size);
+}
+:root {
+	color-scheme: light dark;
 }

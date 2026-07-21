@@ -87,8 +87,8 @@ public class CreateUtils {
             OffsetDateTime.now(),
             OffsetDateTime.now().plusDays(1),
             EventStatus.FINALIZED,
-            season);
-    event.setOpenForRegistration(true);
+            season,
+            "");
 
     seasonRepo.save(season);
     return eventRepo.save(event);

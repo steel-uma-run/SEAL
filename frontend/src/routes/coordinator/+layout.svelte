@@ -4,16 +4,14 @@
 	import { getSelfProfile } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import Sidebar from "$lib/components/common/Sidebar.svelte"
-	import { LayoutDashboard, FolderKanban, User, Settings } from "@lucide/svelte"
 
 	let { children } = $props()
 	let isLoading = $state(true)
 
 	const menuItems = [
-		{ href: "/coordinator", label: "Dashboard", icon: LayoutDashboard },
+		{ href: "/coordinator", label: "Dashboard" },
 		{
 			label: "Management",
-			icon: FolderKanban,
 			children: [
 				{ href: "/coordinator/seasons", label: "Seasons & Events" },
 				{ href: "/coordinator/teams", label: "Teams" },
@@ -22,24 +20,21 @@
 				{ href: "/coordinator/templates", label: "Template" }
 			]
 		},
-		{ href: "/coordinator/profile", label: "Profile", icon: User },
-		{ href: "/coordinator/settings", label: "Settings", icon: Settings }
+		{ href: "/coordinator/profile", label: "Profile" },
+		{ href: "/coordinator/settings", label: "Settings" }
 	]
 
 	onMount(async () => {
 		try {
 			const { data: profile, response: profileRes } = await getSelfProfile({ throwOnError: false })
 			if (!profileRes?.ok || !profile) {
-				goto("/auth/login")
 				return
 			}
 			if (profile.role !== "COORDINATOR") {
 				// If logged in but not coordinator, send to home
-				goto("/")
 				return
 			}
 		} catch (err) {
-			goto("/auth/login")
 			return
 		} finally {
 			isLoading = false
@@ -48,23 +43,34 @@
 </script>
 
 {#if isLoading}
-	<div class="flex justify-center items-center h-screen bg-(--md-surface)">
-		<div
-			class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
-		></div>
-	</div>
+	<p>Loading...</p>
 {:else}
-	<div
-		class="font-sans min-h-screen transition-colors duration-300 bg-(--md-surface) text-(--md-on-surface)"
-	>
-		<Sidebar {menuItems} />
+	<div class="main">
+		<aside>
+			<Sidebar role="COORDINATOR" />
+		</aside>
 
-		<main
-			class="md:ml-64 flex-1 flex flex-col min-h-screen transition-colors duration-300 bg-(--md-surface)"
-		>
-			<div class="p-4 md:p-6 w-full pt-[90px]">
-				{@render children()}
-			</div>
+		<main>
+			{@render children()}
 		</main>
 	</div>
 {/if}
+
+<style lang="scss">
+	.main {
+		min-height: 100vh;
+
+		main {
+			display: flex;
+			flex-direction: column;
+			padding: 1rem;
+			margin-left: 96px;
+		}
+	}
+
+	aside {
+		position: fixed;
+		height: 100vh;
+		z-index: 999;
+	}
+</style>

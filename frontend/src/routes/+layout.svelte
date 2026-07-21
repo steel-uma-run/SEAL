@@ -23,6 +23,7 @@
 			const value = hexFromArgb(dynamicColor.getArgb(scheme))
 			entries.push(`--md-${token}: ${value};`)
 			entries.push(`--md-sys-color-${token}: ${value};`)
+			entries.push(`--m3c-${token}: ${value};`)
 		}
 
 		const str = `<style>:root {${entries.join("\n")}}</style>`
@@ -53,7 +54,7 @@
 		return request
 	})
 
-	client.setConfig({ baseUrl: "http://localhost:8080/api/v0" })
+	client.setConfig({ baseUrl: "http://localhost:8080" })
 </script>
 
 <svelte:head>

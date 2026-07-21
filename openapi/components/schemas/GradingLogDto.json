@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "required": ["id", "action_time", "actor_email", "submission_id", "action"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "action_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "submission_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "action": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    }
+  }
+}

@@ -9,7 +9,7 @@
     "start_time",
     "end_time",
     "season_id",
-    "open_for_registration"
+    "price"
   ],
   "properties": {
     "id": {
@@ -38,9 +38,8 @@
       "type": "string",
       "format": "uuid"
     },
-    "open_for_registration": {
-      "type": "boolean",
-      "default": false
+    "price": {
+      "type": "string"
     }
   }
 }

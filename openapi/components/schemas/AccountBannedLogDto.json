@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "required": ["id", "action_time", "actor_email", "ban_target_email", "ban_reason"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "action_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "ban_target_email": {
+      "type": "string"
+    },
+    "ban_reason": {
+      "type": "string"
+    }
+  }
+}

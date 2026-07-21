@@ -2,7 +2,7 @@
 	import { onMount } from "svelte"
 	import { page } from "$app/stores"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Save, AlertCircle } from "@lucide/svelte"
+	import { ArrowLeft, Save, AlertCircle, Castle } from "@lucide/svelte"
 	import { getAllCriteriaTemplates, gradeSubmission } from "$lib/api"
 	import { goto } from "$app/navigation"
 
@@ -133,137 +133,84 @@
 	<title>Grade Submission - SEAL</title>
 </svelte:head>
 
-<div class="max-w-4xl mx-auto w-full p-4 md:p-8">
-	<a
-		href="/lecturer/grading"
-		class="inline-flex items-center gap-2 transition-colors mb-6 font-medium {theme.darkMode
-			? 'text-zinc-400 hover:text-green-400'
-			: 'text-gray-500 hover:text-green-600'}"
-	>
-		<ArrowLeft class="w-4 h-4" />
+<div class="grading-page" class:dark={theme.darkMode}>
+	<a href="/lecturer/grading" class="back-link">
+		<ArrowLeft class="link-icon" />
 		Back to Grading List
 	</a>
 
-	<div class="flex items-center justify-between mb-8">
+	<div class="page-header">
 		<div>
-			<h1 class="text-2xl font-bold {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
-				Grade Submission
-			</h1>
-			<p class="text-sm {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-				ID: <span class="font-mono text-xs">{submissionId}</span>
+			<h1 class="page-title">Grade Submission</h1>
+			<p class="page-subtitle">
+				ID: <span class="mono">{submissionId}</span>
 			</p>
 		</div>
-
 		{#if criteriaTemplate}
-			<div class="text-right">
-				<p class="text-sm font-medium {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-					Total Score
-				</p>
-				<p class="text-3xl font-bold {totalScore >= 50 ? 'text-green-500' : 'text-red-500'}">
-					{totalScore.toFixed(1)}<span class="text-lg text-gray-400">/100</span>
+			<div class="score-box">
+				<p class="score-label">Total Score</p>
+				<p class="score-value" class:pass={totalScore >= 50} class:fail={totalScore < 50}>
+					{totalScore.toFixed(1)}<span class="score-max">/100</span>
 				</p>
 			</div>
 		{/if}
 	</div>
 
 	{#if isLoading}
-		<div class="flex justify-center py-12">
-			<div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-500"></div>
+		<div class="spinner-wrap">
+			<div class="spinner spinner--green"></div>
 		</div>
 	{:else if !criteriaTemplate}
-		<div class="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200">
-			{errorMessage}
-		</div>
+		<div class="alert alert--error">{errorMessage}</div>
 	{:else}
-		<form onsubmit={handleSubmit} class="space-y-6">
-			<div
-				class="p-6 rounded-3xl border {theme.darkMode
-					? 'bg-zinc-900 border-zinc-800'
-					: 'bg-white border-gray-200 shadow-sm'}"
-			>
-				<h2 class="text-lg font-bold mb-1 {theme.darkMode ? 'text-zinc-100' : 'text-gray-800'}">
-					Evaluation Criteria
-				</h2>
-				<p class="text-sm mb-6 {theme.darkMode ? 'text-zinc-400' : 'text-gray-500'}">
-					Please score each criteria from 0 to 100.
-				</p>
+		<form onsubmit={handleSubmit} class="grade-form">
+			<div class="card">
+				<h2 class="card-title">Evaluation Criteria</h2>
+				<p class="card-desc">Please score each criteria from 0 to 100.</p>
 
 				{#if errorMessage}
-					<div
-						class="mb-6 p-4 bg-red-50 text-red-600 rounded-xl border border-red-200 flex items-start gap-3"
-					>
-						<AlertCircle class="w-5 h-5 shrink-0 mt-0.5" />
-						<p class="text-sm font-medium">{errorMessage}</p>
+					<div class="alert alert--error alert--inline">
+						<AlertCircle class="alert-icon" />
+						<p class="alert-text">{errorMessage}</p>
 					</div>
 				{/if}
 
 				{#if successMessage}
-					<div
-						class="mb-6 p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 font-medium"
-					>
-						{successMessage}
-					</div>
+					<div class="alert alert--success">{successMessage}</div>
 				{/if}
 
-				<div class="space-y-6">
+				<div class="criteria-list">
 					{#each criteriaTemplate.criteria as c}
-						<div
-							class="p-4 rounded-xl border {theme.darkMode
-								? 'bg-zinc-950/50 border-zinc-800'
-								: 'bg-gray-50 border-gray-200'}"
-						>
-							<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+						<div class="criterion">
+							<div class="criterion-head">
 								<div>
-									<h3
-										class="font-bold text-md {theme.darkMode ? 'text-zinc-200' : 'text-gray-800'}"
-									>
-										{c.name}
-									</h3>
-									<p
-										class="text-xs font-semibold uppercase tracking-wider mt-1 {theme.darkMode
-											? 'text-green-400'
-											: 'text-green-600'}"
-									>
-										Weight: {c.weight}%
-									</p>
+									<h3 class="criterion-name">{c.name}</h3>
+									<p class="criterion-weight">Weight: {c.weight}%</p>
 								</div>
-								<div class="w-full md:w-32 shrink-0">
-									<label
-										class="block text-xs font-medium mb-1 {theme.darkMode
-											? 'text-zinc-400'
-											: 'text-gray-500'}">Score (0-100)</label
-									>
+								<div class="score-input">
+									<label class="field-label">Score (0-100)</label>
 									<input
 										type="number"
 										min="0"
 										max="100"
 										bind:value={gradingData[c.id].value}
-										class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none {theme.darkMode
-											? 'bg-zinc-900 border-zinc-700 text-zinc-100'
-											: 'bg-white border-gray-300'}"
+										class="input"
 										placeholder="e.g. 85"
 										required
 									/>
 								</div>
 							</div>
-
 							<div>
-								<label
-									class="block text-xs font-medium mb-1 {theme.darkMode
-										? 'text-zinc-400'
-										: 'text-gray-500'}"
-								>
+								<label class="field-label">
 									Comment / Feedback
 									{#if gradingData[c.id].value !== null && gradingData[c.id].value < 50}
-										<span class="text-red-500 ml-1">(Required for scores below 50)</span>
+										<span class="field-required">(Required for scores below 50)</span>
 									{/if}
 								</label>
 								<textarea
 									bind:value={gradingData[c.id].comment}
 									rows="2"
-									class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none resize-none {theme.darkMode
-										? 'bg-zinc-900 border-zinc-700 text-zinc-100'
-										: 'bg-white border-gray-300'}"
+									class="input textarea"
 									placeholder="Provide constructive feedback..."
 								></textarea>
 							</div>
@@ -272,17 +219,13 @@
 				</div>
 			</div>
 
-			<div class="flex justify-end pt-4">
-				<button
-					type="submit"
-					disabled={isSubmitting}
-					class="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-sm transition-all disabled:opacity-50"
-				>
+			<div class="form-actions">
+				<button type="submit" disabled={isSubmitting} class="btn-submit">
 					{#if isSubmitting}
-						<div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+						<div class="spinner spinner--white"></div>
 						Submitting...
 					{:else}
-						<Save class="w-5 h-5" />
+						<Save class="btn-icon" />
 						Submit Grades
 					{/if}
 				</button>
@@ -290,3 +233,384 @@
 		</form>
 	{/if}
 </div>
+
+<style lang="scss">
+	// ---------- Design tokens ----------
+	$max-width: 56rem; // max-w-4xl
+
+	// Accent / status colors (theme-independent)
+	$green-400: #4ade80;
+	$green-500: #22c55e;
+	$green-600: #16a34a;
+	$green-700: #15803d;
+	$red-500: #ef4444;
+	$red-600: #dc2626;
+	$gray-400: #9ca3af;
+
+	// Alert palettes (theme-independent)
+	$red-bg: #fef2f2; // red-50
+	$red-border: #fecaca; // red-200
+	$green-bg: #f0fdf4; // green-50
+	$green-border: #bbf7d0; // green-200
+
+	// ---------- Component ----------
+	.grading-page {
+		// max-w-4xl mx-auto w-full p-4 (md:p-8)
+		max-width: $max-width;
+		margin-inline: auto;
+		width: 100%;
+		padding: 1rem;
+
+		@media (min-width: 768px) {
+			padding: 2rem;
+		}
+
+		// ---- Theme variables (light defaults) ----
+		--text-strong: #1f2937; // gray-800
+		--text-muted: #6b7280; // gray-500
+		--text-criterion: #1f2937; // gray-800
+		--bg-card: #ffffff; // bg-white
+		--border-card: #e5e7eb; // gray-200
+		--bg-criterion: #f9fafb; // gray-50
+		--bg-input: #ffffff; // bg-white
+		--border-input: #d1d5db; // gray-300
+		--link-hover: #{$green-600};
+		--accent-text: #{$green-600};
+
+		// ---- Dark theme overrides ----
+		&.dark {
+			--text-strong: #f4f4f5; // zinc-100
+			--text-muted: #a1a1aa; // zinc-400
+			--text-criterion: #e4e4e7; // zinc-200
+			--bg-card: #18181b; // zinc-900
+			--border-card: #27272a; // zinc-800
+			--bg-criterion: rgba(9, 9, 11, 0.5); // zinc-950/50
+			--bg-input: #18181b; // zinc-900
+			--border-input: #3f3f46; // zinc-700
+			--link-hover: #{$green-400};
+			--accent-text: #{$green-400};
+
+			.card {
+				box-shadow: none;
+			} // shadow-sm is light-only
+		}
+
+		// ---- Back link ----
+		// inline-flex items-center gap-2 transition-colors mb-6 font-medium
+		// + text-gray-500/zinc-400, hover green-600/green-400
+		.back-link {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			margin-bottom: 1.5rem;
+			font-weight: 500;
+			color: var(--text-muted);
+			transition: color 0.15s ease;
+
+			&:hover {
+				color: var(--link-hover);
+			}
+		}
+
+		.link-icon {
+			width: 1rem; // w-4
+			height: 1rem; // h-4
+		}
+
+		// ---- Header ----
+		// flex items-center justify-between mb-8
+		.page-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 2rem;
+		}
+
+		// h1: text-2xl font-bold + text-gray-800/zinc-100
+		.page-title {
+			font-size: 1.5rem; // text-2xl
+			font-weight: 700;
+			color: var(--text-strong);
+		}
+
+		// p: text-sm + text-gray-500/zinc-400
+		.page-subtitle {
+			font-size: 0.875rem; // text-sm
+			color: var(--text-muted);
+		}
+
+		// span: font-mono text-xs
+		.mono {
+			font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+			font-size: 0.75rem; // text-xs
+		}
+
+		// ---- Score box ----
+		.score-box {
+			text-align: right;
+		} // text-right
+
+		.score-label {
+			font-size: 0.875rem;
+			font-weight: 500;
+			color: var(--text-muted);
+		}
+
+		// text-3xl font-bold + green-500/red-500
+		.score-value {
+			font-size: 1.875rem; // text-3xl
+			font-weight: 700;
+
+			&.pass {
+				color: $green-500;
+			}
+			&.fail {
+				color: $red-500;
+			}
+		}
+
+		// text-lg text-gray-400
+		.score-max {
+			font-size: 1.125rem; // text-lg
+			color: $gray-400;
+		}
+
+		// ---- Loading spinner ----
+		// flex justify-center py-12
+		.spinner-wrap {
+			display: flex;
+			justify-content: center;
+			padding-block: 3rem; // py-12
+		}
+
+		// animate-spin rounded-full border-t-2 border-b-2
+		.spinner {
+			border-radius: 9999px;
+			border: 2px solid transparent;
+			animation: spin 1s linear infinite;
+
+			&--green {
+				width: 2rem; // h-8 / w-8
+				height: 2rem;
+				border-top-color: $green-500;
+				border-bottom-color: $green-500;
+			}
+
+			&--white {
+				width: 1.25rem; // h-5 / w-5
+				height: 1.25rem;
+				border-top-color: #ffffff;
+				border-bottom-color: #ffffff;
+			}
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		// ---- Alerts ----
+		// p-4 rounded-xl border + bg/text/border
+		.alert {
+			padding: 1rem;
+			border-radius: 0.75rem; // rounded-xl
+			border: 1px solid;
+
+			&--error {
+				background: $red-bg;
+				color: $red-600;
+				border-color: $red-border;
+			}
+
+			&--success {
+				background: $green-bg;
+				color: $green-700;
+				border-color: $green-border;
+				font-weight: 500;
+			}
+
+			// mb-6 flex items-start gap-3
+			&--inline {
+				display: flex;
+				align-items: flex-start;
+				gap: 0.75rem;
+				margin-bottom: 1.5rem;
+			}
+		}
+
+		.alert-icon {
+			width: 1.25rem; // w-5
+			height: 1.25rem; // h-5
+			flex-shrink: 0; // shrink-0
+			margin-top: 0.125rem; // mt-0.5
+		}
+
+		.alert-text {
+			font-size: 0.875rem;
+			font-weight: 500;
+		}
+
+		// ---- Form ----
+		// space-y-6
+		.grade-form {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+		}
+
+		// p-6 rounded-3xl border + bg/border/shadow-sm (light only)
+		.card {
+			padding: 1.5rem; // p-6
+			border-radius: 1.5rem; // rounded-3xl
+			border: 1px solid var(--border-card);
+			background: var(--bg-card);
+			box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); // shadow-sm
+		}
+
+		// h2: text-lg font-bold mb-1 + text-gray-800/zinc-100
+		.card-title {
+			font-size: 1.125rem; // text-lg
+			font-weight: 700;
+			margin-bottom: 0.25rem;
+			color: var(--text-strong);
+		}
+
+		// p: text-sm mb-6 + text-gray-500/zinc-400
+		.card-desc {
+			font-size: 0.875rem;
+			margin-bottom: 1.5rem;
+			color: var(--text-muted);
+		}
+
+		// space-y-6
+		.criteria-list {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+		}
+
+		// p-4 rounded-xl border + bg/border
+		.criterion {
+			padding: 1rem;
+			border-radius: 0.75rem; // rounded-xl
+			border: 1px solid var(--border-card);
+			background: var(--bg-criterion);
+		}
+
+		// flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4
+		.criterion-head {
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			gap: 1rem;
+			margin-bottom: 1rem;
+
+			@media (min-width: 768px) {
+				flex-direction: row;
+				align-items: center;
+			}
+		}
+
+		// font-bold text-md + text-gray-800/zinc-200
+		.criterion-name {
+			font-weight: 700;
+			font-size: 1rem; // text-md
+			color: var(--text-criterion);
+		}
+
+		// text-xs font-semibold uppercase tracking-wider mt-1 + green-600/400
+		.criterion-weight {
+			font-size: 0.75rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.05em; // tracking-wider
+			margin-top: 0.25rem;
+			color: var(--accent-text);
+		}
+
+		// w-full md:w-32 shrink-0
+		.score-input {
+			width: 100%;
+			flex-shrink: 0;
+
+			@media (min-width: 768px) {
+				width: 8rem; // w-32
+			}
+		}
+
+		// block text-xs font-medium mb-1 + text-gray-500/zinc-400
+		.field-label {
+			display: block;
+			font-size: 0.75rem;
+			font-weight: 500;
+			margin-bottom: 0.25rem;
+			color: var(--text-muted);
+		}
+
+		// text-red-500 ml-1
+		.field-required {
+			color: $red-500;
+			margin-left: 0.25rem;
+		}
+
+		// w-full px-3 py-2 border rounded-lg outline-none
+		// focus:ring-2 focus:ring-green-500 + bg/border/text
+		.input {
+			width: 100%;
+			padding: 0.5rem 0.75rem; // py-2 px-3
+			border: 1px solid var(--border-input);
+			border-radius: 0.5rem; // rounded-lg
+			background: var(--bg-input);
+			color: var(--text-strong);
+			outline: none;
+
+			&:focus {
+				box-shadow: 0 0 0 2px #{$green-500}; // ring-2 ring-green-500
+			}
+
+			&.textarea {
+				resize: none;
+			} // resize-none
+		}
+
+		// ---- Form actions / submit ----
+		// flex justify-end pt-4
+		.form-actions {
+			display: flex;
+			justify-content: flex-end;
+			padding-top: 1rem; // pt-4
+		}
+
+		// flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600
+		// text-white font-bold rounded-xl shadow-sm transition-all disabled:opacity-50
+		.btn-submit {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			padding: 0.75rem 1.5rem; // py-3 px-6
+			background: $green-500;
+			color: #ffffff;
+			font-weight: 700;
+			border: none;
+			border-radius: 0.75rem; // rounded-xl
+			box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); // shadow-sm
+			cursor: pointer;
+			transition: all 0.15s ease;
+
+			&:hover {
+				background: $green-600;
+			}
+
+			&:disabled {
+				opacity: 0.5; // disabled:opacity-50
+				cursor: not-allowed;
+			}
+		}
+
+		.btn-icon {
+			width: 1.25rem; // w-5
+			height: 1.25rem; // h-5
+		}
+	}
+</style>

@@ -2,57 +2,60 @@
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
 	import { getSelfProfile } from "$lib/api"
-	import { theme } from "$lib/theme.svelte"
 	import Sidebar from "$lib/components/common/Sidebar.svelte"
-	import { LayoutDashboard, User, Settings, Users, FileText } from "@lucide/svelte"
 
 	let { children } = $props()
-	let isLoading = $state(true)
+	let isLoading = $state(false)
 
-	const menuItems = [
-		{ href: "/lecturer", label: "Dashboard", icon: LayoutDashboard },
-		{ href: "/lecturer/profile", label: "Profile", icon: User },
-		{ href: "/lecturer/teams", label: "Mentored Teams", icon: Users },
-		{ href: "/lecturer/grading", label: "Grading", icon: FileText },
-		{ href: "/lecturer/settings", label: "Settings", icon: Settings }
-	]
-
-	onMount(async () => {
-		try {
-			const { data: profile, response: profileRes } = await getSelfProfile({ throwOnError: false })
-			if (!profileRes?.ok || !profile) {
-				goto("/auth/login")
-				return
-			}
-			if (profile.role !== "LECTURER") {
-				goto("/")
-				return
-			}
-		} catch (err) {
-			goto("/auth/login")
-			return
-		} finally {
-			isLoading = false
-		}
-	})
+	// onMount(async () => {
+	// 	try {
+	// 		const { data: profile, response: profileRes } = await getSelfProfile({ throwOnError: false })
+	// 		if (!profileRes?.ok || !profile) {
+	// 			goto("/auth/login")
+	// 			return
+	// 		}
+	// 		if (profile.role !== "LECTURER") {
+	// 			goto("/")
+	// 			return
+	// 		}
+	// 	} catch (err) {
+	// 		goto("/auth/login")
+	// 		return
+	// 	} finally {
+	// 		isLoading = false
+	// 	}
+	// })
 </script>
 
 {#if isLoading}
-	<div class="flex justify-center items-center h-screen bg-transparent">
-		<div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-	</div>
+	<p>Loading...</p>
 {:else}
-	<div
-		class="font-sans min-h-screen transition-colors duration-300 bg-transparent text-(--md-on-surface)"
-	>
-		<Sidebar {menuItems} />
+	<div class="main">
+		<aside>
+			<Sidebar role="LECTURER" />
+		</aside>
 
-		<main
-			class="md:ml-64 flex-1 flex flex-col min-h-screen transition-colors duration-300 bg-transparent"
-		>
-			<div class="p-4 md:p-6 w-full pt-[90px]">
-				{@render children()}
-			</div>
+		<main>
+			{@render children()}
 		</main>
 	</div>
 {/if}
+
+<style lang="scss">
+	.main {
+		min-height: 100vh;
+
+		main {
+			display: flex;
+			flex-direction: column;
+			padding: 1rem;
+			margin-left: 96px;
+		}
+	}
+
+	aside {
+		position: fixed;
+		height: 100vh;
+		z-index: 999;
+	}
+</style>

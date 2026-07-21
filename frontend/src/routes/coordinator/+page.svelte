@@ -31,7 +31,6 @@
 			const { data, response: profileRes } = await getSelfProfile({ throwOnError: false })
 			if (!profileRes?.ok || !data) {
 				if (profileRes?.status === 401 || profileRes?.status === 403) {
-					goto("/auth/login")
 					return
 				}
 				throw new Error("Failed to load profile")
@@ -161,18 +160,14 @@
 </svelte:head>
 
 {#if isLoading}
-	<div class="flex justify-center items-center h-[60vh]">
-		<div
-			class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
-		></div>
+	<div class="loading-state">
+		<div class="loading-state__spinner"></div>
 	</div>
 {:else}
 	{#if errorMessage}
-		<div
-			class="bg-(--md-error-container) border-l-4 border-(--md-error) p-4 rounded-r text-(--md-on-error-container) m-6"
-		>
-			<h3 class="text-sm font-bold">Error loading dashboard</h3>
-			<p class="text-sm mt-1">{errorMessage}</p>
+		<div class="error-banner">
+			<h3 class="error-banner__title">Error loading dashboard</h3>
+			<p class="error-banner__message">{errorMessage}</p>
 		</div>
 	{:else if profile}
 		<DashboardUI
@@ -189,3 +184,46 @@
 		/>
 	{/if}
 {/if}
+
+<style lang="scss">
+	.loading-state {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 60vh;
+	}
+
+	.loading-state__spinner {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 9999px;
+		border-top: 2px solid var(--md-primary);
+		border-bottom: 2px solid var(--md-primary);
+		animation: spin 1s linear infinite;
+	}
+
+	.error-banner {
+		margin: 1.5rem;
+		padding: 1rem;
+		border-left: 4px solid var(--md-error);
+		border-radius: 0 0.25rem 0.25rem 0;
+		background: var(--md-error-container);
+		color: var(--md-on-error-container);
+	}
+
+	.error-banner__title {
+		font-size: 0.875rem;
+		font-weight: 700;
+	}
+
+	.error-banner__message {
+		margin-top: 0.25rem;
+		font-size: 0.875rem;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>

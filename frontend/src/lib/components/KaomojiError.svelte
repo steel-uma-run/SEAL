@@ -22,10 +22,28 @@
 	})
 </script>
 
-<div class="text-center flex flex-col gap-4 text-(--md-on-surface-variant)">
-	<p class="text-3xl">{choices[Math.floor(Math.random() * choices.length)]}</p>
+<div>
+	<p>{choices[Math.floor(Math.random() * choices.length)]}</p>
 
 	{#if text}
-		<p class="text-xl">{text}</p>
+		<p>{text}</p>
 	{/if}
 </div>
+
+<style>
+	div {
+		color: var(--md-sys-color-on-surface-variant);
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+
+		:nth-child(1) {
+			font-size: 1.5rem;
+		}
+
+		:nth-child(2) {
+			font-size: 1rem;
+		}
+	}
+</style>

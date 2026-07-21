@@ -72,9 +72,10 @@ public class TeamServiceImpl implements TeamService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
 
-    if (!hackathonEvent.isOpenForRegistration()) {
+    OffsetDateTime now = OffsetDateTime.now();
+    if (now.isBefore(hackathonEvent.getStartTime()) || now.isAfter(hackathonEvent.getEndTime())) {
       throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "This event is not open for team registration.");
+          HttpStatus.FORBIDDEN, "This event is currently not open for team registration.");
     }
 
     if (leader.getStudentStatus() != StudentStatus.ACTIVE) {
@@ -161,9 +162,11 @@ public class TeamServiceImpl implements TeamService {
           HttpStatus.FORBIDDEN, "Team is not allowed to send invites.");
     }
 
-    if (!team.getHackathonEvent().isOpenForRegistration()) {
+    OffsetDateTime now = OffsetDateTime.now();
+    if (now.isBefore(team.getHackathonEvent().getStartTime())
+        || now.isAfter(team.getHackathonEvent().getEndTime())) {
       throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "This event is not opened for team registration");
+          HttpStatus.FORBIDDEN, "This event is currently not open for team registration.");
     }
 
     Student actor =

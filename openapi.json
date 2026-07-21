@@ -64,12 +64,6 @@
     "/events/{eventId}/finalize": {
       "$ref": "./openapi/paths/events/finalize.json"
     },
-    "/events/{eventId}/open-registration": {
-      "$ref": "./openapi/paths/events/open_registration.json"
-    },
-    "/events/{eventId}/close-registration": {
-      "$ref": "./openapi/paths/events/close_registration.json"
-    },
     "/events/{eventId}/interested-participants": {
       "$ref": "./openapi/paths/events/get_interested_participants.json"
     },
@@ -134,6 +128,9 @@
     },
     "/submission/{submissionId}/approve-regrade": {
       "$ref": "./openapi/paths/submission/approve_regrade.json"
+    },
+    "/auditlogs": {
+      "$ref": "./openapi/paths/auditlogs/get_all.json"
     }
   }
 }

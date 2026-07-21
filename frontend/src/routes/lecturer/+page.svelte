@@ -56,8 +56,8 @@
 
 				if (tracks) {
 					for (const track of tracks) {
-						let isMentor = track.mentor_ids?.includes(profile.id)
-						let isJudge = track.judge_ids?.includes(profile.id)
+						let isMentor = track.mentors.find((v) => v.id == profile.id)
+						let isJudge = track.judges.find((v) => v.id == profile.id)
 
 						if (isMentor || isJudge) {
 							let trackTeams: any[] = []
@@ -114,55 +114,41 @@
 <svelte:head>
 	<title>Lecturer Dashboard - SEAL</title>
 </svelte:head>
-
-<div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full">
+<div class="dashboard-page">
 	{#if isLoading}
-		<div class="flex justify-center items-center h-[60vh]">
-			<div
-				class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
-			></div>
+		<div class="loading-state">
+			<div class="spinner"></div>
 		</div>
 	{:else if profile}
-		<!-- Top Header -->
-		<header
-			class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)"
-		>
+		<header class="top-header">
 			<div>
-				<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-(--md-on-surface)">
+				<h1 class="page-title">
 					Welcome back, {profile?.fullName || profile?.name || "Lecturer"}!
 				</h1>
-				<p class="mt-1 text-sm md:text-base text-(--md-on-surface-variant)">
+				<p class="page-subtitle">
 					Here is an overview of your responsibilities for the active season.
 				</p>
 			</div>
 
-			<div class="flex items-center gap-4 mt-4 md:mt-0">
-				<div class="text-right hidden sm:block">
-					<p class="font-bold leading-tight text-(--md-on-surface)">
+			<div class="profile-summary">
+				<div class="profile-text">
+					<p class="profile-name">
 						{profile?.fullName || profile?.name || "Lecturer"}
 					</p>
-					<p class="text-xs font-semibold text-(--md-primary) uppercase tracking-wider">
+					<p class="profile-role">
 						{profile?.role || "LECTURER"}
 					</p>
 				</div>
-				<div
-					class="w-12 h-12 rounded-full flex items-center justify-center text-(--md-on-primary-container) font-bold text-xl bg-(--md-primary-container) border border-(--md-outline-variant)"
-				>
+				<div class="avatar">
 					{(profile?.fullName || profile?.name || "L").charAt(0).toUpperCase()}
 				</div>
 			</div>
 		</header>
 
-		<!-- Overview Cards -->
-		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
-			<!-- Current Season (Always visible) -->
-			<div
-				class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-			>
-				<div
-					class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-orange-500/10 text-orange-500"
-				>
-					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<div class="overview-grid">
+			<div class="overview-card">
+				<div class="overview-icon orange">
+					<svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -172,135 +158,480 @@
 					</svg>
 				</div>
 				<div>
-					<p
-						class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-					>
-						Current Season
-					</p>
-					<h3 class="text-xl font-bold text-(--md-on-surface)">
+					<p class="card-label">Current Season</p>
+					<h3 class="card-value">
 						{activeSeason ? formatSeasonName(activeSeason) : "---"}
 					</h3>
 				</div>
 			</div>
 
-			<!-- Mentor Card -->
-			<div
-				class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-			>
-				<div
-					class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-orange-500/10 text-orange-500"
-				>
-					<Users class="w-6 h-6" />
+			<div class="overview-card">
+				<div class="overview-icon orange">
+					<Users class="icon" />
 				</div>
 				<div>
-					<p
-						class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-					>
-						Mentored Teams
-					</p>
-					<h3 class="text-xl font-bold text-(--md-on-surface)">
-						{stats.mentoredTeamsCount}
-					</h3>
+					<p class="card-label">Mentored Teams</p>
+					<h3 class="card-value">{stats.mentoredTeamsCount}</h3>
 				</div>
 			</div>
 
-			<!-- Judge Card -->
-			<div
-				class="rounded-2xl p-6 border border-(--md-outline-variant)/50 bg-(--md-surface-container-lowest) flex items-center gap-5 transition-all duration-300 hover:bg-(--md-surface-container-low)"
-			>
-				<div
-					class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-orange-500/10 text-orange-500"
-				>
-					<FileText class="w-6 h-6" />
+			<div class="overview-card">
+				<div class="overview-icon orange">
+					<FileText class="icon" />
 				</div>
 				<div>
-					<p
-						class="text-xs font-semibold uppercase tracking-wider mb-1 text-(--md-on-surface-variant)"
-					>
-						Submissions to Grade
-					</p>
-					<h3 class="text-xl font-bold text-(--md-on-surface)">
-						{stats.submissionsToGradeCount}
-					</h3>
+					<p class="card-label">Submissions to Grade</p>
+					<h3 class="card-value">{stats.submissionsToGradeCount}</h3>
 				</div>
 			</div>
 		</div>
 
-		<!-- Assigned Tracks Section -->
-		<div
-			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) mb-8 transition-colors duration-300"
-		>
-			<div class="mb-6">
-				<h2 class="text-xl font-bold text-(--md-on-surface)">My Assigned Tracks</h2>
-				<p class="text-sm mt-1 text-(--md-on-surface-variant)">
-					Tracks you are assigned to mentor or judge this season.
-				</p>
+		<section class="assigned-tracks">
+			<div class="section-header">
+				<h2 class="section-title">My Assigned Tracks</h2>
+				<p class="section-subtitle">Tracks you are assigned to mentor or judge this season.</p>
 			</div>
 
 			{#if assignedTracks.length === 0}
-				<div
-					class="text-center py-10 border border-dashed rounded-2xl border-(--md-outline-variant) bg-(--md-surface-container)"
-				>
-					<FileText class="w-12 h-12 mx-auto mb-3 text-(--md-on-surface-variant) opacity-60" />
-					<p class="text-base font-medium text-(--md-on-surface)">
-						You haven't been assigned to any tracks yet.
-					</p>
+				<div class="empty-state">
+					<FileText class="empty-icon" />
+					<p class="empty-title">You haven't been assigned to any tracks yet.</p>
 				</div>
 			{:else}
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<div class="tracks-grid">
 					{#each assignedTracks as track}
-						<div
-							class="border border-(--md-outline-variant) rounded-2xl p-6 flex flex-col justify-between bg-(--md-surface-container) hover:bg-(--md-surface-container-high) transition-all duration-300 shadow-sm h-full"
-						>
-							<div class="mb-4">
-								<div class="flex justify-between items-start mb-2">
-									<h3 class="font-extrabold text-lg text-(--md-on-surface line-clamp-1)">
-										{track.name}
-									</h3>
+						<div class="track-card">
+							<div class="track-top">
+								<div class="track-heading-row">
+									<h3 class="track-name">{track.name}</h3>
 									<span
-										class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {track.role ===
-										'Mentor & Judge'
-											? 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20'
+										class="track-role-badge {track.role === 'Mentor & Judge'
+											? 'badge-both'
 											: track.role === 'Mentor'
-												? 'bg-violet-500/10 text-violet-500 border border-violet-500/20'
-												: 'bg-sky-500/10 text-sky-500 border border-sky-500/20'} shrink-0"
+												? 'badge-mentor'
+												: 'badge-judge'}"
 									>
 										{track.role}
 									</span>
 								</div>
-								<p class="text-xs text-(--md-on-surface-variant) mb-4">
-									Event: <span class="font-bold text-(--md-primary)">{track.eventName}</span>
+								<p class="track-event">
+									Event: <span>{track.eventName}</span>
 								</p>
 							</div>
 
-							<div class="flex-grow pt-4 border-t border-(--md-outline-variant)">
-								<h4
-									class="text-xs text-(--md-on-surface-variant) mb-2 uppercase font-bold tracking-wider"
-								>
-									Assigned Teams
-								</h4>
+							<div class="track-teams">
+								<h4 class="teams-label">Assigned Teams</h4>
 								{#if track.teams && track.teams.length > 0}
-									<div class="flex flex-wrap gap-1">
+									<div class="teams-list">
 										{#each track.teams as team}
-											<span
-												class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-500/10 text-emerald-500 font-medium"
-											>
+											<span class="team-chip">
 												{team.name}
 											</span>
 										{/each}
 									</div>
 								{:else}
-									<p class="text-xs italic text-(--md-on-surface-variant) opacity-75">
-										No teams assigned yet.
-									</p>
+									<p class="no-teams">No teams assigned yet.</p>
 								{/if}
 							</div>
 						</div>
 					{/each}
 				</div>
 			{/if}
-		</div>
+		</section>
 
 		<ActiveSeasonEvents {activeSeason} events={activeSeasonEvents} />
 	{/if}
 </div>
+
+<style lang="scss">
+	.dashboard-page {
+		max-width: 1600px;
+	}
+
+	@media (min-width: 768px) {
+		.dashboard-page {
+			padding: 2.5rem;
+		}
+	}
+
+	.loading-state {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 60vh;
+	}
+
+	.spinner {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 9999px;
+		border: 2px solid transparent;
+		border-top-color: var(--md-primary);
+		border-bottom-color: var(--md-primary);
+		animation: spin 1s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.top-header {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 2rem;
+		padding-bottom: 1.5rem;
+		border-bottom: 1px solid var(--md-outline-variant);
+	}
+
+	@media (min-width: 768px) {
+		.top-header {
+			flex-direction: row;
+			align-items: center;
+		}
+	}
+
+	.page-title {
+		font-size: 1.5rem;
+		line-height: 2rem;
+		font-weight: 800;
+		letter-spacing: -0.025em;
+		color: var(--md-on-surface);
+	}
+
+	@media (min-width: 768px) {
+		.page-title {
+			font-size: 1.875rem;
+			line-height: 2.25rem;
+		}
+	}
+
+	.page-subtitle {
+		margin-top: 0.25rem;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: var(--md-on-surface-variant);
+	}
+
+	@media (min-width: 768px) {
+		.page-subtitle {
+			font-size: 1rem;
+			line-height: 1.5rem;
+		}
+	}
+
+	.profile-summary {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.profile-summary {
+			margin-top: 0;
+		}
+	}
+
+	.profile-text {
+		display: none;
+		text-align: right;
+	}
+
+	@media (min-width: 640px) {
+		.profile-text {
+			display: block;
+		}
+	}
+
+	.profile-name {
+		font-weight: 700;
+		line-height: 1.25;
+		color: var(--md-on-surface);
+	}
+
+	.profile-role {
+		font-size: 0.75rem;
+		line-height: 1rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--md-primary);
+	}
+
+	.avatar {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 9999px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--md-on-primary-container);
+		background: var(--md-primary-container);
+		border: 1px solid var(--md-outline-variant);
+	}
+
+	.overview-grid,
+	.tracks-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.overview-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.overview-grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+
+		.tracks-grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 768px) {
+		.overview-grid,
+		.tracks-grid {
+			gap: 1.5rem;
+		}
+	}
+
+	.overview-card,
+	.track-card,
+	.empty-state,
+	.assigned-tracks {
+		border: 1px solid var(--md-outline-variant);
+	}
+
+	.overview-card {
+		border-color: color-mix(in srgb, var(--md-outline-variant) 50%, transparent);
+		border-radius: 1rem;
+		padding: 1.5rem;
+		background: var(--md-surface-container-lowest);
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+		transition: all 0.3s ease;
+	}
+
+	.overview-card:hover {
+		background: var(--md-surface-container-low);
+	}
+
+	.overview-icon {
+		width: 3rem;
+		height: 3rem;
+		border-radius: 0.75rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.overview-icon.orange {
+		background: rgb(249 115 22 / 0.1);
+		color: rgb(249 115 22);
+	}
+
+	.icon {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	.card-label {
+		margin-bottom: 0.25rem;
+		font-size: 0.75rem;
+		line-height: 1rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--md-on-surface-variant);
+	}
+
+	.card-value {
+		font-size: 1.25rem;
+		line-height: 1.75rem;
+		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.assigned-tracks {
+		padding: 2rem;
+		border-radius: 1.5rem;
+		background: var(--md-surface-container-low);
+		margin-bottom: 2rem;
+		transition: background-color 0.3s ease;
+	}
+
+	.section-header {
+		margin-bottom: 1.5rem;
+	}
+
+	.section-title {
+		font-size: 1.25rem;
+		line-height: 1.75rem;
+		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.section-subtitle {
+		margin-top: 0.25rem;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: var(--md-on-surface-variant);
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: 2.5rem 1rem;
+		border-style: dashed;
+		border-radius: 1rem;
+		background: var(--md-surface-container);
+	}
+
+	.empty-icon {
+		width: 3rem;
+		height: 3rem;
+		margin: 0 auto 0.75rem;
+		color: var(--md-on-surface-variant);
+		opacity: 0.6;
+	}
+
+	.empty-title {
+		font-size: 1rem;
+		line-height: 1.5rem;
+		font-weight: 500;
+		color: var(--md-on-surface);
+	}
+
+	.track-card {
+		border-radius: 1rem;
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		background: var(--md-surface-container);
+		box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+		height: 100%;
+		transition: all 0.3s ease;
+	}
+
+	.track-card:hover {
+		background: var(--md-surface-container-high);
+	}
+
+	.track-top {
+		margin-bottom: 1rem;
+	}
+
+	.track-heading-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 0.5rem;
+		gap: 0.75rem;
+	}
+
+	.track-name {
+		font-size: 1.125rem;
+		line-height: 1.75rem;
+		font-weight: 800;
+		color: var(--md-on-surface);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.track-role-badge {
+		display: inline-flex;
+		padding: 0.125rem 0.625rem;
+		border-radius: 9999px;
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		flex-shrink: 0;
+	}
+
+	.badge-both {
+		background: rgb(99 102 241 / 0.1);
+		color: rgb(99 102 241);
+		border: 1px solid rgb(99 102 241 / 0.2);
+	}
+
+	.badge-mentor {
+		background: rgb(139 92 246 / 0.1);
+		color: rgb(139 92 246);
+		border: 1px solid rgb(139 92 246 / 0.2);
+	}
+
+	.badge-judge {
+		background: rgb(14 165 233 / 0.1);
+		color: rgb(14 165 233);
+		border: 1px solid rgb(14 165 233 / 0.2);
+	}
+
+	.track-event {
+		font-size: 0.75rem;
+		line-height: 1rem;
+		color: var(--md-on-surface-variant);
+		margin-bottom: 1rem;
+	}
+
+	.track-event span {
+		font-weight: 700;
+		color: var(--md-primary);
+	}
+
+	.track-teams {
+		flex-grow: 1;
+		padding-top: 1rem;
+		border-top: 1px solid var(--md-outline-variant);
+	}
+
+	.teams-label {
+		margin-bottom: 0.5rem;
+		font-size: 0.75rem;
+		line-height: 1rem;
+		text-transform: uppercase;
+		font-weight: 700;
+		letter-spacing: 0.1em;
+		color: var(--md-on-surface-variant);
+	}
+
+	.teams-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+	}
+
+	.team-chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.125rem 0.5rem;
+		border-radius: 0.25rem;
+		font-size: 0.75rem;
+		line-height: 1rem;
+		background: rgb(16 185 129 / 0.1);
+		color: rgb(16 185 129);
+		font-weight: 500;
+	}
+
+	.no-teams {
+		font-size: 0.75rem;
+		line-height: 1rem;
+		font-style: italic;
+		color: var(--md-on-surface-variant);
+		opacity: 0.75;
+	}
+</style>
