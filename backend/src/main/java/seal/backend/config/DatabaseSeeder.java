@@ -75,32 +75,43 @@ public class DatabaseSeeder implements CommandLineRunner {
     Season springSeason = seasonRepo.save(new Season(Semester.SPRING, 2026));
     Season summerSeason = seasonRepo.save(new Season(Semester.SUMMER, 2026));
 
+    // Thời gian đăng kí 1/3 - 1/4
+    OffsetDateTime regStartSpring =
+        OffsetDateTime.of(2026, 3, 1, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime regEndSpring = OffsetDateTime.of(2026, 4, 1, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+
+    // Thời gian thi đấu 11/4 - 15/4
     OffsetDateTime startSpring = OffsetDateTime.of(2026, 4, 11, 7, 0, 0, 0, ZoneOffset.ofHours(7));
     OffsetDateTime endSpring = OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.ofHours(7));
     HackathonEvent eventSpring =
         new HackathonEvent(
             "SEAL Hackathon Spring 2026",
             "Mastering Domain-Specific AI RAG Systems",
-            startSpring,
-            endSpring,
+            regStartSpring,
+            regEndSpring,
             EventStatus.FINALIZED,
             springSeason);
     eventSpring.setTeamsLimit(30);
-    eventSpring.setOpenForRegistration(false);
     eventRepo.save(eventSpring);
 
+    // Thời gian đăng kí 1/6 - 10/7
+    OffsetDateTime regStartSummer =
+        OffsetDateTime.of(2026, 6, 1, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime regEndSummer =
+        OffsetDateTime.of(2026, 7, 10, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+
+    // Thời gian thi đấu 15/7 - 30/7
     OffsetDateTime startSummer = OffsetDateTime.of(2026, 7, 15, 7, 0, 0, 0, ZoneOffset.ofHours(7));
     OffsetDateTime endSummer = OffsetDateTime.of(2026, 7, 30, 18, 0, 0, 0, ZoneOffset.ofHours(7));
     HackathonEvent eventSummer =
         new HackathonEvent(
             "SEAL Hackathon Summer 2026",
             "Empowering Enterprise with AI Agents",
-            startSummer,
-            endSummer,
+            regStartSummer,
+            regEndSummer,
             EventStatus.FINALIZED,
             summerSeason);
     eventSummer.setTeamsLimit(30);
-    eventSummer.setOpenForRegistration(false);
     eventRepo.save(eventSummer);
 
     // ==========================================
@@ -130,7 +141,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         roundRepo.save(
             new Round(
                 "Round 1",
-                startSpring,
+                startSpring, // round phải sau regis
                 startSpring.plusHours(10),
                 "Vòng loại: Thuyết trình ý tưởng",
                 eventSpring));
