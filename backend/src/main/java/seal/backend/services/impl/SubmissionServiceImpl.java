@@ -258,10 +258,10 @@ public class SubmissionServiceImpl implements SubmissionService {
       submission.getScores().add(givenScore);
 
       scoreRepo.save(givenScore);
-      recalcAvgScoresForSubmission(submission);
       submissionRepo.save(submission);
       checkScoreDeviation(submission);
     }
+    recalcAvgScoresForSubmission(submission);
   }
 
   @Override
