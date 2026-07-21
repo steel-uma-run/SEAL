@@ -75,6 +75,13 @@ public class DatabaseSeeder implements CommandLineRunner {
     Season springSeason = seasonRepo.save(new Season(Semester.SPRING, 2026));
     Season summerSeason = seasonRepo.save(new Season(Semester.SUMMER, 2026));
 
+    String prizeStructure =
+        "Tổng giá trị: 16.500.000 đồng\n"
+            + "• Giải Nhất: 7.000.000 đồng và Giấy chứng nhận.\n"
+            + "• Giải Nhì: 5.000.000 đồng và Giấy chứng nhận.\n"
+            + "• Giải Ba: 3.000.000 đồng và Giấy chứng nhận.\n"
+            + "• Giải Khuyến khích: 1.500.000 đồng và Giấy chứng nhận.";
+
     // Thời gian đăng kí 1/3 - 1/4
     OffsetDateTime regStartSpring =
         OffsetDateTime.of(2026, 3, 1, 7, 0, 0, 0, ZoneOffset.ofHours(7));
@@ -90,7 +97,8 @@ public class DatabaseSeeder implements CommandLineRunner {
             regStartSpring,
             regEndSpring,
             EventStatus.FINALIZED,
-            springSeason);
+            springSeason,
+            prizeStructure);
     eventSpring.setTeamsLimit(30);
     eventRepo.save(eventSpring);
 
@@ -110,7 +118,8 @@ public class DatabaseSeeder implements CommandLineRunner {
             regStartSummer,
             regEndSummer,
             EventStatus.FINALIZED,
-            summerSeason);
+            summerSeason,
+            prizeStructure);
     eventSummer.setTeamsLimit(30);
     eventRepo.save(eventSummer);
 
