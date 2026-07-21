@@ -28,6 +28,7 @@ import seal.backend.entities.notification.RegradeNotif;
 import seal.backend.entities.notification.ScoreDeviationNotif;
 import seal.backend.enums.Role;
 import seal.backend.repositories.AuditLogRepository;
+import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
 import seal.backend.repositories.RegradeNotifRepository;
@@ -56,6 +57,7 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final ScoreRepository scoreRepo;
   private final ScoreDeviationNotifRepository notifRepo;
   private final RegradeNotifRepository regradeNotifRepo;
+  private final CriteriaRepository criteriaRepo;
   private final AuditLogRepository auditLogRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
@@ -217,14 +219,25 @@ public class SubmissionServiceImpl implements SubmissionService {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required.");
       }
 
+      // Make sure the criteria actually is a criteria for the round
+      // Make sure the criteria actually is a criteria for the round
+      // Criteria criteria =
+      //     submission.getRound().getCriteria().stream()
+      //         .filter(pred -> pred.getId().equals(dto.criteriaId()))
+      //         .findAny()
+      //         .orElseThrow(
+      //             () ->
+      //                 new ResponseStatusException(
+      //                     HttpStatus.BAD_REQUEST, "This criteria does not exist on this
+      // round."));
+
       Criteria criteria =
-          submission.getRound().getCriteria().stream()
-              .filter(pred -> pred.getId().equals(dto.criteriaId()))
-              .findAny()
+          criteriaRepo
+              .findById(dto.criteriaId())
               .orElseThrow(
                   () ->
                       new ResponseStatusException(
-                          HttpStatus.BAD_REQUEST, "This criteria does not exist on this round."));
+                          HttpStatus.BAD_REQUEST, "This criteria does not exist."));
 
       Score givenScore = new Score(criteria, submission, actor, dto.value());
       givenScore.setComment(dto.comment());

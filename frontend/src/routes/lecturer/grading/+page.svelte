@@ -55,7 +55,9 @@
 
 				if (tracks) {
 					// Filter tracks where this lecturer is a judge
-					const judgingTracks = tracks.filter((t: any) => t.judge_ids?.includes(profile.id))
+					const judgingTracks = tracks.filter((t: any) =>
+						t.judges?.find((pred) => pred.id === profile.id)
+					)
 					const judgingTrackIds = judgingTracks.map((t: any) => t.id)
 
 					if (judgingTrackIds.length > 0) {
@@ -178,7 +180,9 @@
 										</div>
 
 										<div class="submission-card__actions">
-											<a href="/lecturer/grading/{sub.id}" class="grade-btn"> Grade Submission </a>
+											<a href="/lecturer/grading/{sub.team_id}/{sub.id}" class="grade-btn">
+												Grade Submission
+											</a>
 										</div>
 									</div>
 								{/each}

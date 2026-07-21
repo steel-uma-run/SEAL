@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from "$app/state"
-	import { getAllTracksOfEvent, getEvent, getRounds } from "$lib/api"
+	import { getAllTracksOfEvent, getEvent, getRounds, markInterested } from "$lib/api"
 	import { auth } from "$lib/auth.svelte"
 
 	import ElevatedCard from "$lib/components/ElevatedCard.svelte"
@@ -94,6 +94,12 @@
 
 						<hr style="color: var(--md-sys-color-outline-variant)" />
 
+						<div class="prize">
+							{#each event.price.split("\n") as line}
+								<p>{line}</p>
+							{/each}
+						</div>
+
 						<div class="team-size">
 							<p>Team size</p>
 							<p>3 - 5 members</p>
@@ -105,7 +111,13 @@
 						</div>
 
 						{#if auth.value === undefined || auth.value?.role === "STUDENT"}
-							<Button iconType="left" disabled={!data.openForRegistration}>
+							<Button
+								iconType="left"
+								disabled={!data.openForRegistration}
+								onclick={async () => {
+									await markInterested({ path: { eventId: event.id } })
+								}}
+							>
 								<Icon icon={iconAdd} />
 								Register now
 							</Button>
@@ -361,5 +373,9 @@
 			grid-template-columns: 1fr 8fr;
 			gap: 1rem;
 		}
+	}
+
+	.prize {
+		margin-top: 1rem;
 	}
 </style>

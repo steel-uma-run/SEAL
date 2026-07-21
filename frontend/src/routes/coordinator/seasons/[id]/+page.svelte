@@ -9,9 +9,7 @@
 		createTrack,
 		updateEvent,
 		finalizeEvent,
-		getAllTracksOfEvent,
-		openRegistration,
-		closeRegistration
+		getAllTracksOfEvent
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Calendar, Clock, Plus, X, Award, Edit2, Eye, Users } from "@lucide/svelte"
@@ -272,37 +270,11 @@
 	}
 
 	async function handleOpenRegistration(eventId: string) {
-		try {
-			const { response } = await openRegistration({
-				path: { eventId },
-				throwOnError: false
-			})
-			if (response?.ok) {
-				await loadEvents()
-			} else {
-				alert("Failed to open registration. Ensure the event is finalized.")
-			}
-		} catch (err) {
-			console.error(err)
-			alert("An error occurred while opening registration.")
-		}
+		alert("Opening registration is currently unavailable in the API.");
 	}
 
 	async function handleCloseRegistration(eventId: string) {
-		try {
-			const { response } = await closeRegistration({
-				path: { eventId },
-				throwOnError: false
-			})
-			if (response?.ok) {
-				await loadEvents()
-			} else {
-				alert("Failed to close registration.")
-			}
-		} catch (err) {
-			console.error(err)
-			alert("An error occurred while closing registration.")
-		}
+		alert("Closing registration is currently unavailable in the API.");
 	}
 
 	$effect(() => {
