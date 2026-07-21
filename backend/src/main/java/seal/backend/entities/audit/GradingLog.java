@@ -10,26 +10,28 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import seal.backend.entities.AuditLog;
-import seal.backend.entities.Coordinator;
-import seal.backend.entities.Student;
+import seal.backend.entities.Submission;
+import seal.backend.entities.User;
 
 @Entity
 @SuperBuilder
 @NoArgsConstructor
 @Getter
-public class AccountBannedLog extends AuditLog {
+public class GradingLog extends AuditLog {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "actor_id", nullable = false)
   @Nonnull
-  private Coordinator actor;
+  private User actor;
 
-  // ManyToOne cuz a student can be banned & unbanned multiple times
-  @ManyToOne
-  @JoinColumn(name = "ban_target_id", nullable = false)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "submission_id", nullable = false)
   @Nonnull
-  private Student banTarget;
+  private Submission submission;
 
-  @Column(columnDefinition = "TEXT", nullable = false)
+  @Column(nullable = false)
   @Nonnull
-  private String banReason;
+  private String action;
+
+  @Column(columnDefinition = "TEXT")
+  private String details;
 }
