@@ -23,10 +23,12 @@ import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
 import seal.backend.entities.User;
+import seal.backend.entities.notification.RegradeNotif;
 import seal.backend.entities.notification.ScoreDeviationNotif;
 import seal.backend.enums.Role;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
+import seal.backend.repositories.RegradeNotifRepository;
 import seal.backend.repositories.ScoreDeviationNotifRepository;
 import seal.backend.repositories.ScoreRepository;
 import seal.backend.repositories.StudentRepository;
@@ -35,6 +37,7 @@ import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.SubmissionService;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
+import seal.openapi.model.RequestRegradePayloadDto;
 import seal.openapi.model.ScoreDeviationNotifDto;
 import seal.openapi.model.SubmissionDto;
 import seal.openapi.model.SubmitWorkRequestDto;
@@ -50,6 +53,7 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final TeamRepository teamRepo;
   private final ScoreRepository scoreRepo;
   private final ScoreDeviationNotifRepository notifRepo;
+  private final RegradeNotifRepository regradeNotifRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
   private final Pattern ytPattern = Pattern.compile("^(https?://)?youtube\\.com");
@@ -185,6 +189,18 @@ public class SubmissionServiceImpl implements SubmissionService {
           "Can only grade submissions belonging to teams on the same track as the lecturer.");
     }
 
+    // block overwriting
+    List<Score> existingScores =
+        submission.getScores().stream()
+            .filter(s -> s.getLecturer().getId().equals(actor.getId()))
+            .toList();
+
+    if (!existingScores.isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
+          "You have already graded this article. Please submit a request for re-grading if you want to correct your score.");
+    }
+
     for (GradeSubmissionRequestArrayItemDto dto : scores) {
       // Constraint: score must be between 0-100
       if (dto.value() < 0 | dto.value() > 100) {
@@ -218,6 +234,76 @@ public class SubmissionServiceImpl implements SubmissionService {
   }
 
   @Override
+  public void requestRegrade(UUID submissionId, RequestRegradePayloadDto payload) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    Lecturer actor =
+        lecturerRepo
+            .findByEmail(auth.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+
+    Submission submission =
+        submissionRepo
+            .findById(submissionId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission doesn't exist"));
+
+    // Avoid spamming with multiple requests
+    if (regradeNotifRepo
+        .findBySubmissionIdAndLecturerIdAndIsResolvedFalse(submissionId, actor.getId())
+        .isPresent()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Your request is awaiting Coordinator approval.");
+    }
+
+    RegradeNotif notif =
+        RegradeNotif.builder()
+            .submission(submission)
+            .lecturer(actor)
+            .reason(payload.reason())
+            .isResolved(false)
+            .createdAt(OffsetDateTime.now())
+            .build();
+    regradeNotifRepo.save(notif);
+  }
+
+  @Override
+  @Transactional
+  public void approveRegrade(UUID submissionId) {
+    List<RegradeNotif> pendingNotifs =
+        regradeNotifRepo.findBySubmissionIdAndIsResolvedFalse(submissionId);
+
+    if (pendingNotifs.isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "There are no requests for regrading.");
+    }
+
+    Submission submission = submissionRepo.findById(submissionId).get();
+
+    for (RegradeNotif notif : pendingNotifs) {
+      notif.setResolved(true);
+
+      List<Score> oldScores =
+          submission.getScores().stream()
+              .filter(s -> s.getLecturer().getId().equals(notif.getLecturer().getId()))
+              .toList();
+
+      scoreRepo.deleteAll(oldScores);
+      submission.getScores().removeAll(oldScores);
+    }
+
+    regradeNotifRepo.saveAll(pendingNotifs);
+    submissionRepo.save(submission);
+
+    // Change the status of alerts to processed (true)
+    List<ScoreDeviationNotif> deviations = notifRepo.findBySubmissionId(submissionId);
+    for (ScoreDeviationNotif d : deviations) {
+      d.setResolved(true);
+    }
+    notifRepo.saveAll(deviations);
+  }
+
+  @Override
   public List<ScoreDeviationNotifDto> getScoreDeviations(UUID submissionId) {
     return notifRepo.findBySubmissionId(submissionId).stream()
         .map(
@@ -235,8 +321,16 @@ public class SubmissionServiceImpl implements SubmissionService {
   }
 
   private void checkScoreDeviation(Submission submission) {
+    // Remove any unprocessed  alerts before rescanning to avoid data duplication.
+    List<ScoreDeviationNotif> oldDeviations =
+        notifRepo.findBySubmissionId(submission.getId()).stream()
+            .filter(n -> !n.isResolved())
+            .toList();
+    if (!oldDeviations.isEmpty()) {
+      notifRepo.deleteAll(oldDeviations);
+    }
+
     List<Score> allScores = submission.getScores();
-    // Tối ưu gom nhóm theo trực tiếp đối tượng Lecturer
     Map<Lecturer, List<Score>> scoresByJudge =
         allScores.stream().collect(Collectors.groupingBy(Score::getLecturer));
 
