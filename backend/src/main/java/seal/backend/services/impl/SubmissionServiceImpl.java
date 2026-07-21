@@ -21,6 +21,7 @@ import seal.backend.entities.Round;
 import seal.backend.entities.Score;
 import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
+import seal.backend.entities.SubmissionAvgScore;
 import seal.backend.entities.Team;
 import seal.backend.entities.User;
 import seal.backend.entities.notification.RegradeNotif;
@@ -32,6 +33,7 @@ import seal.backend.repositories.RegradeNotifRepository;
 import seal.backend.repositories.ScoreDeviationNotifRepository;
 import seal.backend.repositories.ScoreRepository;
 import seal.backend.repositories.StudentRepository;
+import seal.backend.repositories.SubmissionAvgScoreRepository;
 import seal.backend.repositories.SubmissionRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.UserRepository;
@@ -54,6 +56,7 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final ScoreRepository scoreRepo;
   private final ScoreDeviationNotifRepository notifRepo;
   private final RegradeNotifRepository regradeNotifRepo;
+  private final SubmissionAvgScoreRepository avgScoreRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
   private final Pattern ytPattern = Pattern.compile("^(https?://)?youtube\\.com");
@@ -166,6 +169,32 @@ public class SubmissionServiceImpl implements SubmissionService {
         HttpStatus.FORBIDDEN, "You are not allowed to view teams' submissions.");
   }
 
+  private void recalcAvgScoresForSubmission(Submission submission) {
+    // simplest approach: rebuild everything
+    avgScoreRepo.deleteBySubmissionId(submission.getId());
+
+    // group scores by judge (Lecturer)
+    Map<Lecturer, List<Score>> byJudge =
+        submission.getScores().stream().collect(Collectors.groupingBy(Score::getLecturer));
+
+    for (var entry : byJudge.entrySet()) {
+      Lecturer judge = entry.getKey();
+      List<Score> judgeScores = entry.getValue();
+
+      double total =
+          judgeScores.stream()
+              .mapToDouble(s -> s.getValue() * s.getCriteria().getWeight() / 100.0)
+              .sum();
+
+      SubmissionAvgScore avg = new SubmissionAvgScore();
+      avg.setSubmission(submission);
+      avg.setLecturer(judge);
+      avg.setAvgScore(total);
+
+      avgScoreRepo.save(avg);
+    }
+  }
+
   @Transactional
   @Override
   public void gradeSubmission(UUID submissionId, GradeSubmissionRequestArrayItemDto[] scores) {
@@ -229,6 +258,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       submission.getScores().add(givenScore);
 
       scoreRepo.save(givenScore);
+      recalcAvgScoresForSubmission(submission);
       submissionRepo.save(submission);
       checkScoreDeviation(submission);
     }
