@@ -46,10 +46,9 @@ public class RoundServiceImpl implements RoundService {
           HttpStatus.BAD_REQUEST, "Start time must be before end time.");
     }
 
-    if (request.startTime().isBefore(event.getStartTime())
-        || request.endTime().isAfter(event.getEndTime())) {
+    if (!request.startTime().isAfter(event.getEndTime())) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Round timeframe must be strictly within the Event's timeframe.");
+          HttpStatus.BAD_REQUEST, "Round timeframe must start after the registration period ends.");
     }
 
     boolean isOverlapping =
