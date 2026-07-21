@@ -1,0 +1,26 @@
+{
+  "post": {
+    "tags": ["submission"],
+    "operationId": "approve_regrade",
+    "summary": "Coordinator approves a regrade request",
+    "parameters": [
+      {
+        "name": "submissionId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Regrade approved successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "post": {
+    "tags": ["submission"],
+    "operationId": "request_regrade",
+    "summary": "Judge requests a regrade for a submission",
+    "parameters": [
+      {
+        "name": "submissionId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/RequestRegradePayload.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Regrade request submitted successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
