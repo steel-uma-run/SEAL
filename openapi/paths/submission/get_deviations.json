@@ -1,0 +1,36 @@
+{
+  "get": {
+    "tags": ["submission"],
+    "operationId": "get_score_deviations",
+    "summary": "Get score deviation notifications for a submission",
+    "parameters": [
+      {
+        "name": "submissionId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successfully retrieved notifications",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/ScoreDeviationNotif.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

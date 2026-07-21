@@ -123,6 +123,10 @@
 
     "/submission/{submissionId}/grade": {
       "$ref": "./openapi/paths/submission/grade.json"
+    },
+
+    "/submission/{submissionId}/deviations": {
+      "$ref": "./openapi/paths/submission/get_deviations.json"
     }
   }
 }

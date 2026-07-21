@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "required": ["id", "submission_id", "lecturer_id", "judge_score", "average_score", "is_resolved", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "submission_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "criteria_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "lecturer_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "judge_score": {
+      "type": "number",
+      "format": "double"
+    },
+    "average_score": {
+      "type": "number",
+      "format": "double"
+    },
+    "is_resolved": {
+      "type": "boolean"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

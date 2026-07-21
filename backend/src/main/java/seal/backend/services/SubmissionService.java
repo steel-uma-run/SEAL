@@ -3,6 +3,7 @@ package seal.backend.services;
 import java.util.List;
 import java.util.UUID;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
+import seal.openapi.model.ScoreDeviationNotifDto;
 import seal.openapi.model.SubmissionDto;
 import seal.openapi.model.SubmitWorkRequestDto;
 
@@ -12,4 +13,6 @@ public interface SubmissionService {
   List<SubmissionDto> getAllSubmissions(UUID teamId);
 
   void gradeSubmission(UUID submissionId, GradeSubmissionRequestArrayItemDto[] scores);
+
+  List<ScoreDeviationNotifDto> getScoreDeviations(UUID submissionId);
 }
