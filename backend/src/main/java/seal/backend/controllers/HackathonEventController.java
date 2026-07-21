@@ -71,22 +71,6 @@ public class HackathonEventController implements EventsApi {
 
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<Void> openRegistration(
-      @PathVariable(name = "eventId") @NotNull UUID eventId) {
-    eventService.openRegistration(eventId);
-    return ResponseEntity.ok().build();
-  }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<Void> closeRegistration(
-      @PathVariable(name = "eventId") @NotNull UUID eventId) {
-    eventService.closeRegistration(eventId);
-    return ResponseEntity.ok().build();
-  }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<HackathonEventDto> createEvent(
       @RequestBody @Valid @NotNull CreateEventRequestDto request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(eventService.createEvent(request));
