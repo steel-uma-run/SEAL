@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import seal.openapi.model.TrackDto;
+import seal.openapi.model.UserDto;
 
 @Entity
 @Table(name = "tracks")
@@ -68,7 +69,7 @@ public class Track {
         getName(),
         getDescription(),
         getEvent().getId(),
-        getMentors().stream().map(Lecturer::getId).toArray(UUID[]::new),
-        getJudges().stream().map(Lecturer::getId).toArray(UUID[]::new));
+        getMentors().stream().map(Lecturer::toDto).toArray(UserDto[]::new),
+        getJudges().stream().map(Lecturer::toDto).toArray(UserDto[]::new));
   }
 }
