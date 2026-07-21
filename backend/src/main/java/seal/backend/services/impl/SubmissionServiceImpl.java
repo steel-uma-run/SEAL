@@ -1,9 +1,12 @@
 package seal.backend.services.impl;
 
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -20,9 +23,11 @@ import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
 import seal.backend.entities.User;
+import seal.backend.entities.notification.ScoreDeviationNotif;
 import seal.backend.enums.Role;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
+import seal.backend.repositories.ScoreDeviationNotifRepository;
 import seal.backend.repositories.ScoreRepository;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.SubmissionRepository;
@@ -30,6 +35,7 @@ import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.SubmissionService;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
+import seal.openapi.model.ScoreDeviationNotifDto;
 import seal.openapi.model.SubmissionDto;
 import seal.openapi.model.SubmitWorkRequestDto;
 
@@ -43,6 +49,7 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final UserRepository userRepo;
   private final TeamRepository teamRepo;
   private final ScoreRepository scoreRepo;
+  private final ScoreDeviationNotifRepository notifRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
   private final Pattern ytPattern = Pattern.compile("^(https?://)?youtube\\.com");
@@ -169,23 +176,25 @@ public class SubmissionServiceImpl implements SubmissionService {
             .findById(submissionId)
             .orElseThrow(
                 () ->
-                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission doesn't exist"));
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission doesn't exist."));
 
     // Constraint: can only grade submissions belonging to teams on the same track as the lecturer
     if (!actor.getJudgedTracks().contains(submission.getSubmitterTeam().getTrack())) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN,
+          "Can only grade submissions belonging to teams on the same track as the lecturer.");
     }
 
     for (GradeSubmissionRequestArrayItemDto dto : scores) {
       // Constraint: score must be between 0-100
       if (dto.value() < 0 | dto.value() > 100) {
         throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "Score must be between 0 and 100");
+            HttpStatus.BAD_REQUEST, "Score must be between 0 and 100.");
       }
 
       // Constraint: if score is below average, require a comment
       if (dto.value() < 50 && dto.comment() == null) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required.");
       }
 
       // Make sure the criteria actually is a criteria for the round
@@ -204,6 +213,93 @@ public class SubmissionServiceImpl implements SubmissionService {
 
       scoreRepo.save(givenScore);
       submissionRepo.save(submission);
+      checkScoreDeviation(submission);
+    }
+  }
+
+  @Override
+  public List<ScoreDeviationNotifDto> getScoreDeviations(UUID submissionId) {
+    return notifRepo.findBySubmissionId(submissionId).stream()
+        .map(
+            notif ->
+                new ScoreDeviationNotifDto(
+                    notif.getId(),
+                    notif.getSubmission().getId(),
+                    notif.getCriteria() != null ? notif.getCriteria().getId() : null,
+                    notif.getLecturer().getId(),
+                    notif.getJudgeScore(),
+                    notif.getAverageScore(),
+                    notif.isResolved(),
+                    notif.getCreatedAt()))
+        .toList();
+  }
+
+  private void checkScoreDeviation(Submission submission) {
+    List<Score> allScores = submission.getScores();
+    // Tối ưu gom nhóm theo trực tiếp đối tượng Lecturer
+    Map<Lecturer, List<Score>> scoresByJudge =
+        allScores.stream().collect(Collectors.groupingBy(Score::getLecturer));
+
+    if (scoresByJudge.size() >= 2) {
+      Map<Lecturer, Double> totalScoresPerJudge = new HashMap<>();
+      for (Map.Entry<Lecturer, List<Score>> entry : scoresByJudge.entrySet()) {
+        double totalScore =
+            entry.getValue().stream()
+                .mapToDouble(s -> s.getValue() * s.getCriteria().getWeight() / 100.0)
+                .sum();
+        totalScoresPerJudge.put(entry.getKey(), totalScore);
+      }
+
+      double averageTotal =
+          totalScoresPerJudge.values().stream()
+              .mapToDouble(Double::doubleValue)
+              .average()
+              .orElse(0.0);
+
+      for (Map.Entry<Lecturer, Double> entry : totalScoresPerJudge.entrySet()) {
+        double deviation = Math.abs(entry.getValue() - averageTotal);
+
+        if (deviation >= 20.0) {
+          ScoreDeviationNotif notif =
+              ScoreDeviationNotif.builder()
+                  .submission(submission)
+                  .lecturer(entry.getKey())
+                  .judgeScore(entry.getValue())
+                  .averageScore(averageTotal)
+                  .createdAt(OffsetDateTime.now())
+                  .isResolved(false)
+                  .build();
+          notifRepo.save(notif);
+        }
+      }
+
+      Map<UUID, List<Score>> scoresByCriteria =
+          allScores.stream().collect(Collectors.groupingBy(score -> score.getCriteria().getId()));
+
+      for (Map.Entry<UUID, List<Score>> entry : scoresByCriteria.entrySet()) {
+        if (entry.getValue().size() >= 2) {
+          double avgCriteria =
+              entry.getValue().stream().mapToInt(Score::getValue).average().orElse(0.0);
+
+          for (Score s : entry.getValue()) {
+            double deviation = Math.abs(s.getValue() - avgCriteria);
+
+            if (deviation >= 2.0) {
+              ScoreDeviationNotif notif =
+                  ScoreDeviationNotif.builder()
+                      .submission(submission)
+                      .criteria(s.getCriteria())
+                      .lecturer(s.getLecturer())
+                      .judgeScore((double) s.getValue())
+                      .averageScore(avgCriteria)
+                      .createdAt(OffsetDateTime.now())
+                      .isResolved(false)
+                      .build();
+              notifRepo.save(notif);
+            }
+          }
+        }
+      }
     }
   }
 }

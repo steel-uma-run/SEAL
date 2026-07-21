@@ -1,0 +1,387 @@
+[2026-07-21T03:31:23.955Z] Error: Post-processor "Prettier" exited with code 2:
+[[31merror[39m] src/lib/api/client.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/client/client.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/client/index.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/client/types.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/client/utils.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/auth.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/bodySerializer.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/params.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/pathSerializer.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/queryKeySerializer.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/serverSentEvents.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/types.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/utils.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/index.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/sdk.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/types.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/zod.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+Stack:
+ConfigError: Post-processor "Prettier" exited with code 2:
+[[31merror[39m] src/lib/api/client.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/client/client.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/client/index.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/client/types.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/client/utils.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/auth.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/bodySerializer.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/params.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/pathSerializer.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/queryKeySerializer.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/serverSentEvents.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/types.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/core/utils.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/index.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/sdk.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/types.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m] src/lib/api/zod.gen.ts: Error: Can't resolve 'material-symbols' in 'D:\XUAN\FPT\KY_5\SWP391\SEAL\frontend\src\routes'
+[[31merror[39m]     at finishWithoutResolve (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3293:35)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3337:13
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:27:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:1481:37
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+[[31merror[39m]     at eval (eval at create (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:2435:11), <anonymous>:15:1)
+[[31merror[39m]     at file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/prettier-plugin-tailwindcss/dist/resolve-pWjAK-4f.mjs:3370:6
+    at postprocessOutput (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/@hey-api/shared/dist/index.mjs:863:10)
+    at createClient$1 (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/@hey-api/openapi-ts/dist/src-CI9riJdm.mjs:159:4)
+    at async file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/@hey-api/openapi-ts/dist/src-CI9riJdm.mjs:213:12
+    at async Promise.all (index 0)
+    at async createClient (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/@hey-api/openapi-ts/dist/src-CI9riJdm.mjs:211:21)
+    at async BasicMinimalPluginContext.configResolved (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/@hey-api/vite-plugin/dist/index.mjs:8:4)
+    at async Promise.all (index 1)
+    at async resolveConfig (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/vite/dist/node/chunks/node.js:34632:2)
+    at async _createServer (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/vite/dist/node/chunks/node.js:26083:65)
+    at async CAC.<anonymous> (file:///D:/XUAN/FPT/KY_5/SWP391/SEAL/frontend/node_modules/vite/dist/node/cli.js:708:18)
