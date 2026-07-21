@@ -198,7 +198,8 @@ public class SubmissionServiceImpl implements SubmissionService {
     if (!existingScores.isEmpty()) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
-          "You have already graded this article. Please submit a request for re-grading if you want to correct your score.");
+          "You have already graded this article. Please submit a request for re-grading if you want"
+              + " to correct your score.");
     }
 
     for (GradeSubmissionRequestArrayItemDto dto : scores) {
