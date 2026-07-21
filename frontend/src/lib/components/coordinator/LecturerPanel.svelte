@@ -240,145 +240,101 @@
 	}
 </script>
 
-<div class="p-6 md:p-10 max-w-[1600px] mx-auto w-full font-sans text-(--md-on-surface)">
-	<header
-		class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 border-b pb-6 border-(--md-outline-variant)"
-	>
+<div class="lecturers-page">
+	<header class="page-header">
 		<div>
-			<h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-(--md-on-surface)">
-				Lecturer Management
-			</h1>
-			<p class="mt-1 text-sm text-(--md-on-surface-variant)">
-				Manage, edit, and assign lecturers for hackathon tracks.
-			</p>
+			<h1 class="page-title">Lecturer Management</h1>
+			<p class="page-subtitle">Manage, edit, and assign lecturers for hackathon tracks.</p>
 		</div>
-		<div class="flex items-center gap-3 mt-4 md:mt-0">
-			<button
-				onclick={() => openExpertForm(null)}
-				class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer border-0 shadow-none"
-			>
-				<Plus class="w-4 h-4" />
+		<div class="header-actions">
+			<button type="button" onclick={() => openExpertForm(null)} class="btn-add">
+				<Plus class="btn-add-icon" />
 				Add Lecturer
 			</button>
 		</div>
 	</header>
 
-	<div
-		class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-all shadow-none"
-	>
-		<div
-			class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 pb-6 border-b border-(--md-outline-variant)"
-		>
-			<div class="relative w-full sm:w-80">
-				<span
-					class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-(--md-on-surface-variant)"
-				>
-					<Search class="w-4 h-4" />
+	<div class="panel">
+		<div class="toolbar">
+			<div class="search-field">
+				<span class="search-icon">
+					<Search class="search-icon-svg" />
 				</span>
 				<input
 					type="text"
 					bind:value={searchQuery}
 					placeholder="Search by ID, name, or email..."
-					class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-(--md-outline) bg-(--md-surface-container-low) text-(--md-on-surface) placeholder-(--md-on-surface-variant)/60 focus:ring-2 focus:ring-(--md-primary) outline-none transition-all text-sm shadow-none"
+					class="search-input"
 				/>
 				{#if searchQuery}
-					<button
-						type="button"
-						onclick={() => (searchQuery = "")}
-						class="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-xs font-bold text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer border-0 bg-transparent"
-					>
+					<button type="button" onclick={() => (searchQuery = "")} class="search-clear">
 						Clear
 					</button>
 				{/if}
 			</div>
-
-			<div class="text-xs font-semibold text-(--md-on-surface-variant)">
-				Showing <strong class="text-(--md-primary) font-black">{filteredExperts.length}</strong> of {expertsList.length}
-				lecturers
+			<div class="result-count">
+				Showing <strong class="count-highlight">{filteredExperts.length}</strong> of
+				{expertsList.length} lecturers
 			</div>
 		</div>
 
-		<div class="overflow-x-auto">
-			<table class="w-full text-left border-collapse min-w-[800px]">
+		<div class="table-scroll">
+			<table class="data-table">
 				<thead>
-					<tr
-						class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
-					>
-						<th class="py-3.5 px-4">Name</th>
-						<th class="py-3.5 px-4">Role</th>
-						<th class="py-3.5 px-4">Assigned Teams</th>
-						<th class="py-3.5 px-4">Actions</th>
+					<tr class="table-head-row">
+						<th class="table-head-cell">Name</th>
+						<th class="table-head-cell">Role</th>
+						<th class="table-head-cell">Assigned Teams</th>
+						<th class="table-head-cell">Actions</th>
 					</tr>
 				</thead>
-				<tbody class="text-sm">
+				<tbody class="table-body">
 					{#if isLoading}
 						<tr>
-							<td colspan="4" class="py-16 text-center">
-								<div class="flex flex-col items-center justify-center gap-3">
-									<div
-										class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-(--md-primary)"
-									></div>
-									<span class="text-sm text-(--md-on-surface-variant)"
-										>Loading lecturer data...</span
-									>
+							<td colspan="4" class="state-cell">
+								<div class="state-loading">
+									<div class="spinner spinner--primary"></div>
+									<span class="state-text">Loading lecturer data...</span>
 								</div>
 							</td>
 						</tr>
 					{:else}
 						{#if filteredExperts.length === 0}
 							<tr>
-								<td colspan="4" class="py-16 text-center">
-									<div class="max-w-xs mx-auto space-y-2">
-										<p class="text-3xl">🔍</p>
-										<p class="font-bold text-(--md-on-surface)">No lecturers found</p>
-										<p class="text-xs text-(--md-on-surface-variant)">
-											We couldn't find anyone matching <strong class="text-(--md-primary)"
-												>"{searchQuery}"</strong
-											>.
+								<td colspan="4" class="state-cell">
+									<div class="empty-state">
+										<p class="empty-emoji">🔍</p>
+										<p class="empty-title">No lecturers found</p>
+										<p class="empty-desc">
+											We couldn't find anyone matching
+											<strong class="empty-highlight">"{searchQuery}"</strong>.
 										</p>
 									</div>
 								</td>
 							</tr>
 						{/if}
 					{/if}
-
 					{#each filteredExperts as expert (expert.id)}
-						<tr
-							class="border-b border-(--md-outline-variant)/50 transition-colors hover:bg-(--md-surface-container-highest)/30 text-(--md-on-surface)"
-						>
-							<td class="py-4 px-4 font-bold">{expert.name}</td>
-
-							<td class="py-4 px-4 text-xs font-semibold text-(--md-on-surface-variant)">
-								{expert.role}
-							</td>
-
-							<td class="py-4 px-4 font-semibold text-xs">
+						<tr class="data-row">
+							<td class="cell-name">{expert.name}</td>
+							<td class="cell-role">{expert.role}</td>
+							<td class="cell-teams">
 								{#if expert.assignedTeamsCount > 0}
-									<span
-										class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-none"
-									>
+									<span class="team-badge">
 										{expert.assignedTeamsCount}
 										{expert.assignedTeamsCount === 1 ? "team" : "teams"}
 									</span>
 								{:else}
-									<span class="text-xs italic opacity-50">None</span>
+									<span class="team-none">None</span>
 								{/if}
 							</td>
-
-							<td class="py-4 px-4">
-								<div class="flex gap-2">
-									<button
-										onclick={() => openExpertForm(expert)}
-										class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface) hover:bg-(--md-surface-container-high) shadow-none"
-									>
-										<Edit2 class="w-3.5 h-3.5" /> Edit
+							<td class="cell-actions">
+								<div class="action-group">
+									<button type="button" onclick={() => openExpertForm(expert)} class="btn-action">
+										<Edit2 class="action-icon" /> Edit
 									</button>
-
-									<button
-										onclick={() => openProfile(expert)}
-										class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border border-(--md-outline-variant) bg-(--md-surface-container-low) text-(--md-on-surface) hover:bg-(--md-surface-container-high) shadow-none"
-									>
-										<Eye class="w-3.5 h-3.5" /> View Profile
+									<button type="button" onclick={() => openProfile(expert)} class="btn-action">
+										<Eye class="action-icon" /> View Profile
 									</button>
 								</div>
 							</td>
@@ -391,70 +347,53 @@
 </div>
 
 {#if showExpertModal}
-	<div
-		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 font-sans text-(--md-on-surface)"
-	>
-		<div
-			class="w-full max-w-lg rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) p-8 relative transition-all shadow-none"
-		>
-			<button
-				type="button"
-				onclick={closeExpertForm}
-				class="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors text-(--md-on-surface-variant) cursor-pointer border-0 bg-transparent"
-			>
-				<X class="w-5 h-5" />
+	<div class="modal-overlay">
+		<div class="modal-card">
+			<button type="button" onclick={closeExpertForm} class="modal-close">
+				<X class="modal-close-icon" />
 			</button>
-			<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-				<Shield class="w-5 h-5 text-(--md-primary)" />
+			<h3 class="modal-title">
+				<Shield class="modal-title-icon" />
 				{editingId ? "Edit Lecturer Details" : "Add New Lecturer"}
 			</h3>
-			<form onsubmit={handleSaveExpert} class="flex flex-col gap-4">
-				<div class="space-y-1.5">
-					<label class="text-sm font-semibold text-(--md-on-surface-variant)">Full Name *</label>
+			<form onsubmit={handleSaveExpert} class="modal-form">
+				<div class="form-field">
+					<label class="form-label">Full Name *</label>
 					<input
 						type="text"
 						bind:value={formName}
 						required
 						placeholder="e.g. Dr. John Doe"
-						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-container-low) text-(--md-on-surface) p-3 outline-none transition-all focus:border-(--md-primary)"
+						class="form-input"
 					/>
 				</div>
-				<div class="space-y-1.5">
-					<label class="text-sm font-semibold text-(--md-on-surface-variant)">Email Address *</label
-					>
+				<div class="form-field">
+					<label class="form-label">Email Address *</label>
 					<input
 						type="email"
 						bind:value={formEmail}
 						required
 						placeholder="email@fpt.edu.vn"
-						class="w-full rounded-xl border border-(--md-outline) bg-(--md-surface-container-low) text-(--md-on-surface) p-3 outline-none transition-all focus:border-(--md-primary)"
+						class="form-input"
 					/>
 				</div>
-
 				{#if expertMessage}
 					<div
-						class="p-3 mt-2 rounded-xl text-sm font-bold border {expertMessage.includes(
-							'success'
-						) || expertMessage.includes('created')
-							? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500'
-							: 'bg-rose-500/10 border-rose-500/20 text-rose-500'}"
+						class="form-message"
+						class:form-message--success={expertMessage.includes("success") ||
+							expertMessage.includes("created")}
+						class:form-message--error={!(
+							expertMessage.includes("success") || expertMessage.includes("created")
+						)}
 					>
 						{expertMessage}
 					</div>
 				{/if}
-				<div class="flex gap-3 mt-4 pt-2 border-t border-(--md-outline-variant)">
-					<button
-						type="button"
-						onclick={closeExpertForm}
-						class="w-1/2 rounded-xl border border-(--md-outline) bg-(--md-surface-container-highest) text-(--md-on-surface) py-3 font-bold transition-all cursor-pointer hover:opacity-90 shadow-none"
-						>Cancel</button
-					>
-					<button
-						type="submit"
-						disabled={isExpertLoading}
-						class="w-1/2 bg-(--md-primary) text-(--md-on-primary) rounded-xl py-3 font-bold disabled:opacity-50 transition-all border-0 cursor-pointer hover:opacity-95 shadow-none"
-						>{isExpertLoading ? "Saving..." : "Save"}</button
-					>
+				<div class="modal-footer">
+					<button type="button" onclick={closeExpertForm} class="btn-cancel"> Cancel </button>
+					<button type="submit" disabled={isExpertLoading} class="btn-save">
+						{isExpertLoading ? "Saving..." : "Save"}
+					</button>
 				</div>
 			</form>
 		</div>
@@ -462,58 +401,40 @@
 {/if}
 
 {#if viewingExpert}
-	<div
-		class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 font-sans text-(--md-on-surface)"
-	>
-		<div
-			class="w-full max-w-sm rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-low) relative transition-all shadow-none overflow-hidden"
-		>
-			<div class="h-24 bg-(--md-primary-container) relative">
-				<button
-					type="button"
-					onclick={closeProfile}
-					class="absolute top-4 right-4 p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-white cursor-pointer border-0 z-10"
-					><X class="w-4 h-4" /></button
-				>
+	<div class="modal-overlay">
+		<div class="profile-card">
+			<div class="profile-banner">
+				<button type="button" onclick={closeProfile} class="profile-close">
+					<X class="profile-close-icon" />
+				</button>
 			</div>
-			<div class="px-6 relative flex justify-center -mt-12 mb-4">
-				<div
-					class="w-24 h-24 rounded-full border-4 border-(--md-surface-container-low) bg-(--md-surface-container-high) text-(--md-on-surface) flex items-center justify-center text-3xl font-black shadow-none"
-				>
+			<div class="profile-avatar-wrap">
+				<div class="profile-avatar">
 					{viewingExpert.name.charAt(0).toUpperCase()}
 				</div>
 			</div>
-			<div class="px-6 pb-8 text-center">
-				<h3 class="text-xl font-extrabold text-(--md-on-surface)">
-					{viewingExpert.name}
-				</h3>
+			<div class="profile-content">
+				<h3 class="profile-name">{viewingExpert.name}</h3>
 				<span
-					class="inline-block mt-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider {viewingExpert.role.includes(
-						'Judge'
-					)
-						? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
-						: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
-					>{viewingExpert.role}</span
+					class="profile-role"
+					class:profile-role--judge={viewingExpert.role.includes("Judge")}
+					class:profile-role--standard={!viewingExpert.role.includes("Judge")}
 				>
-
-				<div class="mt-6 space-y-3 text-left">
-					<div
-						class="flex items-center gap-3 p-3 rounded-xl border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface)"
-					>
-						<Mail class="w-4 h-4 text-(--md-on-surface-variant)" />
+					{viewingExpert.role}
+				</span>
+				<div class="profile-info">
+					<div class="info-row">
+						<Mail class="info-icon" />
 						<div>
-							<p class="text-[10px] font-bold uppercase text-(--md-on-surface-variant)">Email</p>
-							<p class="text-sm font-semibold">{viewingExpert.email}</p>
+							<p class="info-label">Email</p>
+							<p class="info-value">{viewingExpert.email}</p>
 						</div>
 					</div>
-
-					<div
-						class="flex items-center gap-3 p-3 rounded-xl border border-(--md-outline-variant) bg-(--md-surface-container-high) text-(--md-on-surface)"
-					>
-						<User class="w-4 h-4 text-(--md-on-surface-variant)" />
+					<div class="info-row">
+						<User class="info-icon" />
 						<div>
-							<p class="text-[10px] font-bold uppercase text-(--md-on-surface-variant)">Teams</p>
-							<p class="text-sm font-semibold">
+							<p class="info-label">Teams</p>
+							<p class="info-value">
 								{viewingExpert.assignedTeams.length > 0
 									? viewingExpert.assignedTeams.join(", ")
 									: "None"}
@@ -525,3 +446,669 @@
 		</div>
 	</div>
 {/if}
+
+<style lang="scss">
+	// ---------- Tokens ----------
+	$sans:
+		ui-sans-serif,
+		system-ui,
+		-apple-system,
+		"Segoe UI",
+		Roboto,
+		Helvetica,
+		Arial,
+		sans-serif;
+
+	// Fixed Tailwind palette referenced directly
+	$emerald-500: #10b981;
+	$blue-500: #3b82f6;
+	$rose-500: #f43f5e;
+
+	// ---------- Page ----------
+	.lecturers-page {
+		max-width: 1600px; // max-w-[1600px]
+		margin-inline: auto; // mx-auto
+		width: 100%; // w-full
+		font-family: $sans; // font-sans
+		color: var(--md-on-surface); // text-(--md-on-surface)
+
+		// ---- Header ----
+		.page-header {
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			align-items: flex-start;
+			margin-bottom: 2rem; // mb-8
+			padding-bottom: 1.5rem; // pb-6
+			border-bottom: 1px solid var(--md-outline-variant);
+
+			@media (min-width: 768px) {
+				flex-direction: row; // md:flex-row
+				align-items: center; // md:items-center
+			}
+		}
+
+		.page-title {
+			font-size: 1.5rem; // text-2xl
+			font-weight: 800; // font-extrabold
+			letter-spacing: -0.025em; // tracking-tight
+			color: var(--md-on-surface);
+
+			@media (min-width: 768px) {
+				font-size: 1.875rem; // md:text-3xl
+			}
+		}
+
+		.page-subtitle {
+			margin-top: 0.25rem; // mt-1
+			font-size: 0.875rem; // text-sm
+			color: var(--md-on-surface-variant);
+		}
+
+		.header-actions {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem; // gap-3
+			margin-top: 1rem; // mt-4
+
+			@media (min-width: 768px) {
+				margin-top: 0; // md:mt-0
+			}
+		}
+
+		.btn-add {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem; // gap-2
+			padding: 0.625rem 1.25rem; // py-2.5 px-5
+			border: none;
+			border-radius: 0.75rem; // rounded-xl
+			background: var(--md-primary);
+			color: var(--md-on-primary);
+			font-size: 0.875rem; // text-sm
+			font-weight: 700; // font-bold
+			cursor: pointer;
+			box-shadow: none; // shadow-none
+			transition: all 0.15s ease;
+
+			&:hover {
+				opacity: 0.9;
+			} // hover:opacity-90
+		}
+
+		.btn-add-icon {
+			width: 1rem; // w-4
+			height: 1rem; // h-4
+		}
+
+		// ---- Panel ----
+		.panel {
+			padding: 2rem; // p-8
+			border: 1px solid var(--md-outline-variant);
+			border-radius: 1.5rem; // rounded-3xl
+			background: var(--md-surface-container-lowest);
+			box-shadow: none;
+			transition: all 0.15s ease;
+		}
+
+		// ---- Toolbar ----
+		.toolbar {
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			align-items: center;
+			gap: 1rem; // gap-4
+			margin-bottom: 1.5rem; // mb-6
+			padding-bottom: 1.5rem; // pb-6
+			border-bottom: 1px solid var(--md-outline-variant);
+
+			@media (min-width: 640px) {
+				flex-direction: row; // sm:flex-row
+			}
+		}
+
+		.search-field {
+			position: relative;
+			width: 100%;
+
+			@media (min-width: 640px) {
+				width: 20rem; // sm:w-80
+			}
+		}
+
+		.search-icon {
+			position: absolute;
+			inset-block: 0; // inset-y-0
+			left: 0;
+			display: flex;
+			align-items: center;
+			padding-left: 0.75rem; // pl-3
+			pointer-events: none;
+			color: var(--md-on-surface-variant);
+		}
+
+		.search-icon-svg {
+			width: 1rem; // w-4
+			height: 1rem; // h-4
+		}
+
+		.search-input {
+			width: 100%;
+			padding: 0.625rem 1rem 0.625rem 2.5rem; // py-2.5 pr-4 pl-10
+			border: 1px solid var(--md-outline);
+			border-radius: 0.75rem; // rounded-xl
+			background: var(--md-surface-container-low);
+			color: var(--md-on-surface);
+			font-size: 0.875rem; // text-sm
+			outline: none;
+			box-shadow: none;
+			transition: all 0.15s ease;
+
+			&::placeholder {
+				// placeholder-(--md-on-surface-variant)/60
+				color: color-mix(in srgb, var(--md-on-surface-variant) 60%, transparent);
+			}
+
+			&:focus {
+				box-shadow: 0 0 0 2px var(--md-primary); // focus:ring-2 focus:ring-
+			}
+		}
+
+		.search-clear {
+			position: absolute;
+			right: 0.75rem; // right-3
+			top: 50%;
+			transform: translateY(-50%); // top-1/2 -translate-y-1/2
+			padding: 0.25rem; // p-1
+			border: none;
+			border-radius: 0.375rem; // rounded-md
+			background: transparent;
+			font-size: 0.75rem; // text-xs
+			font-weight: 700; // font-bold
+			color: var(--md-on-surface-variant);
+			cursor: pointer;
+
+			&:hover {
+				color: var(--md-on-surface);
+			}
+		}
+
+		.result-count {
+			font-size: 0.75rem; // text-xs
+			font-weight: 600; // font-semibold
+			color: var(--md-on-surface-variant);
+		}
+
+		.count-highlight {
+			color: var(--md-primary);
+			font-weight: 900; // font-black
+		}
+
+		// ---- Table ----
+		.table-scroll {
+			overflow-x: auto;
+		}
+
+		.data-table {
+			width: 100%; // w-full
+			min-width: 800px; // min-w-[800px]
+			text-align: left;
+			border-collapse: collapse;
+		}
+
+		.table-head-row {
+			border-bottom: 1px solid var(--md-outline-variant);
+			color: var(--md-on-surface-variant);
+			font-size: 0.75rem; // text-xs
+			font-weight: 700; // font-bold
+			text-transform: uppercase;
+			letter-spacing: 0.05em; // tracking-wider
+		}
+
+		.table-head-cell {
+			padding: 0.875rem 1rem; // py-3.5 px-4
+		}
+
+		.table-body {
+			font-size: 0.875rem;
+		} // text-sm
+
+		.state-cell {
+			padding-block: 4rem; // py-16
+			text-align: center;
+		}
+
+		.state-loading {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 0.75rem; // gap-3
+		}
+
+		.spinner {
+			border-radius: 9999px;
+			border: 2px solid transparent;
+			animation: spin 1s linear infinite;
+
+			&--primary {
+				width: 2.5rem; // h-10
+				height: 2.5rem; // w-10
+				border-top-color: var(--md-primary);
+				border-bottom-color: var(--md-primary);
+			}
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		.state-text {
+			font-size: 0.875rem;
+			color: var(--md-on-surface-variant);
+		}
+
+		.empty-state {
+			display: flex;
+			flex-direction: column;
+			max-width: 20rem; // max-w-xs
+			margin-inline: auto; // mx-auto
+			gap: 0.5rem; // space-y-2
+		}
+
+		.empty-emoji {
+			font-size: 1.875rem;
+		} // text-3xl
+		.empty-title {
+			font-weight: 700;
+			color: var(--md-on-surface);
+		}
+		.empty-desc {
+			font-size: 0.75rem;
+			color: var(--md-on-surface-variant);
+		}
+		.empty-highlight {
+			color: var(--md-primary);
+		}
+
+		.data-row {
+			// border-(--md-outline-variant)/50
+			border-bottom: 1px solid color-mix(in srgb, var(--md-outline-variant) 50%, transparent);
+			color: var(--md-on-surface);
+			transition: background-color 0.15s ease; // transition-colors
+
+			&:hover {
+				// hover:bg-(--md-surface-container-highest)/30
+				background: color-mix(in srgb, var(--md-surface-container-highest) 30%, transparent);
+			}
+		}
+
+		.cell-name {
+			padding: 1rem; // py-4 px-4
+			font-weight: 700; // font-bold
+		}
+		.cell-role {
+			padding: 1rem;
+			font-size: 0.75rem; // text-xs
+			font-weight: 600; // font-semibold
+			color: var(--md-on-surface-variant);
+		}
+		.cell-teams {
+			padding: 1rem;
+			font-weight: 600;
+			font-size: 0.75rem;
+		}
+
+		.team-badge {
+			display: inline-block;
+			padding: 0.25rem 0.625rem; // py-1 px-2.5
+			border-radius: 9999px; // rounded-full
+			font-size: 0.75rem;
+			font-weight: 600;
+			background: rgba($emerald-500, 0.1); // bg-emerald-500/10
+			color: $emerald-500; // text-emerald-500
+			border: 1px solid rgba($emerald-500, 0.2); // border-emerald-500/20
+			box-shadow: none;
+		}
+
+		.team-none {
+			font-size: 0.75rem;
+			font-style: italic;
+			opacity: 0.5; // opacity-50
+		}
+
+		.cell-actions {
+			padding: 1rem;
+		}
+
+		.action-group {
+			display: flex;
+			gap: 0.5rem; // gap-2
+		}
+
+		.btn-action {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.375rem; // gap-1.5
+			padding: 0.375rem 0.75rem; // py-1.5 px-3
+			border: 1px solid var(--md-outline-variant);
+			border-radius: 0.5rem; // rounded-lg
+			background: var(--md-surface-container-low);
+			color: var(--md-on-surface);
+			font-size: 0.75rem;
+			font-weight: 700;
+			cursor: pointer;
+			box-shadow: none;
+			transition: all 0.15s ease;
+
+			&:hover {
+				background: var(--md-surface-container-high);
+			}
+		}
+
+		.action-icon {
+			width: 0.875rem; // w-3.5
+			height: 0.875rem; // h-3.5
+		}
+	}
+
+	// ---------- Modals (siblings of .lecturers-page) ----------
+	.modal-overlay {
+		position: fixed;
+		inset: 0; // inset-0
+		z-index: 2000; // z-[2000]
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem; // p-4
+		font-family: $sans;
+		color: var(--md-on-surface);
+		background: rgba(0, 0, 0, 0.4); // bg-black/40
+		backdrop-filter: blur(2px); // backdrop-blur-[2px]
+	}
+
+	.modal-card {
+		width: 100%;
+		max-width: 32rem; // max-w-lg
+		padding: 2rem; // p-8
+		position: relative;
+		border: 1px solid var(--md-outline-variant);
+		border-radius: 1.5rem; // rounded-3xl
+		background: var(--md-surface-container-low);
+		box-shadow: none;
+		transition: all 0.15s ease;
+	}
+
+	.modal-close {
+		position: absolute;
+		top: 1rem; // top-4
+		right: 1rem; // right-4
+		padding: 0.375rem; // p-1.5
+		border: none;
+		border-radius: 0.5rem; // rounded-lg
+		background: transparent;
+		color: var(--md-on-surface-variant);
+		cursor: pointer;
+		transition: color 0.15s ease; // transition-colors
+
+		&:hover {
+			background: var(--md-surface-container-high);
+		}
+	}
+
+	.modal-close-icon {
+		width: 1.25rem; // w-5
+		height: 1.25rem; // h-5
+	}
+
+	.modal-title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem; // gap-2
+		margin-bottom: 1.5rem; // mb-6
+		font-size: 1.25rem; // text-xl
+		font-weight: 700; // font-bold
+	}
+
+	.modal-title-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+		color: var(--md-primary);
+	}
+
+	.modal-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem; // gap-4
+	}
+
+	.form-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem; // space-y-1.5
+	}
+
+	.form-label {
+		font-size: 0.875rem; // text-sm
+		font-weight: 600; // font-semibold
+		color: var(--md-on-surface-variant);
+	}
+
+	.form-input {
+		padding: 0.75rem; // p-3
+		border: 1px solid var(--md-outline);
+		border-radius: 0.75rem; // rounded-xl
+		background: var(--md-surface-container-low);
+		color: var(--md-on-surface);
+		outline: none;
+		transition: all 0.15s ease;
+
+		&:focus {
+			border-color: var(--md-primary);
+		} // focus:border-
+	}
+
+	.form-message {
+		padding: 0.75rem; // p-3
+		margin-top: 0.5rem; // mt-2
+		border: 1px solid;
+		border-radius: 0.75rem; // rounded-xl
+		font-size: 0.875rem;
+		font-weight: 700; // font-bold
+
+		&--success {
+			background: rgba($emerald-500, 0.1);
+			border-color: rgba($emerald-500, 0.2);
+			color: $emerald-500;
+		}
+		&--error {
+			background: rgba($rose-500, 0.1);
+			border-color: rgba($rose-500, 0.2);
+			color: $rose-500;
+		}
+	}
+
+	.modal-footer {
+		display: flex;
+		gap: 0.75rem; // gap-3
+		margin-top: 1rem; // mt-4
+		padding-top: 0.5rem; // pt-2
+		border-top: 1px solid var(--md-outline-variant);
+	}
+
+	.btn-cancel {
+		width: 50%; // w-1/2
+		padding-block: 0.75rem; // py-3
+		border: 1px solid var(--md-outline);
+		border-radius: 0.75rem; // rounded-xl
+		background: var(--md-surface-container-highest);
+		color: var(--md-on-surface);
+		font-weight: 700;
+		cursor: pointer;
+		box-shadow: none;
+		transition: all 0.15s ease;
+
+		&:hover {
+			opacity: 0.9;
+		} // hover:opacity-90
+	}
+
+	.btn-save {
+		width: 50%; // w-1/2
+		padding-block: 0.75rem;
+		border: none;
+		border-radius: 0.75rem;
+		background: var(--md-primary);
+		color: var(--md-on-primary);
+		font-weight: 700;
+		cursor: pointer;
+		box-shadow: none;
+		transition: all 0.15s ease;
+
+		&:hover {
+			opacity: 0.95;
+		} // hover:opacity-95
+		&:disabled {
+			opacity: 0.5; // disabled:opacity-50
+			cursor: not-allowed;
+		}
+	}
+
+	// ---------- Profile modal ----------
+	.profile-card {
+		width: 100%;
+		max-width: 24rem; // max-w-sm
+		position: relative;
+		border: 1px solid var(--md-outline-variant);
+		border-radius: 1.5rem; // rounded-3xl
+		background: var(--md-surface-container-low);
+		box-shadow: none;
+		transition: all 0.15s ease;
+		overflow: hidden; // overflow-hidden
+	}
+
+	.profile-banner {
+		height: 6rem; // h-24
+		position: relative;
+		background: var(--md-primary-container);
+	}
+
+	.profile-close {
+		position: absolute;
+		top: 1rem; // top-4
+		right: 1rem; // right-4
+		padding: 0.375rem; // p-1.5
+		border: none;
+		border-radius: 9999px; // rounded-full
+		background: rgba(0, 0, 0, 0.2); // bg-black/20
+		color: #ffffff;
+		cursor: pointer;
+		z-index: 10; // z-10
+
+		&:hover {
+			background: rgba(0, 0, 0, 0.4);
+		} // hover:bg-black/40
+	}
+
+	.profile-close-icon {
+		width: 1rem; // w-4
+		height: 1rem; // h-4
+	}
+
+	.profile-avatar-wrap {
+		position: relative;
+		display: flex;
+		justify-content: center;
+		padding-inline: 1.5rem; // px-6
+		margin-top: -3rem; // -mt-12
+		margin-bottom: 1rem; // mb-4
+	}
+
+	.profile-avatar {
+		width: 6rem; // w-24
+		height: 6rem; // h-24
+		border-radius: 9999px; // rounded-full
+		border: 4px solid var(--md-surface-container-low);
+		background: var(--md-surface-container-high);
+		color: var(--md-on-surface);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1.875rem; // text-3xl
+		font-weight: 900; // font-black
+		box-shadow: none;
+	}
+
+	.profile-content {
+		padding: 0 1.5rem 2rem; // px-6 pb-8
+		text-align: center;
+	}
+
+	.profile-name {
+		font-size: 1.25rem; // text-xl
+		font-weight: 800; // font-extrabold
+		color: var(--md-on-surface);
+	}
+
+	.profile-role {
+		display: inline-block;
+		margin-top: 0.375rem; // mt-1.5
+		padding: 0.25rem 0.75rem; // py-1 px-3
+		border: 1px solid;
+		border-radius: 9999px; // rounded-full
+		font-size: 0.75rem;
+		font-weight: 700; // font-bold
+		text-transform: uppercase;
+		letter-spacing: 0.05em; // tracking-wider
+
+		&--judge {
+			background: rgba($blue-500, 0.1);
+			border-color: rgba($blue-500, 0.2);
+			color: $blue-500;
+		}
+		&--standard {
+			background: rgba($emerald-500, 0.1);
+			border-color: rgba($emerald-500, 0.2);
+			color: $emerald-500;
+		}
+	}
+
+	.profile-info {
+		margin-top: 1.5rem; // mt-6
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem; // space-y-3
+		text-align: left;
+	}
+
+	.info-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem; // gap-3
+		padding: 0.75rem; // p-3
+		border: 1px solid var(--md-outline-variant);
+		border-radius: 0.75rem; // rounded-xl
+		background: var(--md-surface-container-high);
+		color: var(--md-on-surface);
+	}
+
+	.info-icon {
+		width: 1rem; // w-4
+		height: 1rem; // h-4
+		color: var(--md-on-surface-variant);
+	}
+
+	.info-label {
+		font-size: 10px; // text-[10px]
+		font-weight: 700; // font-bold
+		text-transform: uppercase;
+		color: var(--md-on-surface-variant);
+	}
+
+	.info-value {
+		font-size: 0.875rem; // text-sm
+		font-weight: 600; // font-semibold
+	}
+</style>

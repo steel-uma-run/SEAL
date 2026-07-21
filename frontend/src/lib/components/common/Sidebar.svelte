@@ -27,6 +27,8 @@
 
 		<NavigationRailItem label="Users" icon={iconPerson} href="/coordinator/users" />
 
+		<NavigationRailItem label="Lecturers" icon={iconPerson} href="/coordinator/experts" />
+
 		<NavigationRailItem label="Criteria" icon={iconRubric} href="/coordinator/templates" />
 	{:else if role == "STUDENT"}
 		<NavigationRailItem label="Dashboard" icon={iconHome} href="/student" />
