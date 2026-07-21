@@ -132,7 +132,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     User actor = userRepo.findByEmail(auth.getName()).get();
 
     if (actor.getRole() == Role.STUDENT) {
-      // does this actor belong to the team they want to view?
+      // Does this actor belong to the team they want to view?
       Student student = studentRepo.findById(actor.getId()).get();
       if (!student.getTeams().contains(targetTeam)) {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't belong to this team.");
@@ -155,7 +155,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       }
 
       if (targetTeam.getTrack().getMentors().contains(lecturer)) {
-        // actor is a mentor assigned to the same track as the team, return submissions
+        // Actor is a mentor assigned to the same track as the team, return submissions
         return submissionRepo.findAllBySubmitterTeamId(teamId).stream()
             .map(Submission::toDto)
             .toList();
@@ -189,7 +189,7 @@ public class SubmissionServiceImpl implements SubmissionService {
           "Can only grade submissions belonging to teams on the same track as the lecturer.");
     }
 
-    // block overwriting
+    // Block overwriting
     List<Score> existingScores =
         submission.getScores().stream()
             .filter(s -> s.getLecturer().getId().equals(actor.getId()))
@@ -321,7 +321,7 @@ public class SubmissionServiceImpl implements SubmissionService {
   }
 
   private void checkScoreDeviation(Submission submission) {
-    // Remove any unprocessed  alerts before rescanning to avoid data duplication.
+    // Remove any unprocessed alerts before rescanning to avoid data duplication.
     List<ScoreDeviationNotif> oldDeviations =
         notifRepo.findBySubmissionId(submission.getId()).stream()
             .filter(n -> !n.isResolved())
