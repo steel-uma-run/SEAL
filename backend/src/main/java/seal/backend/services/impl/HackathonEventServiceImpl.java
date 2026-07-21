@@ -1,6 +1,7 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -113,9 +114,10 @@ public class HackathonEventServiceImpl implements HackathonEventService {
           HttpStatus.FORBIDDEN, "Only active students are allowed to register for events.");
     }
 
-    if (!event.isOpenForRegistration()) {
+    OffsetDateTime now = OffsetDateTime.now();
+    if (now.isBefore(event.getStartTime()) || now.isAfter(event.getEndTime())) {
       throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "This event is not opened for registration.");
+          HttpStatus.FORBIDDEN, "It is outside of registration timeframe.");
     }
 
     boolean changed = student.getEvents().add(event);
@@ -137,40 +139,6 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     }
 
     event.setStatus(EventStatus.FINALIZED);
-    hackathonEventRepository.save(event);
-  }
-
-  @Override
-  public void openRegistration(UUID eventId) {
-    HackathonEvent event =
-        hackathonEventRepository
-            .findById(eventId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
-
-    if (event.getStatus() != EventStatus.FINALIZED) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Event must be finalized to open registration");
-    }
-
-    event.setOpenForRegistration(true);
-    hackathonEventRepository.save(event);
-  }
-
-  @Override
-  public void closeRegistration(UUID eventId) {
-    HackathonEvent event =
-        hackathonEventRepository
-            .findById(eventId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
-
-    if (event.getStatus() != EventStatus.FINALIZED) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Event must be finalized to close registration");
-    }
-
-    event.setOpenForRegistration(false);
     hackathonEventRepository.save(event);
   }
 

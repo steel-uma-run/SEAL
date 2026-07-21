@@ -8,8 +8,7 @@
     "status",
     "start_time",
     "end_time",
-    "season_id",
-    "open_for_registration"
+    "season_id"
   ],
   "properties": {
     "id": {
@@ -37,10 +36,6 @@
     "season_id": {
       "type": "string",
       "format": "uuid"
-    },
-    "open_for_registration": {
-      "type": "boolean",
-      "default": false
     }
   }
 }
