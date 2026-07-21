@@ -8,7 +8,6 @@
 		getInterestedParticipants,
 		getRounds
 	} from "$lib/api"
-	import { theme } from "$lib/theme.svelte"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 	import DashboardUI from "$lib/components/student/DashboardUI.svelte"
 	import ActiveSeasonEvents from "$lib/components/student/ActiveSeasonEvents.svelte"

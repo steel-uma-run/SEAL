@@ -5,30 +5,11 @@
 	import { goto } from "$app/navigation"
 	import { zod4Client } from "sveltekit-superforms/adapters"
 	import { zLoginRequestPayload } from "$lib/api/zod.gen"
-	import { auth } from "$lib/auth.svelte"
+	import { auth, token } from "$lib/auth.svelte"
 	import type { LoginError } from "$lib/api/types.gen"
 
 	let errorMessage: string | undefined = $state(undefined)
 	let debounce = $state(false)
-
-	if (auth.value !== undefined) {
-		switch (auth.value.role) {
-			case "STUDENT": {
-				goto("/student")
-				break
-			}
-
-			case "COORDINATOR": {
-				goto("/coordinator")
-				break
-			}
-
-			case "LECTURER": {
-				goto("/lecturer")
-				break
-			}
-		}
-	}
 
 	let { data } = $props()
 	const { form, enhance, constraints, errors } = superForm(data.form, {
@@ -51,6 +32,7 @@
 					throw (resp.data as unknown as LoginError).detail
 				}
 
+				token.value = resp.data.token
 				auth.value = resp.data.user
 
 				switch (resp.data.user.role) {
