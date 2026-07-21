@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 import seal.backend.entities.AuditLog;
 import seal.backend.entities.Coordinator;
 import seal.backend.entities.Student;
+import seal.openapi.model.AccountBannedLogDto;
 
 @Entity
 @SuperBuilder
@@ -32,4 +33,10 @@ public class AccountBannedLog extends AuditLog {
   @Column(columnDefinition = "TEXT", nullable = false)
   @Nonnull
   private String banReason;
+
+  @Override
+  public AccountBannedLogDto toDto() {
+    return new AccountBannedLogDto(
+        getId(), getActionTime(), getActor().getEmail(), getBanTarget().getEmail(), getBanReason());
+  }
 }

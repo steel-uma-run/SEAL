@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 import seal.backend.entities.AuditLog;
 import seal.backend.entities.Submission;
 import seal.backend.entities.User;
+import seal.openapi.model.GradingLogDto;
 
 @Entity
 @SuperBuilder
@@ -34,4 +35,15 @@ public class GradingLog extends AuditLog {
 
   @Column(columnDefinition = "TEXT")
   private String details;
+
+  @Override
+  public GradingLogDto toDto() {
+    return new GradingLogDto(
+        getId(),
+        getActionTime(),
+        getActor().getEmail(),
+        getSubmission().getId(),
+        getAction(),
+        getDetails());
+  }
 }

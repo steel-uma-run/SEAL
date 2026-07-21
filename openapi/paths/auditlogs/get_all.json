@@ -1,6 +1,6 @@
 {
   "get": {
-    "tags": ["Audit Logs"],
+    "tags": ["audit"],
     "summary": "Get all audit logs",
     "operationId": "getAllAuditLogs",
     "security": [
@@ -16,17 +16,27 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "../../components/schemas/AuditLogDto.json"
+                "oneOf": [
+                  {
+                    "$ref": "../../components/schemas/AccountApprovedLogDto.json"
+                  },
+                  {
+                    "$ref": "../../components/schemas/AccountBannedLogDto.json"
+                  },
+                  {
+                    "$ref": "../../components/schemas/SubmissionLogDto.json"
+                  },
+                  {
+                    "$ref": "../../components/schemas/GradingLogDto.json"
+                  }
+                ]
               }
             }
           }
         }
       },
-      "401": {
-        "description": "Unauthorized"
-      },
-      "403": {
-        "description": "Forbidden - Only Coordinator can access this resource"
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
       }
     }
   }

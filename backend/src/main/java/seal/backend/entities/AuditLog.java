@@ -27,4 +27,6 @@ public abstract class AuditLog {
   @Column(name = "action_time", nullable = false)
   @Nonnull
   private OffsetDateTime actionTime;
+
+  public abstract Object toDto();
 }
