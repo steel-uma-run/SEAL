@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 import seal.backend.entities.AuditLog;
 import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
+import seal.openapi.model.SubmissionLogDto;
 
 @Entity
 @SuperBuilder
@@ -26,4 +27,10 @@ public class SubmissionLog extends AuditLog {
   @JoinColumn(name = "submission_id", nullable = false)
   @Nonnull
   private Submission submission;
+
+  @Override
+  public SubmissionLogDto toDto() {
+    return new SubmissionLogDto(
+        getId(), getActionTime(), getActor().getEmail(), getSubmission().getId());
+  }
 }

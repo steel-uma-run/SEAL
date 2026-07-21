@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "required": ["id", "action_time", "actor_email", "approved_student_email"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "action_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "approved_student_email": {
+      "type": "string"
+    }
+  }
+}

@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 import seal.backend.entities.AuditLog;
 import seal.backend.entities.Coordinator;
 import seal.backend.entities.Student;
+import seal.openapi.model.AccountApprovedLogDto;
 
 @Entity
 @SuperBuilder
@@ -27,4 +28,10 @@ public class AccountApprovedLog extends AuditLog {
   @JoinColumn(name = "approved_student_id", nullable = false)
   @Nonnull
   private Student approvedStudent;
+
+  @Override
+  public AccountApprovedLogDto toDto() {
+    return new AccountApprovedLogDto(
+        getId(), getActionTime(), getActor().getEmail(), getApprovedStudent().getEmail());
+  }
 }
