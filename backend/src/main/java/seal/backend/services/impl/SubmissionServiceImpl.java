@@ -1,6 +1,7 @@
 package seal.backend.services.impl;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,6 @@ import seal.backend.entities.Round;
 import seal.backend.entities.Score;
 import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
-import seal.backend.entities.SubmissionAvgScore;
 import seal.backend.entities.Team;
 import seal.backend.entities.User;
 import seal.backend.entities.notification.RegradeNotif;
@@ -34,7 +34,6 @@ import seal.backend.repositories.RegradeNotifRepository;
 import seal.backend.repositories.ScoreDeviationNotifRepository;
 import seal.backend.repositories.ScoreRepository;
 import seal.backend.repositories.StudentRepository;
-import seal.backend.repositories.SubmissionAvgScoreRepository;
 import seal.backend.repositories.SubmissionRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.UserRepository;
@@ -57,7 +56,6 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final ScoreRepository scoreRepo;
   private final ScoreDeviationNotifRepository notifRepo;
   private final RegradeNotifRepository regradeNotifRepo;
-  private final SubmissionAvgScoreRepository avgScoreRepo;
   private final AuditLogRepository auditLogRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
@@ -171,32 +169,6 @@ public class SubmissionServiceImpl implements SubmissionService {
         HttpStatus.FORBIDDEN, "You are not allowed to view teams' submissions.");
   }
 
-  private void recalcAvgScoresForSubmission(Submission submission) {
-    // simplest approach: rebuild everything
-    avgScoreRepo.deleteBySubmissionId(submission.getId());
-
-    // group scores by judge (Lecturer)
-    Map<Lecturer, List<Score>> byJudge =
-        submission.getScores().stream().collect(Collectors.groupingBy(Score::getLecturer));
-
-    for (var entry : byJudge.entrySet()) {
-      Lecturer judge = entry.getKey();
-      List<Score> judgeScores = entry.getValue();
-
-      double total =
-          judgeScores.stream()
-              .mapToDouble(s -> s.getValue() * s.getCriteria().getWeight() / 100.0)
-              .sum();
-
-      SubmissionAvgScore avg = new SubmissionAvgScore();
-      avg.setSubmission(submission);
-      avg.setLecturer(judge);
-      avg.setAvgScore(total);
-
-      avgScoreRepo.save(avg);
-    }
-  }
-
   @Transactional
   @Override
   public void gradeSubmission(UUID submissionId, GradeSubmissionRequestArrayItemDto[] scores) {
@@ -233,19 +205,18 @@ public class SubmissionServiceImpl implements SubmissionService {
               + " to correct your score.");
     }
 
+    List<Score> newScores = new ArrayList<>();
+
     for (GradeSubmissionRequestArrayItemDto dto : scores) {
-      // Constraint: score must be between 0-100
-      if (dto.value() < 0 | dto.value() > 100) {
+      if (dto.value() < 0 || dto.value() > 10) {
         throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "Score must be between 0 and 100.");
+            HttpStatus.BAD_REQUEST, "Score must be between 0 and 10.");
       }
 
-      // Constraint: if score is below average, require a comment
-      if (dto.value() < 50 && dto.comment() == null) {
+      if (dto.value() < 5 && dto.comment() == null) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required.");
       }
 
-      // Make sure the criteria actually is a criteria for the round
       Criteria criteria =
           submission.getRound().getCriteria().stream()
               .filter(pred -> pred.getId().equals(dto.criteriaId()))
@@ -259,11 +230,13 @@ public class SubmissionServiceImpl implements SubmissionService {
       givenScore.setComment(dto.comment());
       submission.getScores().add(givenScore);
 
-      scoreRepo.save(givenScore);
-      submissionRepo.save(submission);
-      checkScoreDeviation(submission);
+      newScores.add(givenScore);
     }
-    recalcAvgScoresForSubmission(submission);
+
+    // ĐẨY TOÀN BỘ LOGIC LƯU VÀ CHECK ĐỘ LỆCH RA NGOÀI VÒNG LẶP
+    scoreRepo.saveAll(newScores); // Lưu một lần toàn bộ điểm của giám khảo
+    submissionRepo.save(submission);
+    checkScoreDeviation(submission);
   }
 
   @Override

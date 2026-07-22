@@ -19,7 +19,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import seal.openapi.model.ScoreDto;
-import seal.openapi.model.SubmissionAvgScoreDto;
 import seal.openapi.model.SubmissionDto;
 
 @Entity
@@ -69,10 +68,19 @@ public class Submission {
   @OneToMany(mappedBy = "submission", fetch = FetchType.LAZY)
   private List<Score> scores = new ArrayList<>();
 
-  @OneToMany(mappedBy = "submission", fetch = FetchType.LAZY)
-  private List<SubmissionAvgScore> avgScores = new ArrayList<>();
+  public Double calculateTotalScore() {
+    if (scores == null || scores.isEmpty()) {
+      return null;
+    }
+
+    return scores.stream()
+        .mapToDouble(s -> (s.getValue() * s.getCriteria().getWeight()) / 10.0)
+        .sum();
+  }
 
   public SubmissionDto toDto() {
+    Double calculatedTotal = calculateTotalScore();
+
     return new SubmissionDto(
         getId(),
         getTitle(),
@@ -82,6 +90,6 @@ public class Submission {
         getSlideLink(),
         getSubmitTime(),
         scores.stream().map(Score::toDto).toArray(ScoreDto[]::new),
-        avgScores.stream().map(SubmissionAvgScore::toDto).toArray(SubmissionAvgScoreDto[]::new));
+        calculatedTotal != null ? calculatedTotal.floatValue() : null);
   }
 }

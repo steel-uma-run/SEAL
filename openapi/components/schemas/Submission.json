@@ -40,11 +40,9 @@
         "$ref": "./Score.json"
       }
     },
-    "avgScores": {
-      "type": "array",
-      "items": {
-        "$ref": "./SubmissionAvgScore.json"
-      }
+    "total_score": {
+      "type": "number",
+      "format": "float"
     }
   }
 }
