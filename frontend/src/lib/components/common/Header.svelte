@@ -4,6 +4,15 @@
 
 	import iconDarkMode from "@ktibow/iconset-material-symbols/dark-mode"
 	import iconLightMode from "@ktibow/iconset-material-symbols/light-mode"
+	import { auth, token } from "$lib/auth.svelte"
+	import { goto } from "$app/navigation"
+
+	function logout() {
+		auth.value = undefined
+		token.value = undefined
+
+		goto("/auth/login")
+	}
 </script>
 
 <header>
@@ -14,7 +23,11 @@
 		</a>
 	</div>
 
-	<div>
+	<div class="buttons">
+		{#if auth.value !== undefined}
+			<Button variant="outlined" onclick={logout}>Logout</Button>
+		{/if}
+
 		<Button variant="tonal" onclick={() => (theme.darkMode = !theme.darkMode)}>
 			<Icon icon={theme.darkMode ? iconDarkMode : iconLightMode} />
 		</Button>
@@ -38,6 +51,11 @@
 
 		background-color: var(--md-sys-color-surface-container);
 		border-bottom: 1px solid var(--md-sys-color-outline-variant);
+	}
+
+	.buttons {
+		display: flex;
+		gap: 0.5rem;
 	}
 
 	.logo {
