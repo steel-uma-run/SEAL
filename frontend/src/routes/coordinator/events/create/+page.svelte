@@ -12,6 +12,7 @@
 	import {
 		createEvent,
 		createSeason,
+		getAllSeasons,
 		type CreateEventError,
 		type CreateSeasonError,
 		type Season
@@ -52,24 +53,38 @@
 				errors.endTime = errors.startTime
 				return
 			}
-			if (name.length <= 0) {
+			if (name.trim().length <= 0) {
 				errors.eventName = "Event name cannot be empty"
+				return
 			}
 
-			const seasonResp = await createSeason({
-				body: {
-					year: parseInt(year),
-					semester: semester!
-				}
-			})
+			let seasonId: string | undefined
 
-			if (!seasonResp.response.ok) {
-				throw (seasonResp.data as unknown as CreateSeasonError).detail
+			// Try to find if season already exists
+			const seasonsResp = await getAllSeasons({ throwOnError: false })
+			if (seasonsResp.response?.ok && seasonsResp.data) {
+				const existingSeason = seasonsResp.data.find(
+					(s) => s.semester === semester && s.year === parseInt(year)
+				)
+				if (existingSeason) {
+					seasonId = existingSeason.id
+				}
+			}
+
+			// If not found, create new season
+			if (!seasonId) {
+				const seasonResp = await createSeason({
+					body: {
+						year: parseInt(year),
+						semester: semester!
+					}
+				})
+				seasonId = seasonResp.data.id
 			}
 
 			const eventResp = await createEvent({
 				body: {
-					season_id: seasonResp.data.id,
+					season_id: seasonId!,
 					name: name,
 					description: description,
 					start_time: registrationStartTime.toISOString(),
@@ -78,13 +93,10 @@
 				}
 			})
 
-			if (!eventResp.response.ok) {
-				throw (eventResp.data as unknown as CreateEventError).detail
-			}
-
 			goto(`/events/${eventResp.data.id}`)
-		} catch (err) {
-			errors.generic = err as string
+		} catch (err: any) {
+			errors.generic =
+				err?.detail || err?.message || JSON.stringify(err) || "An unknown error occurred"
 		}
 	}
 </script>
