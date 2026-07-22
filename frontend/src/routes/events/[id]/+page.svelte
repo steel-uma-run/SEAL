@@ -95,7 +95,7 @@
 						<hr style="color: var(--md-sys-color-outline-variant)" />
 
 						<div class="prize">
-							{#each event.price.split("\n") as line}
+							{#each (event.price || "").split("\n") as line}
 								<p>{line}</p>
 							{/each}
 						</div>
