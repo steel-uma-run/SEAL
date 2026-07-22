@@ -23,6 +23,7 @@ import seal.backend.entities.Score;
 import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
+import seal.backend.entities.Track;
 import seal.backend.entities.User;
 import seal.backend.entities.notification.RegradeNotif;
 import seal.backend.entities.notification.ScoreDeviationNotif;
@@ -117,6 +118,47 @@ public class SubmissionServiceImpl implements SubmissionService {
             activeRound);
 
     submissionRepo.save(submission);
+  }
+
+  @Override
+  @Transactional
+  public SubmissionDto getSubmissionById(UUID submissionId) {
+    Submission submission =
+        submissionRepo
+            .findById(submissionId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission doesn't exist."));
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    User actor = userRepo.findByEmail(auth.getName()).get();
+
+    if (actor.getRole() == Role.STUDENT) {
+      Student student = studentRepo.findById(actor.getId()).get();
+      if (!student.getTeams().contains(submission.getSubmitterTeam())) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't belong to this team.");
+      }
+    } else if (actor.getRole() == Role.LECTURER) {
+      Lecturer lecturer = lecturerRepo.findByEmail(actor.getEmail()).get();
+      Track track = submission.getSubmitterTeam().getTrack();
+
+      if (track != null
+          && !lecturer.getJudgedTracks().contains(track)
+          && !track.getMentors().contains(lecturer)) {
+        throw new ResponseStatusException(
+            HttpStatus.FORBIDDEN, "You are not assigned to view this team's submissions.");
+      }
+    }
+
+    return submission.toDto();
+  }
+
+  @Override
+  @Transactional
+  public List<SubmissionDto> getSubmissionsByEventId(UUID eventId) {
+    return submissionRepo.findAllBySubmitterTeamHackathonEventId(eventId).stream()
+        .map(Submission::toDto)
+        .toList();
   }
 
   @Override
@@ -246,8 +288,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       newScores.add(givenScore);
     }
 
-    // ĐẨY TOÀN BỘ LOGIC LƯU VÀ CHECK ĐỘ LỆCH RA NGOÀI VÒNG LẶP
-    scoreRepo.saveAll(newScores); // Lưu một lần toàn bộ điểm của giám khảo
+    scoreRepo.saveAll(newScores);
     submissionRepo.save(submission);
     checkScoreDeviation(submission);
   }
