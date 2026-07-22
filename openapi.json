@@ -82,6 +82,9 @@
     "/events/{eventId}/rounds": {
       "$ref": "./openapi/paths/events/create_round.json"
     },
+    "/events/{eventId}/submissions": {
+      "$ref": "./openapi/paths/events/get_submissions.json"
+    },
 
     "/tracks/{trackId}": {
       "$ref": "./openapi/paths/tracks/id_index.json"
@@ -115,14 +118,15 @@
       "$ref": "./openapi/paths/criteria/index.json"
     },
 
+    "/submission/{submissionId}": {
+      "$ref": "./openapi/paths/submission/get_submission.json"
+    },
     "/submission/{submissionId}/grade": {
       "$ref": "./openapi/paths/submission/grade.json"
     },
-
     "/submission/{submissionId}/deviations": {
       "$ref": "./openapi/paths/submission/get_deviations.json"
     },
-
     "/submission/{submissionId}/request-regrade": {
       "$ref": "./openapi/paths/submission/request_regrade.json"
     },

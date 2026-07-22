@@ -1,0 +1,40 @@
+{
+  "get": {
+    "tags": [
+      "events",
+      "submissions"
+    ],
+    "summary": "Get all submissions for a specific event",
+    "operationId": "get_submissions_by_event",
+    "parameters": [
+      {
+        "name": "eventId",
+        "in": "path",
+        "required": true,
+        "description": "UUID of the Hackathon Event",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successfully retrieved list of submissions",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/Submission.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
