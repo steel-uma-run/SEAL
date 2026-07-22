@@ -68,7 +68,19 @@ public class Submission {
   @OneToMany(mappedBy = "submission", fetch = FetchType.LAZY)
   private List<Score> scores = new ArrayList<>();
 
+  public Double calculateTotalScore() {
+    if (scores == null || scores.isEmpty()) {
+      return null;
+    }
+
+    return scores.stream()
+        .mapToDouble(s -> (s.getValue() * s.getCriteria().getWeight()) / 10.0)
+        .sum();
+  }
+
   public SubmissionDto toDto() {
+    Double calculatedTotal = calculateTotalScore();
+
     return new SubmissionDto(
         getId(),
         getTitle(),
@@ -77,6 +89,7 @@ public class Submission {
         getYtLink(),
         getSlideLink(),
         getSubmitTime(),
-        scores.stream().map(Score::toDto).toArray(ScoreDto[]::new));
+        scores.stream().map(Score::toDto).toArray(ScoreDto[]::new),
+        calculatedTotal != null ? calculatedTotal.floatValue() : null);
   }
 }

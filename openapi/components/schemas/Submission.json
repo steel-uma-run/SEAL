@@ -39,6 +39,10 @@
       "items": {
         "$ref": "./Score.json"
       }
+    },
+    "total_score": {
+      "type": "number",
+      "format": "float"
     }
   }
 }

@@ -1,6 +1,7 @@
 package seal.backend.services.impl;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,19 +205,18 @@ public class SubmissionServiceImpl implements SubmissionService {
               + " to correct your score.");
     }
 
+    List<Score> newScores = new ArrayList<>();
+
     for (GradeSubmissionRequestArrayItemDto dto : scores) {
-      // Constraint: score must be between 0-100
-      if (dto.value() < 0 | dto.value() > 100) {
+      if (dto.value() < 0 || dto.value() > 10) {
         throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "Score must be between 0 and 100.");
+            HttpStatus.BAD_REQUEST, "Score must be between 0 and 10.");
       }
 
-      // Constraint: if score is below average, require a comment
-      if (dto.value() < 50 && dto.comment() == null) {
+      if (dto.value() < 5 && dto.comment() == null) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required.");
       }
 
-      // Make sure the criteria actually is a criteria for the round
       Criteria criteria =
           submission.getRound().getCriteria().stream()
               .filter(pred -> pred.getId().equals(dto.criteriaId()))
@@ -230,10 +230,13 @@ public class SubmissionServiceImpl implements SubmissionService {
       givenScore.setComment(dto.comment());
       submission.getScores().add(givenScore);
 
-      scoreRepo.save(givenScore);
-      submissionRepo.save(submission);
-      checkScoreDeviation(submission);
+      newScores.add(givenScore);
     }
+
+    // ĐẨY TOÀN BỘ LOGIC LƯU VÀ CHECK ĐỘ LỆCH RA NGOÀI VÒNG LẶP
+    scoreRepo.saveAll(newScores); // Lưu một lần toàn bộ điểm của giám khảo
+    submissionRepo.save(submission);
+    checkScoreDeviation(submission);
   }
 
   @Override
