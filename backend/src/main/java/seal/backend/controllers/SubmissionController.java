@@ -17,12 +17,21 @@ import seal.openapi.api.SubmissionApi;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
 import seal.openapi.model.RequestRegradePayloadDto;
 import seal.openapi.model.ScoreDeviationNotifDto;
+import seal.openapi.model.SubmissionDto;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(GlobalConfig.API_BASE)
 public class SubmissionController implements SubmissionApi {
   private final SubmissionService submissionService;
+
+  @Override
+  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<SubmissionDto> getSubmissionById(
+      @PathVariable(name = "submissionId") @NotNull UUID submissionId) {
+    SubmissionDto dto = submissionService.getSubmissionById(submissionId);
+    return ResponseEntity.ok(dto);
+  }
 
   @Override
   @PreAuthorize("hasRole('LECTURER')")
