@@ -183,16 +183,16 @@
 
 	.event-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 1.5rem;
 		margin-top: 2rem;
 
 		@media (max-width: 1024px) {
-			grid-template-columns: repeat(2, 1fr);
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 
 		@media (max-width: 640px) {
-			grid-template-columns: 1fr;
+			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 
@@ -219,6 +219,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+		min-width: 0;
 		transition:
 			transform 0.2s,
 			box-shadow 0.2s;
@@ -239,6 +240,8 @@
 		font-size: 1.25rem;
 		font-weight: 700;
 		color: var(--md-sys-color-on-surface);
+		word-wrap: break-word;
+		overflow-wrap: break-word;
 	}
 
 	.event-desc {
@@ -250,6 +253,8 @@
 		-webkit-line-clamp: 3;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+		word-wrap: break-word;
+		overflow-wrap: break-word;
 	}
 
 	.event-time {
