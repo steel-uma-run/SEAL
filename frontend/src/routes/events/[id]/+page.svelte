@@ -46,7 +46,17 @@
 
 	<div class="container">
 		<section class="back">
-			<Button href="/" variant="text" iconType="left">
+			<Button
+				href={auth.value?.role === "COORDINATOR"
+					? "/coordinator"
+					: auth.value?.role === "LECTURER"
+						? "/lecturer"
+						: auth.value?.role === "STUDENT"
+							? "/student"
+							: "/"}
+				variant="text"
+				iconType="left"
+			>
 				<Icon icon={iconArrowBack} />
 				Back to events</Button
 			>
