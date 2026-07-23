@@ -98,8 +98,10 @@
 
 										if (submissions) {
 											submissions.forEach((sub: any) => {
+												const hasGraded = sub.scores && sub.scores.some((s: any) => s.lecturer_id === lecturerProfile?.id)
 												trackSubmissions.push({
 													...sub,
+													status: hasGraded ? "GRADED" : "PENDING",
 													team_name: team.name,
 													team_id: team.id
 												})
@@ -217,7 +219,7 @@
 												<h4 class="team-name">{sub.team_name}</h4>
 												{#if sub.status === "GRADED"}
 													<span class="status-badge approved">
-														<CheckCircle class="w-3 h-3" style="display:inline;" /> Graded
+														<CheckCircle class="w-3 h-3" style="display:inline;" /> {sub.total_score !== undefined && sub.total_score !== null ? (Number(sub.total_score) / 10).toFixed(2) + '/10' : "Graded"}
 													</span>
 												{:else}
 													<span class="status-badge pending">
@@ -660,7 +662,6 @@
 
 	.grade-btn {
 		display: block;
-		width: 100%;
 		text-align: center;
 		padding: 0.625rem 1rem;
 		background: var(--md-primary);
@@ -669,6 +670,7 @@
 		font-weight: 600;
 		text-decoration: none;
 		transition: all 0.2s ease;
+		box-sizing: border-box;
 	}
 
 	.grade-btn:hover {
@@ -676,12 +678,12 @@
 	}
 
 	.grade-btn.graded {
-		background: var(--md-surface-variant);
-		color: var(--md-on-surface-variant);
+		background: rgb(249 115 22); /* Orange 500 */
+		color: white;
 	}
 
 	.grade-btn.graded:hover {
-		background: color-mix(in srgb, var(--md-surface-variant) 80%, black);
+		background: color-mix(in srgb, rgb(249 115 22) 80%, black);
 	}
 
 	.no-teams-wrap {
