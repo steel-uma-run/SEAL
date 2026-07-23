@@ -120,6 +120,9 @@
     "/criteria-template": {
       "$ref": "./openapi/paths/criteria/index.json"
     },
+    "/criteria-template/{templateId}": {
+      "$ref": "./openapi/paths/criteria/update_delete.json"
+    },
 
     "/submission/{submissionId}": {
       "$ref": "./openapi/paths/submission/get_submission.json"

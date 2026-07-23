@@ -1,0 +1,67 @@
+{
+  "put": {
+    "tags": ["criteria"],
+    "operationId": "update_criteria_template",
+    "summary": "Update an existing criteria template",
+    "parameters": [
+      {
+        "name": "templateId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/CreateCriteriaTemplateRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/CriteriaTemplate.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  },
+  "delete": {
+    "tags": ["criteria"],
+    "operationId": "delete_criteria_template",
+    "summary": "Delete a criteria template",
+    "parameters": [
+      {
+        "name": "templateId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Deleted successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
