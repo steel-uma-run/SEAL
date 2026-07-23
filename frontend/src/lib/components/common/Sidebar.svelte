@@ -10,12 +10,21 @@
 	import iconRateReview from "@ktibow/iconset-material-symbols/rate-review"
 	import iconSettings from "@ktibow/iconset-material-symbols/settings"
 	import iconAssignmentReturn from "@ktibow/iconset-material-symbols/assignment-return"
+	import iconLogout from "@ktibow/iconset-material-symbols/logout"
+	import { auth, token } from "$lib/auth.svelte"
+	import { goto } from "$app/navigation"
 
 	interface Props {
 		role: Role
 	}
 
 	let { role }: Props = $props()
+
+	function handleLogout() {
+		auth.value = undefined
+		token.value = undefined
+		goto("/auth/login")
+	}
 </script>
 
 <NavigationRail>
@@ -46,4 +55,5 @@
 	{/if}
 
 	<NavigationRailItem label="Settings" icon={iconSettings} href="/{role.toLowerCase()}/settings" />
+	<NavigationRailItem label="Logout" icon={iconLogout} onclick={handleLogout} />
 </NavigationRail>

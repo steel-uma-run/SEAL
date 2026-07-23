@@ -523,7 +523,6 @@
 		border: 1px solid var(--md-outline-variant);
 		display: flex;
 		flex-direction: column;
-		height: 100%;
 		background: var(--md-surface);
 	}
 
