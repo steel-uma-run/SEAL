@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "required": [
+    "criteria"
+  ],
+  "properties": {
+    "criteria": {
+      "type": "array",
+      "items": {
+        "$ref": "./Criteria.json"
+      }
+    }
+  }
+}

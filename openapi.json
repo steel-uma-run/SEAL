@@ -93,6 +93,9 @@
     "/rounds/{roundId}/assign-criteria": {
       "$ref": "./openapi/paths/rounds/assign_criteria.json"
     },
+    "/rounds/{roundId}/criteria": {
+      "$ref": "./openapi/paths/rounds/update_criteria.json"
+    },
 
     "/profile": {
       "$ref": "./openapi/paths/profile/get.json"
