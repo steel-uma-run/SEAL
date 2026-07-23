@@ -270,11 +270,11 @@
 	}
 
 	async function handleOpenRegistration(eventId: string) {
-		alert("Opening registration is currently unavailable in the API.");
+		alert("Opening registration is currently unavailable in the API.")
 	}
 
 	async function handleCloseRegistration(eventId: string) {
-		alert("Closing registration is currently unavailable in the API.");
+		alert("Closing registration is currently unavailable in the API.")
 	}
 
 	$effect(() => {

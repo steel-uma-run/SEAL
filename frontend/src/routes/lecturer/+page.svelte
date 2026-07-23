@@ -21,7 +21,30 @@
 	let isLoading = $state(true)
 	let activeSeason: any = $state(null)
 	let activeSeasonEvents: any[] = $state([])
-	let assignedTracks: any[] = $state([])
+	let allAssignedTracks: any[] = $state([])
+	let activeTab: "past" | "ongoing" | "upcoming" = $state("ongoing")
+	let roleFilter: "all" | "mentor" | "judge" = $state("all")
+
+	function getSeasonCategory(season: any, currentInfo: any) {
+		const s1 =
+			season.year * 3 + (season.semester === "SPRING" ? 0 : season.semester === "SUMMER" ? 1 : 2)
+		const s2 =
+			currentInfo.year * 3 +
+			(currentInfo.semester === "SPRING" ? 0 : currentInfo.semester === "SUMMER" ? 1 : 2)
+		if (s1 < s2) return "past"
+		if (s1 === s2) return "ongoing"
+		return "upcoming"
+	}
+
+	let filteredTracks = $derived(
+		allAssignedTracks.filter(
+			(t) =>
+				t.category === activeTab &&
+				(roleFilter === "all" ||
+					(roleFilter === "mentor" && t.role.includes("Mentor")) ||
+					(roleFilter === "judge" && t.role.includes("Judge")))
+		)
+	)
 
 	onMount(async () => {
 		try {
@@ -34,44 +57,51 @@
 				(s) => s.semester === currentInfo.semester && s.year === currentInfo.year
 			)
 
-			if (!activeSeason) return
-
-			const { data: events } = await getEventsInSeason({
-				path: { seasonId: activeSeason.id },
-				throwOnError: true
-			})
-
-			if (!events || events.length === 0) return
-			activeSeasonEvents = events
+			if (!seasons || seasons.length === 0) return
 
 			let mentoredTeams = 0
 			let submissionsToGrade = 0
-			let allAssignedTracks: any[] = []
+			let tracksData: any[] = []
 
-			for (const event of events) {
-				const { data: tracks } = await getAllTracksOfEvent({
-					path: { eventId: event.id },
+			// Fetch events for all seasons
+			for (const season of seasons) {
+				const category = getSeasonCategory(season, currentInfo)
+
+				const { data: events } = await getEventsInSeason({
+					path: { seasonId: season.id },
 					throwOnError: false
 				})
 
-				if (tracks) {
+				if (category === "ongoing" && events) {
+					activeSeasonEvents = events
+				}
+
+				if (!events) continue
+
+				for (const event of events) {
+					const { data: tracks } = await getAllTracksOfEvent({
+						path: { eventId: event.id },
+						throwOnError: false
+					})
+
+					if (!tracks) continue
+
+					// Fetch teams for the event once
+					let eventTeams: any[] = []
+					const { data: teams } = await getAllTeamsOfEvents({
+						path: { eventId: event.id } as any,
+						throwOnError: false
+					})
+					if (teams) eventTeams = teams
+
 					for (const track of tracks) {
-						let isMentor = track.mentors.find((v) => v.id == profile.id)
-						let isJudge = track.judges.find((v) => v.id == profile.id)
+						let isMentor = track.mentors?.find((v: any) => v.id == profile.id)
+						let isJudge = track.judges?.find((v: any) => v.id == profile.id)
 
 						if (isMentor || isJudge) {
-							let trackTeams: any[] = []
-
-							const { data: teams } = await getAllTeamsOfEvents({
-								path: { eventId: event.id } as any,
-								throwOnError: false
-							})
-
-							if (teams) {
-								trackTeams = teams.filter(
-									(t: any) => t.track_id === track.id || t.trackId === track.id
-								)
-							}
+							let trackTeams = eventTeams.filter(
+								(t: any) => t.track_id === track.id || t.trackId === track.id
+							)
 
 							if (isMentor) {
 								mentoredTeams += trackTeams.length
@@ -87,9 +117,10 @@
 								}
 							}
 
-							allAssignedTracks.push({
+							tracksData.push({
 								...track,
 								eventName: event.name,
+								category: category,
 								role: isMentor && isJudge ? "Mentor & Judge" : isMentor ? "Mentor" : "Judge",
 								teams: trackTeams
 							})
@@ -98,7 +129,7 @@
 				}
 			}
 
-			assignedTracks = allAssignedTracks
+			allAssignedTracks = tracksData
 			stats = {
 				mentoredTeamsCount: mentoredTeams,
 				submissionsToGradeCount: submissionsToGrade
@@ -189,17 +220,55 @@
 		<section class="assigned-tracks">
 			<div class="section-header">
 				<h2 class="section-title">My Assigned Tracks</h2>
-				<p class="section-subtitle">Tracks you are assigned to mentor or judge this season.</p>
+				<p class="section-subtitle">Tracks you are assigned to mentor or judge.</p>
+
+				<div class="filters-row">
+					<div class="tabs-container">
+						<button
+							class="tab-btn {activeTab === 'past' ? 'active' : ''}"
+							onclick={() => (activeTab = "past")}
+						>
+							Past
+						</button>
+						<button
+							class="tab-btn {activeTab === 'ongoing' ? 'active' : ''}"
+							onclick={() => (activeTab = "ongoing")}
+						>
+							Ongoing
+						</button>
+						<button
+							class="tab-btn {activeTab === 'upcoming' ? 'active' : ''}"
+							onclick={() => (activeTab = "upcoming")}
+						>
+							Upcoming
+						</button>
+					</div>
+
+					<div class="role-filter">
+						<button
+							class="role-btn {roleFilter === 'all' ? 'active' : ''}"
+							onclick={() => (roleFilter = "all")}>All Roles</button
+						>
+						<button
+							class="role-btn {roleFilter === 'mentor' ? 'active' : ''}"
+							onclick={() => (roleFilter = "mentor")}>Mentor</button
+						>
+						<button
+							class="role-btn {roleFilter === 'judge' ? 'active' : ''}"
+							onclick={() => (roleFilter = "judge")}>Judge</button
+						>
+					</div>
+				</div>
 			</div>
 
-			{#if assignedTracks.length === 0}
+			{#if filteredTracks.length === 0}
 				<div class="empty-state">
 					<FileText class="empty-icon" />
-					<p class="empty-title">You haven't been assigned to any tracks yet.</p>
+					<p class="empty-title">You haven't been assigned to any {activeTab} tracks.</p>
 				</div>
 			{:else}
 				<div class="tracks-grid">
-					{#each assignedTracks as track}
+					{#each filteredTracks as track}
 						<div class="track-card">
 							<div class="track-top">
 								<div class="track-heading-row">
@@ -633,5 +702,77 @@
 		font-style: italic;
 		color: var(--md-on-surface-variant);
 		opacity: 0.75;
+	}
+
+	.filters-row {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-top: 1rem;
+		border-bottom: 1px solid var(--md-outline-variant);
+		padding-bottom: 1rem;
+	}
+
+	@media (min-width: 768px) {
+		.filters-row {
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+		}
+	}
+
+	.tabs-container {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.tab-btn {
+		padding: 0.5rem 1rem;
+		border-radius: 9999px;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--md-on-surface-variant);
+		background: transparent;
+		border: 1px solid transparent;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.tab-btn:hover {
+		background: var(--md-surface-container-high);
+	}
+
+	.tab-btn.active {
+		background: var(--md-primary);
+		color: var(--md-on-primary);
+	}
+
+	.role-filter {
+		display: flex;
+		background: var(--md-surface-container-high);
+		border-radius: 0.5rem;
+		padding: 0.25rem;
+	}
+
+	.role-btn {
+		padding: 0.375rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		border: none;
+		background: transparent;
+		color: var(--md-on-surface-variant);
+		border-radius: 0.375rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.role-btn:hover {
+		color: var(--md-on-surface);
+	}
+
+	.role-btn.active {
+		background: var(--md-surface);
+		color: var(--md-primary);
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 	}
 </style>
