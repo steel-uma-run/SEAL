@@ -1,6 +1,7 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import seal.backend.entities.Criteria;
 import seal.backend.entities.CriteriaTemplate;
 import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.CriteriaTemplateRepository;
+import seal.backend.repositories.RoundRepository;
 import seal.backend.services.CriteriaService;
 import seal.openapi.model.CreateCriteriaRequestDto;
 import seal.openapi.model.CreateCriteriaTemplateRequestDto;
@@ -19,6 +21,7 @@ import seal.openapi.model.CriteriaTemplateDto;
 public class CriteriaServiceImpl implements CriteriaService {
   private final CriteriaTemplateRepository templateRepo;
   private final CriteriaRepository criteriaRepo;
+  private final RoundRepository roundRepo;
 
   @Transactional
   @Override
@@ -45,6 +48,7 @@ public class CriteriaServiceImpl implements CriteriaService {
 
       Criteria newCrit = new Criteria(dto.name(), dto.weight(), newTemplate);
       criteriaRepo.save(newCrit);
+      newTemplate.getCriteria().add(newCrit);
     }
 
     if (totalWeight != 100) {
@@ -53,5 +57,69 @@ public class CriteriaServiceImpl implements CriteriaService {
     }
 
     return templateRepo.save(newTemplate).toDto();
+  }
+
+  @Transactional
+  @Override
+  public CriteriaTemplateDto updateTemplate(
+      UUID templateId, CreateCriteriaTemplateRequestDto request) {
+    CriteriaTemplate template =
+        templateRepo
+            .findById(templateId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Criteria template not found"));
+
+    if (roundRepo.existsByCriteria_CriteriaTemplate_Id(templateId)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot update a template that is already assigned to a round.");
+    }
+
+    template.setDescription(request.description());
+
+    criteriaRepo.deleteByCriteriaTemplate(template);
+
+    template.getCriteria().clear();
+
+    int totalWeight = 0;
+    for (CreateCriteriaRequestDto dto : request.criteria()) {
+      totalWeight += dto.weight();
+      if (totalWeight > 100) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "All criteria's weights must sum to 100");
+      }
+
+      Criteria newCrit = new Criteria(dto.name(), dto.weight(), template);
+      criteriaRepo.save(newCrit);
+      template.getCriteria().add(newCrit);
+    }
+
+    if (totalWeight != 100) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "All criteria's weights must sum to 100");
+    }
+
+    return templateRepo.save(template).toDto();
+  }
+
+  @Transactional
+  @Override
+  public void deleteTemplate(UUID templateId) {
+    CriteriaTemplate template =
+        templateRepo
+            .findById(templateId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Criteria template not found"));
+
+    if (roundRepo.existsByCriteria_CriteriaTemplate_Id(templateId)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot delete a template that is already assigned to a round.");
+    }
+
+    criteriaRepo.deleteByCriteriaTemplate(template);
+    templateRepo.delete(template);
   }
 }

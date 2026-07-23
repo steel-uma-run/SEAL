@@ -11,4 +11,6 @@ public interface RoundRepository extends JpaRepository<Round, UUID> {
       UUID eventId, OffsetDateTime startTime, OffsetDateTime endTime);
 
   List<Round> findByEventId(UUID eventId);
+
+  boolean existsByCriteria_CriteriaTemplate_Id(UUID templateId);
 }
