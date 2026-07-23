@@ -11,7 +11,7 @@
 		Code,
 		Presentation
 	} from "@lucide/svelte"
-	import { getAllCriteriaTemplates, gradeSubmission, getAllSubmissions } from "$lib/api"
+	import { getAllCriteriaTemplates, gradeSubmission, getAllSubmissions, getSelfProfile } from "$lib/api"
 	import { goto } from "$app/navigation"
 
 	let teamId = $derived($page.params.teamId)
@@ -24,6 +24,7 @@
 
 	let criteriaTemplate: any = $state(null)
 	let submission: any = $state(null)
+	let hasGraded = $state(false)
 
 	// Form state: map criteria_id -> { value: number, comment: string }
 	let gradingData: Record<string, { value: number | null; comment: string }> = $state({})
@@ -74,6 +75,8 @@
 				return
 			}
 
+			const { data: profile } = await getSelfProfile({ throwOnError: false })
+
 			if (templates && templates.length > 0) {
 				// We use the first template as a workaround since backend doesn't link Event/Round to a specific template
 				criteriaTemplate = templates[0]
@@ -81,7 +84,13 @@
 				// Initialize grading form data
 				if (criteriaTemplate.criteria) {
 					criteriaTemplate.criteria.forEach((c: any) => {
-						gradingData[c.id] = { value: null, comment: "" }
+						const existingScore = submission.scores?.find((s: any) => s.criteria_id === c.id && s.lecturer_id === profile?.id)
+						if (existingScore) {
+							hasGraded = true
+							gradingData[c.id] = { value: existingScore.value, comment: existingScore.comment || "" }
+						} else {
+							gradingData[c.id] = { value: null, comment: "" }
+						}
 					})
 				}
 			} else {
@@ -349,7 +358,7 @@
 									Submitting...
 								{:else}
 									<Save class="btn-icon" />
-									Submit Grades
+									{hasGraded ? "Edit Grades" : "Submit Grades"}
 								{/if}
 							</button>
 						</div>
