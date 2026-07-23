@@ -96,16 +96,38 @@
 					submissions = subs.map((sub: any) => {
 						let totalScore = 0
 						if (sub.scores && sub.scores.length > 0) {
-							// Find matching criteria weight
 							let template = criteriaTemplates.length > 0 ? criteriaTemplates[0] : null
+							const scoresByLecturer: Record<string, any[]> = {}
 							sub.scores.forEach((score: any) => {
-								let weight = 0
-								if (template && template.criteria) {
-									const c = template.criteria.find((c: any) => c.id === score.criteria_id)
-									if (c) weight = c.weight
+								const lId = score.lecturer_id || score.lecturerId
+								if (!scoresByLecturer[lId]) {
+									scoresByLecturer[lId] = []
 								}
-								totalScore += (score.value * weight) / 100
+								scoresByLecturer[lId].push(score)
 							})
+
+							const lecturerTotals: number[] = []
+							Object.values(scoresByLecturer).forEach((lecturerScores) => {
+								let total = 0
+								let totalWeight = 0
+								lecturerScores.forEach((score: any) => {
+									let weight = 0
+									if (template && template.criteria) {
+										const c = template.criteria.find((c: any) => c.id === (score.criteria_id || score.criteriaId))
+										if (c) weight = c.weight
+									}
+									total += score.value * weight
+									totalWeight += weight
+								})
+								if (totalWeight > 0) {
+									lecturerTotals.push((total / totalWeight) * 10)
+								}
+							})
+
+							if (lecturerTotals.length > 0) {
+								const sum = lecturerTotals.reduce((a, b) => a + b, 0)
+								totalScore = sum / lecturerTotals.length
+							}
 						}
 
 						return {

@@ -8,7 +8,8 @@
 		getEventsInSeason,
 		getAllTracksOfEvent,
 		getAllTeamsOfEvents,
-		getAllSubmissions
+		getAllSubmissions,
+		getAllCriteriaTemplates
 	} from "$lib/api"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 
@@ -17,6 +18,24 @@
 	let isLoading = $state(true)
 	let errorMessage = $state("")
 	let activeTab: "past" | "ongoing" | "upcoming" = $state("ongoing")
+	let criteriaWeights: Record<string, number> = $state({})
+
+	function getLecturerScore(sub: any, lecturerId: string) {
+		if (!sub.scores || sub.scores.length === 0 || !lecturerId) return null
+		const lecturerScores = sub.scores.filter(
+			(s: any) => s.lecturer_id === lecturerId || s.lecturerId === lecturerId
+		)
+		if (lecturerScores.length === 0) return null
+		let total = 0
+		let totalWeight = 0
+		lecturerScores.forEach((s: any) => {
+			const weight = criteriaWeights[s.criteria_id || s.criteriaId] || 0
+			total += s.value * weight
+			totalWeight += weight
+		})
+		if (totalWeight === 0) return 0
+		return (total / totalWeight).toFixed(2)
+	}
 
 	function getSeasonCategory(season: any, currentInfo: any) {
 		const s1 =
@@ -45,6 +64,18 @@
 				return
 			}
 			lecturerProfile = profile
+
+			// Fetch all criteria templates to map criteria weights
+			const { data: templates } = await getAllCriteriaTemplates({ throwOnError: false })
+			if (templates) {
+				templates.forEach((t: any) => {
+					if (t.criteria) {
+						t.criteria.forEach((c: any) => {
+							criteriaWeights[c.id] = c.weight || 0
+						})
+					}
+				})
+			}
 
 			const currentInfo = getCurrentSeasonInfo()
 			const { data: seasons } = await getAllSeasons({ throwOnError: true })
@@ -219,7 +250,7 @@
 												<h4 class="team-name">{sub.team_name}</h4>
 												{#if sub.status === "GRADED"}
 													<span class="status-badge approved">
-														<CheckCircle class="w-3 h-3" style="display:inline;" /> {sub.total_score !== undefined && sub.total_score !== null ? (Number(sub.total_score) / 10).toFixed(2) + '/10' : "Graded"}
+														<CheckCircle class="w-3 h-3" style="display:inline;" /> {getLecturerScore(sub, lecturerProfile?.id) !== null ? getLecturerScore(sub, lecturerProfile?.id) + '/10' : "Graded"}
 													</span>
 												{:else}
 													<span class="status-badge pending">
