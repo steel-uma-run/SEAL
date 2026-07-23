@@ -1,7 +1,6 @@
 package seal.backend.controllers;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +29,21 @@ public class CriteriaController implements CriteriaApi {
   @Override
   @PreAuthorize("hasRole('COORDINATOR')")
   public ResponseEntity<CriteriaTemplateDto> createCriteriaTemplate(
-      @RequestBody @Valid @NotNull CreateCriteriaTemplateRequestDto request) {
+      @RequestBody CreateCriteriaTemplateRequestDto request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(criteriaService.createTemplate(request));
+  }
+
+  @Override
+  @PreAuthorize("hasRole('COORDINATOR')")
+  public ResponseEntity<CriteriaTemplateDto> updateCriteriaTemplate(
+      UUID templateId, CreateCriteriaTemplateRequestDto request) {
+    return ResponseEntity.ok(criteriaService.updateTemplate(templateId, request));
+  }
+
+  @Override
+  @PreAuthorize("hasRole('COORDINATOR')")
+  public ResponseEntity<Void> deleteCriteriaTemplate(UUID templateId) {
+    criteriaService.deleteTemplate(templateId);
+    return ResponseEntity.noContent().build();
   }
 }
