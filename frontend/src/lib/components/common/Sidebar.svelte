@@ -40,7 +40,7 @@
 	{:else if role == "LECTURER"}
 		<NavigationRailItem label="Dashboard" icon={iconHome} href="/lecturer" />
 
-		<NavigationRailItem label="Teams" icon={iconGroups} href="/lecturer/teams" />
+		<NavigationRailItem label="Mentor" icon={iconGroups} href="/lecturer/teams" />
 
 		<NavigationRailItem label="Grading" icon={iconRateReview} href="/lecturer/grading" />
 	{/if}
