@@ -24,6 +24,7 @@ import seal.openapi.model.CreateTrackRequestDto;
 import seal.openapi.model.HackathonEventDto;
 import seal.openapi.model.RoundDto;
 import seal.openapi.model.StudentDto;
+import seal.openapi.model.SubmissionRankDto;
 import seal.openapi.model.SubmitWorkRequestDto;
 import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
@@ -133,5 +134,12 @@ public class HackathonEventController implements EventsApi {
   public ResponseEntity<RoundDto[]> getRounds(
       @PathVariable(name = "eventId") @NotNull UUID eventId) {
     return ResponseEntity.ok(roundService.getRounds(eventId).toArray(RoundDto[]::new));
+  }
+
+  @Override
+  public ResponseEntity<SubmissionRankDto[]> getRanking(
+      @PathVariable(name = "eventId") @NotNull UUID eventId) {
+    List<SubmissionRankDto> rankings = eventService.getRanking(eventId);
+    return ResponseEntity.ok(rankings.toArray(SubmissionRankDto[]::new));
   }
 }

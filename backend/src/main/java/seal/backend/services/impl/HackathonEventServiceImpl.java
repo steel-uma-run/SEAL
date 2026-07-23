@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
+import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
 import seal.backend.entities.Track;
 import seal.backend.enums.EventStatus;
@@ -21,12 +23,14 @@ import seal.backend.enums.StudentStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
+import seal.backend.repositories.SubmissionRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.TrackRepository;
 import seal.backend.services.HackathonEventService;
 import seal.openapi.model.CreateEventRequestDto;
 import seal.openapi.model.HackathonEventDto;
 import seal.openapi.model.StudentDto;
+import seal.openapi.model.SubmissionRankDto;
 import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
 import seal.openapi.model.UpdateEventRequestDto;
@@ -37,6 +41,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   private final HackathonEventRepository hackathonEventRepository;
   private final SeasonRepository seasonRepository;
   private final StudentRepository studentRepository;
+  private final SubmissionRepository submissionRepository;
   private final TeamRepository teamRepo;
   private final TrackRepository trackRepo;
 
@@ -236,5 +241,38 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     }
 
     return resultList;
+  }
+
+  @Override
+  @Transactional
+  public List<SubmissionRankDto> getRanking(UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    if (event.getStatus() != EventStatus.FINALIZED) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Ranking is only available for finalized events.");
+    }
+
+    List<Submission> submissions = submissionRepository.findAllByEventId(eventId);
+
+    List<Map.Entry<Submission, Double>> sorted =
+        submissions.stream()
+            .map(submission -> Map.entry(submission, submission.calculateTotalScore()))
+            .filter(entry -> entry.getValue() != null)
+            .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+            .limit(10)
+            .toList();
+
+    List<SubmissionRankDto> result = new ArrayList<>();
+    for (int i = 0; i < sorted.size(); i++) {
+      Map.Entry<Submission, Double> entry = sorted.get(i);
+      result.add(new SubmissionRankDto(i + 1, entry.getKey().toDto(), entry.getValue()));
+    }
+
+    return result;
   }
 }

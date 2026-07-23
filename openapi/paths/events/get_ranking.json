@@ -1,0 +1,38 @@
+{
+  "parameters": [
+    {
+      "name": "eventId",
+      "description": "ID of the event",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "get": {
+    "tags": ["events"],
+    "summary": "Get the top ranked submissions for an event",
+    "operationId": "get_ranking",
+    "responses": {
+      "200": {
+        "description": "Successfully retrieved ranking",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/SubmissionRank.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
+

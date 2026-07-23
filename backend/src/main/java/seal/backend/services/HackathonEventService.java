@@ -5,6 +5,7 @@ import java.util.UUID;
 import seal.openapi.model.CreateEventRequestDto;
 import seal.openapi.model.HackathonEventDto;
 import seal.openapi.model.StudentDto;
+import seal.openapi.model.SubmissionRankDto;
 import seal.openapi.model.TeamDto;
 import seal.openapi.model.TrackDto;
 import seal.openapi.model.UpdateEventRequestDto;
@@ -27,4 +28,6 @@ public interface HackathonEventService {
   void finalizeEvent(UUID eventId);
 
   void markInterested(UUID eventId);
+
+  List<SubmissionRankDto> getRanking(UUID eventId);
 }

@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "required": ["rank", "submission", "total_score"],
+  "properties": {
+    "rank": {
+      "type": "integer",
+      "format": "int32"
+    },
+    "submission": {
+      "$ref": "./Submission.json"
+    },
+    "total_score": {
+      "type": "number",
+      "format": "double"
+    }
+  }
+}
