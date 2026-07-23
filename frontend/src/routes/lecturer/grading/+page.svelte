@@ -39,7 +39,11 @@
 
 	onMount(async () => {
 		try {
-			const { data: profile } = await getSelfProfile({ throwOnError: true })
+			const { data: profile, error: profileError } = await getSelfProfile({ throwOnError: false })
+			if (profileError) {
+				window.location.href = "/auth/login"
+				return
+			}
 			lecturerProfile = profile
 
 			const currentInfo = getCurrentSeasonInfo()
