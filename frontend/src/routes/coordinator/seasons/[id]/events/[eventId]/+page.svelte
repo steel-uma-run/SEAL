@@ -14,7 +14,8 @@
 		getRounds,
 		updateTrack,
 		getAllCriteriaTemplates,
-		assignCriteria
+		assignCriteria,
+		updateRoundCriteria
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Clock, X, Plus } from "@lucide/svelte"
@@ -93,6 +94,18 @@
 	let isAssigningCriteria = $state(false)
 	let assignCriteriaMessage = $state("")
 	let assignCriteriaError = $state(false)
+
+	// Edit Criteria Modal State
+	let showEditCriteriaModal = $state(false)
+	let editingRound = $state<any>(null)
+	let editingCriteriaList = $state<any[]>([])
+	let isSavingCriteria = $state(false)
+	let editCriteriaMessage = $state("")
+	let editCriteriaError = $state(false)
+
+	let totalEditWeight = $derived(
+		editingCriteriaList.reduce((sum, c) => sum + (Number(c.weight) || 0), 0)
+	)
 	$effect(() => {
 		if (selectedTemplateId) {
 			assignCriteriaMessage = ""
@@ -386,6 +399,64 @@
 		}
 	}
 
+	function openEditCriteriaModal(round: any) {
+		editingRound = round
+		editingCriteriaList = (round.criteria || []).map((c: any) => ({
+			id: c.id,
+			name: c.name,
+			weight: c.weight
+		}))
+		editCriteriaMessage = ""
+		editCriteriaError = false
+		showEditCriteriaModal = true
+	}
+
+	async function handleSaveCriteria(e: Event) {
+		e.preventDefault()
+		if (totalEditWeight !== 100) {
+			editCriteriaMessage = "Total weight must equal exactly 100%."
+			editCriteriaError = true
+			return
+		}
+		if (editingCriteriaList.some((c) => !c.name || !c.name.trim())) {
+			editCriteriaMessage = "All criteria names are required."
+			editCriteriaError = true
+			return
+		}
+
+		isSavingCriteria = true
+		editCriteriaMessage = ""
+		editCriteriaError = false
+
+		try {
+			const { response } = await updateRoundCriteria({
+				path: { roundId: editingRound.id },
+				body: {
+					criteria: editingCriteriaList.map((c) => ({
+						id: c.id,
+						name: c.name.trim(),
+						weight: Number(c.weight)
+					}))
+				},
+				throwOnError: false
+			})
+
+			if (response?.ok) {
+				showEditCriteriaModal = false
+				await loadEventRounds()
+				alert(`Criteria for round "${editingRound.name}" updated successfully!`)
+			} else {
+				editCriteriaMessage = "Failed to update criteria. Please try again."
+				editCriteriaError = true
+			}
+		} catch (err: any) {
+			editCriteriaMessage = err.message || "An error occurred."
+			editCriteriaError = true
+		} finally {
+			isSavingCriteria = false
+		}
+	}
+
 	async function handleCreateRound(e: Event) {
 		e.preventDefault()
 		if (
@@ -410,10 +481,9 @@
 
 		// Verify within event dates
 		if (event) {
-			const eventStart = new Date(event.startTime || event.start_time)
 			const eventEnd = new Date(event.endTime || event.end_time)
-			if (start < eventStart || end > eventEnd) {
-				createRoundMessage = "Round timeframe must be strictly within the Event's timeframe."
+			if (start <= eventEnd) {
+				createRoundMessage = "Round timeframe must start after the registration period ends."
 				createRoundError = true
 				return
 			}
@@ -990,14 +1060,24 @@
 												</td>
 												{#if event.status?.toUpperCase() === "DRAFT"}
 													<td>
-														<button
-															onclick={() => openAssignCriteriaModal(round)}
-															class="btn btn-tonal btn-small"
-														>
-															{round.criteria && round.criteria.length > 0
-																? "Reassign"
-																: "Assign Criteria"}
-														</button>
+														<div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+															<button
+																onclick={() => openAssignCriteriaModal(round)}
+																class="btn btn-tonal btn-small"
+															>
+																{round.criteria && round.criteria.length > 0
+																	? "Reassign"
+																	: "Assign Criteria"}
+															</button>
+															{#if round.criteria && round.criteria.length > 0}
+																<button
+																	onclick={() => openEditCriteriaModal(round)}
+																	class="btn btn-tonal btn-small"
+																>
+																	Edit Details
+																</button>
+															{/if}
+														</div>
 													</td>
 												{/if}
 											</tr>
@@ -1473,6 +1553,95 @@
 			</div>
 		</div>
 	{/if}
+
+	{#if showEditCriteriaModal && editingRound}
+		<div class="modal-overlay">
+			<div class="modal-surface large">
+				<div class="modal-header">
+					<div>
+						<h3>Edit Criteria Details</h3>
+						<p class="subtitle">Round: <span>{editingRound.name}</span></p>
+					</div>
+					<button onclick={() => (showEditCriteriaModal = false)} class="btn-icon"
+						><X class="icon" /></button
+					>
+				</div>
+				{#if editCriteriaMessage}
+					<div class="alert {editCriteriaError ? 'alert-error' : 'alert-success'} mb-4">
+						{editCriteriaMessage}
+					</div>
+				{/if}
+				<form onsubmit={handleSaveCriteria} class="modal-form">
+					<div class="criteria-edit-list">
+						{#each editingCriteriaList as criterion, i}
+							<div
+								class="form-row"
+								style="display: flex; flex-direction: row; gap: 1rem; margin-bottom: 1rem; align-items: flex-end;"
+							>
+								<div class="form-group" style="flex: 3; margin-bottom: 0;">
+									<label for="crit-name-{i}">Criterion Name *</label>
+									<input
+										id="crit-name-{i}"
+										type="text"
+										bind:value={criterion.name}
+										required
+										placeholder="Criterion Name"
+									/>
+								</div>
+								<div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 100px;">
+									<label for="crit-weight-{i}">Weight (%) *</label>
+									<input
+										id="crit-weight-{i}"
+										type="number"
+										min="0"
+										max="100"
+										bind:value={criterion.weight}
+										required
+										placeholder="Weight"
+									/>
+								</div>
+							</div>
+						{/each}
+					</div>
+
+					<div
+						style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--md-sys-color-outline-variant, #ccc);"
+					>
+						<div>
+							<span style="font-weight: 500;">Total Weight:</span>
+							<span
+								style="font-weight: bold; margin-left: 0.5rem; color: {totalEditWeight === 100
+									? 'var(--md-sys-color-primary, #6750a4)'
+									: 'var(--md-sys-color-error, #ba1a1a)'}"
+							>
+								{totalEditWeight}%
+							</span>
+							<span
+								style="font-size: 0.85rem; margin-left: 0.5rem; color: var(--md-sys-color-on-surface-variant, #666);"
+							>
+								(Must be exactly 100%)
+							</span>
+						</div>
+					</div>
+
+					<div class="modal-actions" style="margin-top: 1.5rem;">
+						<button
+							type="button"
+							onclick={() => (showEditCriteriaModal = false)}
+							class="btn btn-text">Cancel</button
+						>
+						<button
+							type="submit"
+							disabled={isSavingCriteria || totalEditWeight !== 100}
+							class="btn btn-filled"
+						>
+							{isSavingCriteria ? "Saving..." : "Save"}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -1884,7 +2053,8 @@
 	}
 
 	.form-row {
-		display: grid;
+		display: flex;
+		flex-direction: column;
 		grid-template-columns: 1fr 1fr;
 		gap: 1rem;
 	}
