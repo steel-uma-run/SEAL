@@ -14,8 +14,8 @@
 	import { getAllCriteriaTemplates, gradeSubmission, getAllSubmissions } from "$lib/api"
 	import { goto } from "$app/navigation"
 
-	let teamId = $page.params.teamId
-	let submissionId = $page.params.submissionId
+	let teamId = $derived($page.params.teamId)
+	let submissionId = $derived($page.params.submissionId)
 
 	let isLoading = $state(true)
 	let isSubmitting = $state(false)
@@ -37,14 +37,24 @@
 
 	onMount(async () => {
 		try {
+			// Read the latest params directly from the store
+			const currentTeamId = $page.params.teamId
+			const currentSubmissionId = $page.params.submissionId
+
 			// Fetch the submission based on teamId
-			const { data: submissions } = await getAllSubmissions({
-				path: { teamId: teamId },
-				throwOnError: true
+			const { data: submissions, error: submissionsError } = await getAllSubmissions({
+				path: { teamId: currentTeamId },
+				throwOnError: false
 			})
 
+			if (submissionsError) {
+				errorMessage = `Failed to load submissions: ${submissionsError?.message || JSON.stringify(submissionsError)}`
+				isLoading = false
+				return
+			}
+
 			if (submissions) {
-				submission = submissions.find((s: any) => s.id === submissionId)
+				submission = submissions.find((s: any) => s.id === currentSubmissionId)
 			}
 
 			if (!submission) {
@@ -54,7 +64,13 @@
 			}
 
 			// Fetch criteria templates
-			const { data: templates } = await getAllCriteriaTemplates({ throwOnError: true })
+			const { data: templates, error: templatesError } = await getAllCriteriaTemplates({ throwOnError: false })
+
+			if (templatesError) {
+				errorMessage = `Failed to load criteria templates: ${templatesError?.message || JSON.stringify(templatesError)}`
+				isLoading = false
+				return
+			}
 
 			if (templates && templates.length > 0) {
 				// We use the first template as a workaround since backend doesn't link Event/Round to a specific template
@@ -72,7 +88,7 @@
 			}
 		} catch (error: any) {
 			console.error("Failed to load data", error)
-			errorMessage = error.message || "Failed to load grading details."
+			errorMessage = (error && error.message) ? error.message : JSON.stringify(error) || "Failed to load grading details."
 		} finally {
 			isLoading = false
 		}
@@ -89,14 +105,14 @@
 		return total
 	})
 
-	// Check if any grade is below threshold (e.g., below 50) and requires a comment
+	// Check if any grade is below threshold (e.g., below 5) and requires a comment
 	let requiresDocumentedReason = $derived.by(() => {
 		if (!criteriaTemplate || !criteriaTemplate.criteria) return false
 		for (const c of criteriaTemplate.criteria) {
 			const val = gradingData[c.id]?.value
 			const comment = gradingData[c.id]?.comment
-			// BR-47: Required documented reason if score is below 50
-			if (val !== null && val < 50 && (!comment || comment.trim() === "")) {
+			// BR-47: Required documented reason if score is below 5
+			if (val !== null && val < 5 && (!comment || comment.trim() === "")) {
 				return true
 			}
 		}
@@ -115,14 +131,14 @@
 				errorMessage = `Please enter a score for ${c.name}`
 				return
 			}
-			if (grade.value < 0 || grade.value > 100) {
-				errorMessage = `Score for ${c.name} must be between 0 and 100`
+			if (grade.value < 0 || grade.value > 10) {
+				errorMessage = `Score for ${c.name} must be between 0 and 10`
 				return
 			}
 		}
 
 		if (requiresDocumentedReason) {
-			errorMessage = "Please provide a comment (documented reason) for any score below 50."
+			errorMessage = "Please provide a comment (documented reason) for any score below 5."
 			return
 		}
 
@@ -180,8 +196,8 @@
 		{#if criteriaTemplate}
 			<div class="score-box">
 				<p class="score-label">Total Score</p>
-				<p class="score-value" class:pass={totalScore >= 50} class:fail={totalScore < 50}>
-					{totalScore.toFixed(1)}<span class="score-max">/100</span>
+				<p class="score-value" class:pass={totalScore >= 5} class:fail={totalScore < 5}>
+					{totalScore.toFixed(1)}<span class="score-max">/10</span>
 				</p>
 			</div>
 		{/if}
@@ -271,7 +287,7 @@
 					<form onsubmit={handleSubmit} class="grade-form">
 						<div class="card">
 							<h2 class="card-title">Evaluation Criteria</h2>
-							<p class="card-desc">Please score each criteria from 0 to 100.</p>
+							<p class="card-desc">Please score each criteria from 0 to 10.</p>
 
 							{#if errorMessage}
 								<div class="alert alert--error alert--inline">
@@ -293,14 +309,14 @@
 												<p class="criterion-weight">Weight: {c.weight}%</p>
 											</div>
 											<div class="score-input">
-												<label class="field-label">Score (0-100)</label>
+												<label class="field-label">Score (0-10)</label>
 												<input
 													type="number"
 													min="0"
-													max="100"
+													max="10"
 													bind:value={gradingData[c.id].value}
 													class="input"
-													placeholder="e.g. 85"
+													placeholder="e.g. 8.5"
 													required
 												/>
 											</div>
@@ -308,8 +324,8 @@
 										<div>
 											<label class="field-label">
 												Comment / Feedback
-												{#if gradingData[c.id].value !== null && gradingData[c.id].value < 50}
-													<span class="field-required">(Required for scores below 50)</span>
+												{#if gradingData[c.id].value !== null && gradingData[c.id].value < 5}
+													<span class="field-required">(Required for scores below 5)</span>
 												{/if}
 											</label>
 											<textarea
