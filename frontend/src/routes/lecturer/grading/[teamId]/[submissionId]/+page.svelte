@@ -35,12 +35,14 @@
 		return match && match[2].length === 11 ? match[2] : null
 	}
 
-	onMount(async () => {
-		try {
-			// Read the latest params directly from the store
-			const currentTeamId = $page.params.teamId
-			const currentSubmissionId = $page.params.submissionId
+	$effect(() => {
+		if (teamId && submissionId) {
+			loadData(teamId, submissionId)
+		}
+	})
 
+	async function loadData(currentTeamId: string, currentSubmissionId: string) {
+		try {
 			// Fetch the submission based on teamId
 			const { data: submissions, error: submissionsError } = await getAllSubmissions({
 				path: { teamId: currentTeamId },
@@ -92,7 +94,7 @@
 		} finally {
 			isLoading = false
 		}
-	})
+	}
 
 	// Calculate total score based on weights
 	let totalScore = $derived.by(() => {
