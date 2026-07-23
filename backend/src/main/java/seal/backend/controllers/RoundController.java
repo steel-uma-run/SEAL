@@ -33,13 +33,4 @@ public class RoundController implements RoundsApi {
     roundService.assignCriteria(roundId, body);
     return ResponseEntity.noContent().build();
   }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<Void> updateRoundCriteria(
-      @PathVariable(name = "roundId") @NotNull UUID roundId,
-      @RequestBody @NotNull @jakarta.validation.Valid seal.openapi.model.UpdateRoundCriteriaRequestDto body) {
-    roundService.updateRoundCriteria(roundId, body);
-    return ResponseEntity.noContent().build();
-  }
 }

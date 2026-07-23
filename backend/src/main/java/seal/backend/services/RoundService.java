@@ -11,8 +11,6 @@ public interface RoundService {
   void deleteRound(UUID roundId);
 
   List<RoundDto> getRounds(UUID eventId);
-  
-  void assignCriteria(UUID roundId, UUID[] criteriaIds);
 
-  void updateRoundCriteria(UUID roundId, seal.openapi.model.UpdateRoundCriteriaRequestDto request);
+  void assignCriteria(UUID roundId, UUID[] criteriaIds);
 }
