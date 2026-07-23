@@ -19,7 +19,6 @@
 		/* Làm bóng đổ mềm mại và chuyên nghiệp hơn */
 		box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.1);
 		overflow: hidden;
-		height: 100%;
 		display: flex;
 		flex-direction: column;
 		transition:

@@ -400,6 +400,7 @@
 		border-radius: 1.5rem; // rounded-3xl
 		border: 1px solid var(--md-outline-variant);
 		background-color: var(--md-surface-container-low);
+		margin-top: 1.5rem;
 		margin-bottom: 2rem; // mb-8
 		transition:
 			background-color 0.3s ease,

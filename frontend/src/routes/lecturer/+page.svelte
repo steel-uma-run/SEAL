@@ -538,6 +538,7 @@
 		padding: 2rem;
 		border-radius: 1.5rem;
 		background: var(--md-surface-container-low);
+		margin-top: 1.5rem;
 		margin-bottom: 2rem;
 		transition: background-color 0.3s ease;
 	}
@@ -591,7 +592,6 @@
 		justify-content: space-between;
 		background: var(--md-surface-container);
 		box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
-		height: 100%;
 		transition: all 0.3s ease;
 	}
 
