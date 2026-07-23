@@ -13,89 +13,99 @@
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 
 	let lecturerProfile: any = $state(null)
-	let myMentoredTracks: any[] = $state([])
+	let allMentoredTracks: any[] = $state([])
 	let isLoading = $state(true)
 	let errorMessage = $state("")
+	let activeTab: "past" | "ongoing" | "upcoming" = $state("ongoing")
+
+	function getSeasonCategory(season: any, currentInfo: any) {
+		const s1 =
+			season.year * 3 + (season.semester === "SPRING" ? 0 : season.semester === "SUMMER" ? 1 : 2)
+		const s2 =
+			currentInfo.year * 3 +
+			(currentInfo.semester === "SPRING" ? 0 : currentInfo.semester === "SUMMER" ? 1 : 2)
+		if (s1 < s2) return "past"
+		if (s1 === s2) return "ongoing"
+		return "upcoming"
+	}
+
+	let filteredTracks = $derived(allMentoredTracks.filter((t) => t.category === activeTab))
+	let totalTeams = $derived(
+		filteredTracks.reduce((acc, track) => acc + (track.teams ? track.teams.length : 0), 0)
+	)
 
 	onMount(async () => {
 		try {
 			const { data: profile } = await getSelfProfile({ throwOnError: true })
 			lecturerProfile = profile
 
-			// Get current season
 			const currentInfo = getCurrentSeasonInfo()
 			const { data: seasons } = await getAllSeasons({ throwOnError: true })
-			const activeSeason = seasons?.find(
-				(s) => s.semester === currentInfo.semester && s.year === currentInfo.year
-			)
 
-			if (!activeSeason) {
+			if (!seasons || seasons.length === 0) {
 				isLoading = false
 				return
 			}
 
-			// Get events
-			const { data: events } = await getEventsInSeason({
-				path: { seasonId: activeSeason.id },
-				throwOnError: true
-			})
+			let tempTracks: any[] = []
 
-			if (!events || events.length === 0) {
-				isLoading = false
-				return
-			}
-
-			let allMentoredTracks: any[] = []
-
-			// For each event, get tracks and teams
-			for (const event of events) {
-				const { data: tracks } = await getAllTracksOfEvent({
-					path: { eventId: event.id },
+			for (const season of seasons) {
+				const category = getSeasonCategory(season, currentInfo)
+				const { data: events } = await getEventsInSeason({
+					path: { seasonId: season.id },
 					throwOnError: false
 				})
 
-				if (tracks) {
-					// Filter tracks where this lecturer is a mentor
-					const mentoredTracks = tracks.filter((t: any) => t.mentor_ids?.includes(profile.id))
-					const mentoredTrackIds = mentoredTracks.map((t: any) => t.id)
+				if (!events) continue
 
-					if (mentoredTrackIds.length > 0) {
-						// Fetch all teams for this event
-						const { data: teams } = await getAllTeamsOfEvents({
-							path: { eventId: event.id } as any,
-							throwOnError: false
-						})
+				for (const event of events) {
+					const { data: tracks } = await getAllTracksOfEvent({
+						path: { eventId: event.id },
+						throwOnError: false
+					})
 
-						for (let track of mentoredTracks) {
-							let trackTeams: any[] = []
+					if (tracks) {
+						const mentoredTracks = tracks.filter((t: any) =>
+							t.mentors?.find((m: any) => m.id == profile.id)
+						)
 
-							if (teams) {
-								const eventMentoredTeams = teams.filter(
-									(team: any) => team.track_id === track.id || team.trackId === track.id
-								)
-
-								// Fetch submissions for these teams
-								for (let team of eventMentoredTeams) {
-									const { data: submissions } = await getAllSubmissions({
-										path: { teamId: team.id },
-										throwOnError: false
-									})
-									team.submissions = submissions || []
-									trackTeams.push(team)
-								}
-							}
-
-							allMentoredTracks.push({
-								...track,
-								eventName: event.name,
-								teams: trackTeams
+						if (mentoredTracks.length > 0) {
+							const { data: teams } = await getAllTeamsOfEvents({
+								path: { eventId: event.id } as any,
+								throwOnError: false
 							})
+
+							for (let track of mentoredTracks) {
+								let trackTeams: any[] = []
+
+								if (teams) {
+									const eventMentoredTeams = teams.filter(
+										(team: any) => team.track_id === track.id || team.trackId === track.id
+									)
+
+									for (let team of eventMentoredTeams) {
+										const { data: submissions } = await getAllSubmissions({
+											path: { teamId: team.id },
+											throwOnError: false
+										})
+										team.submissions = submissions || []
+										trackTeams.push(team)
+									}
+								}
+
+								tempTracks.push({
+									...track,
+									eventName: event.name,
+									category,
+									teams: trackTeams
+								})
+							}
 						}
 					}
 				}
 			}
 
-			myMentoredTracks = allMentoredTracks
+			allMentoredTracks = tempTracks
 		} catch (error: any) {
 			console.error("Failed to load mentored teams", error)
 			errorMessage = error.message || "Failed to load teams."
@@ -115,99 +125,124 @@
 		Back to Dashboard
 	</a>
 
-	<div class="page-header">
-		<div class="header-icon">
-			<Users class="w-6 h-6" />
+	<div class="assigned-tracks-container">
+		<div class="page-header">
+			<div class="header-icon">
+				<Users class="w-6 h-6" />
+			</div>
+			<div>
+				<h1 class="page-title">Mentored Teams</h1>
+				<p class="page-subtitle">Teams you are assigned to mentor.</p>
+			</div>
 		</div>
-		<div>
-			<h1 class="page-title">Mentored Teams</h1>
-			<p class="page-subtitle">Teams you are assigned to mentor this season.</p>
-		</div>
-	</div>
 
-	{#if isLoading}
-		<div class="loading-state">
-			<div class="spinner"></div>
+		<div class="filters-row">
+			<div class="tabs-container">
+				<button
+					class="tab-btn {activeTab === 'past' ? 'active' : ''}"
+					onclick={() => (activeTab = "past")}
+				>
+					Past
+				</button>
+				<button
+					class="tab-btn {activeTab === 'ongoing' ? 'active' : ''}"
+					onclick={() => (activeTab = "ongoing")}
+				>
+					Ongoing
+				</button>
+				<button
+					class="tab-btn {activeTab === 'upcoming' ? 'active' : ''}"
+					onclick={() => (activeTab = "upcoming")}
+				>
+					Upcoming
+				</button>
+			</div>
 		</div>
-	{:else if errorMessage}
-		<div class="error-box">
-			{errorMessage}
-		</div>
-	{:else if myMentoredTracks.length === 0}
-		<div class="empty-state">
-			<Users class="empty-icon" />
-			<h3 class="empty-title">No Mentored Tracks</h3>
-			<p class="empty-text">
-				You haven't been assigned as a mentor to any tracks in the active season.
-			</p>
-		</div>
-	{:else}
-		<div class="track-list">
-			{#each myMentoredTracks as track}
-				<div class="track-card">
-					<div class="track-card-header">
-						<div class="track-card-top">
-							<h2 class="track-name">{track.name}</h2>
-							<span class="mentor-badge">Mentor</span>
+
+		{#if isLoading}
+			<div class="loading-state">
+				<div class="spinner"></div>
+			</div>
+		{:else if errorMessage}
+			<div class="error-box">
+				{errorMessage}
+			</div>
+		{:else if filteredTracks.length === 0}
+			<div class="empty-state">
+				<Users class="empty-icon" />
+				<h3 class="empty-title">No Mentored Tracks</h3>
+				<p class="empty-text">
+					You haven't been assigned as a mentor to any {activeTab} tracks.
+				</p>
+			</div>
+		{:else}
+			<div class="tracks-grid">
+				{#each filteredTracks as track}
+					<div class="track-card">
+						<div class="track-top">
+							<div class="track-heading-row">
+								<h3 class="track-name">{track.name}</h3>
+								<span class="track-role-badge badge-mentor">Mentor</span>
+							</div>
+							<p class="track-event">
+								Event: <span>{track.eventName}</span>
+							</p>
 						</div>
-						<p class="event-line">
-							Event: <span>{track.eventName}</span>
-						</p>
-					</div>
 
-					<div class="track-card-body">
-						{#if track.teams && track.teams.length > 0}
-							<div class="teams-grid">
-								{#each track.teams as team}
-									<div class="team-card">
-										<div class="team-card-top">
-											<h3 class="team-name">{team.name}</h3>
-											<span
-												class="status-badge {team.status === 'APPROVED' ? 'approved' : 'pending'}"
-											>
-												{team.status}
-											</span>
-										</div>
+						<div class="track-teams-container">
+							{#if track.teams && track.teams.length > 0}
+								<div class="teams-grid">
+									{#each track.teams as team}
+										<div class="team-card">
+											<div class="team-card-top">
+												<h3 class="team-name">{team.name}</h3>
+												<span
+													class="status-badge {team.status === 'APPROVED' ? 'approved' : 'pending'}"
+												>
+													{team.status}
+												</span>
+											</div>
 
-										<div class="submission-area">
-											<h4 class="submission-label">Latest Submission</h4>
-											{#if team.submissions && team.submissions.length > 0}
-												{@const latestSub = team.submissions[team.submissions.length - 1]}
-												<div class="submission-card">
-													<p class="submission-title">{latestSub.title}</p>
-													<div class="submission-links">
-														{#if latestSub.github_link}
-															<a href={latestSub.github_link} target="_blank">GitHub</a>
-														{/if}
-														{#if latestSub.youtube_link}
-															<a href={latestSub.youtube_link} target="_blank" class="youtube"
-																>YouTube</a
-															>
-														{/if}
-														{#if latestSub.slide_link}
-															<a href={latestSub.slide_link} target="_blank" class="slides"
-																>Slides</a
-															>
-														{/if}
+											<div class="submission-area">
+												<h4 class="submission-label">Latest Submission</h4>
+												{#if team.submissions && team.submissions.length > 0}
+													{@const latestSub = team.submissions[team.submissions.length - 1]}
+													<div class="submission-card">
+														<p class="submission-title">{latestSub.title}</p>
+														<div class="submission-links">
+															{#if latestSub.github_link}
+																<a href={latestSub.github_link} target="_blank">GitHub</a>
+															{/if}
+															{#if latestSub.youtube_link}
+																<a href={latestSub.youtube_link} target="_blank" class="youtube"
+																	>YouTube</a
+																>
+															{/if}
+															{#if latestSub.slide_link}
+																<a href={latestSub.slide_link} target="_blank" class="slides"
+																	>Slides</a
+																>
+															{/if}
+														</div>
 													</div>
-												</div>
-											{:else}
-												<p class="no-submissions">No submissions yet.</p>
-											{/if}
+												{:else}
+													<p class="no-submissions">No submissions yet.</p>
+												{/if}
+											</div>
 										</div>
-									</div>
-								{/each}
-							</div>
-						{:else}
-							<div class="no-teams-wrap">
-								<p class="no-submissions">No teams assigned to this track yet.</p>
-							</div>
-						{/if}
+									{/each}
+								</div>
+							{:else}
+								<div class="no-teams-wrap">
+									<p class="no-submissions">No teams assigned to this track yet.</p>
+								</div>
+							{/if}
+						</div>
 					</div>
-				</div>
-			{/each}
-		</div>
-	{/if}
+				{/each}
+			</div>
+		{/if}
+	</div>
 </div>
 
 <style lang="scss">
@@ -232,63 +267,87 @@
 		font-weight: 500;
 		transition: color 0.2s ease;
 		text-decoration: none;
+		color: var(--md-on-surface-variant);
 	}
 
-	.dark .back-link {
-		color: rgb(161 161 170);
+	.back-link:hover {
+		color: var(--md-primary);
 	}
-	.dark .back-link:hover {
-		color: rgb(251 146 60);
+
+	.assigned-tracks-container {
+		padding: 1.5rem;
+		border-radius: 1.5rem;
+		background: var(--md-surface-container-low);
+		margin-bottom: 2rem;
+		transition: background-color 0.3s ease;
 	}
-	.light .back-link {
-		color: rgb(107 114 128);
-	}
-	.light .back-link:hover {
-		color: rgb(234 88 12);
+
+	@media (min-width: 768px) {
+		.assigned-tracks-container {
+			padding: 2rem;
+		}
 	}
 
 	.page-header {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
-		margin-bottom: 2rem;
+		margin-bottom: 1.5rem;
 	}
 
 	.header-icon {
 		padding: 0.75rem;
 		border-radius: 0.75rem;
-	}
-
-	.dark .header-icon {
-		background: rgb(124 45 18 / 0.4);
-		color: rgb(251 146 60);
-	}
-	.light .header-icon {
-		background: rgb(255 237 213);
-		color: rgb(234 88 12);
+		background: rgb(249 115 22 / 0.1);
+		color: rgb(249 115 22);
 	}
 
 	.page-title {
 		font-size: 1.5rem;
 		line-height: 2rem;
 		font-weight: 700;
-	}
-	.dark .page-title {
-		color: rgb(244 244 245);
-	}
-	.light .page-title {
-		color: rgb(31 41 55);
+		color: var(--md-on-surface);
 	}
 
 	.page-subtitle {
 		font-size: 0.875rem;
 		line-height: 1.25rem;
+		color: var(--md-on-surface-variant);
 	}
-	.dark .page-subtitle {
-		color: rgb(161 161 170);
+
+	.filters-row {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: 2rem;
+		border-bottom: 1px solid var(--md-outline-variant);
+		padding-bottom: 1rem;
 	}
-	.light .page-subtitle {
-		color: rgb(107 114 128);
+
+	.tabs-container {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.tab-btn {
+		padding: 0.5rem 1rem;
+		border-radius: 9999px;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--md-on-surface-variant);
+		background: transparent;
+		border: 1px solid transparent;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.tab-btn:hover {
+		background: var(--md-surface-container-high);
+	}
+
+	.tab-btn.active {
+		background: var(--md-primary);
+		color: var(--md-on-primary);
 	}
 
 	.loading-state {
@@ -315,25 +374,17 @@
 
 	.error-box {
 		padding: 1rem;
-		background: rgb(254 242 242);
-		color: rgb(220 38 38);
-		border: 1px solid rgb(254 202 202);
+		background: var(--md-error-container);
+		color: var(--md-on-error-container);
 		border-radius: 0.75rem;
 	}
 
 	.empty-state {
 		text-align: center;
 		padding: 4rem 1rem;
-		border: 2px dashed;
+		border: 2px dashed var(--md-outline-variant);
 		border-radius: 1rem;
-	}
-	.dark .empty-state {
-		border-color: rgb(39 39 42);
-		color: rgb(113 113 122);
-	}
-	.light .empty-state {
-		border-color: rgb(229 231 235);
-		color: rgb(156 163 175);
+		color: var(--md-on-surface-variant);
 	}
 
 	.empty-icon {
@@ -347,6 +398,7 @@
 		font-size: 1.125rem;
 		line-height: 1.75rem;
 		font-weight: 500;
+		color: var(--md-on-surface);
 	}
 
 	.empty-text {
@@ -355,7 +407,7 @@
 		margin-top: 0.25rem;
 	}
 
-	.track-list {
+	.tracks-grid {
 		display: flex;
 		flex-direction: column;
 		gap: 2rem;
@@ -363,36 +415,23 @@
 
 	.track-card {
 		border-radius: 1rem;
-		border: 1px solid;
-		overflow: hidden;
-		transition: all 0.2s ease;
-	}
-	.dark .track-card {
-		background: rgb(24 24 27);
-		border-color: rgb(39 39 42);
-	}
-	.light .track-card {
-		background: white;
-		border-color: rgb(229 231 235);
-		box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
-	}
-
-	.track-card-header {
 		padding: 1.5rem;
-		border-bottom: 1px solid;
-	}
-	.dark .track-card-header {
-		border-color: rgb(39 39 42);
-	}
-	.light .track-card-header {
-		border-color: rgb(229 231 235);
+		background: var(--md-surface-container);
+		box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+		transition: all 0.3s ease;
 	}
 
-	.track-card-top,
-	.team-card-top {
+	.track-top {
+		margin-bottom: 1.5rem;
+		border-bottom: 1px solid var(--md-outline-variant);
+		padding-bottom: 1.5rem;
+	}
+
+	.track-heading-row {
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
+		margin-bottom: 0.5rem;
 		gap: 0.75rem;
 	}
 
@@ -400,20 +439,11 @@
 		font-size: 1.5rem;
 		line-height: 2rem;
 		font-weight: 700;
-	}
-	.dark .track-name,
-	.dark .team-name {
-		color: rgb(244 244 245);
-	}
-	.light .track-name,
-	.light .team-name {
-		color: rgb(17 24 39);
+		color: var(--md-on-surface);
 	}
 
-	.mentor-badge,
-	.status-badge {
+	.track-role-badge {
 		font-size: 0.75rem;
-		line-height: 1rem;
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
@@ -422,34 +452,28 @@
 		flex-shrink: 0;
 	}
 
-	.mentor-badge {
+	.badge-mentor {
 		background: rgb(237 233 254);
 		color: rgb(109 40 217);
 	}
+	.dark .badge-mentor {
+		background: rgb(109 40 217 / 0.2);
+		color: rgb(196 181 253);
+	}
 
-	.event-line {
-		margin-top: 0.5rem;
+	.track-event {
 		font-size: 0.875rem;
 		line-height: 1.25rem;
-	}
-	.dark .event-line {
-		color: rgb(161 161 170);
-	}
-	.light .event-line {
-		color: rgb(107 114 128);
-	}
-	.event-line span {
-		font-weight: 700;
-	}
-	.dark .event-line span {
-		color: rgb(212 212 216);
-	}
-	.light .event-line span {
-		color: rgb(55 65 81);
+		color: var(--md-on-surface-variant);
 	}
 
-	.track-card-body {
-		padding: 1.5rem;
+	.track-event span {
+		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.track-teams-container {
+		/* container for teams grid */
 	}
 
 	.teams-grid {
@@ -471,38 +495,134 @@
 	.team-card {
 		padding: 1.25rem;
 		border-radius: 0.75rem;
-		border: 1px solid;
+		border: 1px solid var(--md-outline-variant);
 		display: flex;
 		flex-direction: column;
 		height: 100%;
+		background: var(--md-surface);
 	}
-	.dark .team-card {
-		background: rgb(9 9 11 / 0.5);
-		border-color: rgb(39 39 42);
+
+	.team-track-header {
+		margin-bottom: 0.75rem;
 	}
-	.light .team-card {
-		background: rgb(249 250 251);
-		border-color: rgb(229 231 235);
+
+	.track-heading-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 0.75rem;
+		margin-bottom: 0.25rem;
+	}
+
+	.track-badge {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.track-role-badge {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+		flex-shrink: 0;
+	}
+
+	.badge-mentor {
+		background: rgb(219 234 254);
+		color: rgb(37 99 235);
+	}
+	.dark .badge-mentor {
+		background: rgb(37 99 235 / 0.2);
+		color: rgb(147 197 253);
+	}
+
+	.track-event {
+		font-size: 0.75rem;
+		color: var(--md-on-surface-variant);
+	}
+
+	.track-event span {
+		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.team-card-divider {
+		height: 1px;
+		background-color: var(--md-outline-variant);
+		margin: 0.75rem 0;
+	}
+
+	.team-card-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 0.75rem;
+		margin-bottom: 1rem;
 	}
 
 	.team-name {
 		font-size: 1.125rem;
 		line-height: 1.75rem;
 		font-weight: 700;
+		color: var(--md-on-surface);
+	}
+
+	.status-badge {
+		font-size: 0.75rem;
+		line-height: 1rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+		flex-shrink: 0;
 	}
 
 	.status-badge.approved {
 		background: rgb(220 252 231);
 		color: rgb(21 128 61);
 	}
+	.dark .status-badge.approved {
+		background: rgb(21 128 61 / 0.2);
+		color: rgb(134 239 172);
+	}
+
 	.status-badge.pending {
 		background: rgb(254 243 199);
 		color: rgb(180 83 9);
 	}
+	.dark .status-badge.pending {
+		background: rgb(180 83 9 / 0.2);
+		color: rgb(253 230 138);
+	}
+
+	.members-area {
+		margin-bottom: 1rem;
+	}
+
+	.members-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.member-chip {
+		font-size: 0.75rem;
+		padding: 0.25rem 0.625rem;
+		background: var(--md-surface-container-high);
+		color: var(--md-on-surface);
+		border-radius: 0.375rem;
+		font-weight: 500;
+	}
 
 	.submission-area {
 		flex-grow: 1;
-		margin-top: 1rem;
+		margin-top: auto;
+		padding-top: 1rem;
+		border-top: 1px solid var(--md-outline-variant);
 	}
 
 	.submission-label {
@@ -512,12 +632,7 @@
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
-	}
-	.dark .submission-label {
-		color: rgb(113 113 122);
-	}
-	.light .submission-label {
-		color: rgb(107 114 128);
+		color: var(--md-on-surface-variant);
 	}
 
 	.submission-card {
@@ -525,14 +640,8 @@
 		border-radius: 0.5rem;
 		font-size: 0.875rem;
 		line-height: 1.25rem;
-	}
-	.dark .submission-card {
-		background: rgb(24 24 27);
-		border: 1px solid rgb(39 39 42);
-	}
-	.light .submission-card {
-		background: white;
-		border: 1px solid rgb(229 231 235);
+		background: var(--md-surface-container);
+		border: 1px solid var(--md-outline-variant);
 	}
 
 	.submission-title {
@@ -541,12 +650,7 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-	.dark .submission-title {
-		color: rgb(228 228 231);
-	}
-	.light .submission-title {
-		color: rgb(31 41 55);
+		color: var(--md-on-surface);
 	}
 
 	.submission-links {
@@ -557,16 +661,20 @@
 		line-height: 1rem;
 		font-weight: 700;
 	}
+
 	.submission-links a {
 		color: rgb(249 115 22);
 		text-decoration: none;
 	}
+
 	.submission-links a:hover {
 		text-decoration: underline;
 	}
+
 	.submission-links .youtube {
 		color: rgb(239 68 68);
 	}
+
 	.submission-links .slides {
 		color: rgb(249 115 22);
 	}
@@ -574,5 +682,10 @@
 	.no-teams-wrap {
 		text-align: center;
 		padding: 2rem 0;
+	}
+
+	.no-submissions {
+		font-size: 0.875rem;
+		color: var(--md-on-surface-variant);
 	}
 </style>
