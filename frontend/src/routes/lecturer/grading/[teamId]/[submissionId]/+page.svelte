@@ -11,7 +11,7 @@
 		Code,
 		Presentation
 	} from "@lucide/svelte"
-	import { getAllCriteriaTemplates, gradeSubmission, getAllSubmissions, getSelfProfile } from "$lib/api"
+	import { getAllCriteriaTemplates, gradeSubmission, getAllSubmissions, getSelfProfile, requestRegrade } from "$lib/api"
 	import { goto } from "$app/navigation"
 
 	let teamId = $derived($page.params.teamId)
@@ -28,6 +28,11 @@
 
 	// Form state: map criteria_id -> { value: number, comment: string }
 	let gradingData: Record<string, { value: number | null; comment: string }> = $state({})
+
+	// Regrade request state
+	let regradeReason = $state("")
+	let isRequestingRegrade = $state(false)
+	let regradeRequestSuccess = $state(false)
 
 	function extractYoutubeId(url: string) {
 		if (!url) return null
@@ -185,6 +190,33 @@
 			isSubmitting = false
 		}
 	}
+
+	async function handleRequestRegrade() {
+		if (!regradeReason.trim()) {
+			errorMessage = "Please enter a reason for requesting a re-grade."
+			return
+		}
+		errorMessage = ""
+		isRequestingRegrade = true
+		try {
+			const { response, error } = await requestRegrade({
+				path: { submissionId },
+				body: { reason: regradeReason }
+			})
+			if (response?.ok) {
+				regradeRequestSuccess = true
+				successMessage = "Re-grading request submitted successfully!"
+			} else {
+				const errorDetails = error || (await response?.json().catch(() => null))
+				errorMessage = `Failed to request re-grade: ${errorDetails?.detail || errorDetails?.message || response?.statusText}`
+			}
+		} catch (err: any) {
+			console.error("Failed to request regrade", err)
+			errorMessage = err.message || "An unexpected error occurred."
+		} finally {
+			isRequestingRegrade = false
+		}
+	}
 </script>
 
 <svelte:head>
@@ -329,6 +361,7 @@
 													class="input"
 													placeholder="e.g. 8.5"
 													required
+													disabled={hasGraded}
 												/>
 											</div>
 										</div>
@@ -344,6 +377,7 @@
 												rows="2"
 												class="input textarea"
 												placeholder="Provide constructive feedback..."
+												disabled={hasGraded}
 											></textarea>
 										</div>
 									</div>
@@ -351,18 +385,63 @@
 							</div>
 						</div>
 
-						<div class="form-actions">
-							<button type="submit" disabled={isSubmitting} class="btn-submit">
-								{#if isSubmitting}
-									<div class="spinner spinner--white"></div>
-									Submitting...
-								{:else}
-									<Save class="btn-icon" />
-									{hasGraded ? "Edit Grades" : "Submit Grades"}
-								{/if}
-							</button>
-						</div>
+						{#if !hasGraded}
+							<div class="form-actions">
+								<button type="submit" disabled={isSubmitting} class="btn-submit">
+									{#if isSubmitting}
+										<div class="spinner spinner--white"></div>
+										Submitting...
+									{:else}
+										<Save class="btn-icon" />
+										Submit Grades
+									{/if}
+								</button>
+							</div>
+						{/if}
 					</form>
+
+					{#if hasGraded}
+						<div class="card regrade-card" style="margin-top: 1.5rem;">
+							<h2 class="card-title">Request Re-grading</h2>
+							<p class="card-desc">
+								You have already graded this submission. To change your score, you must submit a request with a valid reason to the coordinator for approval.
+							</p>
+
+							{#if regradeRequestSuccess}
+								<div class="alert alert--success">
+									Re-grading request submitted successfully! Awaiting Coordinator approval.
+								</div>
+							{:else}
+								<div class="regrade-field">
+									<label class="field-label">Reason for Requesting Re-grade <span class="field-required">*</span></label>
+									<textarea
+										bind:value={regradeReason}
+										rows="3"
+										class="input textarea"
+										placeholder="Specify why you want to change your scores..."
+										required
+									></textarea>
+								</div>
+
+								<div class="form-actions" style="margin-top: 1.25rem;">
+									<button
+										type="button"
+										onclick={handleRequestRegrade}
+										disabled={isRequestingRegrade || !regradeReason.trim()}
+										class="btn-submit"
+									>
+										{#if isRequestingRegrade}
+											<div class="spinner spinner--white"></div>
+											Submitting...
+										{:else}
+											<Save class="btn-icon" />
+											Submit Request
+										{/if}
+									</button>
+								</div>
+							{/if}
+						</div>
+					{/if}
 				{/if}
 			</div>
 		</div>
