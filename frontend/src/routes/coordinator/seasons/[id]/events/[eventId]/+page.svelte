@@ -1060,7 +1060,9 @@
 												</td>
 												{#if event.status?.toUpperCase() === "DRAFT"}
 													<td>
-														<div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+														<div
+															style="display: flex; flex-direction: column; gap: 1rem; align-items: center;"
+														>
 															<button
 																onclick={() => openAssignCriteriaModal(round)}
 																class="btn btn-tonal btn-small"
