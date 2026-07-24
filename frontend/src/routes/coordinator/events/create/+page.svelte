@@ -101,27 +101,26 @@
 	}
 </script>
 
-<div class="container">
-	<h1>Create event</h1>
+<div class="page-wrapper">
+	<div class="container form-card">
+		<h1 class="page-title">Create Event</h1>
 
-	<form onsubmit={handleSubmit} class="body">
-		<div class="section">
-			<div>
-				<p>Event name</p>
+		<form onsubmit={handleSubmit} class="body">
+			<div class="field">
+				<p class="label">Event name</p>
 				<TextFieldOutlined required minlength={1} label="" bind:value={name} />
-
 				{#if errors.eventName}
 					<span class="error">{errors.eventName}</span>
 				{/if}
 			</div>
 
-			<div>
-				<p>Prize pool</p>
+			<div class="field">
+				<p class="label">Prize pool</p>
 				<TextFieldOutlined required minlength={1} label="" bind:value={prize} />
 			</div>
 
-			<div>
-				<p>Semester</p>
+			<div class="field">
+				<p class="label">Semester</p>
 				<SelectOutlined
 					label={""}
 					options={[
@@ -133,90 +132,201 @@
 				/>
 			</div>
 
-			<div>
-				<p>Year</p>
+			<div class="field">
+				<p class="label">Year</p>
 				<TextFieldOutlined required type="number" label="" min="2000" bind:value={year} />
 			</div>
-		</div>
 
-		<div class="section">
-			<div>
-				<p>Registration start</p>
-				<div class="input">
+			<div class="field">
+				<p class="label">Registration start</p>
+				<div class="input-wrapper">
 					<DateTimePicker bind:value={registrationStartTime} />
 				</div>
-
 				{#if errors.startTime}
 					<span class="error">{errors.startTime}</span>
 				{/if}
 			</div>
 
-			<div>
-				<p>Registration end</p>
-				<div class="input">
+			<div class="field">
+				<p class="label">Registration end</p>
+				<div class="input-wrapper">
 					<DateTimePicker bind:value={registrationEndTime} />
 				</div>
-
 				{#if errors.endTime}
 					<span class="error">{errors.endTime}</span>
 				{/if}
 			</div>
-		</div>
 
-		<TextFieldOutlinedMultiline
-			required
-			minlength={1}
-			label="Description"
-			bind:value={description}
-		/>
+			<div class="field full-width description-box">
+				<p class="label">Description</p>
+				<TextFieldOutlinedMultiline required minlength={1} label="" bind:value={description} />
+			</div>
 
-		<p style="text-align: end; margin-top: 1rem">
-			You will be able to create tracks and rounds afterwards
-		</p>
+			<div class="full-width form-footer">
+				<div class="footer-info">
+					<Icon icon={iconCheck} style="color: var(--md-sys-color-primary, #6750a4);" />
+					<p class="hint-text">You will be able to create tracks and rounds afterwards.</p>
+				</div>
 
-		<div class="create">
-			<Button><Icon icon={iconCheck} /> Create</Button>
-		</div>
-	</form>
+				<div class="create-btn">
+					<Button><Icon icon={iconCheck} /> Create Event</Button>
+				</div>
+			</div>
+		</form>
 
-	{#if errors.generic}
-		<p class="error">{errors.generic}</p>
-	{/if}
+		{#if errors.generic}
+			<div class="global-error-box">
+				<p class="error">{errors.generic}</p>
+			</div>
+		{/if}
+	</div>
 </div>
 
 <style lang="scss">
-	.container {
-		margin: auto;
-		width: 100%;
+	/* Wrapper tạo màu nền xám nhạt cho toàn trang để nổi bật form */
+	.page-wrapper {
+		padding: 2rem;
+		background-color: #f8fafc;
+		min-height: calc(100vh - 64px);
+		display: flex;
+		justify-content: center;
 	}
 
-	h1 {
-		margin-bottom: 2rem;
+	/* Hiệu ứng thẻ (Card) với đổ bóng mượt và bo góc */
+	.form-card {
+		background: #ffffff;
+		border-radius: 16px;
+		box-shadow:
+			0 10px 30px -5px rgba(0, 0, 0, 0.08),
+			0 4px 6px -2px rgba(0, 0, 0, 0.04);
+		padding: 2.5rem 3rem;
+		border: 1px solid #f1f5f9;
+		margin: 0;
+		width: 100%;
+		max-width: 900px;
+	}
+
+	/* Tiêu đề có điểm nhấn màu sắc */
+	.page-title {
+		color: var(--md-sys-color-primary, #8a2be2);
+		font-size: 1.8rem;
+		font-weight: 700;
+		margin-top: 0;
+		margin-bottom: 2.5rem;
+		padding-bottom: 1rem;
+		border-bottom: 2px solid #e2e8f0;
+		position: relative;
+	}
+
+	.page-title::after {
+		content: "";
+		position: absolute;
+		bottom: -2px;
+		left: 0;
+		width: 80px;
+		height: 2px;
 	}
 
 	.body {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 2rem 2.5rem;
+	}
+
+	.field {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-
-		.section {
-			display: flex;
-			gap: 1rem;
-		}
+		gap: 0.5rem;
+		transition: transform 0.2s ease;
 	}
 
-	.input {
+	/* Label màu dịu hơn, đổi màu khi hover vào field */
+	.label {
+		margin: 0;
+		font-weight: 600;
+		font-size: 0.9rem;
+		color: #64748b;
+		transition: color 0.2s ease;
+	}
+
+	.field:hover .label {
+		color: var(--md-sys-color-primary, #8a2be2);
+	}
+
+	.full-width {
+		grid-column: 1 / -1;
+	}
+
+	.description-box {
+		margin-top: 0.5rem;
+	}
+
+	.input-wrapper {
 		display: flex;
 		gap: 1rem;
 	}
 
-	.create {
-		margin-top: 1rem;
+	/* Tút lại phần Footer của form */
+	.form-footer {
 		display: flex;
-		justify-content: end;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: 1.5rem;
+		padding-top: 1.5rem;
+		border-top: 1px dashed #cbd5e1;
+	}
+
+	.footer-info {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		background: #f1f5f9;
+		padding: 0.75rem 1.25rem;
+		border-radius: 8px;
+	}
+
+	.hint-text {
+		margin: 0;
+		color: #475569;
+		font-size: 0.9rem;
+		font-weight: 500;
+	}
+
+	.create-btn {
+		/* Phóng to nút một chút để tăng tính tương tác */
+		transform: scale(1.05);
 	}
 
 	.error {
-		color: var(--md-sys-color-error);
+		color: var(--md-sys-color-error, #ef4444);
+		font-size: 0.85rem;
+		font-weight: 500;
+		margin-top: 0.25rem;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	.error::before {
+		content: "•";
+	}
+
+	.global-error-box {
+		margin-top: 2rem;
+		background-color: #fef2f2;
+		border: 1px solid #fca5a5;
+		padding: 1rem;
+		border-radius: 8px;
+		text-align: center;
+	}
+
+	.global-error-box .error {
+		font-size: 1rem;
+		margin: 0;
+		justify-content: center;
+	}
+
+	.global-error-box .error::before {
+		display: none;
 	}
 </style>
