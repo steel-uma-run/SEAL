@@ -227,7 +227,7 @@ public class TeamServiceImpl implements TeamService {
     boolean isLeader = team.getLeader().getId().equals(currentUser.getId());
     boolean isCoordinator = currentUser.getRole() == Role.COORDINATOR;
 
-    if (!isMember && !isLeader && !isCoordinator) {
+    if (!isMember || !isLeader || !isCoordinator) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot view this team.");
     }
 
