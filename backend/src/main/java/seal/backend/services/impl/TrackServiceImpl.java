@@ -152,6 +152,11 @@ public class TrackServiceImpl implements TrackService {
           "This lecturer has been assigned as a judge for this track and cannot be a mentor");
     }
 
+    if (track.getMentors().contains(mentor)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "This lecturer is already a mentor for this track.");
+    }
+
     if (track.getMentors().size() >= 3) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
@@ -162,15 +167,10 @@ public class TrackServiceImpl implements TrackService {
     for (Track trackInEvent : allTracksInEvent) {
       if (trackInEvent.getId().equals(track.getId())) continue;
 
-      if (trackInEvent.getMentors().contains(mentor) || trackInEvent.getJudges().contains(mentor)) {
+      if (trackInEvent.getMentors().contains(mentor)) {
         throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST,
             "This lecturer is already assigned to another track within the same event.");
-      } else {
-        if (track.getMentors().contains(mentor)) {
-          throw new ResponseStatusException(
-              HttpStatus.BAD_REQUEST, "This lecturer is already a mentor for this track.");
-        }
       }
     }
 
@@ -191,6 +191,11 @@ public class TrackServiceImpl implements TrackService {
           "This lecturer has been assigned as a mentor for this track and cannot be a judge");
     }
 
+    if (track.getJudges().contains(judge)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "This lecturer is already assigned to this track.");
+    }
+
     if (track.getJudges().size() >= 3) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST,
@@ -201,15 +206,10 @@ public class TrackServiceImpl implements TrackService {
     for (Track trackInEvent : allTracksInEvent) {
       if (trackInEvent.getId().equals(track.getId())) continue;
 
-      if (trackInEvent.getMentors().contains(judge) || trackInEvent.getJudges().contains(judge)) {
+      if (trackInEvent.getJudges().contains(judge)) {
         throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST,
             "This lecturer is already assigned to another track within the same event.");
-      } else {
-        if (track.getJudges().contains(judge)) {
-          throw new ResponseStatusException(
-              HttpStatus.BAD_REQUEST, "This lecturer is already assigned to this track.");
-        }
       }
     }
 
