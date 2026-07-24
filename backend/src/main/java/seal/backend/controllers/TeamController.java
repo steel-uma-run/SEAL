@@ -59,7 +59,6 @@ public class TeamController implements TeamsApi {
   }
 
   @Override
-  @PreAuthorize("hasAnyAuthority('STUDENT', 'COORDINATOR', 'LECTURER')")
   public ResponseEntity<TeamDto> getTeamInfo(@PathVariable(name = "teamId") @NotNull UUID teamId) {
     return ResponseEntity.ok(teamService.getTeamInfo(teamId));
   }
