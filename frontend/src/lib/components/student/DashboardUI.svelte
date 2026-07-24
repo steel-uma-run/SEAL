@@ -21,7 +21,11 @@
 		joinedEvents.length > 0
 			? joinedEvents
 					.slice()
-					.sort((a, b) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime())[0]
+					.sort(
+						(a, b) =>
+							new Date(a.endTime || a.end_time).getTime() -
+							new Date(b.endTime || b.end_time).getTime()
+					)[0]
 			: null
 	)
 </script>
@@ -126,7 +130,7 @@
 			<div class="dashboard-stats__content">
 				<p class="dashboard-stats__label">Submission Due</p>
 				<h3 class="dashboard-stats__value dashboard-stats__value--sm">
-					{nearestEvent ? formatFullDate(nearestEvent.endTime) : "TBA"}
+					{nearestEvent ? formatFullDate(nearestEvent.endTime || nearestEvent.end_time) : "TBA"}
 				</h3>
 			</div>
 		</div>

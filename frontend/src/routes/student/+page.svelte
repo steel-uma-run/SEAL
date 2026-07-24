@@ -107,7 +107,11 @@
 						// Fetch rounds for the nearest event (or first joined event)
 						const nearestEvent = joinedEvents
 							.slice()
-							.sort((a, b) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime())[0]
+							.sort(
+								(a, b) =>
+									new Date(a.endTime || a.end_time).getTime() -
+									new Date(b.endTime || b.end_time).getTime()
+							)[0]
 
 						// Check local storage for mock rounds
 						if (typeof window !== "undefined") {

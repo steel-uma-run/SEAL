@@ -146,8 +146,10 @@
 		eventName = eventItem.name
 		eventDescription = eventItem.description
 		// YYYY-MM-DDTHH:MM datetime-local format support
-		eventStartTime = eventItem.startTime ? eventItem.startTime.substring(0, 16) : ""
-		eventEndTime = eventItem.endTime ? eventItem.endTime.substring(0, 16) : ""
+		const startVal = eventItem.startTime || eventItem.start_time
+		const endVal = eventItem.endTime || eventItem.end_time
+		eventStartTime = startVal ? startVal.substring(0, 16) : ""
+		eventEndTime = endVal ? endVal.substring(0, 16) : ""
 		eventStatusState = eventItem.status || "DRAFT"
 		eventTracks = eventItem.tracks ? JSON.parse(JSON.stringify(eventItem.tracks)) : []
 		showEventModal = true
@@ -422,13 +424,13 @@
 												class="flex items-center gap-1.5 text-[11px] text-(--md-on-surface-variant)"
 											>
 												<Clock class="w-3.5 h-3.5 text-(--md-primary)" />
-												<span>Start: {formatDateTime(event.startTime)}</span>
+												<span>Start: {formatDateTime(event.startTime || event.start_time)}</span>
 											</div>
 											<div
 												class="flex items-center gap-1.5 text-[11px] text-(--md-on-surface-variant)"
 											>
 												<Clock class="w-3.5 h-3.5 text-(--md-error)" />
-												<span>End: {formatDateTime(event.endTime)}</span>
+												<span>End: {formatDateTime(event.endTime || event.end_time)}</span>
 											</div>
 										</div>
 									</div>
