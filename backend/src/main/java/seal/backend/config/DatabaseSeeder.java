@@ -235,6 +235,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                   templatedCriteria.getDescription(),
                   templatedCriteria.getWeight(),
                   rdSpring1));
+      criteriaRepo.saveAll(rdSpring1.getCriteria());
     }
 
     for (TemplatedCriteria templatedCriteria : v2Criterias) {
@@ -246,6 +247,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                   templatedCriteria.getDescription(),
                   templatedCriteria.getWeight(),
                   rdSpring2));
+      criteriaRepo.saveAll(rdSpring2.getCriteria());
     }
 
     for (TemplatedCriteria templatedCriteria : v1Criterias) {
@@ -257,6 +259,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                   templatedCriteria.getDescription(),
                   templatedCriteria.getWeight(),
                   rdSum1));
+      criteriaRepo.saveAll(rdSum1.getCriteria());
     }
 
     for (TemplatedCriteria templatedCriteria : v1Criterias) {
@@ -268,6 +271,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                   templatedCriteria.getDescription(),
                   templatedCriteria.getWeight(),
                   rdSum2));
+      criteriaRepo.saveAll(rdSum2.getCriteria());
     }
 
     roundRepo.save(rdSpring1);
