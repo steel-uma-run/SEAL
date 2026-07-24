@@ -10,4 +10,6 @@ public interface TeamService {
   void approveTeam(UUID teamId);
 
   void inviteToTeam(UUID teamId, UUID studenUuid);
+
+  TeamDto getTeamInfo(UUID teamId);
 }

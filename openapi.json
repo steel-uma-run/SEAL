@@ -25,6 +25,9 @@
     "/teams": {
       "$ref": "./openapi/paths/teams/create.json"
     },
+    "/teams/{teamId}/info": {
+      "$ref": "./openapi/paths/teams/info.json"
+    },
     "/teams/{teamId}/approve": {
       "$ref": "./openapi/paths/teams/approve.json"
     },
