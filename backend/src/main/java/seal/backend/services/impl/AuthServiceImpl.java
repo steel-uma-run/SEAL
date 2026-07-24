@@ -42,13 +42,20 @@ public class AuthServiceImpl implements AuthService {
           HttpStatus.CONFLICT, "This Student ID is already registered.");
     }
 
+    if (request.isExternal() && request.schoolName() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "External students must always have school name");
+    }
+
+    String schoolName = request.isExternal() ? request.schoolName() : "FPT";
+
     Student newStudent =
         Student.builder()
             .email(request.email())
             .fullName(request.name())
             .role(Role.STUDENT)
             .passwordHash(passwordEncoder.encode(request.password()))
-            .schoolName(request.schoolName())
+            .schoolName(schoolName)
             .studentType(request.isExternal() ? StudentType.EXTERNAL : StudentType.FPT)
             .studentStatus(StudentStatus.PENDING)
             .studentId(request.studentId().toUpperCase())

@@ -36,4 +36,11 @@ public class TrackController implements TracksApi {
     TrackDto updatedTrack = trackService.updateTrack(trackId, body);
     return ResponseEntity.ok(updatedTrack);
   }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<Void> deleteTrack(@PathVariable(name = "trackId") @NotNull UUID trackId) {
+    trackService.deleteTrack(trackId);
+    return ResponseEntity.noContent().build();
+  }
 }

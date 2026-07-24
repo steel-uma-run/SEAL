@@ -14,12 +14,21 @@ import seal.backend.config.GlobalConfig;
 import seal.backend.services.RoundService;
 import seal.openapi.api.RoundsApi;
 import seal.openapi.model.AssignCriteriaRequestArrayItemDto;
+import seal.openapi.model.RoundDto;
+import seal.openapi.model.UpdateRoundRequestDto;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(GlobalConfig.API_BASE)
 public class RoundController implements RoundsApi {
   private final RoundService roundService;
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<RoundDto> updateRound(
+      UUID roundId, @RequestBody @Valid @NotNull UpdateRoundRequestDto body) {
+    return ResponseEntity.ok(roundService.updateRound(roundId, body));
+  }
 
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")

@@ -5,6 +5,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -58,6 +59,9 @@ public class DatabaseSeeder implements CommandLineRunner {
   private final StudentRepository studentRepo;
   private final TeamRepository teamRepo;
   private final PasswordEncoder passwordEncoder;
+
+  private final Random random =
+      new Random(2026); // Fix seed để data không bị đổi liên tục mỗi lần chạy
 
   @Override
   @Transactional
@@ -147,6 +151,8 @@ public class DatabaseSeeder implements CommandLineRunner {
     Track trSumC =
         trackRepo.save(
             new Track("Smart UI/UX & Edge AI", "Giao diện thông minh và Edge AI", eventSummer));
+    Track[] springTracks = {trSpringA, trSpringB, trSpringC};
+    Track[] summerTracks = {trSumA, trSumB, trSumC};
 
     // Rounds
     Round rdSpring1 =
@@ -235,6 +241,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                   templatedCriteria.getDescription(),
                   templatedCriteria.getWeight(),
                   rdSpring1));
+      criteriaRepo.saveAll(rdSpring1.getCriteria());
     }
 
     for (TemplatedCriteria templatedCriteria : v2Criterias) {
@@ -246,6 +253,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                   templatedCriteria.getDescription(),
                   templatedCriteria.getWeight(),
                   rdSpring2));
+      criteriaRepo.saveAll(rdSpring2.getCriteria());
     }
 
     for (TemplatedCriteria templatedCriteria : v1Criterias) {
@@ -257,6 +265,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                   templatedCriteria.getDescription(),
                   templatedCriteria.getWeight(),
                   rdSum1));
+      criteriaRepo.saveAll(rdSum1.getCriteria());
     }
 
     for (TemplatedCriteria templatedCriteria : v1Criterias) {
@@ -268,6 +277,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                   templatedCriteria.getDescription(),
                   templatedCriteria.getWeight(),
                   rdSum2));
+      criteriaRepo.saveAll(rdSum2.getCriteria());
     }
 
     roundRepo.save(rdSpring1);
@@ -310,618 +320,141 @@ public class DatabaseSeeder implements CommandLineRunner {
     assignMentorAndJudges(trSumC, Arrays.asList(lLam, lPhuong), Arrays.asList(lChi, lThinh));
 
     // ==========================================
-    // 5. TẠO 25 ĐỘI CHO KỲ SPRING 2026
+    // 5. KHỞI TẠO CÁC TEAM CỐ ĐỊNH (CHO VIỆC DEMO CHÍNH)
     // ==========================================
-    log.info("Khoi tao teams cho SPRING 2026...");
-    // Track A
-    createTeam(
-        "Đẹp trai có gì sai",
-        "Phát triển Agentic RAG phục vụ quy trình tuyển dụng tự động",
-        eventSpring,
-        trSpringA,
-        createStudent(
-            "Trần Tuấn Khang",
-            "khangtt@fpt.edu.vn",
-            "SE180101",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "Epoch 0",
-        "Fine-tuning LLMs nguồn mở trong lĩnh vực Pháp lý",
-        eventSpring,
-        trSpringA,
-        createStudent(
-            "Lê Tuấn Kiệt",
-            "kietlt@fpt.edu.vn",
-            "SE180102",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "food enjoyer",
-        "Tối ưu hóa Data Pipeline và xử lý luồng dữ liệu thời gian thực",
-        eventSpring,
-        trSpringA,
-        createStudent(
-            "Trần Ngọc Bích",
-            "bichtn@fpt.edu.vn",
-            "SE180103",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "NEWBIES",
-        "Xây dựng Vector Database chuyên dụng phục vụ tra cứu học thuật",
-        eventSpring,
-        trSpringA,
-        createStudent(
-            "Phạm Hoàng Long",
-            "longph@fpt.edu.vn",
-            "SE180104",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "ORTT",
-        "Kiến trúc bảo mật chống rò rỉ dữ liệu cho hệ thống doanh nghiệp",
-        eventSpring,
-        trSpringA,
-        createStudent(
-            "Đặng Quốc Bảo",
-            "baodq@fpt.edu.vn",
-            "SE180105",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
+    log.info("Khoi tao cac Team co dinh...");
+
+    Student sXuan =
+        createStudent("Trương Hoàng Mỹ Xuân", "xuanthm@fpt.edu.vn", "SE180106", defaultPwd);
+    Student sTrung =
+        createStudent("Nguyễn Văn Trung", "trungnv@fpt.edu.vn", "SE180107", defaultPwd);
+    Student sKhang = createStudent("Trần Tuấn Khang", "khangtt@fpt.edu.vn", "SE180101", defaultPwd);
+    Student sTu = createStudent("Võ Minh Tú", "tuvm@fpt.edu.vn", "SE180202", defaultPwd);
+
     createTeam(
         "Slothub",
         "Hệ thống Agentic RAG tối ưu hóa truy xuất dữ liệu bệnh án điện tử",
-        eventSpring,
-        trSpringA,
-        createStudent(
-            "Trương Hoàng Mỹ Xuân",
-            "xuanthm@fpt.edu.vn",
-            "SE180106",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "THE ORCA",
-        "Tích hợp DuckDB xử lý truy vấn dữ liệu kinh doanh phân tán",
-        eventSpring,
-        trSpringA,
-        createStudent(
-            "Nguyễn Văn Trung",
-            "trungnv@fpt.edu.vn",
-            "SE180107",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "Try",
-        "Ứng dụng Retrieval-Augmented Generation trong giáo dục",
-        eventSpring,
-        trSpringA,
-        createStudent(
-            "Lý Thảo Vy",
-            "vylt@fpt.edu.vn",
-            "SE180108",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
+        eventSummer,
+        trSumA,
+        sXuan,
+        sTrung,
+        sKhang,
+        sTu);
 
-    // Track B
-    createTeam(
-        "5 anh em siêu nhân",
-        "Automation Test kiểm định phản hồi từ hệ thống AI",
-        eventSpring,
-        trSpringB,
-        createStudent(
-            "Phạm Trung Hiếu",
-            "hieupt@fpt.edu.vn",
-            "SE180201",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "APX",
-        "Thiết kế hệ thống báo cáo linh hoạt kết nối dữ liệu bán hàng",
-        eventSpring,
-        trSpringB,
-        createStudent(
-            "Võ Minh Tú",
-            "tuvm@fpt.edu.vn",
-            "SE180202",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "Aqua team",
-        "Tối ưu hóa Cache memory cho phiên người dùng tương tác LLM",
-        eventSpring,
-        trSpringB,
-        createStudent(
-            "Trần Quang Minh",
-            "minhtq@hcmut.edu.vn",
-            "2110456",
-            "ĐH Bách Khoa",
-            StudentType.EXTERNAL,
-            defaultPwd));
-    createTeam(
-        "FULI",
-        "Đo lường độ trễ của Agent RAG (Performance Testing)",
-        eventSpring,
-        trSpringB,
-        createStudent(
-            "Lâm Chấn Huy",
-            "huylc@fpt.edu.vn",
-            "SE180203",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "NGUHANHSON",
-        "UI/UX tối ưu cho nền tảng Dashboard quản trị trí tuệ nhân tạo",
-        eventSpring,
-        trSpringB,
-        createStudent(
-            "Đỗ Thanh Sang",
-            "sangdt@fpt.edu.vn",
-            "SE180204",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "RAGnarok",
-        "Trực quan hóa dữ liệu đa chiều (Data Visualization) từ VectorDB",
-        eventSpring,
-        trSpringB,
-        createStudent(
-            "Hà Gia Minh",
-            "minhhg@fpt.edu.vn",
-            "SE180205",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "VAIK",
-        "Kịch bản kiểm thử bảo mật lỗ hổng Prompt Injection",
-        eventSpring,
-        trSpringB,
-        createStudent(
-            "Đinh Tấn Lộc",
-            "locdt@fpt.edu.vn",
-            "SE180206",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "WhaleDone",
-        "Quản lý CI/CD cho ứng dụng AI phân tán",
-        eventSpring,
-        trSpringB,
-        createStudent(
-            "Mai Phương Thảo",
-            "thaomp@fpt.edu.vn",
-            "SE180207",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-
-    // Track C
+    Student sGiaHieu = createStudent("Đinh Gia Hiếu", "hieudg@fpt.edu.vn", "SE180301", defaultPwd);
+    Student sHieu = createStudent("Phạm Trung Hiếu", "hieupt@fpt.edu.vn", "SE180201", defaultPwd);
+    Student sKiet = createStudent("Lê Tuấn Kiệt", "kietlt@fpt.edu.vn", "SE180102", defaultPwd);
     createTeam(
         "404NotFound",
-        "Hệ thống Crawler thu thập dữ liệu văn bản chuyên ngành",
+        "Hệ thống Crawler thu thập dữ liệu văn bản",
         eventSpring,
-        trSpringC,
-        createStudent(
-            "Đinh Gia Hiếu",
-            "hieudg@fpt.edu.vn",
-            "SE180301",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "BitMindz",
-        "Mô hình phân loại ý định (Intent Recognition) trong Chatbot",
-        eventSpring,
-        trSpringC,
-        createStudent(
-            "Nguyễn Thành Luân",
-            "luannt@fpt.edu.vn",
-            "SE180302",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "KQL",
-        "Đánh giá rủi ro tín dụng dựa trên xử lý ngôn ngữ tự nhiên",
-        eventSpring,
-        trSpringC,
-        createStudent(
-            "Cao Minh Khang",
-            "khangcm@fpt.edu.vn",
-            "SE180303",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "LearningAgent",
-        "Tự động hóa báo cáo tuần thông qua kiến trúc đa Agent",
-        eventSpring,
-        trSpringC,
-        createStudent(
-            "Hồ Vĩnh Phát",
-            "phathv@fpt.edu.vn",
-            "SE180304",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "Passion Ducks",
-        "Mạng lưới truy xuất thông tin nội bộ cho bộ phận Nhân sự",
-        eventSpring,
-        trSpringC,
-        createStudent(
-            "Trịnh Tiểu Cần",
-            "cantt@fpt.edu.vn",
-            "SE180305",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "Red Team Gang",
-        "Sử dụng Graph Database mô hình hóa quan hệ tri thức",
-        eventSpring,
-        trSpringC,
-        createStudent(
-            "Lê Trần Khánh Hà",
-            "haltk@fpt.edu.vn",
-            "SE180306",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "Underrated",
-        "Phát hiện ảo giác (Hallucination) trong các phản hồi của AI",
-        eventSpring,
-        trSpringC,
-        createStudent(
-            "Châu Tinh Trì",
-            "trict@fpt.edu.vn",
-            "SE180307",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "WORKA GANG",
-        "Cá nhân hóa nội dung Marketing thông qua phân tích dữ liệu",
-        eventSpring,
-        trSpringC,
-        createStudent(
-            "Nguyễn Hải Đăng",
-            "dangnh@hcmus.edu.vn",
-            "2128005",
-            "ĐH KHTN",
-            StudentType.EXTERNAL,
-            defaultPwd));
-    createTeam(
-        "YAG",
-        "API kết nối linh hoạt hệ thống ERP doanh nghiệp với AI",
-        eventSpring,
-        trSpringC,
-        createStudent(
-            "Vương Tấn Kiệt",
-            "kietvt@fpt.edu.vn",
-            "SE180308",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
+        trSpringB,
+        sGiaHieu,
+        sHieu,
+        sKiet);
 
     // ==========================================
-    // 6. GIẢ LẬP 20 ĐỘI THI CHO KỲ SUMMER 2026
+    // 6. KHỞI TẠO 50 TEAMS TỰ ĐỘNG BẰNG DYNAMIC GENERATOR (MỖI SỰ KIỆN 25 TEAMS)
     // ==========================================
-    log.info("Khoi tao teams cho SUMMER 2026...");
-    createTeam(
-        "AI Nexus",
-        "Nền tảng tích hợp đa mô hình LLM chuyên dụng",
-        eventSummer,
-        trSumA,
-        createStudent(
-            "Lý Hải", "hail1@fpt.edu.vn", "SE200401", "Đại học FPT", StudentType.FPT, defaultPwd));
-    createTeam(
-        "NeuralNet",
-        "Tối ưu hóa kiến trúc Transformer cho thiết bị IoT",
-        eventSummer,
-        trSumA,
-        createStudent(
-            "Vũ Đình Khoa",
-            "khoavd@fpt.edu.vn",
-            "SE180402",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "CloudSurfers",
-        "Kiến trúc Serverless AI cho ứng dụng tài chính",
-        eventSummer,
-        trSumA,
-        createStudent(
-            "Bùi An",
-            "anb@hcmut.edu.vn",
-            "2210111",
-            "ĐH Bách Khoa",
-            StudentType.EXTERNAL,
-            defaultPwd));
-    createTeam(
-        "DataCrafters",
-        "Hệ thống RAG ứng dụng Hybrid Search",
-        eventSummer,
-        trSumA,
-        createStudent(
-            "Đoàn Khắc Việt",
-            "vietdk@fpt.edu.vn",
-            "SE190404",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "CodePhantoms",
-        "Khai phá dữ liệu văn bản với Semantic Routing",
-        eventSummer,
-        trSumA,
-        createStudent(
-            "Nguyễn Tân Lập",
-            "lapnt@fpt.edu.vn",
-            "SE180405",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "LogicBombs",
-        "Framework tự động đánh giá chất lượng Prompt",
-        eventSummer,
-        trSumA,
-        createStudent(
-            "Lê Viết Ngọc Hoàn",
-            "hoanlvn@fpt.edu.vn",
-            "SE200406",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "SynthWave",
-        "Kiến trúc Multi-Agent phục vụ chăm sóc khách hàng",
-        eventSummer,
-        trSumA,
-        createStudent(
-            "Tạ Phương",
-            "phuongt@fpt.edu.vn",
-            "SE180407",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
+    log.info("Bat dau tao 50 Team tu 3-5 thanh vien...");
 
-    createTeam(
-        "PromptEngineers",
-        "Ngăn chặn Data Leakage trong Data Pipeline của RAG",
-        eventSummer,
-        trSumB,
-        createStudent(
-            "Phan Đăng Lưu",
-            "luupd@fpt.edu.vn",
-            "SE180408",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "RAG Masters",
-        "Mã hóa và bảo mật Vector Embeddings",
-        eventSummer,
-        trSumB,
-        createStudent(
-            "Cao Văn Hùng",
-            "hungcv@fpt.edu.vn",
-            "2210155",
-            "ĐH Bách Khoa",
-            StudentType.EXTERNAL,
-            defaultPwd));
-    createTeam(
-        "NLP Geeks",
-        "Xây dựng ETL tự động làm sạch dữ liệu nhiễu",
-        eventSummer,
-        trSumB,
-        createStudent(
-            "Đỗ Hà", "had@fpt.edu.vn", "SE180410", "Đại học FPT", StudentType.FPT, defaultPwd));
-    createTeam(
-        "Visionary Tech",
-        "Kiểm định tính ẩn danh của dữ liệu cá nhân (PII)",
-        eventSummer,
-        trSumB,
-        createStudent(
-            "Trương Tín",
-            "tint@fpt.edu.vn",
-            "SE180411",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "MLOps Hub",
-        "Pipeline Continuous Training cho mô hình nhúng",
-        eventSummer,
-        trSumB,
-        createStudent(
-            "Hứa Minh Kiệt",
-            "kiethm@fpt.edu.vn",
-            "SE200412",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "Agentic Flow",
-        "Theo dõi và truy vết (Observability) luồng suy luận Agent",
-        eventSummer,
-        trSumB,
-        createStudent(
-            "Đinh Vũ", "vud@hcmus.edu.vn", "2228099", "ĐH KHTN", StudentType.EXTERNAL, defaultPwd));
-    createTeam(
-        "ByteMe",
-        "Giải pháp chống DDOS chuyên biệt cho API AI",
-        eventSummer,
-        trSumB,
-        createStudent(
-            "Ngô Bằng",
-            "bangn@fpt.edu.vn",
-            "SE200414",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
+    String[] profTeamNames = {
+      "AI Nexus",
+      "NeuralNet",
+      "CloudSurfers",
+      "DataCrafters",
+      "CodePhantoms",
+      "LogicBombs",
+      "SynthWave",
+      "PromptEngineers",
+      "RAG Masters",
+      "NLP Geeks",
+      "Visionary Tech",
+      "MLOps Hub",
+      "Agentic Flow",
+      "ByteMe",
+      "Quantum Leap",
+      "Tech Titans",
+      "CyberCore",
+      "Data Ninjas",
+      "Edge Computing",
+      "DevSecOps Pro",
+      "Epoch 0",
+      "BitMindz",
+      "Red Team Gang",
+      "WhaleDone",
+      "Aqua team",
+      "Passion Ducks",
+      "Pioneers",
+      "Innovators",
+      "TechSavvy",
+      "CodeCrafters",
+      "ByteBuilders",
+      "DataDrivers",
+      "AI Mavericks",
+      "Cloud Native",
+      "Future Forge",
+      "Syntax Squad",
+      "Binary Bosses",
+      "Logic Legends",
+      "Code Command",
+      "Tech Tribe",
+      "Cyber Squad",
+      "Data Dynasty",
+      "AI Architects",
+      "Cloud Collective",
+      "Code Cartel",
+      "Byte Brigade",
+      "Tech Syndicate",
+      "Data Domain",
+      "AI Alliance",
+      "Deep Learning"
+    };
 
-    createTeam(
-        "Quantum Leap",
-        "Tối ưu hóa giao diện trò chuyện Voice-to-Text",
-        eventSummer,
-        trSumC,
-        createStudent(
-            "Đào Duy Anh",
-            "anhdd@fpt.edu.vn",
-            "2128010",
-            "ĐH KHTN",
-            StudentType.EXTERNAL,
-            defaultPwd));
-    createTeam(
-        "Tech Titans",
-        "Chạy mô hình LLM thu nhỏ trực tiếp trên trình duyệt Web",
-        eventSummer,
-        trSumC,
-        createStudent(
-            "Lâm Thị Hoàng Oanh",
-            "oanhlth@fpt.edu.vn",
-            "SE190416",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "CyberCore",
-        "Tích hợp AI dự đoán hành vi người dùng trên Mobile",
-        eventSummer,
-        trSumC,
-        createStudent(
-            "Chu Nhật Bình",
-            "binhcn@fpt.edu.vn",
-            "SE190417",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "Data Ninjas",
-        "Xây dựng Dashboard Real-time giám sát tài nguyên Edge",
-        eventSummer,
-        trSumC,
-        createStudent(
-            "Mạc Gia Huy",
-            "huymg@fpt.edu.vn",
-            "SE190418",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "Edge Computing",
-        "Ứng dụng Computer Vision phân tích ảnh tại biên (Edge)",
-        eventSummer,
-        trSumC,
-        createStudent(
-            "Cấn Quang Vinh",
-            "vinhcq@fpt.edu.vn",
-            "SE200419",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
-    createTeam(
-        "DevSecOps Pro",
-        "Giao diện Copilot hỗ trợ lập trình viên review code",
-        eventSummer,
-        trSumC,
-        createStudent(
-            "Tạ Anh Khoa",
-            "khoata@fpt.edu.vn",
-            "SE190420",
-            "Đại học FPT",
-            StudentType.FPT,
-            defaultPwd));
+    String[] profProjects = {
+      "Phát triển Agentic RAG cho HR", "Tối ưu hóa Pipeline ETL", "Bảo mật Data Leakage LLM",
+      "Xây dựng VectorDB tra cứu luật", "UI/UX cho hệ thống quản trị AI",
+          "Tự động hóa đánh giá Prompt",
+      "Kiểm định lỗ hổng Prompt Injection", "Mạng lưới truy xuất nội bộ",
+          "Thiết kế Dashboard Real-time",
+      "Nhận diện thực thể (NER) tiếng Việt"
+    };
+
+    int globalStudentCounter = 1000;
+
+    for (int i = 0; i < 50; i++) {
+      // Chia đều 25 team cho Spring, 25 team cho Summer
+      HackathonEvent currentEvent = (i < 25) ? eventSpring : eventSummer;
+      Track currentTrack = (i < 25) ? springTracks[i % 3] : summerTracks[i % 3];
+
+      String teamName = profTeamNames[i];
+      String projectDesc = profProjects[i % profProjects.length];
+
+      // 1 Team có từ 3 đến 5 người (1 Leader + 2->4 Members)
+      Student leader = generateRealisticStudent(globalStudentCounter++, defaultPwd);
+      int numMembers = random.nextInt(3) + 2; // Sinh số ngẫu nhiên 2, 3 hoặc 4
+      Student[] members = new Student[numMembers];
+
+      for (int j = 0; j < numMembers; j++) {
+        members[j] = generateRealisticStudent(globalStudentCounter++, defaultPwd);
+      }
+
+      createTeam(teamName, projectDesc, currentEvent, currentTrack, leader, members);
+    }
 
     // ==========================================
-    // 7. TẠO 10 SINH VIÊN "FREE AGENT" CHO DEMO (SUMMER 2026)
+    // 7. KHỞI TẠO 50 SINH VIÊN TỰ DO
     // ==========================================
-    log.info("Khoi tao 10 student accounts FREE AGENT...");
-
-    createStudent(
-        "Nguyễn Thị Mai",
-        "maint@fpt.edu.vn",
-        "SE190901",
-        "Đại học FPT",
-        StudentType.FPT,
-        defaultPwd);
-    createStudent(
-        "Lê Công Vinh",
-        "vinhlc@fpt.edu.vn",
-        "SE200902",
-        "Đại học FPT",
-        StudentType.FPT,
-        defaultPwd);
-    createStudent(
-        "Phạm Bảo Trâm",
-        "trampb@fpt.edu.vn",
-        "SE190903",
-        "Đại học FPT",
-        StudentType.FPT,
-        defaultPwd);
-    createStudent(
-        "Trần Khắc Hiếu",
-        "hieutk@fpt.edu.vn",
-        "SE190904",
-        "Đại học FPT",
-        StudentType.FPT,
-        defaultPwd);
-    createStudent(
-        "Vũ Gia Hân", "hanvg@fpt.edu.vn", "SE200905", "Đại học FPT", StudentType.FPT, defaultPwd);
-    createStudent(
-        "Đặng Tuấn Phong",
-        "phongdt@fpt.edu.vn",
-        "SE200906",
-        "Đại học FPT",
-        StudentType.FPT,
-        defaultPwd);
-    createStudent(
-        "Ngô Kim Ngân",
-        "ngannk@fpt.edu.vn",
-        "SE190907",
-        "Đại học FPT",
-        StudentType.FPT,
-        defaultPwd);
-    createStudent(
-        "Lý Anh Tuấn", "tuanla@fpt.edu.vn", "SE180908", "Đại học FPT", StudentType.FPT, defaultPwd);
-    createStudent(
-        "Bùi Thị Bích Phương",
-        "phuongbtb@fpt.edu.vn",
-        "SE180909",
-        "Đại học FPT",
-        StudentType.FPT,
-        defaultPwd);
-    createStudent(
-        "Dương Nhật Minh",
-        "minhdn@fpt.edu.vn",
-        "2128020",
-        "ĐH KHTN",
-        StudentType.EXTERNAL,
-        defaultPwd);
+    log.info("Khoi tao sinh vien tu do (chua co team)...");
+    for (int i = 0; i < 50; i++) {
+      generateRealisticStudent(globalStudentCounter++, defaultPwd);
+    }
 
     log.info("Hoan tat nap du lieu!");
   }
 
   // ==========================================
-  // HELPER METHODS (Giữ nguyên chuẩn Schema)
+  // HELPER METHODS
   // ==========================================
   private Lecturer createLecturer(String fullName, String email, String password) {
     return lecturerRepo.save(
@@ -931,50 +464,6 @@ public class DatabaseSeeder implements CommandLineRunner {
             .email(email)
             .passwordHash(password)
             .build());
-  }
-
-  private Student createStudent(
-      String fullName,
-      String email,
-      String mssv,
-      String school,
-      StudentType type,
-      String password) {
-    return studentRepo.save(
-        Student.builder()
-            .fullName(fullName)
-            .role(Role.STUDENT)
-            .email(email)
-            .passwordHash(password)
-            .studentType(type)
-            .studentStatus(StudentStatus.ACTIVE)
-            .studentId(mssv)
-            .schoolName(school)
-            .build());
-  }
-
-  private Team createTeam(
-      String name, String description, HackathonEvent event, Track track, Student leader) {
-    if (!leader.getEvents().contains(event)) {
-      leader.getEvents().add(event);
-      studentRepo.save(leader);
-    }
-
-    Team team = new Team();
-    team.setName(name);
-    team.setDescription(description);
-    team.setTeamStatus(TeamStatus.APPROVED);
-    team.setHackathonEvent(event);
-    team.setLeader(leader);
-    team.setTrack(track);
-
-    team.getMembers().add(leader);
-    Team savedTeam = teamRepo.save(team);
-
-    leader.getTeams().add(savedTeam);
-    studentRepo.save(leader);
-
-    return savedTeam;
   }
 
   private void assignMentorAndJudges(Track track, List<Lecturer> judges, List<Lecturer> mentors) {
@@ -999,5 +488,119 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     trackRepo.save(track);
+  }
+
+  private Student generateRealisticStudent(int seedId, String password) {
+    String[] hoList = {
+      "Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Huỳnh", "Phan", "Vũ", "Võ", "Đặng", "Bùi", "Đỗ"
+    };
+    String[] demList = {
+      "Văn", "Thị", "Minh", "Ngọc", "Hữu", "Đức", "Thanh", "Thu", "Hải", "Gia", "Tuấn", "Hoàng"
+    };
+    String[] tenList = {
+      "Khang", "Kiệt", "Anh", "Khoa", "Phát", "Thành", "Đạt", "Hùng", "Dũng", "Tuấn", "Huy",
+      "Phương", "Thảo", "Vy", "Linh"
+    };
+    String[] tenKhongDauList = {
+      "khang", "kiet", "anh", "khoa", "phat", "thanh", "dat", "hung", "dung", "tuan", "huy",
+      "phuong", "thao", "vy", "linh"
+    };
+
+    int h = random.nextInt(hoList.length);
+    int d = random.nextInt(demList.length);
+    int t = random.nextInt(tenList.length);
+
+    String fullName = hoList[h] + " " + demList[d] + " " + tenList[t];
+    String emailPrefix =
+        tenKhongDauList[t]
+            + hoList[h].substring(0, 1).toLowerCase()
+            + demList[d].substring(0, 1).toLowerCase();
+
+    boolean isExternal = random.nextInt(100) < 20;
+
+    if (isExternal) {
+      String[] externalSchools = {"ĐH Bách Khoa", "ĐH Khoa học Tự nhiên", "ĐH CNTT"};
+      String[] externalDomains = {"@hcmut.edu.vn", "@hcmus.edu.vn", "@uit.edu.vn"};
+
+      int schoolIndex = random.nextInt(externalSchools.length);
+      String schoolName = externalSchools[schoolIndex];
+      String email = emailPrefix + seedId + externalDomains[schoolIndex];
+
+      // MSSV trường ngoài thường là dải số liền (VD: 2110123)
+      String mssv = "21" + (10000 + seedId);
+
+      return createStudent(fullName, email, mssv, schoolName, StudentType.EXTERNAL, password);
+    } else {
+      // Sinh viên FPT
+      String email = emailPrefix + seedId + "@fpt.edu.vn";
+      String mssv = "SE" + (180000 + seedId);
+      return createStudent(fullName, email, mssv, "Đại học FPT", StudentType.FPT, password);
+    }
+  }
+
+  private Student createStudent(
+      String fullName,
+      String email,
+      String mssv,
+      String schoolName,
+      StudentType type,
+      String password) {
+    return studentRepo.save(
+        Student.builder()
+            .fullName(fullName)
+            .role(Role.STUDENT)
+            .email(email)
+            .passwordHash(password)
+            .studentType(type)
+            .studentStatus(StudentStatus.ACTIVE)
+            .studentId(mssv)
+            .schoolName(schoolName)
+            .build());
+  }
+
+  private Student createStudent(String fullName, String email, String mssv, String password) {
+    return createStudent(fullName, email, mssv, "Đại học FPT", StudentType.FPT, password);
+  }
+
+  // Tạo Team hỗ trợ n members
+  private Team createTeam(
+      String name,
+      String description,
+      HackathonEvent event,
+      Track track,
+      Student leader,
+      Student... members) {
+    if (!leader.getEvents().contains(event)) {
+      leader.getEvents().add(event);
+      studentRepo.save(leader);
+    }
+
+    Team team = new Team();
+    team.setName(name);
+    team.setDescription(description);
+    team.setTeamStatus(TeamStatus.APPROVED);
+    team.setHackathonEvent(event);
+    team.setLeader(leader);
+    team.setTrack(track);
+    team.getMembers().add(leader);
+
+    for (Student member : members) {
+      if (!member.getEvents().contains(event)) {
+        member.getEvents().add(event);
+        studentRepo.save(member);
+      }
+      team.getMembers().add(member);
+    }
+
+    Team savedTeam = teamRepo.save(team);
+
+    leader.getTeams().add(savedTeam);
+    studentRepo.save(leader);
+
+    for (Student member : members) {
+      member.getTeams().add(savedTeam);
+      studentRepo.save(member);
+    }
+    return savedTeam;
   }
 }
