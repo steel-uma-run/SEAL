@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,16 +48,9 @@ public class HackathonEvent {
   @Nonnull
   private String description;
 
-  @Column(columnDefinition = "timestamptz", nullable = false)
-  @Nonnull
-  private OffsetDateTime startTime;
-
-  @Column(columnDefinition = "timestamptz", nullable = false)
-  @Nonnull
-  private OffsetDateTime endTime;
-
   @Column(nullable = false)
-  private int teamsLimit;
+  @Nonnull
+  private Duration registrationDuration;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
@@ -68,9 +62,15 @@ public class HackathonEvent {
   @Nonnull
   private Season season;
 
-  @Column(columnDefinition = "TEXT")
+  @Column(columnDefinition = "TEXT", nullable = false)
   @Nonnull
   private String prize;
+
+  @Column(columnDefinition = "timestamptz", nullable = true)
+  private OffsetDateTime registrationStartTime;
+
+  @Column(nullable = true)
+  private int teamsLimit;
 
   @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
   private Set<Student> students = new HashSet<>();
@@ -84,11 +84,23 @@ public class HackathonEvent {
   // Returns the currently active round. According to business rules/constraints an event can only
   // have 1 active round at any given time.
   public Optional<Round> getActiveRound() {
+    OffsetDateTime now = OffsetDateTime.now();
     return rounds.stream()
         .filter(
             round -> {
-              OffsetDateTime now = OffsetDateTime.now();
-              return round.getStartTime().isBefore(now) && round.getGradingEndTime().isAfter(now);
+              if (round.getGradingStartTime() != null) {
+                OffsetDateTime gradingEnd =
+                    round.getGradingStartTime().plus(round.getGradingDuration());
+                return gradingEnd.isAfter(now) && round.getGradingStartTime().isBefore(now);
+              }
+
+              if (round.getActiveTime() != null) {
+                OffsetDateTime activeEnd = round.getActiveTime().plus(round.getActiveDuration());
+
+                return activeEnd.isAfter(now) && round.getActiveTime().isBefore(now);
+              }
+
+              return false;
             })
         .findFirst();
   }
@@ -99,8 +111,8 @@ public class HackathonEvent {
         getName(),
         getDescription(),
         HackathonEventStatusDto.fromValue(getStatus().name()),
-        getStartTime(),
-        getEndTime(),
+        getRegistrationStartTime(),
+        getRegistrationDuration().toMillis(),
         getSeason().getId(),
         getPrize(),
         getRounds().stream().map(Round::toDto).toArray(RoundDto[]::new));

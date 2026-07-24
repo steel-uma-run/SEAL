@@ -12,6 +12,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,38 +37,28 @@ public class Round {
   @Nonnull
   private String name;
 
-  @Column(columnDefinition = "timestamptz", nullable = false)
-  @Nonnull
-  private OffsetDateTime startTime;
-
-  @Column(columnDefinition = "timestamptz", nullable = false)
-  @Nonnull
-  private OffsetDateTime endTime;
-
-  @Column(columnDefinition = "timestamptz", nullable = false)
-  @Nonnull
-  private OffsetDateTime gradingStartTime;
-
-  @Column(columnDefinition = "timestamptz", nullable = false)
-  @Nonnull
-  private OffsetDateTime gradingEndTime;
-
-  @Column(columnDefinition = "timestamptz", nullable = false)
-  @Nonnull
-  private OffsetDateTime submissionStartTime;
-
-  @Column(columnDefinition = "timestamptz", nullable = false)
-  @Nonnull
-  private OffsetDateTime submissionEndTime;
-
   @Column(columnDefinition = "TEXT", nullable = false)
   @Nonnull
   private String description;
+
+  @Column(nullable = false)
+  @Nonnull
+  private Duration activeDuration;
+
+  @Column(nullable = false)
+  @Nonnull
+  private Duration gradingDuration;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "event_id", nullable = false)
   @Nonnull
   private HackathonEvent event;
+
+  @Column(columnDefinition = "timestamptz")
+  private OffsetDateTime activeTime;
+
+  @Column(columnDefinition = "timestamptz")
+  private OffsetDateTime gradingStartTime;
 
   @OneToMany(fetch = FetchType.LAZY)
   @JoinTable(
@@ -81,26 +72,10 @@ public class Round {
         getId(),
         getName(),
         getDescription(),
-        getStartTime(),
-        getEndTime(),
+        getActiveTime(),
         getGradingStartTime(),
-        getGradingEndTime(),
-        getSubmissionStartTime(),
-        getSubmissionEndTime(),
+        getActiveDuration().toMillis(),
+        getGradingDuration().toMillis(),
         getCriteria().stream().map(Criteria::toDto).toArray(CriteriaDto[]::new));
-  }
-
-  // Returns whether the timeframes are coherent
-  public boolean isCoherent() {
-    return startTime.isBefore(endTime)
-        && endTime.isBefore(submissionStartTime)
-        && submissionStartTime.isBefore(submissionEndTime)
-        && submissionEndTime.isBefore(gradingStartTime)
-        && gradingStartTime.isBefore(gradingEndTime);
-  }
-
-  // Returns whether this Round overlaps with a timeframe
-  public boolean overlaps(OffsetDateTime start, OffsetDateTime end) {
-    return startTime.isBefore(end) && start.isBefore(gradingEndTime);
   }
 }

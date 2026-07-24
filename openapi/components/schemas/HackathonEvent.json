@@ -6,8 +6,7 @@
     "name",
     "description",
     "status",
-    "start_time",
-    "end_time",
+    "registration_duration",
     "season_id",
     "prize",
     "rounds"
@@ -27,13 +26,14 @@
       "type": "string",
       "enum": ["DRAFT", "FINALIZED"]
     },
-    "start_time": {
+    "registration_start_time": {
       "type": "string",
       "format": "date-time"
     },
-    "end_time": {
-      "type": "string",
-      "format": "date-time"
+    "registration_duration": {
+      "description": "In milliseconds",
+      "type": "integer",
+      "format": "int64"
     },
     "season_id": {
       "type": "string",

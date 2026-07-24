@@ -1,11 +1,15 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -13,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
+import seal.backend.entities.Round;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
@@ -21,6 +26,7 @@ import seal.backend.entities.Track;
 import seal.backend.enums.EventStatus;
 import seal.backend.enums.StudentStatus;
 import seal.backend.repositories.HackathonEventRepository;
+import seal.backend.repositories.RoundRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.SubmissionRepository;
@@ -43,6 +49,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   private final StudentRepository studentRepository;
   private final TeamRepository teamRepo;
   private final TrackRepository trackRepo;
+  private final RoundRepository roundRepo;
 
   @Override
   public List<StudentDto> getInterestedParticipants(UUID eventId) {
@@ -79,25 +86,11 @@ public class HackathonEventServiceImpl implements HackathonEventService {
       event.setPrize(request.prize());
     }
 
-    if (request.endTime() != null) {
-      if (!request.endTime().isAfter(event.getStartTime())) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "End time must be after start time");
-      }
-      event.setEndTime(request.endTime());
+    if (request.registrationDuration() != null) {
+      event.setRegistrationDuration(Duration.ofMillis(request.registrationDuration()));
     }
 
-    if (request.startTime() != null) {
-      if (!event.getEndTime().isAfter(request.startTime())) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "End time must be after start time");
-      }
-      event.setStartTime(request.startTime());
-    }
-
-    hackathonEventRepository.save(event);
-
-    return event.toDto();
+    return hackathonEventRepository.save(event).toDto();
   }
 
   @Override
@@ -123,7 +116,8 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     }
 
     OffsetDateTime now = OffsetDateTime.now();
-    if (now.isBefore(event.getStartTime()) || now.isAfter(event.getEndTime())) {
+    if (event.getRegistrationStartTime() == null
+        || now.isAfter(event.getRegistrationStartTime().plus(event.getRegistrationDuration()))) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "It is outside of registration timeframe.");
     }
@@ -187,12 +181,6 @@ public class HackathonEventServiceImpl implements HackathonEventService {
 
   @Override
   public HackathonEventDto createEvent(CreateEventRequestDto request) {
-    if (request.endTime().isEqual(request.startTime())
-        || request.endTime().isBefore(request.startTime())) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "End time must be after start time");
-    }
-
     Season season =
         seasonRepository
             .findById(request.seasonId())
@@ -203,15 +191,12 @@ public class HackathonEventServiceImpl implements HackathonEventService {
         new HackathonEvent(
             request.name(),
             request.description(),
-            request.startTime(),
-            request.endTime(),
+            Duration.ofMillis(request.registrationDuration()),
             EventStatus.DRAFT,
             season,
-            request.price());
+            request.prize());
 
-    hackathonEventRepository.save(hackathonEvent);
-
-    return hackathonEvent.toDto();
+    return hackathonEventRepository.save(hackathonEvent).toDto();
   }
 
   @Override

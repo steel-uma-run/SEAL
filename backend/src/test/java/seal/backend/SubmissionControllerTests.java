@@ -161,8 +161,7 @@ class SubmissionControllerTests {
     String token = loginAndGetToken("student@example.com", "hunter2");
 
     // set submission times
-    ongoingEvent.getActiveRound().get().setSubmissionStartTime(OffsetDateTime.now());
-    ongoingEvent.getActiveRound().get().setSubmissionEndTime(OffsetDateTime.now().plusHours(1));
+    ongoingEvent.getActiveRound().get().setActiveTime(OffsetDateTime.now());
     roundRepo.save(ongoingEvent.getActiveRound().get());
 
     mvc.perform(

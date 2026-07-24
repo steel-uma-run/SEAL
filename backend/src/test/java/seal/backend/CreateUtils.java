@@ -1,5 +1,6 @@
 package seal.backend;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Random;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,32 +85,24 @@ public class CreateUtils {
         new HackathonEvent(
             randomString(20),
             randomString(50),
-            OffsetDateTime.now(),
-            OffsetDateTime.now().plusDays(1),
+            Duration.ofDays(1),
             EventStatus.FINALIZED,
             season,
             "");
 
+    event.setRegistrationStartTime(OffsetDateTime.now());
     seasonRepo.save(season);
     return eventRepo.save(event);
   }
 
   public final HackathonEvent createOngoingEvent() {
     HackathonEvent event = createFinalizedEvent();
-    OffsetDateTime now = OffsetDateTime.now();
 
     Round round =
         new Round(
-            randomString(50),
-            now.minusHours(1),
-            now.plusHours(10),
-            now.plusHours(11),
-            now.plusHours(24),
-            now.plusHours(25),
-            now.plusHours(48),
-            randomString(50),
-            event);
+            randomString(50), randomString(50), Duration.ofHours(10), Duration.ofHours(48), event);
 
+    round.setActiveTime(OffsetDateTime.now());
     event.getRounds().add(round);
     roundRepo.save(round);
 
