@@ -141,6 +141,8 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     }
 
     event.setStatus(EventStatus.FINALIZED);
+    event.setRegistrationStartTime(OffsetDateTime.now());
+
     hackathonEventRepository.save(event);
   }
 
