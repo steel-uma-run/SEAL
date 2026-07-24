@@ -157,4 +157,11 @@ public class HackathonEventController implements EventsApi {
     eventService.advance(eventId);
     return ResponseEntity.noContent().build();
   }
+
+  @Override
+  @PreAuthorize("hasRole('COORDINATOR')")
+  public ResponseEntity<Void> startEvent(@PathVariable(name = "eventId") @NotNull UUID eventId) {
+    eventService.start(eventId);
+    return ResponseEntity.noContent().build();
+  }
 }

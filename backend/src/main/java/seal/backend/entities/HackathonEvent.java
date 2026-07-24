@@ -105,6 +105,11 @@ public class HackathonEvent {
         .findFirst();
   }
 
+  // Returns if event has started at some point
+  public boolean hasStarted() {
+    return rounds.stream().filter(round -> round.getActiveTime() != null).findAny().isPresent();
+  }
+
   public HackathonEventDto toDto() {
     return new HackathonEventDto(
         getId(),
