@@ -221,4 +221,31 @@ public class TeamServiceImpl implements TeamService {
 
     return team.toDto();
   }
+
+  @Transactional
+  @Override
+  public void disqualifyTeam(UUID teamId, String disqualifyReason) {
+    Team team =
+        teamRepository
+            .findById(teamId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
+
+    if (team.isTeamValid()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Team is not valid, cannot disqualify.");
+    }
+
+    if (team.getHackathonEvent().getActiveRound().isPresent()) {
+      team.setEliminatedAtRound(team.getHackathonEvent().getActiveRound().get());
+    } else {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Can only disqualify team while event is active.");
+    }
+
+    team.setTeamStatus(TeamStatus.BANNED);
+    team.setDisqualifyReason(disqualifyReason);
+
+    teamRepository.save(team);
+  }
 }
