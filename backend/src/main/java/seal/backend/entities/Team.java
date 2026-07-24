@@ -79,6 +79,7 @@ public class Team {
         TeamStatusDto.valueOf(getTeamStatus().name()),
         getMembers().stream().map(Student::getId).toArray(UUID[]::new),
         getLeader().getId(),
+        eliminatedAtRound != null ? eliminatedAtRound.toDto() : null,
         getTrack() != null ? getTrack().getId() : null);
   }
 }
