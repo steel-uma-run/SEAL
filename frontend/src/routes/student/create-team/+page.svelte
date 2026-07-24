@@ -6,7 +6,8 @@
 		getAllSeasons,
 		getSelfProfile,
 		getEventsInSeason,
-		getInterestedParticipants
+		getInterestedParticipants,
+		getAllTeamsOfEvents
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 
@@ -20,6 +21,7 @@
 	let teamSize = $state(4)
 	let teamDescription = $state("")
 	let selectedEventId = $state("")
+	let showCreateForm = $state(false)
 	let isLoading = $state(false)
 	let message = $state("")
 	let isError = $state(false)
@@ -58,20 +60,54 @@
 						allSeasonEvents = eventsData
 					}
 
-					// 3. Check participants for each event
+					// Check participants for each event
 					for (const event of allSeasonEvents) {
 						let hasJoined = false
+						let alreadyInTeam = false
 
+						// 1. Check LocalStorage
+						if (typeof window !== "undefined") {
+							const localParts = localStorage.getItem(`participants_${event.id}`)
+							if (localParts) {
+								try {
+									const parsed = JSON.parse(localParts)
+									if (parsed.some((p: any) => p.email === profile.email)) {
+										hasJoined = true
+									}
+								} catch (e) {}
+							}
+						}
+
+						// 2. Check API
 						const { data: participants } = await getInterestedParticipants({
 							path: { eventId: event.id },
 							throwOnError: false
 						})
-						if (participants && participants.some((p: any) => p.email === profile.email)) {
-							hasJoined = true
+						if (participants) {
+							const me = participants.find((p: any) => p.email === profile.email)
+							if (me) {
+								hasJoined = true
+								if (me.team_ids && me.team_ids.length > 0) {
+									alreadyInTeam = true
+								} else {
+									const { data: eventTeams } = await getAllTeamsOfEvents({
+										path: { eventId: event.id } as any,
+										throwOnError: false
+									})
+									if (
+										eventTeams &&
+										eventTeams.some(
+											(t: any) => t.leader_id === me.id || t.leaderId === me.id
+										)
+									) {
+										alreadyInTeam = true
+									}
+								}
+							}
 						}
 
-						if (hasJoined && event.open_for_registration) {
-							joinedList.push(event)
+						if (hasJoined) {
+							joinedList.push({ ...event, alreadyInTeam })
 						}
 					}
 				}
@@ -83,6 +119,7 @@
 				eventsError = "Could not load data."
 			}
 		} catch (err) {
+			console.error("create-team load error:", err)
 			eventsError = "Could not connect to the server."
 		} finally {
 			isPageLoading = false
@@ -149,7 +186,7 @@
 	<title>Create Team - SEAL</title>
 </svelte:head>
 <div class="create-team-page {theme.darkMode ? 'create-team-page--dark' : ''}">
-	<a href="/student" class="back-link">
+	<a href="/student/teams" class="back-link">
 		<svg class="back-link__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
 			><path
 				stroke-linecap="round"
@@ -158,7 +195,7 @@
 				d="M10 19l-7-7m0 0l7-7m-7 7h18"
 			></path></svg
 		>
-		Back to Dashboard
+		Back to Team Management
 	</a>
 
 	<div class="form-card">
@@ -202,110 +239,168 @@
 			</div>
 		{/if}
 
-		<form onsubmit={handleCreateTeam} class="team-form" class:team-form--disabled={hasNoEvents}>
-			<!-- Field 1: Event -->
-			<div class="form-group">
-				<label class="form-label">Event</label>
-				<select
-					bind:value={selectedEventId}
-					required
-					disabled={hasNoEvents}
-					class="form-input form-input--select"
-				>
-					<option value="" disabled
-						>{isPageLoading ? "Loading events..." : "Select an event"}</option
-					>
+		{#if !hasNoEvents && !isPageLoading}
+			<div class="joined-events-section">
+				<h2 class="section-subtitle">Your Joined Events</h2>
+				<div class="events-grid">
 					{#each events as event}
-						<option value={event.id}>{event.name}</option>
+						<div class="event-card-item {selectedEventId === event.id ? 'event-card-item--selected' : ''}">
+							<div class="event-card-item__header">
+								<span class="event-tag">Joined Event</span>
+								<h3 class="event-title">{event.name}</h3>
+								<p class="event-desc">{event.description || "No description provided."}</p>
+							</div>
+
+							<div class="event-card-item__actions">
+								{#if event.alreadyInTeam}
+									<div class="already-team-box">
+										<span class="status-pill status-pill--joined">Already in a Team</span>
+										<a href="/student/teams?eventId={event.id}" class="btn btn--primary btn--full">
+											View Team Detail &rarr;
+										</a>
+									</div>
+								{:else}
+									<button
+										type="button"
+										class="btn btn--primary btn--full"
+										onclick={() => {
+											selectedEventId = event.id
+											showCreateForm = true
+										}}
+									>
+										+ Create Team for this Event
+									</button>
+								{/if}
+							</div>
+						</div>
 					{/each}
-				</select>
-				{#if eventsError}
-					<p class="field-error">
-						<svg class="field-error__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-							><path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-							></path></svg
-						>
-						{eventsError}
-					</p>
-				{/if}
-			</div>
-
-			<!-- Field 2: Team Name -->
-			<div class="form-group">
-				<label class="form-label">Team Name</label>
-				<input
-					type="text"
-					bind:value={teamName}
-					required
-					placeholder="Enter team name"
-					class="form-input"
-				/>
-			</div>
-
-			<!-- Field 3: Expected Team Size -->
-			<div class="form-group">
-				<label class="form-label">Expected Team Size (3-5 members)</label>
-				<input type="number" bind:value={teamSize} min="3" max="5" required class="form-input" />
-			</div>
-
-			<!-- Field 4: Description -->
-			<div class="form-group">
-				<label class="form-label">Description</label>
-				<textarea
-					bind:value={teamDescription}
-					rows="4"
-					placeholder="Describe your team's project idea"
-					class="form-input form-input--textarea"
-				></textarea>
-			</div>
-
-			<!-- Message -->
-			{#if message}
-				<div
-					class="form-message"
-					class:form-message--error={isError}
-					class:form-message--success={!isError}
-				>
-					{#if !isError}
-						<svg class="form-message__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-							><path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M5 13l4 4L19 7"
-							></path></svg
-						>
-					{/if}
-					{message}
 				</div>
-			{/if}
+			</div>
+		{/if}
 
-			<!-- Submit button -->
-			<button type="submit" disabled={isLoading} class="btn btn--submit">
-				{#if isLoading}
-					<svg class="btn__spinner" fill="none" viewBox="0 0 24 24">
-						<circle
-							class="btn__spinner-bg"
-							cx="12"
-							cy="12"
-							r="10"
-							stroke="currentColor"
-							stroke-width="4"
-						></circle>
-						<path
-							class="btn__spinner-fg"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-						></path>
-					</svg>
-				{/if}
-				{isLoading ? "Creating Team..." : "Create Team"}
-			</button>
-		</form>
+		{#if showCreateForm}
+			<div class="form-container-box">
+				<div class="form-container-box__header">
+					<h3 class="form-container-box__title">
+						Team Details
+					</h3>
+					<button
+						type="button"
+						class="btn btn--ghost btn--close"
+						onclick={() => (showCreateForm = false)}
+					>
+						&larr; Cancel
+					</button>
+				</div>
+
+				<form onsubmit={handleCreateTeam} class="team-form" class:team-form--disabled={hasNoEvents}>
+					<!-- Field 1: Event -->
+					<div class="form-group">
+						<label class="form-label">Selected Event</label>
+						<select
+							bind:value={selectedEventId}
+							required
+							disabled={hasNoEvents}
+							class="form-input form-input--select"
+						>
+							<option value="" disabled
+								>{isPageLoading ? "Loading events..." : "Select an event"}</option
+							>
+							{#each events as event}
+								<option value={event.id} disabled={event.alreadyInTeam}>
+									{event.name} {event.alreadyInTeam ? "(Already in a team for this event)" : ""}
+								</option>
+							{/each}
+						</select>
+						{#if eventsError}
+							<p class="field-error">
+								<svg class="field-error__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+									><path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+									></path></svg
+								>
+								{eventsError}
+							</p>
+						{/if}
+					</div>
+
+					<!-- Field 2: Team Name -->
+					<div class="form-group">
+						<label class="form-label">Team Name</label>
+						<input
+							type="text"
+							bind:value={teamName}
+							required
+							placeholder="Enter team name"
+							class="form-input"
+						/>
+					</div>
+
+					<!-- Field 3: Expected Team Size -->
+					<div class="form-group">
+						<label class="form-label">Expected Team Size (3-5 members)</label>
+						<input type="number" bind:value={teamSize} min="3" max="5" required class="form-input" />
+					</div>
+
+					<!-- Field 4: Description -->
+					<div class="form-group">
+						<label class="form-label">Description</label>
+						<textarea
+							bind:value={teamDescription}
+							rows="4"
+							placeholder="Describe your team's project idea"
+							class="form-input form-input--textarea"
+						></textarea>
+					</div>
+
+					<!-- Message -->
+					{#if message}
+						<div
+							class="form-message"
+							class:form-message--error={isError}
+							class:form-message--success={!isError}
+						>
+							{#if !isError}
+								<svg class="form-message__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+									><path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M5 13l4 4L19 7"
+									></path></svg
+								>
+							{/if}
+							{message}
+						</div>
+					{/if}
+
+					<!-- Submit button -->
+					<button type="submit" disabled={isLoading} class="btn btn--submit">
+						{#if isLoading}
+							<svg class="btn__spinner" fill="none" viewBox="0 0 24 24">
+								<circle
+									class="btn__spinner-bg"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle>
+								<path
+									class="btn__spinner-fg"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								></path>
+							</svg>
+						{/if}
+						{isLoading ? "Creating Team..." : "Create Team"}
+					</button>
+				</form>
+			</div>
+		{/if}
 	</div>
 </div>
 
@@ -326,6 +421,170 @@
 		} // md:p-10
 
 		&--dark {
+		}
+	}
+
+	.joined-events-section {
+		margin-bottom: 2rem;
+		padding-bottom: 1.5rem;
+		border-bottom: 1px solid #e5e7eb;
+
+		.create-team-page--dark & {
+			border-color: #27272a;
+		}
+	}
+
+	.form-container-box {
+		margin-top: 1.5rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid #e5e7eb;
+
+		.create-team-page--dark & {
+			border-color: #27272a;
+		}
+
+		&__header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1.5rem;
+		}
+
+		&__title {
+			font-size: 1.25rem;
+			font-weight: 700;
+			color: #111827;
+
+			.create-team-page--dark & {
+				color: #f4f4f5;
+			}
+		}
+	}
+
+	.section-subtitle {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: #111827;
+		margin-bottom: 1rem;
+
+		.create-team-page--dark & {
+			color: #f4f4f5;
+		}
+	}
+
+	.events-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1rem;
+
+		@media (min-width: $bp-md) {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	.event-card-item {
+		background: #f9fafb;
+		border: 1px solid #e5e7eb;
+		border-radius: 1rem;
+		padding: 1.25rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		transition: all 0.2s ease;
+
+		&--selected {
+			border-color: #ea580c;
+			background: #fff7ed;
+			box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.2);
+		}
+
+		.create-team-page--dark & {
+			background: #18181b;
+			border-color: #27272a;
+
+			&--selected {
+				border-color: #ea580c;
+				background: rgba(234, 88, 12, 0.1);
+			}
+		}
+
+		&__header {
+			margin-bottom: 1rem;
+		}
+	}
+
+	.event-tag {
+		display: inline-block;
+		font-size: 0.7rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		color: #ea580c;
+		background: rgba(234, 88, 12, 0.1);
+		padding: 0.2rem 0.5rem;
+		border-radius: 9999px;
+		margin-bottom: 0.375rem;
+	}
+
+	.event-title {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: #111827;
+
+		.create-team-page--dark & {
+			color: #f4f4f5;
+		}
+	}
+
+	.event-desc {
+		font-size: 0.85rem;
+		color: #6b7280;
+		margin-top: 0.25rem;
+
+		.create-team-page--dark & {
+			color: #a1a1aa;
+		}
+	}
+
+	.already-team-box {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.status-pill--joined {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-align: center;
+		padding: 0.25rem 0.5rem;
+		background: #dbeafe;
+		color: #1d4ed8;
+		border-radius: 0.5rem;
+
+		.create-team-page--dark & {
+			background: rgba(29, 78, 216, 0.2);
+			color: #60a5fa;
+		}
+	}
+
+	.btn--full {
+		width: 100%;
+		justify-content: center;
+		text-decoration: none;
+	}
+
+	.btn--secondary {
+		background: #374151;
+		color: #ffffff;
+		border: none;
+		padding: 0.625rem 1rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		border-radius: 0.75rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+
+		&:hover {
+			background: #1f2937;
 		}
 	}
 

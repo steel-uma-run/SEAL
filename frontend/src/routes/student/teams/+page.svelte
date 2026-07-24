@@ -16,6 +16,7 @@
 		getAllAccounts
 	} from "$lib/api"
 	import { goto } from "$app/navigation"
+	import { page } from "$app/state"
 	import {
 		Bell,
 		CheckCircle,
@@ -25,12 +26,16 @@
 		Star,
 		UserPlus,
 		LogOut,
-		ArrowRightLeft
+		ArrowRightLeft,
+		ChevronDown
 	} from "@lucide/svelte"
 
 	let profile = $state<any>(null)
 	let invites = $state<any[]>([])
-	let myTeam = $state<any>(null)
+	let joinedEventTeams = $state<any[]>([])
+	let activeTeamDetail = $state<any | null>(null)
+	let activeSection = $state<"teams" | "invitations">("teams")
+	let myTeam = $derived(activeTeamDetail)
 	let isLoading = $state(true)
 	let errorMessage = $state("")
 	let processingId = $state<string | null>(null)
@@ -41,8 +46,8 @@
 	let inviteError = $state(false)
 
 	let studentUuid = $state<string | null>(null)
-	let allParticipants = $state<any[]>([])
-	let availableStudents = $state<any[]>([])
+	let allParticipants = $derived(myTeam?.allParticipants || [])
+	let availableStudents = $derived(myTeam?.availableStudents || [])
 	let globalTeamsCache: any[] = []
 
 	async function loadData() {
@@ -58,25 +63,20 @@
 				return
 			}
 
-			// Initialize team and invites to default values in case search yields nothing
-			myTeam = null
+			// Initialize
+			joinedEventTeams = []
 			invites = []
-
 			globalTeamsCache = []
 
-			// 2. Fetch all seasons to find the student's team
+			// 2. Fetch all seasons and events to locate all event registrations and teams
 			const { data: seasons, response: seasonsRes } = await getAllSeasons({ throwOnError: false })
 			if (seasonsRes?.ok && seasons) {
-				let resolvedTeam: any = null
+				let resolvedEventTeams: any[] = []
 				let resolvedStudentUuid = null
-				let resolvedEventId = null
-				let resolvedParticipants: any[] = []
 
-				// Loop through seasons and events to locate the student's registration
 				for (const season of seasons) {
 					let allSeasonEvents: any[] = []
 
-					// 2. Fetch from API
 					const { data: events, response: eventsRes } = await getEventsInSeason({
 						path: { seasonId: season.id },
 						throwOnError: false
@@ -86,7 +86,6 @@
 					for (const event of allSeasonEvents) {
 						let participantsList: any[] = []
 
-						// 1. Check API for participants
 						const { data: participants, response: participantsRes } =
 							await getInterestedParticipants({
 								path: { eventId: event.id },
@@ -101,11 +100,9 @@
 								(p: any) => p.email === profile.email
 							)
 							if (currentParticipant) {
-								resolvedStudentUuid = currentParticipant.id
-								resolvedParticipants = participantsList
+								if (!resolvedStudentUuid) resolvedStudentUuid = currentParticipant.id
 
 								let eventTeamsList: any[] = []
-								// Always fetch teams to resolve invite team names
 								const { data: teams, response: teamsRes } = await getAllTeamsOfEvents({
 									path: { eventId: event.id } as any,
 									throwOnError: false
@@ -114,15 +111,8 @@
 									eventTeamsList = teams
 									globalTeamsCache.push(...teams)
 								}
-								// Store this globally or on the invite processing step so invites can use it
-								// Since this is per-event, and invites are global, we will just use it to resolve resolvedTeam if they have one
-								// But to map invite names, we should store a global map of teamId -> teamName
-								eventTeamsList.forEach((t: any) => {
-									if (typeof window !== "undefined") {
-										// cache in session storage or just map it
-									}
-								})
 
+								let resolvedTeam = null
 								if (
 									(currentParticipant.team_ids && currentParticipant.team_ids.length > 0) ||
 									eventTeamsList.some(
@@ -139,7 +129,12 @@
 												t.leaderId === currentParticipant.id
 										)
 										if (team) {
-											resolvedTeam = team as any
+											resolvedTeam = {
+												...team,
+												event_id: event.id,
+												event_name: event.name,
+												event_description: event.description
+											} as any
 											const teamMembers = participantsList
 												.filter(
 													(p: any) =>
@@ -158,74 +153,70 @@
 														p.id === team.leader_id || p.id === team.leaderId ? "Leader" : "Member"
 												}))
 											resolvedTeam.members = teamMembers
-											resolvedEventId = event.id
+											resolvedTeam.allParticipants = participantsList
+											resolvedTeam.availableStudents = participantsList.filter(
+												(p: any) =>
+													p.id !== currentParticipant.id &&
+													!eventTeamsList.some(
+														(t: any) =>
+															(p.team_ids && p.team_ids.includes(t.id)) ||
+															t.leader_id === p.id ||
+															t.leaderId === p.id
+													)
+											)
+
+											if (resolvedTeam.track_id || resolvedTeam.trackId) {
+												const trackId = resolvedTeam.track_id || resolvedTeam.trackId
+												try {
+													const tracksRes = await getAllTracksOfEvent({
+														path: { eventId: event.id },
+														throwOnError: false
+													})
+													if (tracksRes.data && Array.isArray(tracksRes.data)) {
+														const track = tracksRes.data.find((t: any) => t.id === trackId) as any
+														if (track) {
+															resolvedTeam.track_name =
+																track.name || track.title || "Unknown Track"
+														}
+													}
+												} catch (e) {}
+											}
+
+											try {
+												const { data: roundsData } = await getRounds({
+													path: { eventId: event.id },
+													throwOnError: false
+												})
+												if (roundsData && Array.isArray(roundsData)) {
+													const activeRound = roundsData.find(
+														(r: any) => r.status === "ACTIVE"
+													) as any
+													if (activeRound) {
+														resolvedTeam.round_name =
+															activeRound.name || activeRound.title || "Active Round"
+													} else {
+														resolvedTeam.round_name = "No Active Round"
+													}
+												}
+											} catch (e) {}
 										}
 									}
 								}
-								break
-							}
-						}
-					}
-					if (resolvedStudentUuid) break
-				}
 
-				if (resolvedTeam && resolvedEventId) {
-					try {
-						if (resolvedTeam.track_id || resolvedTeam.trackId) {
-							const trackId = resolvedTeam.track_id || resolvedTeam.trackId
-							const [tracksRes, accountsRes] = await Promise.all([
-								getAllTracksOfEvent({
-									path: { eventId: resolvedEventId },
-									throwOnError: false
-								}),
-								getAllAccounts({
-									throwOnError: false
+								resolvedEventTeams.push({
+									eventId: event.id,
+									eventName: event.name,
+									eventDescription: event.description,
+									hasTeam: !!resolvedTeam,
+									team: resolvedTeam
 								})
-							])
-							if (tracksRes.data && Array.isArray(tracksRes.data)) {
-								const track = tracksRes.data.find((t: any) => t.id === trackId) as any
-								if (track) {
-									resolvedTeam.track_name = track.name || track.title || "Unknown Track"
-									if (
-										track.mentor_ids &&
-										track.mentor_ids.length > 0 &&
-										accountsRes.data &&
-										Array.isArray(accountsRes.data)
-									) {
-										const mentors = accountsRes.data.filter((acc: any) =>
-											track.mentor_ids.includes(acc.id)
-										)
-										resolvedTeam.mentors = mentors.map((m: any) => m.fullName || m.name || m.email)
-									} else {
-										resolvedTeam.mentors = []
-									}
-								}
 							}
 						}
-
-						const { data: roundsData } = await getRounds({
-							path: { eventId: resolvedEventId },
-							throwOnError: false
-						})
-						if (roundsData && Array.isArray(roundsData)) {
-							const activeRound = roundsData.find((r: any) => r.status === "ACTIVE") as any
-							if (activeRound) {
-								resolvedTeam.round_name = activeRound.name || activeRound.title || "Active Round"
-							} else {
-								resolvedTeam.round_name = "No Active Round"
-							}
-						}
-					} catch (e) {
-						console.error("Failed to fetch track or round info", e)
 					}
 				}
 
 				studentUuid = resolvedStudentUuid
-				myTeam = resolvedTeam
-				allParticipants = resolvedParticipants
-				availableStudents = resolvedParticipants.filter(
-					(p: any) => !(p.team_ids && p.team_ids.length > 0) && p.id !== resolvedStudentUuid
-				)
+				joinedEventTeams = resolvedEventTeams
 			}
 
 			// 3. Get invites
@@ -245,10 +236,10 @@
 				})
 			}
 
-			// Fallback: If myTeam is null, but we have an ACCEPTED invite (fixes F5 refresh issue)
-			if (!myTeam && invites.length > 0) {
+			// Fallback: If no event team found, but we have an ACCEPTED invite
+			if (joinedEventTeams.every((e: any) => !e.hasTeam) && invites.length > 0) {
 				const acceptedInvite = invites.find((i: any) => i.status === "ACCEPTED")
-				if (acceptedInvite && allParticipants.length > 0) {
+				if (acceptedInvite) {
 					const targetTeamId = acceptedInvite.inviting_team_id
 					const cachedTeam = globalTeamsCache.find((t: any) => t.id === targetTeamId)
 					let fallbackTeam = cachedTeam ||
@@ -258,21 +249,6 @@
 							status: "APPROVED"
 						}
 
-					const existingMembers = allParticipants
-						.filter((p: any) => p.team_ids && p.team_ids.includes(targetTeamId))
-						.map((p: any) => ({
-							id: p.id,
-							name: p.fullName || p.full_name || p.name || "Unknown",
-							email: p.email,
-							student_id: p.studentId || p.student_id || "",
-							is_external: p.isExternal || p.is_external || false,
-							school_name: p.schoolName || p.school_name || "",
-							role:
-								p.id === fallbackTeam.leader_id || p.id === fallbackTeam.leaderId
-									? "Leader"
-									: "Member"
-						}))
-
 					const me = {
 						id: profile.id,
 						name: profile.fullName || profile.full_name || profile.name || "Me",
@@ -280,13 +256,11 @@
 						role: "Member"
 					}
 
-					if (!existingMembers.some((m: any) => m.id === me.id || m.email === me.email)) {
-						fallbackTeam.members = [...existingMembers, me]
-					} else {
-						fallbackTeam.members = existingMembers
+					fallbackTeam.members = [me]
+					if (joinedEventTeams.length > 0) {
+						joinedEventTeams[0].hasTeam = true
+						joinedEventTeams[0].team = fallbackTeam
 					}
-
-					myTeam = fallbackTeam
 				}
 			}
 		} catch (error) {
@@ -297,8 +271,19 @@
 		}
 	}
 
-	onMount(() => {
-		loadData()
+	onMount(async () => {
+		if (page.url.searchParams.get("tab") === "invitations") {
+			activeSection = "invitations"
+		}
+		await loadData()
+		const targetEventId = page.url.searchParams.get("eventId")
+		if (targetEventId && joinedEventTeams.length > 0) {
+			const found = joinedEventTeams.find((item) => item.eventId === targetEventId && item.hasTeam)
+			if (found && found.team) {
+				activeTeamDetail = found.team
+				activeSection = "teams"
+			}
+		}
 	})
 
 	async function handleAccept(inviteId: string) {
@@ -461,38 +446,47 @@
 </script>
 
 <svelte:head>
-	<title>Teams - Student</title>
+	<title>Team Management - Student</title>
 </svelte:head>
 
 <div class="teams-page {theme.darkMode ? 'teams-page--dark' : ''}">
-	<a href="/student" class="back-link">
-		<svg class="back-link__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M10 19l-7-7m0 0l7-7m-7 7h18"
-			></path>
-		</svg>
-		Back to Dashboard
-	</a>
+	{#if activeTeamDetail !== null}
+		<button
+			class="back-link"
+			onclick={() => (activeTeamDetail = null)}
+			style="background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 1.5rem;"
+		>
+			<svg class="back-link__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M10 19l-7-7m0 0l7-7m-7 7h18"
+				></path>
+			</svg>
+			Back to Team Management
+		</button>
+	{:else}
+		<a href="/student" class="back-link">
+			<svg class="back-link__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M10 19l-7-7m0 0l7-7m-7 7h18"
+				></path>
+			</svg>
+			Back to Dashboard
+		</a>
 
-	<div class="page-header">
-		<div class="page-header__icon-wrap">
-			<Users class="page-header__icon" />
-		</div>
-		<div class="page-header__text">
-			<h1 class="page-header__title">Teams</h1>
-			<p class="page-header__subtitle">Manage your team or pending invitations</p>
-		</div>
-	</div>
-
-	{#if !myTeam && !isLoading}
-		<div class="actions-bar">
-			<a href="/student/create-team" class="btn btn--primary btn--create">
-				<Users class="btn__icon" />
-				Create New Team
-			</a>
+		<div class="page-header">
+			<div class="page-header__icon-wrap">
+				<Users class="page-header__icon" />
+			</div>
+			<div class="page-header__text">
+				<h1 class="page-header__title">Team</h1>
+				<p class="page-header__subtitle">Manage your hackathon teams, event registrations, and invitations</p>
+			</div>
 		</div>
 	{/if}
 
@@ -505,244 +499,303 @@
 			<p class="error-box__text">{errorMessage}</p>
 		</div>
 	{:else}
-		{#if myTeam}
-			<div class="team-card">
-				<div class="team-card__top">
-					<div class="team-card__identity">
-						<div class="team-card__badge-icon">
-							<Star class="team-card__badge-svg" />
-						</div>
-						<div>
-							<h3 class="team-card__eyebrow">My Current Team</h3>
-							<h2 class="team-card__name">{myTeam.name || "Untitled Team"}</h2>
-						</div>
-					</div>
-
-					<div class="team-card__status-actions">
-						{#if myTeam.status === "PENDING"}
-							<span class="status-pill status-pill--pending">Status: Pending Approval</span>
-						{:else if myTeam.status === "APPROVED"}
-							<span class="status-pill status-pill--approved">Status: Approved</span>
-						{/if}
-
-						{#if myTeam.leader_id === profile.id}
-							<a href="/student/submit-project" class="btn btn--primary btn--sm btn--submission">
-								<svg class="btn__icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-									><path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-									></path></svg
-								>
-								Submission
-							</a>
-						{/if}
-					</div>
-				</div>
-
-				<div class="info-grid info-grid--2">
-					<div class="info-card">
-						<p class="info-card__label">Team ID</p>
-						<p class="info-card__value info-card__value--mono">{myTeam.id}</p>
-					</div>
-					<div class="info-card">
-						<p class="info-card__label">My Role</p>
-						<p
-							class="info-card__value"
-							class:info-card__value--orange={studentUuid === myTeam.leader_id ||
-								studentUuid === myTeam.leaderId}
-							class:info-card__value--green={!(
-								studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
-							)}
-						>
-							{studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
-								? "Team Leader"
-								: "Member"}
+		{#if activeSection === 'teams'}
+			{#if activeTeamDetail === null}
+				{#if joinedEventTeams.length === 0}
+					<div class="empty-invites">
+						<Users class="empty-invites__icon" />
+						<h3 class="empty-invites__title">No Event Registrations</h3>
+						<p class="empty-invites__desc">
+							You haven't registered for any active events yet. Head over to the dashboard to join an event!
 						</p>
+						<a href="/student" class="btn btn--primary" style="margin-top: 1rem;">Go to Dashboard</a>
 					</div>
-				</div>
-
-				<div class="info-grid info-grid--3">
-					<div class="info-card">
-						<p class="info-card__label">Track</p>
-						<p class="info-card__value">{myTeam.track_name || "N/A"}</p>
-					</div>
-					<div class="info-card">
-						<p class="info-card__label">Mentor(s)</p>
-						{#if myTeam.mentors && myTeam.mentors.length > 0}
-							<div class="tag-list">
-								{#each myTeam.mentors as mentor}
-									<span class="tag tag--violet">{mentor}</span>
-								{/each}
-							</div>
-						{:else}
-							<p class="info-card__value">N/A</p>
-						{/if}
-					</div>
-					<div class="info-card">
-						<p class="info-card__label">Active Round</p>
-						<p class="info-card__value info-card__value--blue">{myTeam.round_name || "N/A"}</p>
-					</div>
-				</div>
-
-				<div class="members-section">
-					<div class="members-section__header">
-						<h3 class="members-section__title">Team Members ({myTeam.members?.length || 1}/5)</h3>
-					</div>
-
-					<div class="members-list">
-						{#if myTeam.members && myTeam.members.length > 0}
-							{#each myTeam.members as member}
-								<div class="member-row">
-									<div class="member-row__details">
-										<!-- Name -->
-										<div class="member-row__cell member-row__cell--name">
-											<span class="member-row__name">{member.name || "Unknown Member"}</span>
-											{#if member.id === studentUuid}
-												<span class="member-row__you">(You)</span>
-											{/if}
-										</div>
-										<span class="member-row__sep">|</span>
-										<!-- Student ID -->
-										<div class="member-row__cell member-row__cell--id">
-											{#if member.student_id}
-												<span class="member-row__id-badge">{member.student_id}</span>
-											{:else}
-												<span class="member-row__none">NONE</span>
-											{/if}
-										</div>
-										<span class="member-row__sep">|</span>
-										<!-- Email -->
-										<div class="member-row__cell member-row__cell--email">
-											{member.email || "No Email"}
-										</div>
-										<span class="member-row__sep">|</span>
-										<!-- School -->
-										<div class="member-row__cell member-row__cell--school">
-											{#if member.is_external}
-												<span class="member-row__school member-row__school--external"
-													>{member.school_name || "External"}</span
-												>
-											{:else}
-												<span class="member-row__school member-row__school--fpt"
-													>FPT University</span
-												>
-											{/if}
-										</div>
-									</div>
-
-									<div class="member-row__role">
-										{#if member.role === "Leader" || member.id === myTeam.leader_id || member.id === myTeam.leaderId}
-											<span class="role-badge role-badge--leader">Leader</span>
-										{:else}
-											<span class="role-badge role-badge--member">Member</span>
-										{/if}
-									</div>
+				{:else}
+					<div class="events-teams-grid">
+						{#each joinedEventTeams as item}
+							<div class="event-card-item">
+								<div class="event-card-item__header">
+									<span class="event-card-item__tag">Event</span>
+									<h3 class="event-card-item__title">{item.eventName}</h3>
+									<p class="event-card-item__desc">{item.eventDescription || "No description provided."}</p>
 								</div>
-							{/each}
-						{/if}
-					</div>
 
-					{#if studentUuid === myTeam.leader_id}
-						<div class="invite-panel">
-							<h4 class="invite-panel__title">
-								<UserPlus class="invite-panel__title-icon" />
-								Invite New Member
-							</h4>
-							<p class="invite-panel__desc">
-								Enter a student ID to invite them to your team. Teams can have up to 5 members.
-							</p>
-
-							{#if (myTeam.members?.length || 1) >= 5}
-								<div class="alert alert--warning">
-									Your team has reached the maximum size limit (5 members).
-								</div>
-							{:else}
-								<form onsubmit={handleInviteMember} class="invite-form">
-									<input
-										type="text"
-										bind:value={inviteStudentId}
-										placeholder="Enter student ID (e.g. SE160123)..."
-										required
-										class="form-input form-input--flex"
-									/>
-									<button
-										type="submit"
-										disabled={isInviting || !inviteStudentId.trim()}
-										class="btn btn--primary btn--invite"
-									>
-										{isInviting ? "Sending..." : "Send Invite"}
-									</button>
-								</form>
-
-								{#if inviteMessage}
-									<p
-										class="form-message"
-										class:form-message--error={inviteError}
-										class:form-message--success={!inviteError}
-									>
-										{inviteMessage}
-									</p>
-								{/if}
-
-								<div class="available-section">
-									<h5 class="available-section__title">
-										Students Without a Team ({availableStudents.length})
-									</h5>
-									{#if availableStudents.length > 0}
-										<div class="students-list">
-											{#each availableStudents as student}
-												<div class="student-row">
-													<div class="student-row__info">
-														<p class="student-row__name">
-															{student.fullName || student.full_name || student.name || "Unknown"}
-														</p>
-														<p class="student-row__meta">
-															{student.studentId || student.student_id || student.email || "No ID"}
-														</p>
-													</div>
-													<button
-														onclick={() => {
-															inviteStudentId =
-																student.studentId || student.student_id || student.email || ""
-															handleInviteMember()
-														}}
-														class="btn btn--primary btn--xs"
-													>
-														Invite
-													</button>
+								<div class="event-card-item__body">
+									{#if item.hasTeam && item.team}
+										<div class="team-summary">
+											<div class="team-summary__identity">
+												<Star class="team-summary__icon" />
+												<div>
+													<span class="team-summary__label">My Joined Team</span>
+													<h4 class="team-summary__name">{item.team.name}</h4>
 												</div>
-											{/each}
+											</div>
+											<div class="team-summary__meta">
+												<span class="role-pill">{item.team.leader_id === profile?.id ? 'Team Leader' : 'Member'}</span>
+												{#if item.team.status === "PENDING"}
+													<span class="status-pill status-pill--pending">Pending Approval</span>
+												{:else if item.team.status === "APPROVED"}
+													<span class="status-pill status-pill--approved">Approved</span>
+												{/if}
+												<span class="members-pill">{item.team.members?.length || 1}/5 Members</span>
+											</div>
 										</div>
+										<button
+											class="btn btn--primary btn--full"
+											onclick={() => (activeTeamDetail = item.team)}
+										>
+											View Team Detail &rarr;
+										</button>
 									{:else}
-										<div class="empty-box">
-											<p class="empty-box__text">
-												There are no available students without a team to invite right now.
-											</p>
+										<div class="no-team-summary">
+											<p class="no-team-summary__text">You are registered for this event but do not have a team yet.</p>
 										</div>
+										<a href="/student/create-team" class="btn btn--secondary btn--full">
+											+ Create Team for this Event
+										</a>
 									{/if}
 								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			{:else}
+				<div class="team-card">
+					<div class="team-card__top">
+						<div class="team-card__identity">
+							<div class="team-card__badge-icon">
+								<Star class="team-card__badge-svg" />
+							</div>
+							<div>
+								<h3 class="team-card__eyebrow">
+									MY TEAM • {myTeam.event_name || 'EVENT'}
+								</h3>
+								<h2 class="team-card__name">{myTeam.name || "Untitled Team"}</h2>
+							</div>
+						</div>
+
+						<div class="team-card__status-actions">
+							{#if myTeam.status === "PENDING"}
+								<span class="status-pill status-pill--pending">Status: Pending Approval</span>
+							{:else if myTeam.status === "APPROVED"}
+								<span class="status-pill status-pill--approved">Status: Approved</span>
+							{/if}
+
+							{#if myTeam.leader_id === profile?.id}
+								<a href="/student/submit-project" class="btn btn--primary btn--sm btn--submission">
+									<svg class="btn__icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+										><path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+										></path></svg
+									>
+									Submission
+								</a>
+							{/if}
+						</div>
+					</div>
+
+					<div class="info-grid info-grid--2">
+						<div class="info-card">
+							<p class="info-card__label">Team ID</p>
+							<p class="info-card__value info-card__value--mono">{myTeam.id}</p>
+						</div>
+						<div class="info-card">
+							<p class="info-card__label">My Role</p>
+							<p
+								class="info-card__value"
+								class:info-card__value--orange={studentUuid === myTeam.leader_id ||
+									studentUuid === myTeam.leaderId}
+								class:info-card__value--green={!(
+									studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
+								)}
+							>
+								{studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
+									? "Team Leader"
+									: "Member"}
+							</p>
+						</div>
+					</div>
+
+					<div class="info-grid info-grid--3">
+						<div class="info-card">
+							<p class="info-card__label">Track</p>
+							<p class="info-card__value">{myTeam.track_name || "N/A"}</p>
+						</div>
+						<div class="info-card">
+							<p class="info-card__label">Mentor(s)</p>
+							{#if myTeam.mentors && myTeam.mentors.length > 0}
+								<div class="tag-list">
+									{#each myTeam.mentors as mentor}
+										<span class="tag tag--violet">{mentor}</span>
+									{/each}
+								</div>
+							{:else}
+								<p class="info-card__value">N/A</p>
+							{/if}
+						</div>
+						<div class="info-card">
+							<p class="info-card__label">Active Round</p>
+							<p class="info-card__value info-card__value--blue">{myTeam.round_name || "N/A"}</p>
+						</div>
+					</div>
+
+					<div class="members-section">
+						<div class="members-section__header">
+							<h3 class="members-section__title">Team Members ({myTeam.members?.length || 1}/5)</h3>
+						</div>
+
+						<div class="members-list">
+							{#if myTeam.members && myTeam.members.length > 0}
+								{#each myTeam.members as member}
+									<div class="member-row">
+										<div class="member-row__details">
+											<div class="member-row__cell member-row__cell--name">
+												<span class="member-row__name">{member.name || "Unknown Member"}</span>
+												{#if member.id === studentUuid}
+													<span class="member-row__you">(You)</span>
+												{/if}
+											</div>
+											<span class="member-row__sep">|</span>
+											<div class="member-row__cell member-row__cell--id">
+												{#if member.student_id}
+													<span class="member-row__id-badge">{member.student_id}</span>
+												{:else}
+													<span class="member-row__none">NONE</span>
+												{/if}
+											</div>
+											<span class="member-row__sep">|</span>
+											<div class="member-row__cell member-row__cell--email">
+												{member.email || "No Email"}
+											</div>
+											<span class="member-row__sep">|</span>
+											<div class="member-row__cell member-row__cell--school">
+												{#if member.is_external}
+													<span class="member-row__school member-row__school--external"
+														>{member.school_name || "External"}</span
+													>
+												{:else}
+													<span class="member-row__school member-row__school--fpt"
+														>FPT University</span
+													>
+												{/if}
+											</div>
+										</div>
+
+										<div class="member-row__role">
+											{#if member.role === "Leader" || member.id === myTeam.leader_id || member.id === myTeam.leaderId}
+												<span class="role-badge role-badge--leader">Leader</span>
+											{:else}
+												<span class="role-badge role-badge--member">Member</span>
+											{/if}
+										</div>
+									</div>
+								{/each}
 							{/if}
 						</div>
 
-						<div class="team-actions">
-							<button onclick={handleTransferLeadership} class="btn btn--ghost">
-								<ArrowRightLeft class="btn__icon-sm" />
-								Transfer Leadership
+						{#if studentUuid === myTeam.leader_id}
+							<div class="invite-panel">
+								<h4 class="invite-panel__title">
+									<UserPlus class="invite-panel__title-icon" />
+									Invite New Member
+								</h4>
+								<p class="invite-panel__desc">
+									Enter a student ID to invite them to your team. Teams can have up to 5 members.
+								</p>
+
+								{#if (myTeam.members?.length || 1) >= 5}
+									<div class="alert alert--warning">
+										Your team has reached the maximum size limit (5 members).
+									</div>
+								{:else}
+									<form onsubmit={handleInviteMember} class="invite-form">
+										<input
+											type="text"
+											bind:value={inviteStudentId}
+											placeholder="Enter student ID (e.g. SE160123)..."
+											required
+											class="form-input form-input--flex"
+										/>
+										<button
+											type="submit"
+											disabled={isInviting || !inviteStudentId.trim()}
+											class="btn btn--primary btn--invite"
+										>
+											{isInviting ? "Sending..." : "Send Invite"}
+										</button>
+									</form>
+
+									{#if inviteMessage}
+										<p
+											class="form-message"
+											class:form-message--error={inviteError}
+											class:form-message--success={!inviteError}
+										>
+											{inviteMessage}
+										</p>
+									{/if}
+
+									<div class="available-section">
+										<h5 class="available-section__title">
+											Students Without a Team ({availableStudents.length})
+										</h5>
+										{#if availableStudents.length > 0}
+											<div class="students-list">
+												{#each availableStudents as student}
+													<div class="student-row">
+														<div class="student-row__info">
+															<p class="student-row__name">
+																{student.fullName || student.full_name || student.name || "Unknown"}
+															</p>
+															<p class="student-row__meta">
+																{student.studentId || student.student_id || student.email || "No ID"}
+															</p>
+														</div>
+														<button
+															onclick={() => {
+																inviteStudentId =
+																	student.studentId || student.student_id || student.email || ""
+																handleInviteMember()
+															}}
+															class="btn btn--primary btn--xs"
+														>
+															Invite
+														</button>
+													</div>
+												{/each}
+											</div>
+										{:else}
+											<div class="empty-box">
+												<p class="empty-box__text">
+													There are no available students without a team to invite right now.
+												</p>
+											</div>
+										{/if}
+									</div>
+								{/if}
+							</div>
+
+							<div class="team-actions">
+								<button onclick={handleTransferLeadership} class="btn btn--ghost">
+									<ArrowRightLeft class="btn__icon-sm" />
+									Transfer Leadership
+								</button>
+							</div>
+						{/if}
+
+						<div class="leave-action">
+							<button onclick={handleLeaveTeam} class="btn btn--danger-ghost">
+								<LogOut class="btn__icon-sm" />
+								Leave Team
 							</button>
 						</div>
-					{/if}
-
-					<div class="leave-action">
-						<button onclick={handleLeaveTeam} class="btn btn--danger-ghost">
-							<LogOut class="btn__icon-sm" />
-							Leave Team
-						</button>
 					</div>
 				</div>
-			</div>
-		{:else}
+			{/if}
+		{:else if activeSection === 'invitations'}
 			{#if invites.length === 0}
 				<div class="empty-invites">
 					<Users class="empty-invites__icon" />
@@ -838,6 +891,410 @@
 		// dark modifier - applied via {theme.darkMode ? 'teams-page--dark' : ''}
 		&--dark {
 			// context for nested dark styles if needed
+		}
+	}
+
+	.section-selector-bar {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+		background: #ffffff;
+		border: 1px solid #e5e7eb;
+		border-radius: 1rem;
+		padding: 1rem;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+
+		@media (min-width: $bp-md) {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.teams-page--dark & {
+			background: #18181b;
+			border-color: #27272a;
+		}
+	}
+
+	.dropdown-wrapper {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.dropdown-label {
+		font-size: 0.875rem;
+		font-weight: 700;
+		color: #4b5563;
+		white-space: nowrap;
+
+		.teams-page--dark & {
+			color: #a1a1aa;
+		}
+	}
+
+	.dropdown-select-container {
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 100%;
+		max-width: 260px;
+	}
+
+	.custom-select {
+		appearance: none;
+		-webkit-appearance: none;
+		width: 100%;
+		padding: 0.5rem 2.25rem 0.5rem 0.875rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #111827;
+		background: #f9fafb;
+		border: 1px solid #d1d5db;
+		border-radius: 0.625rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+
+		&:hover, &:focus {
+			border-color: #ea580c;
+			outline: none;
+			background: #ffffff;
+		}
+
+		.teams-page--dark & {
+			background: #09090b;
+			color: #f4f4f5;
+			border-color: #3f3f46;
+
+			&:hover, &:focus {
+				border-color: #ea580c;
+				background: #18181b;
+			}
+		}
+	}
+
+	.dropdown-icon {
+		position: absolute;
+		right: 0.75rem;
+		pointer-events: none;
+		width: 1rem;
+		height: 1rem;
+		color: #6b7280;
+
+		.teams-page--dark & {
+			color: #a1a1aa;
+		}
+	}
+
+	.tab-pills {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.pill-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 1rem;
+		border-radius: 0.625rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		border: 1px solid transparent;
+		background: transparent;
+		color: #6b7280;
+		cursor: pointer;
+		transition: all 0.2s ease;
+
+		&:hover {
+			background: #f3f4f6;
+			color: #1f2937;
+		}
+
+		&--active {
+			background: #ffedd5;
+			color: #ea580c;
+			border-color: #fdba74;
+
+			.teams-page--dark & {
+				background: rgba(234, 88, 12, 0.2);
+				color: #fb923c;
+				border-color: rgba(234, 88, 12, 0.4);
+			}
+		}
+
+		.teams-page--dark & {
+			color: #a1a1aa;
+
+			&:hover {
+				background: #27272a;
+				color: #f4f4f5;
+			}
+		}
+	}
+
+	.pill-icon {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	.pill-badge {
+		background: #ea580c;
+		color: #ffffff;
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.1rem 0.4rem;
+		border-radius: 9999px;
+	}
+
+	.events-teams-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+		margin-bottom: 2rem;
+
+		@media (min-width: $bp-md) {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	.event-card-item {
+		border-radius: 1.5rem;
+		border: 1px solid #e5e7eb;
+		background: #ffffff;
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+		transition: all 0.2s ease;
+
+		&:hover {
+			box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+			border-color: #ea580c;
+		}
+
+		.teams-page--dark & {
+			background: #18181b;
+			border-color: #27272a;
+
+			&:hover {
+				border-color: #ea580c;
+			}
+		}
+
+		&__header {
+			margin-bottom: 1.25rem;
+		}
+
+		&__tag {
+			display: inline-block;
+			font-size: 0.75rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: #ea580c;
+			background: rgba(234, 88, 12, 0.1);
+			padding: 0.25rem 0.625rem;
+			border-radius: 9999px;
+			margin-bottom: 0.5rem;
+		}
+
+		&__title {
+			font-size: 1.25rem;
+			font-weight: 800;
+			color: #1f2937;
+
+			.teams-page--dark & {
+				color: #f4f4f5;
+			}
+		}
+
+		&__desc {
+			font-size: 0.875rem;
+			color: #6b7280;
+			margin-top: 0.25rem;
+
+			.teams-page--dark & {
+				color: #a1a1aa;
+			}
+		}
+
+		&__body {
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			flex-grow: 1;
+			gap: 1rem;
+		}
+	}
+
+	.team-summary {
+		background: #f9fafb;
+		border-radius: 1rem;
+		padding: 1rem;
+		border: 1px solid #f3f4f6;
+
+		.teams-page--dark & {
+			background: #09090b;
+			border-color: #27272a;
+		}
+
+		&__identity {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			margin-bottom: 0.75rem;
+		}
+
+		&__icon {
+			width: 1.5rem;
+			height: 1.5rem;
+			color: #f97316;
+		}
+
+		&__label {
+			font-size: 0.75rem;
+			text-transform: uppercase;
+			color: #6b7280;
+			font-weight: 600;
+		}
+
+		&__name {
+			font-size: 1.125rem;
+			font-weight: 700;
+			color: #111827;
+
+			.teams-page--dark & {
+				color: #f4f4f5;
+			}
+		}
+
+		&__meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+			align-items: center;
+		}
+	}
+
+	.role-pill {
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.2rem 0.6rem;
+		border-radius: 0.5rem;
+		background: #ffedd5;
+		color: #c2410c;
+
+		.teams-page--dark & {
+			background: rgba(194, 65, 12, 0.2);
+			color: #fb923c;
+		}
+	}
+
+	.members-pill {
+		font-size: 0.75rem;
+		font-weight: 600;
+		padding: 0.2rem 0.6rem;
+		border-radius: 0.5rem;
+		background: #e5e7eb;
+		color: #374151;
+
+		.teams-page--dark & {
+			background: #27272a;
+			color: #d4d4d8;
+		}
+	}
+
+	.no-team-summary {
+		background: #fdf2f2;
+		border-radius: 1rem;
+		padding: 1rem;
+		border: 1px dashed #fca5a5;
+		flex-grow: 1;
+		display: flex;
+		align-items: center;
+
+		.teams-page--dark & {
+			background: rgba(127, 29, 29, 0.15);
+			border-color: rgba(239, 68, 68, 0.3);
+		}
+
+		&__text {
+			font-size: 0.875rem;
+			color: #991b1b;
+			margin-bottom: 0;
+
+			.teams-page--dark & {
+				color: #fca5a5;
+			}
+		}
+	}
+
+	.btn--full {
+		width: 100%;
+		justify-content: center;
+	}
+
+	.btn--secondary {
+		background: #4b5563;
+		color: #ffffff;
+		&:hover {
+			background: #374151;
+		}
+	}
+
+	.team-tabs {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1.5rem;
+		overflow-x: auto;
+		padding-bottom: 0.25rem;
+	}
+
+	.tab-btn {
+		padding: 0.625rem 1.25rem;
+		border-radius: 0.75rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		cursor: pointer;
+		border: 1px solid #e5e7eb;
+		background: #ffffff;
+		color: #374151;
+		transition: all 0.2s ease;
+
+		&:hover {
+			background: #f3f4f6;
+		}
+
+		&--active {
+			background: #ea580c;
+			color: #ffffff;
+			border-color: #ea580c;
+
+			&:hover {
+				background: #c2410c;
+			}
+		}
+
+		.teams-page--dark & {
+			background: #18181b;
+			border-color: #27272a;
+			color: #d4d4d8;
+
+			&:hover {
+				background: #27272a;
+			}
+
+			&--active {
+				background: #ea580c;
+				color: #ffffff;
+				border-color: #ea580c;
+
+				&:hover {
+					background: #c2410c;
+				}
+			}
 		}
 	}
 
