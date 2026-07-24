@@ -498,6 +498,7 @@
 	.search-input,
 	.input {
 		width: 100%;
+		box-sizing: border-box;
 		border: 1px solid var(--md-outline);
 		background: var(--md-surface-container-low);
 		color: var(--md-on-surface);
@@ -865,6 +866,7 @@
 
 	.criteria-name {
 		flex: 1;
+		min-width: 0;
 	}
 
 	.criteria-weight {
