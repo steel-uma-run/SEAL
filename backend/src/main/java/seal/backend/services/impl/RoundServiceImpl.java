@@ -1,6 +1,8 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
+
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -113,7 +115,7 @@ public class RoundServiceImpl implements RoundService {
     round.getCriteria().clear();
 
     // create new criteria from the dtos
-    Set<Criteria> criteriaSet = new HashSet<>();
+    List<Criteria> criteriaSet = new ArrayList<>();
 
     for (AssignCriteriaRequestArrayItemDto dto : criteriaDtos) {
       Criteria newCriteria = new Criteria(dto.name(), dto.description(), dto.weight(), round);

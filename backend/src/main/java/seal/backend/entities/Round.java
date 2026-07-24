@@ -13,8 +13,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -58,7 +58,7 @@ public class Round {
       name = "round_criteria",
       joinColumns = @JoinColumn(name = "round_id", nullable = false),
       inverseJoinColumns = @JoinColumn(name = "criteria_id", nullable = false))
-  private Set<Criteria> criteria = new HashSet<>();
+  private List<Criteria> criteria = new ArrayList<>();
 
   public RoundDto toDto() {
     return new RoundDto(
