@@ -150,4 +150,11 @@ public class HackathonEventController implements EventsApi {
     List<TeamDto> dtos = eventService.getRanking(eventId);
     return ResponseEntity.ok(dtos.toArray(TeamDto[]::new));
   }
+
+  @Override
+  @PreAuthorize("hasRole('COORDINATOR')")
+  public ResponseEntity<Void> advance(@PathVariable(name = "eventId") @NotNull UUID eventId) {
+    eventService.advance(eventId);
+    return ResponseEntity.noContent().build();
+  }
 }

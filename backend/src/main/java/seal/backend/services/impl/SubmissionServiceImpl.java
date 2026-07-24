@@ -105,6 +105,10 @@ public class SubmissionServiceImpl implements SubmissionService {
             .findFirst()
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Not in a team"));
 
+    if (studentTeam.getEliminatedAtRound() != null) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Team is eliminated.");
+    }
+
     if (!actor.isTeamLeaderOf(studentTeam)) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only team leader can submit works.");
     }

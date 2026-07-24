@@ -239,4 +239,64 @@ public class HackathonEventServiceImpl implements HackathonEventService {
         .map(Team::toDto)
         .toList();
   }
+
+  @Transactional
+  @Override
+  public void advance(UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event does not exist."));
+
+    Round activeRound =
+        event
+            .getActiveRound()
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event is not ongoing."));
+
+    List<Track> tracks = trackRepo.findByEventId(eventId);
+    if (tracks.size() <= 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event does not have any tracks.");
+    }
+
+    // eliminate teams that aren't advanced
+    for (Track track : tracks) {
+      List<Team> teams = teamRepo.findAllByTrackId(track.getId());
+      List<Team> topTeams =
+          teams.stream()
+              .<Map.Entry<Team, Double>>mapMulti(
+                  (team, consumer) -> {
+                    List<Submission> submissions =
+                        submissionRepository.findAllBySubmitterTeamId(team.getId());
+                    if (submissions.size() <= 0) {
+                      // team automatically disqualified because they haven't submitted anything
+                      return;
+                    }
+
+                    Submission latestSubmission = submissions.getLast();
+                    consumer.accept(Map.entry(team, latestSubmission.calculateAvgScore()));
+                  })
+              .sorted(Comparator.comparingDouble(Map.Entry::getValue))
+              .collect(Collectors.mapping(Map.Entry::getKey, Collectors.toList()))
+              .reversed();
+
+      for (Team team : teams.subList(0, Math.min(2, topTeams.size()))) {
+        if (!topTeams.contains(team)) {
+          team.setEliminatedAtRound(activeRound);
+        }
+
+        teamRepo.save(team);
+      }
+    }
+
+    // start the next round
+    Optional<Round> nextRound =
+        event.getRounds().stream().filter(pred -> pred.getActiveTime() == null).findFirst();
+
+    if (nextRound.isPresent()) {
+      nextRound.get().setActiveTime(OffsetDateTime.now());
+      roundRepo.save(nextRound.get());
+    }
+  }
 }

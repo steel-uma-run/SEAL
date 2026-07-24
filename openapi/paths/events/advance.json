@@ -1,0 +1,23 @@
+{
+  "parameters": [
+    {
+      "name": "eventId",
+      "in": "path",
+      "required": true,
+      "schema": { "type": "string", "format": "uuid" }
+    }
+  ],
+  "post": {
+    "tags": ["events"],
+    "operationId": "advance",
+    "summary": "Advance the event to the next round",
+    "responses": {
+      "204": {
+        "description": "Advanced successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

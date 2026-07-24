@@ -7,4 +7,6 @@ import seal.backend.entities.Team;
 
 public interface TeamRepository extends JpaRepository<Team, UUID> {
   List<Team> findByHackathonEventId(UUID eventId);
+
+  List<Team> findAllByTrackId(UUID trackId);
 }
