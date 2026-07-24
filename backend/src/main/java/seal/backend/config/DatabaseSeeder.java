@@ -195,6 +195,8 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     Round rdSpring2 =
         new Round("Round 2", "Chung kết", Duration.ofHours(10), Duration.ofHours(48), eventSpring);
+    rdSpring2.setActiveTime(spr1Active.plusDays(3));
+    rdSpring2.setGradingStartTime(spr1Grading.plusDays(3));
     rdSpring2 = roundRepo.save(rdSpring2); // R2 chưa active
 
     // --- ROUNDS SUMMER (ĐỂ NULL THỜI GIAN ĐỂ TEST NÚT BẤM) ---
