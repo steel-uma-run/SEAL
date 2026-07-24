@@ -30,13 +30,28 @@ public class CriteriaTemplate {
 
   @Column(columnDefinition = "TEXT", nullable = false)
   @Nonnull
+  private String name;
+
+  @Column(columnDefinition = "TEXT", nullable = false)
+  @Nonnull
   private String description;
 
-  @OneToMany(mappedBy = "criteriaTemplate", fetch = FetchType.LAZY)
-  private List<Criteria> criteria = new ArrayList<>();
+  @OneToMany(mappedBy = "template", fetch = FetchType.LAZY)
+  private List<TemplatedCriteria> criteria = new ArrayList<>();
 
   public CriteriaTemplateDto toDto() {
     return new CriteriaTemplateDto(
-        id, description, criteria.stream().map(Criteria::toDto).toArray(CriteriaDto[]::new));
+        id,
+        name,
+        description,
+        criteria.stream()
+            .map(
+                template ->
+                    new CriteriaDto(
+                        template.getId(),
+                        template.getName(),
+                        template.getDescription(),
+                        template.getWeight()))
+            .toArray(CriteriaDto[]::new));
   }
 }
