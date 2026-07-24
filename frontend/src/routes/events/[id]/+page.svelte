@@ -2,6 +2,7 @@
 	import { page } from "$app/state"
 	import { getAllTracksOfEvent, getEvent, getRounds, markInterested } from "$lib/api"
 	import { auth } from "$lib/auth.svelte"
+	import { CheckCircle2, AlertTriangle } from "@lucide/svelte"
 
 	import ElevatedCard from "$lib/components/ElevatedCard.svelte"
 	import KaomojiError from "$lib/components/KaomojiError.svelte"
@@ -11,6 +12,9 @@
 	import iconArrowBack from "@ktibow/iconset-material-symbols/arrow-back"
 	import iconAdd from "@ktibow/iconset-material-symbols/add"
 	import iconGavel from "@ktibow/iconset-material-symbols/gavel"
+
+	let successMessage = $state("")
+	let errorMessage = $state("")
 
 	const id = page.params.id
 	const data = $derived.by(async () => {
@@ -45,6 +49,26 @@
 	{@const tracks = data.tracks}
 
 	<div class="container">
+		{#if successMessage}
+			<div class="toast toast--success">
+				<CheckCircle2 class="icon icon-lg" />
+				<div class="toast__body">
+					<p class="toast__title">Success</p>
+					<p class="toast__message">{successMessage}</p>
+				</div>
+			</div>
+		{/if}
+
+		{#if errorMessage}
+			<div class="toast toast--error">
+				<AlertTriangle class="icon icon-lg" />
+				<div class="toast__body">
+					<p class="toast__title toast__title--error">Alert</p>
+					<p class="toast__message">{errorMessage}</p>
+				</div>
+			</div>
+		{/if}
+
 		<section class="back">
 			<Button
 				href={auth.value?.role === "COORDINATOR"
@@ -125,7 +149,32 @@
 								iconType="left"
 								disabled={!data.openForRegistration}
 								onclick={async () => {
-									await markInterested({ path: { eventId: event.id } })
+									try {
+										const { response, error } = await markInterested({
+											path: { eventId: event.id },
+											throwOnError: false
+										})
+										if (response?.ok) {
+											successMessage = "Successfully registered for the event!"
+											errorMessage = ""
+											setTimeout(() => {
+												successMessage = ""
+											}, 4000)
+										} else {
+											const errBody = error as any
+											errorMessage = errBody?.detail || "Failed to register for the event."
+											successMessage = ""
+											setTimeout(() => {
+												errorMessage = ""
+											}, 4000)
+										}
+									} catch (err: any) {
+										errorMessage = err.message || "An error occurred."
+										successMessage = ""
+										setTimeout(() => {
+											errorMessage = ""
+										}, 4000)
+									}
 								}}
 							>
 								<Icon icon={iconAdd} />
@@ -387,5 +436,71 @@
 
 	.prize {
 		margin-top: 1rem;
+	}
+
+	.toast {
+		position: fixed;
+		top: 1.5rem;
+		right: 1.5rem;
+		z-index: 5000;
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1rem;
+		max-width: 28rem;
+		border-radius: 1rem;
+		border: 1px solid;
+		box-shadow:
+			0 10px 15px -3px rgb(0 0 0 / 0.1),
+			0 4px 6px -4px rgb(0 0 0 / 0.1);
+		backdrop-filter: blur(12px);
+		animation: fadeIn 0.2s ease-out;
+		color: var(--md-sys-color-on-surface);
+	}
+	.toast--success {
+		background-color: rgb(16 185 129 / 0.1);
+		border-color: rgb(16 185 129 / 0.2);
+		color: #10b981;
+	}
+	.toast--error {
+		background-color: rgb(244 63 94 / 0.1);
+		border-color: rgb(244 63 94 / 0.2);
+		color: #f43f5e;
+	}
+	.toast__body {
+		display: block;
+		text-align: left;
+	}
+	.toast__title {
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		font-weight: 700;
+		color: #10b981;
+		margin: 0;
+	}
+	.toast__title--error {
+		color: #f43f5e;
+	}
+	.toast__message {
+		margin-top: 0.125rem;
+		font-size: 0.75rem;
+		line-height: 1rem;
+		margin-bottom: 0;
+	}
+	:global(.toast .icon-lg) {
+		width: 1.5rem;
+		height: 1.5rem;
+		flex-shrink: 0;
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 </style>

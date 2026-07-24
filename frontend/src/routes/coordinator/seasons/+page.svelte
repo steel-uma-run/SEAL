@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import KaomojiError from "$lib/components/KaomojiError.svelte"
-	import { Button, Tabs } from "m3-svelte"
+	import { Button, Tabs, TextFieldOutlined, TextFieldOutlinedMultiline } from "m3-svelte"
 	import { ChevronLeft, ChevronRight } from "@lucide/svelte"
-	import { getAllSeasons, getEventsInSeason } from "$lib/api"
+	import { getAllSeasons, getEventsInSeason, updateEvent, finalizeEvent } from "$lib/api"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
+	import DateTimePicker from "$lib/components/DateTimePicker.svelte"
 
 	let seasons = $state<any[]>([])
 	let events = $state<any[]>([])
@@ -77,6 +78,105 @@
 		currentPage = 0
 	})
 
+	// Edit Event State
+	let showEditModal = $state(false)
+	let editEventId = $state("")
+	let editEventName = $state("")
+	let editEventPrize = $state("")
+	let editEventDescription = $state("")
+	let editEventStartTime = $state<Date | undefined>(undefined)
+	let editEventEndTime = $state<Date | undefined>(undefined)
+	let editErrors = $state<any>({})
+	let isSaving = $state(false)
+	let shouldFinalize = $state(false)
+	let editEventStatus = $state("")
+
+	function openEditModal(event: any) {
+		editEventId = event.id
+		editEventName = event.name
+		editEventDescription = event.description || ""
+		editEventPrize = event.price || ""
+		editEventStartTime =
+			event.start_time || event.startTime
+				? new Date(event.start_time || event.startTime)
+				: undefined
+		editEventEndTime =
+			event.end_time || event.endTime ? new Date(event.end_time || event.endTime) : undefined
+		editEventStatus = event.status || ""
+		shouldFinalize = false
+		editErrors = {}
+		showEditModal = true
+	}
+
+	async function handleSaveEvent(e: Event) {
+		e.preventDefault()
+		editErrors = {}
+
+		if (!editEventName.trim()) {
+			editErrors.name = "Event name cannot be empty"
+			return
+		}
+		if (!editEventStartTime) {
+			editErrors.startTime = "Start time is required"
+			return
+		}
+		if (!editEventEndTime) {
+			editErrors.endTime = "End time is required"
+			return
+		}
+		if (editEventStartTime >= editEventEndTime) {
+			editErrors.startTime = "Start time must be before end time"
+			return
+		}
+
+		isSaving = true
+		try {
+			// 1. Update event details
+			const { response, error: apiErr } = await updateEvent({
+				path: { eventId: editEventId },
+				body: {
+					name: editEventName,
+					description: editEventDescription,
+					price: editEventPrize,
+					start_time: editEventStartTime.toISOString(),
+					end_time: editEventEndTime.toISOString()
+				},
+				throwOnError: false
+			})
+
+			if (!response?.ok) {
+				const errBody = apiErr as any
+				editErrors.generic = errBody?.detail || response?.statusText || "Failed to update event"
+				return
+			}
+
+			// 2. Finalize event if checked
+			if (shouldFinalize) {
+				const finalizeResp = await finalizeEvent({
+					path: { eventId: editEventId },
+					throwOnError: false
+				})
+				if (!finalizeResp.response?.ok) {
+					const errBody = finalizeResp.error as any
+					editErrors.generic =
+						errBody?.detail || finalizeResp.response?.statusText || "Failed to finalize event"
+					return
+				}
+			}
+
+			showEditModal = false
+			await loadData()
+			alert(
+				shouldFinalize ? "Event updated and finalized successfully!" : "Event updated successfully!"
+			)
+		} catch (err: any) {
+			console.error("Error updating event:", err)
+			editErrors.generic = err.message || "An error occurred"
+		} finally {
+			isSaving = false
+		}
+	}
+
 	onMount(() => {
 		loadData()
 	})
@@ -139,6 +239,11 @@
 					<Button href="/coordinator/seasons/{event.season_id}/events/{event.id}" variant="tonal"
 						>Manage</Button
 					>
+					<Button
+						onclick={() => openEditModal(event)}
+						variant="tonal"
+						disabled={event.status?.toUpperCase() === "FINALIZED"}>Edit</Button
+					>
 					<Button href="/events/{event.id}" variant="text">Public Page</Button>
 				</div>
 			</div>
@@ -164,6 +269,100 @@
 			</Button>
 		</div>
 	{/if}
+{/if}
+
+{#if showEditModal}
+	<div class="modal-overlay">
+		<div class="modal-surface">
+			<div class="modal-header">
+				<h3>Edit Event Information</h3>
+				<button onclick={() => (showEditModal = false)} class="btn-icon">
+					<svg
+						style="width: 1.5rem; height: 1.5rem"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						></path>
+					</svg>
+				</button>
+			</div>
+
+			<form onsubmit={handleSaveEvent} class="modal-form">
+				{#if editErrors.generic}
+					<div class="alert alert-error">
+						{editErrors.generic}
+					</div>
+				{/if}
+
+				<div class="form-group">
+					<p class="form-label">Event Name *</p>
+					<TextFieldOutlined required minlength={1} label="" bind:value={editEventName} />
+					{#if editErrors.name}
+						<span class="error">{editErrors.name}</span>
+					{/if}
+				</div>
+
+				<div class="form-group">
+					<p class="form-label">Prize Pool</p>
+					<TextFieldOutlined required minlength={1} label="" bind:value={editEventPrize} />
+				</div>
+
+				<div class="form-group">
+					<p class="form-label">Registration Start *</p>
+					<div class="date-picker-container">
+						<DateTimePicker bind:value={editEventStartTime} />
+					</div>
+					{#if editErrors.startTime}
+						<span class="error">{editErrors.startTime}</span>
+					{/if}
+				</div>
+
+				<div class="form-group">
+					<p class="form-label">Registration End *</p>
+					<div class="date-picker-container">
+						<DateTimePicker bind:value={editEventEndTime} />
+					</div>
+					{#if editErrors.endTime}
+						<span class="error">{editErrors.endTime}</span>
+					{/if}
+				</div>
+
+				<div class="form-group">
+					<p class="form-label">Description</p>
+					<TextFieldOutlinedMultiline
+						required
+						minlength={1}
+						label=""
+						bind:value={editEventDescription}
+					/>
+				</div>
+
+				{#if editEventStatus?.toUpperCase() === "DRAFT"}
+					<div class="form-group finalize-group">
+						<label class="checkbox-label">
+							<input type="checkbox" bind:checked={shouldFinalize} />
+							<span>Finalize Event (Locks editing and publishes to students)</span>
+						</label>
+					</div>
+				{/if}
+
+				<div class="modal-actions">
+					<Button type="button" variant="text" onclick={() => (showEditModal = false)}
+						>Cancel</Button
+					>
+					<Button type="submit" disabled={isSaving}>
+						{isSaving ? "Saving..." : "Save Changes"}
+					</Button>
+				</div>
+			</form>
+		</div>
+	</div>
 {/if}
 
 <style lang="scss">
@@ -326,5 +525,138 @@
 		to {
 			transform: rotate(360deg);
 		}
+	}
+	.modal-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 2000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+		background: rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(2px);
+		color: var(--md-sys-color-on-surface);
+	}
+
+	.modal-surface {
+		border: 1px solid var(--md-sys-color-outline-variant);
+		background: var(--md-sys-color-surface-container-low);
+		border-radius: 24px;
+		width: 100%;
+		max-width: 40rem;
+		padding: 2rem;
+		display: flex;
+		flex-direction: column;
+		max-height: 90vh;
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.5rem;
+
+		h3 {
+			margin: 0;
+			font-size: 1.25rem;
+			font-weight: 700;
+		}
+	}
+
+	.btn-icon {
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+		padding: 0.25rem;
+		border-radius: 0.5rem;
+		color: var(--md-sys-color-on-surface-variant);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&:hover {
+			background: var(--md-sys-color-surface-container-highest);
+		}
+	}
+
+	.modal-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		overflow-y: auto;
+		flex: 1;
+		padding-right: 0.25rem;
+		text-align: left;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+
+		.form-label {
+			font-size: 0.875rem;
+			font-weight: 600;
+			color: var(--md-sys-color-on-surface-variant);
+			margin: 0;
+		}
+	}
+
+	.date-picker-container {
+		display: flex;
+		gap: 1rem;
+	}
+
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.75rem;
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--md-sys-color-outline-variant);
+	}
+
+	.error {
+		color: var(--md-sys-color-error);
+		font-size: 0.8rem;
+		margin-top: 0.25rem;
+	}
+
+	.alert {
+		padding: 0.75rem;
+		border-radius: 0.5rem;
+		font-size: 0.85rem;
+
+		&-error {
+			background: rgba(244, 63, 94, 0.1);
+			color: var(--md-sys-color-error);
+			border: 1px solid rgba(244, 63, 94, 0.2);
+		}
+	}
+
+	.checkbox-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		cursor: pointer;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: var(--md-sys-color-primary);
+
+		input[type="checkbox"] {
+			width: 1.15rem;
+			height: 1.15rem;
+			cursor: pointer;
+			accent-color: var(--md-sys-color-primary);
+		}
+	}
+
+	.finalize-group {
+		margin-top: 0.5rem;
+		padding: 0.75rem;
+		border: 1.5px dashed var(--md-sys-color-primary);
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--md-sys-color-primary) 5%, transparent);
 	}
 </style>
