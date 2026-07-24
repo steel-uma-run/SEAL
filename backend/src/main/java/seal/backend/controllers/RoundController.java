@@ -26,7 +26,8 @@ public class RoundController implements RoundsApi {
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<RoundDto> updateRound(
-      UUID roundId, @RequestBody @Valid @NotNull UpdateRoundRequestDto body) {
+      @PathVariable(name = "roundId") @NotNull UUID roundId,
+      @RequestBody @Valid @NotNull UpdateRoundRequestDto body) {
     return ResponseEntity.ok(roundService.updateRound(roundId, body));
   }
 
