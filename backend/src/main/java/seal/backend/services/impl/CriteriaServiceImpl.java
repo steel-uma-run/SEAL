@@ -34,12 +34,30 @@ public class CriteriaServiceImpl implements CriteriaService {
   @Transactional
   @Override
   public CriteriaTemplateDto createTemplate(CreateCriteriaTemplateRequestDto request) {
+    if (request.description() == null || request.description().isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "The template's description must not be empty.");
+    }
     CriteriaTemplate newTemplate = templateRepo.save(new CriteriaTemplate(request.description()));
 
-    // Constraint: all criteria in a template must sum to 100
     int totalWeight = 0;
 
     for (CreateCriteriaRequestDto dto : request.criteria()) {
+      if (dto.name() == null || dto.name().isEmpty()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Criteria's name must not be empty.");
+      }
+
+      if (dto.weight() == null) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Criteria's weight must not be empty.");
+      }
+
+      if (dto.weight() <= 0) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Criteria's weight must be greater than 0.");
+      }
+
       totalWeight += dto.weight();
       if (totalWeight > 100) {
         throw new ResponseStatusException(
@@ -76,6 +94,10 @@ public class CriteriaServiceImpl implements CriteriaService {
           HttpStatus.BAD_REQUEST, "Cannot update a template that is already assigned to a round.");
     }
 
+    if (request.description() == null || request.description().isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "The template's description must not be empty.");
+    }
     template.setDescription(request.description());
 
     criteriaRepo.deleteByCriteriaTemplate(template);
@@ -84,6 +106,21 @@ public class CriteriaServiceImpl implements CriteriaService {
 
     int totalWeight = 0;
     for (CreateCriteriaRequestDto dto : request.criteria()) {
+      if (dto.name() == null || dto.name().isEmpty()) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Criteria's name must not be empty.");
+      }
+
+      if (dto.weight() == null) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Criteria's weight must not be empty.");
+      }
+
+      if (dto.weight() <= 0) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Criteria's weight must be greater than 0.");
+      }
+
       totalWeight += dto.weight();
       if (totalWeight > 100) {
         throw new ResponseStatusException(
