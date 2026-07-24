@@ -7,14 +7,16 @@
 
 	let open = $state(false)
 
-	let rawDate = $state(new Date(Date.now()).toISOString())
-	let time: Date | undefined = $state(undefined)
+	let rawDate: string | undefined = $state()
+	let time: Date | undefined = $state()
 
-	const date = $derived(new Date(rawDate))
+	const date = $derived(rawDate ? new Date(rawDate) : undefined)
 	const dateTime = $derived.by(() => {
+		if (time === undefined || date === undefined) return undefined
+
 		let datetime = new Date(date)
-		datetime.setHours(time?.getHours() ?? 0)
-		datetime.setMinutes(time?.getMinutes() ?? 0)
+		datetime.setHours(time.getHours() ?? 0)
+		datetime.setMinutes(time.getMinutes() ?? 0)
 
 		return datetime
 	})

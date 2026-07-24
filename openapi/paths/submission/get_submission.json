@@ -1,0 +1,27 @@
+{
+  "get": {
+    "tags": ["submission"],
+    "summary": "Get a specific submission by ID",
+    "operationId": "get_submission_by_id",
+    "parameters": [
+      {
+        "name": "submissionId",
+        "in": "path",
+        "required": true,
+        "description": "UUID of the submission",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "$ref": "../../responses/SubmissionSuccess.json"
+      },
+      "4xx": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

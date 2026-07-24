@@ -11,6 +11,10 @@ import seal.openapi.model.SubmitWorkRequestDto;
 public interface SubmissionService {
   void submitWork(UUID eventId, SubmitWorkRequestDto request);
 
+  SubmissionDto getSubmissionById(UUID submissionId);
+
+  List<SubmissionDto> getSubmissionsByEventId(UUID eventId);
+
   List<SubmissionDto> getAllSubmissions(UUID teamId);
 
   void gradeSubmission(UUID submissionId, GradeSubmissionRequestArrayItemDto[] scores);

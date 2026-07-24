@@ -23,11 +23,13 @@ import seal.backend.entities.Score;
 import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
+import seal.backend.entities.Track;
 import seal.backend.entities.User;
 import seal.backend.entities.notification.RegradeNotif;
 import seal.backend.entities.notification.ScoreDeviationNotif;
 import seal.backend.enums.Role;
 import seal.backend.repositories.AuditLogRepository;
+import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
 import seal.backend.repositories.RegradeNotifRepository;
@@ -56,6 +58,7 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final ScoreRepository scoreRepo;
   private final ScoreDeviationNotifRepository notifRepo;
   private final RegradeNotifRepository regradeNotifRepo;
+  private final CriteriaRepository criteriaRepo;
   private final AuditLogRepository auditLogRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
@@ -115,6 +118,47 @@ public class SubmissionServiceImpl implements SubmissionService {
             activeRound);
 
     submissionRepo.save(submission);
+  }
+
+  @Override
+  @Transactional
+  public SubmissionDto getSubmissionById(UUID submissionId) {
+    Submission submission =
+        submissionRepo
+            .findById(submissionId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission doesn't exist."));
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    User actor = userRepo.findByEmail(auth.getName()).get();
+
+    if (actor.getRole() == Role.STUDENT) {
+      Student student = studentRepo.findById(actor.getId()).get();
+      if (!student.getTeams().contains(submission.getSubmitterTeam())) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't belong to this team.");
+      }
+    } else if (actor.getRole() == Role.LECTURER) {
+      Lecturer lecturer = lecturerRepo.findByEmail(actor.getEmail()).get();
+      Track track = submission.getSubmitterTeam().getTrack();
+
+      if (track != null
+          && !lecturer.getJudgedTracks().contains(track)
+          && !track.getMentors().contains(lecturer)) {
+        throw new ResponseStatusException(
+            HttpStatus.FORBIDDEN, "You are not assigned to view this team's submissions.");
+      }
+    }
+
+    return submission.toDto();
+  }
+
+  @Override
+  @Transactional
+  public List<SubmissionDto> getSubmissionsByEventId(UUID eventId) {
+    return submissionRepo.findAllBySubmitterTeamHackathonEventId(eventId).stream()
+        .map(Submission::toDto)
+        .toList();
   }
 
   @Override
@@ -217,14 +261,25 @@ public class SubmissionServiceImpl implements SubmissionService {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required.");
       }
 
+      // Make sure the criteria actually is a criteria for the round
+      // Make sure the criteria actually is a criteria for the round
+      // Criteria criteria =
+      //     submission.getRound().getCriteria().stream()
+      //         .filter(pred -> pred.getId().equals(dto.criteriaId()))
+      //         .findAny()
+      //         .orElseThrow(
+      //             () ->
+      //                 new ResponseStatusException(
+      //                     HttpStatus.BAD_REQUEST, "This criteria does not exist on this
+      // round."));
+
       Criteria criteria =
-          submission.getRound().getCriteria().stream()
-              .filter(pred -> pred.getId().equals(dto.criteriaId()))
-              .findAny()
+          criteriaRepo
+              .findById(dto.criteriaId())
               .orElseThrow(
                   () ->
                       new ResponseStatusException(
-                          HttpStatus.BAD_REQUEST, "This criteria does not exist on this round."));
+                          HttpStatus.BAD_REQUEST, "This criteria does not exist."));
 
       Score givenScore = new Score(criteria, submission, actor, dto.value());
       givenScore.setComment(dto.comment());
@@ -233,8 +288,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       newScores.add(givenScore);
     }
 
-    // ĐẨY TOÀN BỘ LOGIC LƯU VÀ CHECK ĐỘ LỆCH RA NGOÀI VÒNG LẶP
-    scoreRepo.saveAll(newScores); // Lưu một lần toàn bộ điểm của giám khảo
+    scoreRepo.saveAll(newScores);
     submissionRepo.save(submission);
     checkScoreDeviation(submission);
   }

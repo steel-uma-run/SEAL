@@ -1,0 +1,38 @@
+{
+  "parameters": [
+    {
+      "name": "roundId",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "put": {
+    "tags": [
+      "rounds"
+    ],
+    "operationId": "update_round_criteria",
+    "summary": "Update and customize criteria for a round",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/UpdateRoundCriteriaRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "204": {
+        "description": "Criteria updated and customized successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

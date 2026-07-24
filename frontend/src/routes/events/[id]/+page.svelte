@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/state"
-	import { getAllTracksOfEvent, getEvent, getRounds } from "$lib/api"
+	import { getAllTracksOfEvent, getEvent, getRounds, markInterested } from "$lib/api"
+	import { auth } from "$lib/auth.svelte"
 
 	import ElevatedCard from "$lib/components/ElevatedCard.svelte"
 	import KaomojiError from "$lib/components/KaomojiError.svelte"
@@ -17,10 +18,22 @@
 		const tracks = await getAllTracksOfEvent({ path: { eventId: id! } })
 		const rounds = await getRounds({ path: { eventId: id! } })
 
+		// the earliest time possible will be the start time (registration open time)
+		const startTime = new Date(event.data.start_time)
+
+		// the latest time possible will be the last round's ending time
+		const endTime = rounds.data.at(-1) ? new Date(rounds.data.at(-1)!.end_time) : undefined
+
 		return {
 			event: event.data,
 			tracks: tracks.data,
-			rounds: rounds.data
+			rounds: rounds.data,
+
+			openForRegistration:
+				Date.now() >= Date.parse(event.data.start_time) &&
+				Date.now() <= Date.parse(event.data.end_time),
+			startTime: startTime,
+			endTime: endTime
 		}
 	})
 </script>
@@ -33,13 +46,23 @@
 
 	<div class="container">
 		<section class="back">
-			<Button href="/" variant="text" iconType="left">
+			<Button
+				href={auth.value?.role === "COORDINATOR"
+					? "/coordinator"
+					: auth.value?.role === "LECTURER"
+						? "/lecturer"
+						: auth.value?.role === "STUDENT"
+							? "/student"
+							: "/"}
+				variant="text"
+				iconType="left"
+			>
 				<Icon icon={iconArrowBack} />
 				Back to events</Button
 			>
 		</section>
 
-		{#if event.open_for_registration}
+		{#if data.openForRegistration}
 			<section class="registration-notice">
 				<h2>Open for registration!</h2>
 			</section>
@@ -59,18 +82,20 @@
 						<div class="date-time">
 							<span class="material-symbols-rounded">event_upcoming</span>
 							<span>
-								{new Date(event.start_time).toLocaleString(undefined, {
+								{data.startTime.toLocaleString(undefined, {
 									month: "short",
 									day: "numeric",
 									hour: "numeric",
 									minute: "numeric"
 								})} -
-								{new Date(event.end_time).toLocaleString(undefined, {
-									month: "short",
-									day: "numeric",
-									hour: "numeric",
-									minute: "numeric"
-								})}
+								{data.endTime
+									? data.endTime.toLocaleString(undefined, {
+											month: "short",
+											day: "numeric",
+											hour: "numeric",
+											minute: "numeric"
+										})
+									: " - "}
 							</span>
 						</div>
 
@@ -78,6 +103,12 @@
 						<p class="desc">{event.description}</p>
 
 						<hr style="color: var(--md-sys-color-outline-variant)" />
+
+						<div class="prize">
+							{#each (event.price || "").split("\n") as line}
+								<p>{line}</p>
+							{/each}
+						</div>
 
 						<div class="team-size">
 							<p>Team size</p>
@@ -89,10 +120,25 @@
 							<p>30 teams</p>
 						</div>
 
-						<Button iconType="left" disabled={!event.open_for_registration}>
-							<Icon icon={iconAdd} />
-							Register now
-						</Button>
+						{#if auth.value === undefined || auth.value?.role === "STUDENT"}
+							<Button
+								iconType="left"
+								disabled={!data.openForRegistration}
+								onclick={async () => {
+									await markInterested({ path: { eventId: event.id } })
+								}}
+							>
+								<Icon icon={iconAdd} />
+								Register now
+							</Button>
+						{/if}
+
+						{#if data.event.status === "DRAFT" && auth.value?.role === "COORDINATOR"}
+							<Button iconType="left">
+								<Icon icon={iconAdd} />
+								Open to the public
+							</Button>
+						{/if}
 					</div>
 				</div>
 			</ElevatedCard>
@@ -103,7 +149,10 @@
 		<section class="tracks">
 			<div class="title">
 				<h2>Tracks</h2>
-				<Button variant="tonal">New track</Button>
+
+				{#if auth.value?.role == "COORDINATOR"}
+					<Button variant="tonal">New track</Button>
+				{/if}
 			</div>
 
 			{#if tracks.length <= 0}
@@ -143,11 +192,14 @@
 		<section class="rounds">
 			<div class="title">
 				<h2>Rounds</h2>
-				<Button variant="tonal">New round</Button>
+
+				{#if auth.value?.role == "COORDINATOR"}
+					<Button variant="tonal">New round</Button>
+				{/if}
 			</div>
 
 			{#if tracks.length <= 0}
-				<KaomojiError kind="neutral" text="Kickstart the event with a few rounds!" />
+				<KaomojiError kind="neutral" text="It's empty here..." />
 			{:else}
 				<div class="body">
 					{#each data.rounds as round}
@@ -331,5 +383,9 @@
 			grid-template-columns: 1fr 8fr;
 			gap: 1rem;
 		}
+	}
+
+	.prize {
+		margin-top: 1rem;
 	}
 </style>

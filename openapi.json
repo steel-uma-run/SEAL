@@ -84,6 +84,8 @@
     },
     "/events/{eventId}/rankings": {
       "$ref": "./openapi/paths/events/get_ranking.json"
+    "/events/{eventId}/submissions": {
+      "$ref": "./openapi/paths/events/get_submissions.json"
     },
 
     "/tracks/{trackId}": {
@@ -95,6 +97,9 @@
     },
     "/rounds/{roundId}/assign-criteria": {
       "$ref": "./openapi/paths/rounds/assign_criteria.json"
+    },
+    "/rounds/{roundId}/criteria": {
+      "$ref": "./openapi/paths/rounds/update_criteria.json"
     },
 
     "/profile": {
@@ -118,14 +123,15 @@
       "$ref": "./openapi/paths/criteria/index.json"
     },
 
+    "/submission/{submissionId}": {
+      "$ref": "./openapi/paths/submission/get_submission.json"
+    },
     "/submission/{submissionId}/grade": {
       "$ref": "./openapi/paths/submission/grade.json"
     },
-
     "/submission/{submissionId}/deviations": {
       "$ref": "./openapi/paths/submission/get_deviations.json"
     },
-
     "/submission/{submissionId}/request-regrade": {
       "$ref": "./openapi/paths/submission/request_regrade.json"
     },

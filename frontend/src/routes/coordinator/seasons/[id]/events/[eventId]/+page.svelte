@@ -14,7 +14,8 @@
 		getRounds,
 		updateTrack,
 		getAllCriteriaTemplates,
-		assignCriteria
+		assignCriteria,
+		updateRoundCriteria
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Clock, X, Plus } from "@lucide/svelte"
@@ -93,6 +94,18 @@
 	let isAssigningCriteria = $state(false)
 	let assignCriteriaMessage = $state("")
 	let assignCriteriaError = $state(false)
+
+	// Edit Criteria Modal State
+	let showEditCriteriaModal = $state(false)
+	let editingRound = $state<any>(null)
+	let editingCriteriaList = $state<any[]>([])
+	let isSavingCriteria = $state(false)
+	let editCriteriaMessage = $state("")
+	let editCriteriaError = $state(false)
+
+	let totalEditWeight = $derived(
+		editingCriteriaList.reduce((sum, c) => sum + (Number(c.weight) || 0), 0)
+	)
 	$effect(() => {
 		if (selectedTemplateId) {
 			assignCriteriaMessage = ""
@@ -386,6 +399,64 @@
 		}
 	}
 
+	function openEditCriteriaModal(round: any) {
+		editingRound = round
+		editingCriteriaList = (round.criteria || []).map((c: any) => ({
+			id: c.id,
+			name: c.name,
+			weight: c.weight
+		}))
+		editCriteriaMessage = ""
+		editCriteriaError = false
+		showEditCriteriaModal = true
+	}
+
+	async function handleSaveCriteria(e: Event) {
+		e.preventDefault()
+		if (totalEditWeight !== 100) {
+			editCriteriaMessage = "Total weight must equal exactly 100%."
+			editCriteriaError = true
+			return
+		}
+		if (editingCriteriaList.some((c) => !c.name || !c.name.trim())) {
+			editCriteriaMessage = "All criteria names are required."
+			editCriteriaError = true
+			return
+		}
+
+		isSavingCriteria = true
+		editCriteriaMessage = ""
+		editCriteriaError = false
+
+		try {
+			const { response } = await updateRoundCriteria({
+				path: { roundId: editingRound.id },
+				body: {
+					criteria: editingCriteriaList.map((c) => ({
+						id: c.id,
+						name: c.name.trim(),
+						weight: Number(c.weight)
+					}))
+				},
+				throwOnError: false
+			})
+
+			if (response?.ok) {
+				showEditCriteriaModal = false
+				await loadEventRounds()
+				alert(`Criteria for round "${editingRound.name}" updated successfully!`)
+			} else {
+				editCriteriaMessage = "Failed to update criteria. Please try again."
+				editCriteriaError = true
+			}
+		} catch (err: any) {
+			editCriteriaMessage = err.message || "An error occurred."
+			editCriteriaError = true
+		} finally {
+			isSavingCriteria = false
+		}
+	}
+
 	async function handleCreateRound(e: Event) {
 		e.preventDefault()
 		if (
@@ -410,10 +481,9 @@
 
 		// Verify within event dates
 		if (event) {
-			const eventStart = new Date(event.startTime || event.start_time)
 			const eventEnd = new Date(event.endTime || event.end_time)
-			if (start < eventStart || end > eventEnd) {
-				createRoundMessage = "Round timeframe must be strictly within the Event's timeframe."
+			if (start <= eventEnd) {
+				createRoundMessage = "Round timeframe must start after the registration period ends."
 				createRoundError = true
 				return
 			}
@@ -637,1285 +707,1813 @@
 	})
 </script>
 
-<div class="mb-6">
-	<button
-		onclick={() => goto(`/coordinator/seasons/${seasonId}`)}
-		class="flex items-center gap-2 bg-transparent text-sm font-semibold py-2 px-3 rounded-lg border border-(--md-outline) text-(--md-on-surface-variant) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
-	>
-		<ArrowLeft class="w-4 h-4" />
-		Back to Season Details
-	</button>
-</div>
+<div class="coordinator-event-details">
+	<!-- Top Action Bar -->
+	<div class="action-bar">
+		<button onclick={() => goto("/coordinator/seasons")} class="btn btn-outline back-btn">
+			<ArrowLeft class="icon" />
+			Back to Season Details
+		</button>
+	</div>
 
-{#if isLoading}
-	<div class="flex justify-center items-center h-[50vh]">
-		<div
-			class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-(--md-primary)"
-		></div>
-	</div>
-{:else if error}
-	<div
-		class="bg-(--md-error-container) border border-(--md-error) p-4 rounded-xl text-(--md-on-error-container) text-sm"
-	>
-		<p class="font-bold">Error loading event</p>
-		<p class="mt-1">{error}</p>
-	</div>
-{:else if event}
-	<div class="space-y-6">
-		<!-- Event Header Card -->
-		<div
-			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-colors duration-300 shadow-sm"
-		>
-			<div class="mb-6">
-				<div class="flex items-center gap-2 mb-2">
-					<span
-						class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-(--md-primary-container) text-(--md-on-primary-container) border border-(--md-outline-variant)"
-					>
-						{event.status}
-					</span>
+	{#if isLoading}
+		<div class="loading-container">
+			<div class="spinner"></div>
+		</div>
+	{:else if error}
+		<div class="alert alert-error">
+			<p class="alert-title">Error loading event</p>
+			<p class="alert-desc">{error}</p>
+		</div>
+	{:else if event}
+		<div class="content-wrapper">
+			<!-- Event Header Card -->
+			<div class="md3-card header-card">
+				<div class="header-status">
+					<span class="badge badge-primary">{event.status}</span>
 				</div>
-				<h1 class="text-3xl font-extrabold text-(--md-on-surface) m-0">
-					{event.name}
-				</h1>
-				<p class="text-base text-(--md-on-surface-variant) mt-3 leading-relaxed max-w-3xl">
-					{event.description || "No description provided."}
-				</p>
+
+				<h1 class="event-title">{event.name}</h1>
+				<p class="event-desc">{event.description || "No description provided."}</p>
+
 				{#if eventTracks.length > 0}
-					<div class="flex items-center gap-2 mt-4 flex-wrap">
-						<span class="text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider"
-							>Tracks:</span
-						>
-						{#each eventTracks as track}
-							<span
-								class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-(--md-surface-container-high) text-(--md-on-surface-variant) border border-(--md-outline-variant)"
-								title={track.description}
-							>
-								{track.name}
-							</span>
-						{/each}
+					<div class="event-tracks-info">
+						<span class="info-label">Tracks:</span>
+						<div class="chip-group">
+							{#each eventTracks as track}
+								<span class="chip chip-surface" title={track.description}>
+									{track.name}
+								</span>
+							{/each}
+						</div>
 					</div>
 				{/if}
-				<div class="flex flex-wrap gap-6 mt-6 text-sm text-(--md-on-surface-variant)">
-					<div class="flex items-center gap-2">
-						<Clock class="w-4 h-4 text-(--md-primary)" />
+
+				<div class="event-time-info">
+					<div class="time-item">
+						<Clock class="icon text-primary" />
 						<span><strong>Start:</strong> {formatDateTime(event.startTime)}</span>
 					</div>
-					<div class="flex items-center gap-2">
-						<Clock class="w-4 h-4 text-(--md-error)" />
+					<div class="time-item">
+						<Clock class="icon text-error" />
 						<span><strong>End:</strong> {formatDateTime(event.endTime)}</span>
 					</div>
 				</div>
 			</div>
-		</div>
 
-		<!-- Event Tracks and Experts Management Card -->
-		<div
-			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-colors duration-300 shadow-sm"
-		>
-			<div class="flex justify-between items-center mb-6">
-				<div>
-					<h2 class="text-xl font-bold text-(--md-on-surface) m-0">Event Tracks & Experts</h2>
-					<p class="text-sm text-(--md-on-surface-variant) mt-1">
-						Manage and configure track details, assigned mentors, judges, and teams.
-					</p>
+			<!-- Event Tracks and Experts Management Card -->
+			<div class="md3-card section-card">
+				<div class="section-header">
+					<div class="section-title-group">
+						<h2 class="section-title">Event Tracks & Experts</h2>
+						<p class="section-desc">
+							Manage and configure track details, assigned mentors, judges, and teams.
+						</p>
+					</div>
+					{#if event.status?.toUpperCase() === "DRAFT"}
+						<button onclick={openCreateTrackModal} class="btn btn-filled">
+							<Plus class="icon" />
+							Create Track
+						</button>
+					{/if}
 				</div>
-				{#if event.status?.toUpperCase() === "DRAFT"}
-					<button
-						onclick={openCreateTrackModal}
-						class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
-					>
-						<Plus class="w-4 h-4" />
-						Create Track
-					</button>
+
+				{#if eventTracks.length > 0}
+					<div class="track-grid">
+						{#each eventTracks as track}
+							<div class="track-card">
+								<div class="track-card-header">
+									<div class="track-title-wrapper">
+										<h3 class="track-name">{track.name}</h3>
+										<p class="track-desc">{track.description}</p>
+									</div>
+									<button
+										type="button"
+										onclick={() => openEditTrackModal(track)}
+										class="btn btn-text btn-small"
+									>
+										Edit
+									</button>
+								</div>
+
+								<div class="track-card-content">
+									<div class="meta-group">
+										<span class="meta-label">Mentor</span>
+										<div class="chip-group small">
+											{#if track.mentor_ids && track.mentor_ids.length > 0}
+												{#each track.mentor_ids as mentorId}
+													<span class="chip chip-mentor">{getLecturerName(mentorId)}</span>
+												{/each}
+											{:else}
+												<span class="empty-text">No mentor assigned</span>
+											{/if}
+										</div>
+									</div>
+
+									<div class="meta-group">
+										<span class="meta-label">Judges</span>
+										<div class="chip-group small">
+											{#if track.judge_ids && track.judge_ids.length > 0}
+												{#each track.judge_ids as judgeId}
+													<span class="chip chip-judge">{getLecturerName(judgeId)}</span>
+												{/each}
+											{:else}
+												<span class="empty-text">No judges assigned</span>
+											{/if}
+										</div>
+									</div>
+
+									<div class="meta-group">
+										<span class="meta-label">Assigned Teams</span>
+										<div class="chip-group small">
+											{#if teams.filter((t) => t.track_id === track.id || t.trackId === track.id).length > 0}
+												{#each teams.filter((t) => t.track_id === track.id || t.trackId === track.id) as team}
+													<span class="chip chip-team">{team.name}</span>
+												{/each}
+											{:else}
+												<span class="empty-text">No teams assigned</span>
+											{/if}
+										</div>
+									</div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{:else}
+					<div class="empty-state">
+						<p class="empty-title">No tracks created for this event yet</p>
+						<p class="empty-desc">
+							Get started by creating your first track and assigning components.
+						</p>
+					</div>
 				{/if}
 			</div>
 
-			{#if eventTracks.length > 0}
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{#each eventTracks as track}
-						<div
-							class="p-6 rounded-2xl border border-(--md-outline-variant) bg-(--md-surface-container-low) space-y-4"
-						>
-							<div class="flex justify-between items-start">
-								<div>
-									<h3 class="text-base font-bold text-(--md-primary) m-0">{track.name}</h3>
-									<p class="text-xs text-(--md-on-surface-variant) mt-1 leading-relaxed">
-										{track.description}
-									</p>
-								</div>
-								<button
-									type="button"
-									onclick={() => openEditTrackModal(track)}
-									class="flex items-center bg-transparent text-[11px] font-bold py-1.5 px-3 rounded-lg border border-(--md-outline) text-(--md-primary) hover:bg-(--md-surface-container-high) transition-all cursor-pointer whitespace-nowrap"
-								>
-									Edit
-								</button>
-							</div>
-
-							<div class="space-y-2 border-t pt-3 border-(--md-outline-variant)">
-								<div>
-									<span
-										class="text-[10px] uppercase font-bold tracking-wider text-(--md-on-surface-variant)"
-										>Mentor</span
-									>
-									<div class="mt-1">
-										{#if track.mentor_ids && track.mentor_ids.length > 0}
-											{#each track.mentor_ids as mentorId}
-												<span
-													class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-violet-500/10 text-violet-500 font-medium"
-												>
-													{getLecturerName(mentorId)}
-												</span>
-											{/each}
-										{:else}
-											<span class="text-xs text-zinc-500 italic">No mentor assigned</span>
-										{/if}
-									</div>
-								</div>
-
-								<div>
-									<span
-										class="text-[10px] uppercase font-bold tracking-wider text-(--md-on-surface-variant)"
-										>Judges</span
-									>
-									<div class="mt-1 flex flex-wrap gap-1">
-										{#if track.judge_ids && track.judge_ids.length > 0}
-											{#each track.judge_ids as judgeId}
-												<span
-													class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-sky-500/10 text-sky-500 font-medium"
-												>
-													{getLecturerName(judgeId)}
-												</span>
-											{/each}
-										{:else}
-											<span class="text-xs text-zinc-500 italic">No judges assigned</span>
-										{/if}
-									</div>
-								</div>
-
-								<div>
-									<span
-										class="text-[10px] uppercase font-bold tracking-wider text-(--md-on-surface-variant)"
-										>Assigned Teams</span
-									>
-									<div class="mt-1 flex flex-wrap gap-1">
-										{#if teams.filter((t) => t.track_id === track.id || t.trackId === track.id).length > 0}
-											{#each teams.filter((t) => t.track_id === track.id || t.trackId === track.id) as team}
-												<span
-													class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-emerald-500/10 text-emerald-500 font-medium"
-												>
-													{team.name}
-												</span>
-											{/each}
-										{:else}
-											<span class="text-xs text-zinc-500 italic">No teams assigned</span>
-										{/if}
-									</div>
-								</div>
-							</div>
-						</div>
-					{/each}
+			<!-- Event Content Tabs Card -->
+			<div class="md3-card tabs-card">
+				<div class="tab-list">
+					<button
+						onclick={() => (activeTab = "students")}
+						class="tab-btn {activeTab === 'students' ? 'active' : ''}"
+					>
+						Registered Students ({students.length})
+					</button>
+					<button
+						onclick={() => (activeTab = "teams")}
+						class="tab-btn {activeTab === 'teams' ? 'active' : ''}"
+					>
+						Teams ({teams.length})
+					</button>
+					<button
+						onclick={() => (activeTab = "rounds")}
+						class="tab-btn {activeTab === 'rounds' ? 'active' : ''}"
+					>
+						Rounds ({eventRounds.length})
+					</button>
 				</div>
-			{:else}
-				<div
-					class="text-center py-8 border border-dashed rounded-2xl border-(--md-outline-variant) text-(--md-on-surface-variant)"
-				>
-					<p class="text-sm font-semibold">No tracks created for this event yet</p>
-					<p class="text-xs mt-1">
-						Get started by creating your first track and assigning components.
-					</p>
-				</div>
-			{/if}
-		</div>
 
-		<!-- Event Content Tabs Card -->
-		<div
-			class="p-8 rounded-3xl border border-(--md-outline-variant) bg-(--md-surface-container-lowest) transition-colors duration-300 shadow-sm"
-		>
-			<!-- Tabs -->
-			<div class="flex border-b border-(--md-outline-variant) mb-6 gap-2">
-				<button
-					onclick={() => (activeTab = "students")}
-					class="px-4 py-3 border-0 bg-transparent text-sm font-bold cursor-pointer transition-all border-b-2 {activeTab ===
-					'students'
-						? 'border-(--md-primary) text-(--md-primary)'
-						: 'border-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface)'}"
-				>
-					Registered Students ({students.length})
-				</button>
-				<button
-					onclick={() => (activeTab = "teams")}
-					class="px-4 py-3 border-0 bg-transparent text-sm font-bold cursor-pointer transition-all border-b-2 {activeTab ===
-					'teams'
-						? 'border-(--md-primary) text-(--md-primary)'
-						: 'border-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface)'}"
-				>
-					Teams ({teams.length})
-				</button>
-				<button
-					onclick={() => (activeTab = "rounds")}
-					class="px-4 py-3 border-0 bg-transparent text-sm font-bold cursor-pointer transition-all border-b-2 {activeTab ===
-					'rounds'
-						? 'border-(--md-primary) text-(--md-primary)'
-						: 'border-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface)'}"
-				>
-					Rounds ({eventRounds.length})
-				</button>
-			</div>
-
-			<!-- Tab Panels -->
-			{#if activeTab === "students"}
-				<div class="overflow-x-auto">
-					<table class="w-full text-left border-collapse">
-						<thead>
-							<tr
-								class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
-							>
-								<th class="py-3 px-4">Student ID</th>
-								<th class="py-3 px-4">Name</th>
-								<th class="py-3 px-4">Email</th>
-								<th class="py-3 px-4">Type</th>
-								<th class="py-3 px-4">Team</th>
-							</tr>
-						</thead>
-						<tbody class="text-sm">
-							{#if students.length > 0}
-								{#each students as student}
-									<tr
-										class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
-									>
-										<td class="py-3 px-4 font-mono text-xs font-semibold">
-											{student.student_id || student.studentId || "NONE"}
-										</td>
-										<td class="py-3 px-4 font-bold">
-											{student.fullName || student.name || "N/A"}
-										</td>
-										<td class="py-3 px-4 text-xs">{student.email}</td>
-										<td class="py-3 px-4 text-xs font-medium">
-											{student.is_external
-												? student.school_name || student.schoolName || "External"
-												: "FPT"}
-										</td>
-										<td class="py-3 px-4 text-xs font-semibold text-(--md-primary)">
-											{#if getStudentTeamId(student)}
-												{getTeamName(getStudentTeamId(student))}
-											{:else}
-												<div class="flex items-center gap-2">
-													<span class="text-zinc-500 italic">No Team</span>
-													{#if student.status === "ACTIVE"}
-														<button
-															onclick={() => openCreateTeamModal(student)}
-															class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-(--md-primary) bg-transparent text-(--md-primary) hover:bg-(--md-primary-container) hover:text-(--md-on-primary-container) transition-all cursor-pointer"
-														>
-															Create Team
-														</button>
-													{/if}
-												</div>
-											{/if}
-										</td>
-									</tr>
-								{/each}
-							{:else}
-								<tr>
-									<td colspan="5" class="py-8 text-center text-(--md-on-surface-variant)">
-										<p class="font-bold">No students registered for this event yet.</p>
-									</td>
-								</tr>
-							{/if}
-						</tbody>
-					</table>
-				</div>
-			{:else if activeTab === "teams"}
-				<div class="overflow-x-auto">
-					<table class="w-full text-left border-collapse">
-						<thead>
-							<tr
-								class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
-							>
-								<th class="py-3 px-4">Team Name</th>
-								<th class="py-3 px-4">Leader Name</th>
-								<th class="py-3 px-4">Status</th>
-								<th class="py-3 px-4">Track</th>
-								<th class="py-3 px-4">Mentor</th>
-								<th class="py-3 px-4">Judges</th>
-							</tr>
-						</thead>
-						<tbody class="text-sm">
-							{#if teams.length > 0}
-								{#each teams as team}
-									{@const track = eventTracks.find(
-										(t) =>
-											t.id === (team.track_id || team.trackId) ||
-											t.name === (team.track_id || team.trackId)
-									)}
-									<tr
-										class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
-									>
-										<td class="py-3 px-4 font-bold">{team.name}</td>
-										<td class="py-3 px-4 text-xs font-semibold"
-											>{getStudentName(team.leader_id || team.leaderId)}</td
-										>
-										<td class="py-3 px-4">
-											<span
-												class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {team.status ===
-													'APPROVED' || team.status === 'ACTIVE'
-													? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
-													: team.status === 'PENDING'
-														? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-														: 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}"
-											>
-												{team.status}
-											</span>
-										</td>
-										<td class="py-3 px-4 text-xs font-semibold">
-											{#if team.track_id || team.trackId}
-												<span
-													class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-teal-500/10 text-teal-500 border border-teal-500/20"
-												>
-													{getTrackName(team.track_id || team.trackId)}
-												</span>
-											{:else}
-												<span class="text-zinc-500 italic">Unassigned</span>
-											{/if}
-										</td>
-										<td class="py-3 px-4 text-xs">
-											{#if track && track.mentor_ids && track.mentor_ids.length > 0}
-												<div class="flex flex-wrap gap-1">
-													{#each track.mentor_ids as mentorId}
-														<span
-															class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-violet-500/10 text-violet-500 border border-violet-500/20"
-														>
-															{getLecturerName(mentorId)}
-														</span>
-													{/each}
-												</div>
-											{:else}
-												<span class="text-zinc-500 italic">Unassigned</span>
-											{/if}
-										</td>
-										<td class="py-3 px-4 text-xs">
-											{#if track && track.judge_ids && track.judge_ids.length > 0}
-												<div class="flex flex-wrap gap-1">
-													{#each track.judge_ids as judgeId}
-														<span
-															class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20"
-														>
-															{getLecturerName(judgeId)}
-														</span>
-													{/each}
-												</div>
-											{:else}
-												<span class="text-zinc-500 italic">Unassigned</span>
-											{/if}
-										</td>
-									</tr>
-								{/each}
-							{:else}
-								<tr>
-									<td colspan="6" class="py-8 text-center text-(--md-on-surface-variant)">
-										<p class="font-bold">No teams created for this event yet.</p>
-									</td>
-								</tr>
-							{/if}
-						</tbody>
-					</table>
-				</div>
-			{:else if activeTab === "rounds"}
-				<div class="space-y-6">
-					<div class="flex justify-between items-center">
-						<h3 class="text-base font-bold text-(--md-on-surface) m-0">Event Rounds</h3>
-						{#if event.status?.toUpperCase() === "DRAFT"}
-							<button
-								onclick={openCreateRoundModal}
-								class="flex items-center gap-2 bg-(--md-primary) hover:opacity-90 text-(--md-on-primary) px-4 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer border-0"
-							>
-								<Plus class="w-4 h-4" />
-								Create Round
-							</button>
-						{/if}
-					</div>
-
-					{#if eventRounds.length > 0}
-						<div class="overflow-x-auto">
-							<table class="w-full text-left border-collapse">
+				<div class="tab-content">
+					{#if activeTab === "students"}
+						<div class="table-container">
+							<table class="data-table">
 								<thead>
-									<tr
-										class="border-b border-(--md-outline-variant) text-(--md-on-surface-variant) text-xs font-bold uppercase tracking-wider"
-									>
-										<th class="py-3 px-4">Round Name</th>
-										<th class="py-3 px-4">Description</th>
-										<th class="py-3 px-4">Start Time</th>
-										<th class="py-3 px-4">End Time</th>
-										<th class="py-3 px-4">Criteria</th>
-										{#if event.status?.toUpperCase() === "DRAFT"}
-											<th class="py-3 px-4">Actions</th>
-										{/if}
+									<tr>
+										<th>Student ID</th>
+										<th>Name</th>
+										<th>Email</th>
+										<th>Type</th>
+										<th>Team</th>
 									</tr>
 								</thead>
-								<tbody class="text-sm">
-									{#each eventRounds as round}
-										<tr
-											class="border-b border-(--md-outline-variant)/50 text-(--md-on-surface) hover:bg-(--md-surface-container-highest)/30"
-										>
-											<td class="py-3 px-4 font-bold">{round.name}</td>
-											<td class="py-3 px-4 text-xs text-(--md-on-surface-variant)"
-												>{round.description}</td
-											>
-											<td class="py-3 px-4 text-xs"
-												>{formatDateTime(round.startTime || round.start_time)}</td
-											>
-											<td class="py-3 px-4 text-xs"
-												>{formatDateTime(round.endTime || round.end_time)}</td
-											>
-											<td class="py-3 px-4">
-												{#if round.criteria && round.criteria.length > 0}
-													<div class="flex flex-wrap gap-1">
-														{#each round.criteria as criterion}
-															<span
-																class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-(--md-primary)/15 text-(--md-primary) border border-(--md-primary)/30"
-															>
-																{criterion.name}
-																<span class="opacity-60">({criterion.weight}%)</span>
-															</span>
-														{/each}
-													</div>
-												{:else}
-													<span class="text-xs italic text-(--md-on-surface-variant)"
-														>None assigned</span
-													>
-												{/if}
-											</td>
-											{#if event.status?.toUpperCase() === "DRAFT"}
-												<td class="py-3 px-4">
-													<button
-														id="assign-criteria-btn-{round.id}"
-														onclick={() => openAssignCriteriaModal(round)}
-														class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-(--md-secondary-container) text-(--md-on-secondary-container) hover:opacity-90 transition-all cursor-pointer border-0"
-													>
-														{round.criteria && round.criteria.length > 0
-															? "Reassign"
-															: "Assign Criteria"}
-													</button>
+								<tbody>
+									{#if students.length > 0}
+										{#each students as student}
+											<tr>
+												<td class="font-mono"
+													>{student.student_id || student.studentId || "NONE"}</td
+												>
+												<td class="font-bold">{student.fullName || student.name || "N/A"}</td>
+												<td>{student.email}</td>
+												<td
+													>{student.is_external
+														? student.school_name || student.schoolName || "External"
+														: "FPT"}</td
+												>
+												<td>
+													{#if getStudentTeamId(student)}
+														<span class="text-primary font-bold"
+															>{getTeamName(getStudentTeamId(student))}</span
+														>
+													{:else}
+														<div class="action-cell">
+															<span class="empty-text">No Team</span>
+															{#if student.status === "ACTIVE"}
+																<button
+																	onclick={() => openCreateTeamModal(student)}
+																	class="btn btn-outline btn-tiny"
+																>
+																	Create Team
+																</button>
+															{/if}
+														</div>
+													{/if}
 												</td>
-											{/if}
+											</tr>
+										{/each}
+									{:else}
+										<tr>
+											<td colspan="5" class="text-center empty-cell"
+												>No students registered for this event yet.</td
+											>
 										</tr>
-									{/each}
+									{/if}
 								</tbody>
 							</table>
 						</div>
-					{:else}
-						<div
-							class="text-center py-8 border border-dashed rounded-2xl border-(--md-outline-variant) text-(--md-on-surface-variant)"
-						>
-							<p class="font-bold">No rounds created for this event yet.</p>
-						</div>
-					{/if}
-				</div>
-			{/if}
-		</div>
-	</div>
-{/if}
-
-{#if showCreateTeamModal && targetStudent}
-	<div
-		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
-	>
-		<div
-			class="w-full max-w-md rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low)"
-		>
-			<div class="flex justify-between items-center mb-6">
-				<h3 class="text-xl font-extrabold text-(--md-on-surface)">Create Team</h3>
-				<button
-					onclick={() => (showCreateTeamModal = false)}
-					class="p-1 rounded-full hover:bg-(--md-surface-container-high) border-0 bg-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer"
-				>
-					<X class="w-5 h-5" />
-				</button>
-			</div>
-
-			<form onsubmit={handleCreateTeam} class="space-y-4">
-				{#if createTeamMessage}
-					<div
-						class="p-3.5 rounded-xl border text-sm font-medium {createTeamError
-							? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
-							: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
-					>
-						{createTeamMessage}
-					</div>
-				{/if}
-
-				<div>
-					<label
-						for="new-team-leader"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Team Leader
-					</label>
-					<input
-						type="text"
-						id="new-team-leader"
-						value="{targetStudent.fullName || targetStudent.name} ({targetStudent.email})"
-						disabled
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-container-high) text-(--md-on-surface-variant) outline-none opacity-80"
-					/>
-				</div>
-
-				<div>
-					<label
-						for="new-team-name"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Team Name *
-					</label>
-					<input
-						type="text"
-						id="new-team-name"
-						bind:value={teamNameInput}
-						placeholder="Enter team name"
-						required
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
-					/>
-				</div>
-
-				<div>
-					<label
-						for="new-team-desc"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Description
-					</label>
-					<textarea
-						id="new-team-desc"
-						bind:value={teamDescriptionInput}
-						placeholder="Enter team description"
-						rows="2"
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all resize-none"
-					></textarea>
-				</div>
-
-				{#if activeTeamlessStudents.length > 0}
-					<div>
-						<label
-							class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-						>
-							Add Team Members (Active & Teamless)
-						</label>
-						<div
-							class="max-h-36 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
-						>
-							{#each activeTeamlessStudents as student}
-								<label
-									class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
-								>
-									<input
-										type="checkbox"
-										value={student.id}
-										checked={selectedMembers.includes(student.id)}
-										onchange={(e) => {
-											if (e.currentTarget.checked) {
-												selectedMembers = [...selectedMembers, student.id]
-											} else {
-												selectedMembers = selectedMembers.filter((id) => id !== student.id)
-											}
-										}}
-										class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
-									/>
-									<div class="text-xs">
-										<p class="font-bold text-(--md-on-surface)">
-											{student.fullName || student.name}
-										</p>
-										<p class="text-(--md-on-surface-variant) mt-0.5">
-											{student.is_external
-												? student.school_name || student.schoolName || "External"
-												: "FPT"} &bull; {student.email}
-										</p>
-									</div>
-								</label>
-							{/each}
-						</div>
-					</div>
-				{/if}
-
-				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
-					<button
-						type="button"
-						onclick={() => (showCreateTeamModal = false)}
-						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
-					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						disabled={isCreatingTeam}
-						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
-					>
-						{isCreatingTeam ? "Creating..." : "Create Team"}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}
-
-{#if showCreateTrackModal}
-	<div
-		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
-	>
-		<div
-			class="w-full max-w-md rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low) max-h-[90vh] overflow-y-auto"
-		>
-			<div class="flex justify-between items-center mb-6">
-				<h3 class="text-xl font-extrabold text-(--md-on-surface)">Create Track</h3>
-				<button
-					onclick={() => (showCreateTrackModal = false)}
-					class="p-1 rounded-full hover:bg-(--md-surface-container-high) border-0 bg-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer"
-				>
-					<X class="w-5 h-5" />
-				</button>
-			</div>
-
-			<form onsubmit={handleCreateTrack} class="space-y-4">
-				{#if createTrackMessage}
-					<div
-						class="p-3.5 rounded-xl border text-sm font-medium {createTrackError
-							? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
-							: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
-					>
-						{createTrackMessage}
-					</div>
-				{/if}
-
-				<div>
-					<label
-						for="new-track-name"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Track Name *
-					</label>
-					<input
-						type="text"
-						id="new-track-name"
-						bind:value={newTrackName}
-						placeholder="Cybersecurity"
-						required
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
-					/>
-				</div>
-
-				<div>
-					<label
-						for="new-track-desc"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Description *
-					</label>
-					<textarea
-						id="new-track-desc"
-						bind:value={newTrackDescription}
-						placeholder="Enter track description..."
-						required
-						rows="2"
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all resize-none"
-					></textarea>
-				</div>
-
-				<!-- Mentor Selection -->
-				<div>
-					<label
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Select Mentors (maximum 3)
-					</label>
-					<div
-						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
-					>
-						{#each lecturers.filter((l) => !selectedJudgesForTrack.includes(l.id)) as lecturer}
-							<label
-								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
-							>
-								<input
-									type="checkbox"
-									value={lecturer.id}
-									checked={selectedMentorsForTrack.includes(lecturer.id)}
-									onchange={(e) => {
-										if (e.currentTarget.checked) {
-											selectedMentorsForTrack = [...selectedMentorsForTrack, lecturer.id]
-										} else {
-											selectedMentorsForTrack = selectedMentorsForTrack.filter(
-												(id) => id !== lecturer.id
-											)
-										}
-									}}
-									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
-								/>
-								<div class="text-xs">
-									<p class="font-bold text-(--md-on-surface)">
-										{lecturer.fullName || lecturer.name}
-									</p>
-									<p class="text-(--md-on-surface-variant) mt-0.5">
-										{lecturer.email}
-									</p>
-								</div>
-							</label>
-						{/each}
-					</div>
-					<p class="text-[10px] text-zinc-500 mt-1 italic">
-						Selected: {selectedMentorsForTrack.length} mentor(s)
-					</p>
-				</div>
-
-				<!-- Judges Selection -->
-				<div>
-					<label
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Select Judges (2 or 3 required)
-					</label>
-					<div
-						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
-					>
-						{#each lecturers.filter((l) => !selectedMentorsForTrack.includes(l.id)) as lecturer}
-							<label
-								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
-							>
-								<input
-									type="checkbox"
-									value={lecturer.id}
-									checked={selectedJudgesForTrack.includes(lecturer.id)}
-									onchange={(e) => {
-										if (e.currentTarget.checked) {
-											selectedJudgesForTrack = [...selectedJudgesForTrack, lecturer.id]
-										} else {
-											selectedJudgesForTrack = selectedJudgesForTrack.filter(
-												(id) => id !== lecturer.id
-											)
-										}
-									}}
-									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
-								/>
-								<div class="text-xs">
-									<p class="font-bold text-(--md-on-surface)">
-										{lecturer.fullName || lecturer.name}
-									</p>
-									<p class="text-(--md-on-surface-variant) mt-0.5">
-										{lecturer.email}
-									</p>
-								</div>
-							</label>
-						{/each}
-					</div>
-					<p class="text-[10px] text-zinc-500 mt-1 italic">
-						Selected: {selectedJudgesForTrack.length} judge(s)
-					</p>
-				</div>
-
-				<!-- Teams Selection -->
-				{#if teams.filter((t: any) => !t.track_id && !t.trackId).length > 0}
-					<div>
-						<label
-							class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-						>
-							Assign Teams
-						</label>
-						<div
-							class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
-						>
-							{#each teams.filter((t: any) => !t.track_id && !t.trackId) as team}
-								<label
-									class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
-								>
-									<input
-										type="checkbox"
-										value={team.id}
-										checked={selectedTeamsForTrack.includes(team.id)}
-										onchange={(e) => {
-											if (e.currentTarget.checked) {
-												selectedTeamsForTrack = [...selectedTeamsForTrack, team.id]
-											} else {
-												selectedTeamsForTrack = selectedTeamsForTrack.filter((id) => id !== team.id)
-											}
-										}}
-										class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
-									/>
-									<div class="text-xs">
-										<p class="font-bold text-(--md-on-surface)">{team.name}</p>
-										<p class="text-(--md-on-surface-variant) mt-0.5">
-											Leader: {getStudentName(team.leader_id || team.leaderId)}
-										</p>
-									</div>
-								</label>
-							{/each}
-						</div>
-					</div>
-				{/if}
-
-				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
-					<button
-						type="button"
-						onclick={() => (showCreateTrackModal = false)}
-						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
-					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						disabled={isCreatingTrack}
-						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
-					>
-						{isCreatingTrack ? "Creating..." : "Create Track"}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}
-
-{#if showEditTrackModal}
-	<div
-		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
-	>
-		<div
-			class="w-full max-w-md rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low) max-h-[90vh] overflow-y-auto"
-		>
-			<div class="flex justify-between items-center mb-6">
-				<h3 class="text-xl font-extrabold text-(--md-on-surface)">Edit Track</h3>
-				<button
-					onclick={() => (showEditTrackModal = false)}
-					class="p-1 rounded-full hover:bg-(--md-surface-container-high) border-0 bg-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer"
-				>
-					<X class="w-5 h-5" />
-				</button>
-			</div>
-
-			<form onsubmit={handleUpdateTrack} class="space-y-4">
-				{#if editTrackMessage}
-					<div
-						class="p-3.5 rounded-xl border text-sm font-medium {editTrackError
-							? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
-							: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
-					>
-						{editTrackMessage}
-					</div>
-				{/if}
-
-				<div>
-					<label
-						for="edit-track-name"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Track Name *
-					</label>
-					<input
-						type="text"
-						id="edit-track-name"
-						bind:value={editTrackName}
-						placeholder="Cybersecurity"
-						required
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
-					/>
-				</div>
-
-				<div>
-					<label
-						for="edit-track-desc"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Description *
-					</label>
-					<textarea
-						id="edit-track-desc"
-						bind:value={editTrackDescription}
-						placeholder="Enter track description..."
-						required
-						rows="2"
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all resize-none"
-					></textarea>
-				</div>
-
-				<!-- Mentor Selection -->
-				<div>
-					<label
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Select Mentors (maximum 3)
-					</label>
-					<div
-						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
-					>
-						{#each lecturers.filter((l) => !selectedJudgesForEditTrack.includes(l.id)) as lecturer}
-							<label
-								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
-							>
-								<input
-									type="checkbox"
-									value={lecturer.id}
-									checked={selectedMentorsForEditTrack.includes(lecturer.id)}
-									onchange={(e) => {
-										if (e.currentTarget.checked) {
-											selectedMentorsForEditTrack = [...selectedMentorsForEditTrack, lecturer.id]
-										} else {
-											selectedMentorsForEditTrack = selectedMentorsForEditTrack.filter(
-												(id) => id !== lecturer.id
-											)
-										}
-									}}
-									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
-								/>
-								<div class="text-xs">
-									<p class="font-bold text-(--md-on-surface)">
-										{lecturer.fullName || lecturer.name}
-									</p>
-									<p class="text-(--md-on-surface-variant) mt-0.5">
-										{lecturer.email}
-									</p>
-								</div>
-							</label>
-						{/each}
-					</div>
-					<p class="text-[10px] text-zinc-500 mt-1 italic">
-						Selected: {selectedMentorsForEditTrack.length} mentor(s)
-					</p>
-				</div>
-
-				<!-- Judges Selection -->
-				<div>
-					<label
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Select Judges (2 or 3 required)
-					</label>
-					<div
-						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
-					>
-						{#each lecturers.filter((l) => !selectedMentorsForEditTrack.includes(l.id)) as lecturer}
-							<label
-								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
-							>
-								<input
-									type="checkbox"
-									value={lecturer.id}
-									checked={selectedJudgesForEditTrack.includes(lecturer.id)}
-									onchange={(e) => {
-										if (e.currentTarget.checked) {
-											selectedJudgesForEditTrack = [...selectedJudgesForEditTrack, lecturer.id]
-										} else {
-											selectedJudgesForEditTrack = selectedJudgesForEditTrack.filter(
-												(id) => id !== lecturer.id
-											)
-										}
-									}}
-									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
-								/>
-								<div class="text-xs">
-									<p class="font-bold text-(--md-on-surface)">
-										{lecturer.fullName || lecturer.name}
-									</p>
-									<p class="text-(--md-on-surface-variant) mt-0.5">
-										{lecturer.email}
-									</p>
-								</div>
-							</label>
-						{/each}
-					</div>
-					<p class="text-[10px] text-zinc-500 mt-1 italic">
-						Selected: {selectedJudgesForEditTrack.length} judge(s)
-					</p>
-				</div>
-
-				<!-- Teams Selection -->
-				<div>
-					<label
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Assign Teams
-					</label>
-					<div
-						class="max-h-32 overflow-y-auto border border-(--md-outline) rounded-xl p-3 bg-(--md-surface-bright) space-y-1.5"
-					>
-						{#each teams as team}
-							<label
-								class="flex items-center gap-3 cursor-pointer p-1.5 rounded-lg hover:bg-(--md-surface-container-high) transition-colors"
-							>
-								<input
-									type="checkbox"
-									value={team.id}
-									checked={selectedTeamsForEditTrack.includes(team.id)}
-									onchange={(e) => {
-										if (e.currentTarget.checked) {
-											selectedTeamsForEditTrack = [...selectedTeamsForEditTrack, team.id]
-										} else {
-											selectedTeamsForEditTrack = selectedTeamsForEditTrack.filter(
-												(id) => id !== team.id
-											)
-										}
-									}}
-									class="h-4.5 w-4.5 rounded border-(--md-outline) bg-transparent checked:bg-(--md-primary) checked:border-(--md-primary) accent-(--md-primary)"
-								/>
-								<div class="text-xs">
-									<p class="font-bold text-(--md-on-surface)">{team.name}</p>
-									<p class="text-(--md-on-surface-variant) mt-0.5">
-										Leader: {getStudentName(team.leader_id || team.leaderId)}
-										{#if team.track_id && team.track_id !== editingTrackId}
-											<span class="text-amber-500 font-bold ml-1"
-												>(Currently in: {getTrackName(team.track_id)})</span
+					{:else if activeTab === "teams"}
+						<div class="table-container">
+							<table class="data-table">
+								<thead>
+									<tr>
+										<th>Team Name</th>
+										<th>Leader Name</th>
+										<th>Status</th>
+										<th>Track</th>
+										<th>Mentor</th>
+										<th>Judges</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#if teams.length > 0}
+										{#each teams as team}
+											{@const track = eventTracks.find(
+												(t) =>
+													t.id === (team.track_id || team.trackId) ||
+													t.name === (team.track_id || team.trackId)
+											)}
+											<tr>
+												<td class="font-bold">{team.name}</td>
+												<td class="font-medium"
+													>{getStudentName(team.leader_id || team.leaderId)}</td
+												>
+												<td>
+													<span
+														class="badge {team.status === 'APPROVED' || team.status === 'ACTIVE'
+															? 'badge-success'
+															: team.status === 'PENDING'
+																? 'badge-warning'
+																: 'badge-error'}"
+													>
+														{team.status}
+													</span>
+												</td>
+												<td>
+													{#if team.track_id || team.trackId}
+														<span class="badge badge-track"
+															>{getTrackName(team.track_id || team.trackId)}</span
+														>
+													{:else}
+														<span class="empty-text">Unassigned</span>
+													{/if}
+												</td>
+												<td>
+													{#if track && track.mentor_ids && track.mentor_ids.length > 0}
+														<div class="chip-group small inline">
+															{#each track.mentor_ids as mentorId}
+																<span class="chip chip-mentor">{getLecturerName(mentorId)}</span>
+															{/each}
+														</div>
+													{:else}
+														<span class="empty-text">Unassigned</span>
+													{/if}
+												</td>
+												<td>
+													{#if track && track.judge_ids && track.judge_ids.length > 0}
+														<div class="chip-group small inline">
+															{#each track.judge_ids as judgeId}
+																<span class="chip chip-judge">{getLecturerName(judgeId)}</span>
+															{/each}
+														</div>
+													{:else}
+														<span class="empty-text">Unassigned</span>
+													{/if}
+												</td>
+											</tr>
+										{/each}
+									{:else}
+										<tr>
+											<td colspan="6" class="text-center empty-cell"
+												>No teams created for this event yet.</td
 											>
-										{:else if team.trackId && team.trackId !== editingTrackId}
-											<span class="text-amber-500 font-bold ml-1"
-												>(Currently in: {getTrackName(team.trackId)})</span
-											>
-										{/if}
-									</p>
-								</div>
-							</label>
-						{/each}
-					</div>
-				</div>
-
-				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
-					<button
-						type="button"
-						onclick={() => (showEditTrackModal = false)}
-						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
-					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						disabled={isSavingEditTrack}
-						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
-					>
-						{isSavingEditTrack ? "Saving..." : "Save Changes"}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}
-
-{#if showCreateRoundModal}
-	<div
-		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
-	>
-		<div
-			class="w-full max-w-md rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low)"
-		>
-			<div class="flex justify-between items-center mb-6">
-				<h3 class="text-xl font-extrabold text-(--md-on-surface)">Create Round</h3>
-				<button
-					onclick={() => (showCreateRoundModal = false)}
-					class="p-1 rounded-full hover:bg-(--md-surface-container-high) border-0 bg-transparent text-(--md-on-surface-variant) hover:text-(--md-on-surface) cursor-pointer"
-				>
-					<X class="w-5 h-5" />
-				</button>
-			</div>
-
-			<form onsubmit={handleCreateRound} class="space-y-4">
-				{#if createRoundMessage}
-					<div
-						class="p-3.5 rounded-xl border text-sm font-medium {createRoundError
-							? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
-							: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
-					>
-						{createRoundMessage}
-					</div>
-				{/if}
-
-				<div>
-					<label
-						for="new-round-name"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Round Name *
-					</label>
-					<input
-						type="text"
-						id="new-round-name"
-						bind:value={newRoundName}
-						placeholder="Enter round name (e.g. Group Stage)"
-						required
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
-					/>
-				</div>
-
-				<div>
-					<label
-						for="new-round-description"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Description *
-					</label>
-					<textarea
-						id="new-round-description"
-						bind:value={newRoundDescription}
-						placeholder="Enter round instructions"
-						rows="3"
-						required
-						class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all resize-none"
-					></textarea>
-				</div>
-
-				<div class="grid grid-cols-2 gap-4">
-					<div>
-						<label
-							for="new-round-start"
-							class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-						>
-							Start Time *
-						</label>
-						<input
-							type="datetime-local"
-							id="new-round-start"
-							bind:value={newRoundStartTime}
-							required
-							class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
-						/>
-					</div>
-
-					<div>
-						<label
-							for="new-round-end"
-							class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-						>
-							End Time *
-						</label>
-						<input
-							type="datetime-local"
-							id="new-round-end"
-							bind:value={newRoundEndTime}
-							required
-							class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
-						/>
-					</div>
-				</div>
-
-				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
-					<button
-						type="button"
-						onclick={() => (showCreateRoundModal = false)}
-						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
-					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						disabled={isCreatingRound}
-						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
-					>
-						{isCreatingRound ? "Creating..." : "Create"}
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-{/if}
-
-{#if showAssignCriteriaModal && assigningRound}
-	<div
-		class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
-	>
-		<div
-			class="w-full max-w-lg rounded-3xl border border-(--md-outline-variant) shadow-2xl p-8 bg-(--md-surface-container-low)"
-		>
-			<div class="flex justify-between items-center mb-6">
-				<div>
-					<h3 class="text-xl font-extrabold text-(--md-on-surface)">Assign Criteria</h3>
-					<p class="text-xs text-(--md-on-surface-variant) mt-0.5">
-						Round: <span class="font-semibold">{assigningRound.name}</span>
-					</p>
-				</div>
-				<button
-					id="close-assign-criteria-modal"
-					onclick={() => (showAssignCriteriaModal = false)}
-					class="text-(--md-on-surface-variant) hover:text-(--md-on-surface) transition-colors cursor-pointer bg-transparent border-0 p-1"
-				>
-					<X class="w-5 h-5" />
-				</button>
-			</div>
-
-			{#if assignCriteriaMessage}
-				<div
-					class="mb-4 p-3.5 rounded-xl border text-sm font-medium {assignCriteriaError
-						? 'bg-(--md-error-container) text-(--md-on-error-container) border-(--md-error)'
-						: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'}"
-				>
-					{assignCriteriaMessage}
-				</div>
-			{/if}
-
-			<div class="space-y-4">
-				<div>
-					<label
-						for="criteria-template-select"
-						class="block text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider mb-1.5"
-					>
-						Select Template *
-					</label>
-					{#if criteriaTemplates.length === 0}
-						<p class="text-sm italic text-(--md-on-surface-variant) py-2">
-							Loading templates… or none available. Create templates in Template Management first.
-						</p>
-					{:else}
-						<select
-							id="criteria-template-select"
-							bind:value={selectedTemplateId}
-							class="w-full rounded-xl p-3 border border-(--md-outline) bg-(--md-surface-bright) text-(--md-on-surface) focus:ring-2 focus:ring-(--md-primary) outline-none transition-all"
-						>
-							<option value="">-- Choose a template --</option>
-							{#each criteriaTemplates as template}
-								<option value={template.id}>{template.description}</option>
-							{/each}
-						</select>
-					{/if}
-				</div>
-
-				{#if selectedTemplateId}
-					{@const previewTemplate = criteriaTemplates.find((t) => t.id === selectedTemplateId)}
-					{#if previewTemplate?.criteria?.length > 0}
-						<div class="rounded-2xl border border-(--md-outline-variant) overflow-hidden">
-							<div
-								class="px-4 py-2.5 bg-(--md-surface-container) border-b border-(--md-outline-variant)"
-							>
-								<p
-									class="text-xs font-bold text-(--md-on-surface-variant) uppercase tracking-wider"
-								>
-									Criteria Preview
-								</p>
+										</tr>
+									{/if}
+								</tbody>
+							</table>
+						</div>
+					{:else if activeTab === "rounds"}
+						{#if event.status?.toUpperCase() === "DRAFT"}
+							<div class="tab-top-actions">
+								<button onclick={openCreateRoundModal} class="btn btn-filled">
+									<Plus class="icon" /> Create Round
+								</button>
 							</div>
-							<div class="divide-y divide-(--md-outline-variant)/50">
-								{#each previewTemplate.criteria as criterion}
-									<div class="flex items-center justify-between px-4 py-2.5">
-										<span class="text-sm font-medium text-(--md-on-surface)">{criterion.name}</span>
-										<span
-											class="text-xs font-bold px-2.5 py-1 rounded-full bg-(--md-primary)/15 text-(--md-primary)"
-										>
-											{criterion.weight}%
-										</span>
-									</div>
+						{/if}
+
+						{#if eventRounds.length > 0}
+							<div class="table-container">
+								<table class="data-table">
+									<thead>
+										<tr>
+											<th>Round Name</th>
+											<th>Description</th>
+											<th>Start Time</th>
+											<th>End Time</th>
+											<th>Criteria</th>
+											{#if event.status?.toUpperCase() === "DRAFT"}
+												<th>Actions</th>
+											{/if}
+										</tr>
+									</thead>
+									<tbody>
+										{#each eventRounds as round}
+											<tr>
+												<td class="font-bold">{round.name}</td>
+												<!-- CẬP NHẬT Ở ĐÂY: Thêm class truncate-text và title -->
+												<td class="text-muted wrap-text">
+													{round.description}
+												</td>
+												<td>{formatDateTime(round.startTime || round.start_time)}</td>
+												<td>{formatDateTime(round.endTime || round.end_time)}</td>
+												<td>
+													{#if round.criteria && round.criteria.length > 0}
+														<div class="chip-group small vertical">
+															{#each round.criteria as criterion}
+																<span class="chip chip-primary">
+																	{criterion.name}
+																	<span class="opacity-60">({criterion.weight}%)</span>
+																</span>
+															{/each}
+														</div>
+													{:else}
+														<span class="empty-text">None assigned</span>
+													{/if}
+												</td>
+												{#if event.status?.toUpperCase() === "DRAFT"}
+													<td>
+														<div
+															style="display: flex; flex-direction: column; gap: 1rem; align-items: center;"
+														>
+															<button
+																onclick={() => openAssignCriteriaModal(round)}
+																class="btn btn-tonal btn-small"
+															>
+																{round.criteria && round.criteria.length > 0
+																	? "Reassign"
+																	: "Assign Criteria"}
+															</button>
+															{#if round.criteria && round.criteria.length > 0}
+																<button
+																	onclick={() => openEditCriteriaModal(round)}
+																	class="btn btn-tonal btn-small"
+																>
+																	Edit Details
+																</button>
+															{/if}
+														</div>
+													</td>
+												{/if}
+											</tr>
+										{/each}
+									</tbody>
+								</table>
+							</div>
+						{:else}
+							<div class="empty-state">
+								<p class="empty-title">No rounds created for this event yet.</p>
+							</div>
+						{/if}
+					{/if}
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Modals (Create Team, Track, Round, Assign Criteria) -->
+	<!-- The structure below applies to all modals to keep them consistent -->
+
+	{#if showCreateTeamModal && targetStudent}
+		<div class="modal-overlay">
+			<div class="modal-surface">
+				<div class="modal-header">
+					<h3>Create Team</h3>
+					<button onclick={() => (showCreateTeamModal = false)} class="btn-icon">
+						<X class="icon" />
+					</button>
+				</div>
+				<form onsubmit={handleCreateTeam} class="modal-form">
+					{#if createTeamMessage}
+						<div class="alert {createTeamError ? 'alert-error' : 'alert-success'}">
+							{createTeamMessage}
+						</div>
+					{/if}
+					<div class="form-group">
+						<label>Team Leader</label>
+						<input
+							type="text"
+							value="{targetStudent.fullName || targetStudent.name} ({targetStudent.email})"
+							disabled
+						/>
+					</div>
+					<div class="form-group">
+						<label>Team Name *</label>
+						<input type="text" bind:value={teamNameInput} placeholder="Enter team name" required />
+					</div>
+					<div class="form-group">
+						<label>Description</label>
+						<textarea
+							bind:value={teamDescriptionInput}
+							placeholder="Enter team description"
+							rows="2"
+						></textarea>
+					</div>
+					{#if activeTeamlessStudents.length > 0}
+						<div class="form-group">
+							<label>Add Team Members</label>
+							<div class="selection-list">
+								{#each activeTeamlessStudents as student}
+									<label class="selection-item">
+										<input
+											type="checkbox"
+											value={student.id}
+											checked={selectedMembers.includes(student.id)}
+											onchange={(e) => {
+												if (e.currentTarget.checked)
+													selectedMembers = [...selectedMembers, student.id]
+												else selectedMembers = selectedMembers.filter((id) => id !== student.id)
+											}}
+										/>
+										<div class="selection-info">
+											<p class="name">{student.fullName || student.name}</p>
+											<p class="desc">
+												{student.is_external
+													? student.school_name || student.schoolName || "External"
+													: "FPT"} &bull; {student.email}
+											</p>
+										</div>
+									</label>
 								{/each}
 							</div>
 						</div>
 					{/if}
-				{/if}
+					<div class="modal-actions">
+						<button type="button" onclick={() => (showCreateTeamModal = false)} class="btn btn-text"
+							>Cancel</button
+						>
+						<button type="submit" disabled={isCreatingTeam} class="btn btn-filled">
+							{isCreatingTeam ? "Creating..." : "Create Team"}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
 
-				<div class="flex justify-end gap-3 pt-4 border-t border-(--md-outline-variant)">
-					<button
-						type="button"
-						onclick={() => (showAssignCriteriaModal = false)}
-						class="px-5 py-2.5 rounded-xl text-sm font-semibold border border-(--md-outline) bg-transparent text-(--md-on-surface) hover:bg-(--md-surface-container-high) transition-all cursor-pointer"
+	{#if showCreateTrackModal}
+		<div class="modal-overlay">
+			<div class="modal-surface large">
+				<div class="modal-header">
+					<h3>Create Track</h3>
+					<button onclick={() => (showCreateTrackModal = false)} class="btn-icon"
+						><X class="icon" /></button
 					>
-						Cancel
-					</button>
-					<button
-						id="confirm-assign-criteria-btn"
-						type="button"
-						onclick={handleAssignCriteria}
-						disabled={isAssigningCriteria || !selectedTemplateId}
-						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-(--md-primary) text-(--md-on-primary) hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
+				</div>
+				<form onsubmit={handleCreateTrack} class="modal-form">
+					{#if createTrackMessage}
+						<div class="alert {createTrackError ? 'alert-error' : 'alert-success'}">
+							{createTrackMessage}
+						</div>
+					{/if}
+					<div class="form-group">
+						<label>Track Name *</label>
+						<input type="text" bind:value={newTrackName} placeholder="Cybersecurity" required />
+					</div>
+					<div class="form-group">
+						<label>Description *</label>
+						<textarea
+							bind:value={newTrackDescription}
+							placeholder="Enter track description..."
+							required
+							rows="2"
+						></textarea>
+					</div>
+
+					<div class="form-group">
+						<label>Select Mentors (maximum 3)</label>
+						<div class="selection-list">
+							{#each lecturers.filter((l) => !selectedJudgesForTrack.includes(l.id)) as lecturer}
+								<label class="selection-item">
+									<input
+										type="checkbox"
+										value={lecturer.id}
+										checked={selectedMentorsForTrack.includes(lecturer.id)}
+										onchange={(e) => {
+											if (e.currentTarget.checked)
+												selectedMentorsForTrack = [...selectedMentorsForTrack, lecturer.id]
+											else
+												selectedMentorsForTrack = selectedMentorsForTrack.filter(
+													(id) => id !== lecturer.id
+												)
+										}}
+									/>
+									<div class="selection-info">
+										<p class="name">{lecturer.fullName || lecturer.name}</p>
+										<p class="desc">{lecturer.email}</p>
+									</div>
+								</label>
+							{/each}
+						</div>
+						<p class="helper-text">Selected: {selectedMentorsForTrack.length} mentor(s)</p>
+					</div>
+
+					<div class="form-group">
+						<label>Select Judges (2 or 3 required)</label>
+						<div class="selection-list">
+							{#each lecturers.filter((l) => !selectedMentorsForTrack.includes(l.id)) as lecturer}
+								<label class="selection-item">
+									<input
+										type="checkbox"
+										value={lecturer.id}
+										checked={selectedJudgesForTrack.includes(lecturer.id)}
+										onchange={(e) => {
+											if (e.currentTarget.checked)
+												selectedJudgesForTrack = [...selectedJudgesForTrack, lecturer.id]
+											else
+												selectedJudgesForTrack = selectedJudgesForTrack.filter(
+													(id) => id !== lecturer.id
+												)
+										}}
+									/>
+									<div class="selection-info">
+										<p class="name">{lecturer.fullName || lecturer.name}</p>
+										<p class="desc">{lecturer.email}</p>
+									</div>
+								</label>
+							{/each}
+						</div>
+						<p class="helper-text">Selected: {selectedJudgesForTrack.length} judge(s)</p>
+					</div>
+
+					{#if teams.filter((t: any) => !t.track_id && !t.trackId).length > 0}
+						<div class="form-group">
+							<label>Assign Teams</label>
+							<div class="selection-list">
+								{#each teams.filter((t: any) => !t.track_id && !t.trackId) as team}
+									<label class="selection-item">
+										<input
+											type="checkbox"
+											value={team.id}
+											checked={selectedTeamsForTrack.includes(team.id)}
+											onchange={(e) => {
+												if (e.currentTarget.checked)
+													selectedTeamsForTrack = [...selectedTeamsForTrack, team.id]
+												else
+													selectedTeamsForTrack = selectedTeamsForTrack.filter(
+														(id) => id !== team.id
+													)
+											}}
+										/>
+										<div class="selection-info">
+											<p class="name">{team.name}</p>
+											<p class="desc">Leader: {getStudentName(team.leader_id || team.leaderId)}</p>
+										</div>
+									</label>
+								{/each}
+							</div>
+						</div>
+					{/if}
+
+					<div class="modal-actions">
+						<button
+							type="button"
+							onclick={() => (showCreateTrackModal = false)}
+							class="btn btn-text">Cancel</button
+						>
+						<button type="submit" disabled={isCreatingTrack} class="btn btn-filled">
+							{isCreatingTrack ? "Creating..." : "Create Track"}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
+
+	{#if showEditTrackModal}
+		<div class="modal-overlay">
+			<div class="modal-surface large">
+				<div class="modal-header">
+					<h3>Edit Track</h3>
+					<button onclick={() => (showEditTrackModal = false)} class="btn-icon"
+						><X class="icon" /></button
 					>
-						{isAssigningCriteria ? "Assigning..." : "Assign Criteria"}
-					</button>
+				</div>
+				<form onsubmit={handleUpdateTrack} class="modal-form">
+					{#if editTrackMessage}
+						<div class="alert {editTrackError ? 'alert-error' : 'alert-success'}">
+							{editTrackMessage}
+						</div>
+					{/if}
+					<div class="form-group">
+						<label>Track Name *</label>
+						<input type="text" bind:value={editTrackName} required />
+					</div>
+					<div class="form-group">
+						<label>Description *</label>
+						<textarea bind:value={editTrackDescription} required rows="2"></textarea>
+					</div>
+
+					<div class="form-group">
+						<label>Select Mentors (maximum 3)</label>
+						<div class="selection-list">
+							{#each lecturers.filter((l) => !selectedJudgesForEditTrack.includes(l.id)) as lecturer}
+								<label class="selection-item">
+									<input
+										type="checkbox"
+										value={lecturer.id}
+										checked={selectedMentorsForEditTrack.includes(lecturer.id)}
+										onchange={(e) => {
+											if (e.currentTarget.checked)
+												selectedMentorsForEditTrack = [...selectedMentorsForEditTrack, lecturer.id]
+											else
+												selectedMentorsForEditTrack = selectedMentorsForEditTrack.filter(
+													(id) => id !== lecturer.id
+												)
+										}}
+									/>
+									<div class="selection-info">
+										<p class="name">{lecturer.fullName || lecturer.name}</p>
+										<p class="desc">{lecturer.email}</p>
+									</div>
+								</label>
+							{/each}
+						</div>
+						<p class="helper-text">Selected: {selectedMentorsForEditTrack.length} mentor(s)</p>
+					</div>
+
+					<div class="form-group">
+						<label>Select Judges (2 or 3 required)</label>
+						<div class="selection-list">
+							{#each lecturers.filter((l) => !selectedMentorsForEditTrack.includes(l.id)) as lecturer}
+								<label class="selection-item">
+									<input
+										type="checkbox"
+										value={lecturer.id}
+										checked={selectedJudgesForEditTrack.includes(lecturer.id)}
+										onchange={(e) => {
+											if (e.currentTarget.checked)
+												selectedJudgesForEditTrack = [...selectedJudgesForEditTrack, lecturer.id]
+											else
+												selectedJudgesForEditTrack = selectedJudgesForEditTrack.filter(
+													(id) => id !== lecturer.id
+												)
+										}}
+									/>
+									<div class="selection-info">
+										<p class="name">{lecturer.fullName || lecturer.name}</p>
+										<p class="desc">{lecturer.email}</p>
+									</div>
+								</label>
+							{/each}
+						</div>
+						<p class="helper-text">Selected: {selectedJudgesForEditTrack.length} judge(s)</p>
+					</div>
+
+					<div class="form-group">
+						<label>Assign Teams</label>
+						<div class="selection-list">
+							{#each teams as team}
+								<label class="selection-item">
+									<input
+										type="checkbox"
+										value={team.id}
+										checked={selectedTeamsForEditTrack.includes(team.id)}
+										onchange={(e) => {
+											if (e.currentTarget.checked)
+												selectedTeamsForEditTrack = [...selectedTeamsForEditTrack, team.id]
+											else
+												selectedTeamsForEditTrack = selectedTeamsForEditTrack.filter(
+													(id) => id !== team.id
+												)
+										}}
+									/>
+									<div class="selection-info">
+										<p class="name">{team.name}</p>
+										<p class="desc">
+											Leader: {getStudentName(team.leader_id || team.leaderId)}
+											{#if (team.track_id && team.track_id !== editingTrackId) || (team.trackId && team.trackId !== editingTrackId)}
+												<span class="text-warning ml-1">(Currently in another track)</span>
+											{/if}
+										</p>
+									</div>
+								</label>
+							{/each}
+						</div>
+					</div>
+
+					<div class="modal-actions">
+						<button type="button" onclick={() => (showEditTrackModal = false)} class="btn btn-text"
+							>Cancel</button
+						>
+						<button type="submit" disabled={isSavingEditTrack} class="btn btn-filled">
+							{isSavingEditTrack ? "Saving..." : "Save Changes"}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
+
+	{#if showCreateRoundModal}
+		<div class="modal-overlay">
+			<div class="modal-surface">
+				<div class="modal-header">
+					<h3>Create Round</h3>
+					<button onclick={() => (showCreateRoundModal = false)} class="btn-icon"
+						><X class="icon" /></button
+					>
+				</div>
+				<form onsubmit={handleCreateRound} class="modal-form">
+					{#if createRoundMessage}
+						<div class="alert {createRoundError ? 'alert-error' : 'alert-success'}">
+							{createRoundMessage}
+						</div>
+					{/if}
+					<div class="form-group">
+						<label>Round Name *</label>
+						<input type="text" bind:value={newRoundName} placeholder="Enter round name" required />
+					</div>
+					<div class="form-group">
+						<label>Description *</label>
+						<textarea
+							bind:value={newRoundDescription}
+							placeholder="Enter round instructions"
+							rows="3"
+							required
+						></textarea>
+					</div>
+					<div class="form-row">
+						<div class="form-group">
+							<label>Start Time *</label>
+							<input type="datetime-local" bind:value={newRoundStartTime} required />
+						</div>
+						<div class="form-group">
+							<label>End Time *</label>
+							<input type="datetime-local" bind:value={newRoundEndTime} required />
+						</div>
+					</div>
+					<div class="modal-actions">
+						<button
+							type="button"
+							onclick={() => (showCreateRoundModal = false)}
+							class="btn btn-text">Cancel</button
+						>
+						<button type="submit" disabled={isCreatingRound} class="btn btn-filled">
+							{isCreatingRound ? "Creating..." : "Create"}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
+
+	{#if showAssignCriteriaModal && assigningRound}
+		<div class="modal-overlay">
+			<div class="modal-surface">
+				<div class="modal-header">
+					<div>
+						<h3>Assign Criteria</h3>
+						<p class="subtitle">Round: <span>{assigningRound.name}</span></p>
+					</div>
+					<button onclick={() => (showAssignCriteriaModal = false)} class="btn-icon"
+						><X class="icon" /></button
+					>
+				</div>
+				{#if assignCriteriaMessage}
+					<div class="alert {assignCriteriaError ? 'alert-error' : 'alert-success'} mb-4">
+						{assignCriteriaMessage}
+					</div>
+				{/if}
+				<div class="modal-form">
+					<div class="form-group">
+						<label>Select Template *</label>
+						{#if criteriaTemplates.length === 0}
+							<p class="helper-text italic py-2">
+								Loading templates… or none available. Create templates in Template Management first.
+							</p>
+						{:else}
+							<select bind:value={selectedTemplateId}>
+								<option value="">-- Choose a template --</option>
+								{#each criteriaTemplates as template}
+									<option value={template.id}>{template.description}</option>
+								{/each}
+							</select>
+						{/if}
+					</div>
+
+					{#if selectedTemplateId}
+						{@const previewTemplate = criteriaTemplates.find((t) => t.id === selectedTemplateId)}
+						{#if previewTemplate?.criteria?.length > 0}
+							<div class="preview-container">
+								<div class="preview-header">Criteria Preview</div>
+								<div class="preview-list">
+									{#each previewTemplate.criteria as criterion}
+										<div class="preview-item">
+											<span class="preview-name">{criterion.name}</span>
+											<span class="preview-weight">{criterion.weight}%</span>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{/if}
+					{/if}
+
+					<div class="modal-actions">
+						<button
+							type="button"
+							onclick={() => (showAssignCriteriaModal = false)}
+							class="btn btn-text">Cancel</button
+						>
+						<button
+							type="button"
+							onclick={handleAssignCriteria}
+							disabled={isAssigningCriteria || !selectedTemplateId}
+							class="btn btn-filled"
+						>
+							{isAssigningCriteria ? "Assigning..." : "Confirm"}
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-{/if}
+	{/if}
+
+	{#if showEditCriteriaModal && editingRound}
+		<div class="modal-overlay">
+			<div class="modal-surface large">
+				<div class="modal-header">
+					<div>
+						<h3>Edit Criteria Details</h3>
+						<p class="subtitle">Round: <span>{editingRound.name}</span></p>
+					</div>
+					<button onclick={() => (showEditCriteriaModal = false)} class="btn-icon"
+						><X class="icon" /></button
+					>
+				</div>
+				{#if editCriteriaMessage}
+					<div class="alert {editCriteriaError ? 'alert-error' : 'alert-success'} mb-4">
+						{editCriteriaMessage}
+					</div>
+				{/if}
+				<form onsubmit={handleSaveCriteria} class="modal-form">
+					<div class="criteria-edit-list">
+						{#each editingCriteriaList as criterion, i}
+							<div
+								class="form-row"
+								style="display: flex; flex-direction: row; gap: 1rem; margin-bottom: 1rem; align-items: flex-end;"
+							>
+								<div class="form-group" style="flex: 3; margin-bottom: 0;">
+									<label for="crit-name-{i}">Criterion Name *</label>
+									<input
+										id="crit-name-{i}"
+										type="text"
+										bind:value={criterion.name}
+										required
+										placeholder="Criterion Name"
+									/>
+								</div>
+								<div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 100px;">
+									<label for="crit-weight-{i}">Weight (%) *</label>
+									<input
+										id="crit-weight-{i}"
+										type="number"
+										min="0"
+										max="100"
+										bind:value={criterion.weight}
+										required
+										placeholder="Weight"
+									/>
+								</div>
+							</div>
+						{/each}
+					</div>
+
+					<div
+						style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--md-sys-color-outline-variant, #ccc);"
+					>
+						<div>
+							<span style="font-weight: 500;">Total Weight:</span>
+							<span
+								style="font-weight: bold; margin-left: 0.5rem; color: {totalEditWeight === 100
+									? 'var(--md-sys-color-primary, #6750a4)'
+									: 'var(--md-sys-color-error, #ba1a1a)'}"
+							>
+								{totalEditWeight}%
+							</span>
+							<span
+								style="font-size: 0.85rem; margin-left: 0.5rem; color: var(--md-sys-color-on-surface-variant, #666);"
+							>
+								(Must be exactly 100%)
+							</span>
+						</div>
+					</div>
+
+					<div class="modal-actions" style="margin-top: 1.5rem;">
+						<button
+							type="button"
+							onclick={() => (showEditCriteriaModal = false)}
+							class="btn btn-text">Cancel</button
+						>
+						<button
+							type="submit"
+							disabled={isSavingCriteria || totalEditWeight !== 100}
+							class="btn btn-filled"
+						>
+							{isSavingCriteria ? "Saving..." : "Save"}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	{/if}
+</div>
+
+<style lang="scss">
+	/* Core MD3 Container & Layout */
+	.coordinator-event-details {
+		font-family: "Inter", system-ui, sans-serif;
+		padding: 2rem;
+		width: 80%;
+		max-width: 1440px; /* Thông số khuyên dùng: Rộng rãi nhưng được kiểm soát */
+		margin: 0 auto; /* Căn giữa màn hình */
+		box-sizing: border-box;
+		color: var(--md-sys-color-on-surface);
+		background-color: var(--md-sys-color-surface);
+		min-height: 100vh;
+
+		* {
+			box-sizing: border-box;
+		}
+	}
+
+	.content-wrapper {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+		margin-top: 1.5rem;
+	}
+
+	/* Common MD3 Card Component */
+	.md3-card {
+		background-color: var(--md-sys-color-surface-container-lowest);
+		border: 1px solid var(--md-sys-color-outline-variant);
+		border-radius: 24px;
+		padding: 2rem;
+		box-shadow:
+			0px 1px 3px 0px rgba(0, 0, 0, 0.1),
+			0px 1px 2px 0px rgba(0, 0, 0, 0.06);
+		transition: box-shadow 0.2s ease-in-out;
+
+		&:hover {
+			box-shadow:
+				0px 4px 6px -1px rgba(0, 0, 0, 0.1),
+				0px 2px 4px -1px rgba(0, 0, 0, 0.06);
+		}
+	}
+
+	/* Header Specific Styling */
+	.header-card {
+		background: linear-gradient(
+			135deg,
+			var(--md-sys-color-primary-container),
+			var(--md-sys-color-secondary-container)
+		);
+		border: none;
+		color: var(--md-sys-color-on-primary-container);
+
+		.header-status {
+			margin-bottom: 1.5rem;
+		}
+
+		.event-title {
+			font-size: 2.25rem;
+			font-weight: 800;
+			margin: 0 0 1rem 0;
+			letter-spacing: -0.02em;
+			color: var(--md-sys-color-on-primary-container);
+		}
+
+		.event-desc {
+			font-size: 1rem;
+			line-height: 1.6;
+			margin: 0 0 1.5rem 0;
+			max-width: 800px;
+			opacity: 0.9;
+		}
+
+		.event-tracks-info {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+			flex-wrap: wrap;
+			margin-bottom: 1.5rem;
+
+			.info-label {
+				font-size: 0.75rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				opacity: 0.8;
+			}
+		}
+
+		.event-time-info {
+			display: flex;
+			gap: 2rem;
+			flex-wrap: wrap;
+			padding-top: 1.5rem;
+			border-top: 1px solid rgba(0, 0, 0, 0.1);
+
+			.time-item {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-size: 0.875rem;
+
+				.icon {
+					width: 1.25rem;
+					height: 1.25rem;
+				}
+				.text-primary {
+					color: var(--md-sys-color-primary);
+				}
+				.text-error {
+					color: var(--md-sys-color-error);
+				}
+			}
+		}
+	}
+
+	/* Section & Tracks Grid */
+	.section-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 1.5rem;
+
+		&.minimal {
+			align-items: center;
+		}
+
+		.section-title {
+			font-size: 1.5rem;
+			font-weight: 700;
+			margin: 0 0 0.5rem 0;
+			color: var(--md-sys-color-on-surface);
+		}
+
+		.section-desc {
+			font-size: 0.875rem;
+			color: var(--md-sys-color-on-surface-variant);
+			margin: 0;
+		}
+	}
+
+	.track-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.track-card {
+		background-color: var(--md-sys-color-surface-container-low);
+		border: 1px solid var(--md-sys-color-outline-variant);
+		border-radius: 16px;
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+
+		.track-card-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			gap: 1rem;
+
+			.track-title-wrapper {
+				flex: 1;
+				.track-name {
+					font-size: 1.125rem;
+					font-weight: 700;
+					color: var(--md-sys-color-primary);
+					margin: 0 0 0.5rem 0;
+				}
+				.track-desc {
+					font-size: 0.8125rem;
+					color: var(--md-sys-color-on-surface-variant);
+					margin: 0;
+					line-height: 1.5;
+				}
+			}
+		}
+
+		.track-card-content {
+			display: flex;
+			flex-direction: column;
+			gap: 1rem;
+			padding-top: 1rem;
+			border-top: 1px solid var(--md-sys-color-outline-variant);
+
+			.meta-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+
+				.meta-label {
+					font-size: 0.65rem;
+					font-weight: 700;
+					text-transform: uppercase;
+					letter-spacing: 0.05em;
+					color: var(--md-sys-color-on-surface-variant);
+				}
+			}
+		}
+	}
+
+	/* Tabs & Tables */
+	/* Chỉ giữ 1 class tab-top-actions này */
+	.tab-top-actions {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		margin-bottom: 1.5rem;
+	}
+
+	.wrap-text {
+		white-space: normal; /* Cho phép chữ rớt xuống dòng */
+		word-wrap: break-word; /* Bẻ dòng kể cả khi có từ dính liền quá dài */
+		overflow-wrap: break-word;
+		line-height: 1.5; /* Căn chỉnh khoảng cách giữa các dòng cho dễ đọc */
+	}
+
+	.data-table {
+		width: 100%;
+		table-layout: fixed;
+		border-collapse: collapse;
+		font-size: 0.875rem;
+
+		th {
+			background-color: var(--md-sys-color-surface-container-low);
+			color: var(--md-sys-color-on-surface-variant);
+			font-size: 0.75rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			padding: 1rem;
+			text-align: left;
+			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+			/* THÊM MỚI: Ép tiêu đề luôn nằm trên 1 dòng */
+			white-space: nowrap;
+		}
+
+		td {
+			padding: 1rem;
+			color: var(--md-sys-color-on-surface);
+			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+			vertical-align: middle;
+		}
+
+		tbody tr {
+			transition: background-color 0.2s;
+			&:hover {
+				background-color: var(--md-sys-color-surface-container-lowest);
+			}
+			&:last-child td {
+				border-bottom: none;
+			}
+		}
+
+		.action-cell {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+		}
+	}
+
+	.tabs-card {
+		padding: 0;
+		overflow: hidden;
+	}
+
+	.tab-list {
+		display: flex;
+		border-bottom: 1px solid var(--md-sys-color-outline-variant);
+		background-color: var(--md-sys-color-surface-container-lowest);
+		overflow-x: auto;
+
+		.tab-btn {
+			padding: 1.25rem 1.5rem;
+			background: none;
+			border: none;
+			border-bottom: 2px solid transparent;
+			font-size: 0.875rem;
+			font-weight: 600;
+			color: var(--md-sys-color-on-surface-variant);
+			cursor: pointer;
+			transition: all 0.2s;
+			white-space: nowrap;
+
+			&:hover {
+				color: var(--md-sys-color-on-surface);
+				background-color: var(--md-sys-color-surface-container-low);
+			}
+			&.active {
+				color: var(--md-sys-color-primary);
+				border-bottom-color: var(--md-sys-color-primary);
+			}
+		}
+	}
+
+	.tab-content {
+		padding: 1.5rem;
+	}
+
+	.table-container {
+		width: 100%;
+		overflow-x: auto;
+		border: 1px solid var(--md-sys-color-outline-variant);
+		border-radius: 12px;
+	}
+
+	.data-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.875rem;
+
+		th {
+			background-color: var(--md-sys-color-surface-container-low);
+			color: var(--md-sys-color-on-surface-variant);
+			font-size: 0.75rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			padding: 1rem;
+			text-align: left;
+			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+		}
+
+		td {
+			padding: 1rem;
+			color: var(--md-sys-color-on-surface);
+			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+			vertical-align: middle;
+		}
+
+		tbody tr {
+			transition: background-color 0.2s;
+			&:hover {
+				background-color: var(--md-sys-color-surface-container-lowest);
+			}
+			&:last-child td {
+				border-bottom: none;
+			}
+		}
+
+		.action-cell {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+		}
+	}
+
+	/* Modals */
+	.modal-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 3000;
+		background-color: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(4px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+	}
+
+	.modal-surface {
+		background-color: var(--md-sys-color-surface-container-low);
+		border: 1px solid var(--md-sys-color-outline-variant);
+		border-radius: 28px;
+		padding: 2rem;
+		width: 100%;
+		max-width: 480px;
+		max-height: 90vh;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		overflow-y: auto;
+		box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+
+		&.large {
+			max-width: 600px;
+		}
+
+		.modal-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+
+			h3 {
+				font-size: 1.25rem;
+				font-weight: 800;
+				margin: 0;
+				color: var(--md-sys-color-on-surface);
+			}
+			.subtitle {
+				font-size: 0.75rem;
+				color: var(--md-sys-color-on-surface-variant);
+				margin: 0.25rem 0 0 0;
+				span {
+					font-weight: 600;
+				}
+			}
+		}
+	}
+
+	/* Forms */
+	.modal-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.form-row {
+		display: flex;
+		flex-direction: column;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+
+		label {
+			font-size: 0.75rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: var(--md-sys-color-on-surface-variant);
+		}
+
+		input[type="text"],
+		input[type="datetime-local"],
+		select,
+		textarea {
+			width: 100%;
+			padding: 0.75rem 1rem;
+			background-color: var(--md-sys-color-surface-container-high);
+			border: 1px solid var(--md-sys-color-outline);
+			border-radius: 12px;
+			color: var(--md-sys-color-on-surface);
+			font-family: inherit;
+			font-size: 0.875rem;
+			transition:
+				border-color 0.2s,
+				box-shadow 0.2s;
+			outline: none;
+
+			&:focus {
+				border-color: var(--md-sys-color-primary);
+				box-shadow: 0 0 0 2px rgba(var(--md-sys-color-primary-rgb), 0.2);
+			}
+			&:disabled {
+				opacity: 0.6;
+				cursor: not-allowed;
+			}
+		}
+
+		.helper-text {
+			font-size: 0.7rem;
+			color: var(--md-sys-color-on-surface-variant);
+			margin: 0;
+		}
+	}
+
+	.selection-list {
+		max-height: 12rem;
+		overflow-y: auto;
+		background-color: var(--md-sys-color-surface-container-high);
+		border: 1px solid var(--md-sys-color-outline);
+		border-radius: 12px;
+		padding: 0.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+
+		.selection-item {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			padding: 0.5rem;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: background-color 0.2s;
+			text-transform: none;
+			letter-spacing: normal;
+			font-weight: normal;
+
+			&:hover {
+				background-color: var(--md-sys-color-surface-container-highest);
+			}
+
+			input[type="checkbox"] {
+				width: 1.125rem;
+				height: 1.125rem;
+				accent-color: var(--md-sys-color-primary);
+				cursor: pointer;
+			}
+
+			.selection-info {
+				.name {
+					font-size: 0.875rem;
+					font-weight: 600;
+					color: var(--md-sys-color-on-surface);
+					margin: 0;
+				}
+				.desc {
+					font-size: 0.75rem;
+					color: var(--md-sys-color-on-surface-variant);
+					margin: 0.125rem 0 0 0;
+				}
+			}
+		}
+	}
+
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.75rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--md-sys-color-outline-variant);
+		margin-top: 0.5rem;
+	}
+
+	/* Buttons */
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		font-family: inherit;
+		font-size: 0.875rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s;
+		border-radius: 12px;
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+
+		.icon {
+			width: 1.25rem;
+			height: 1.25rem;
+		}
+	}
+
+	.btn-filled {
+		background-color: var(--md-sys-color-primary);
+		color: var(--md-sys-color-on-primary);
+		border: none;
+		padding: 0.625rem 1.25rem;
+		&:hover:not(:disabled) {
+			background-color: var(--md-sys-color-primary-container);
+			color: var(--md-sys-color-on-primary-container);
+		}
+	}
+
+	.btn-outline {
+		background-color: transparent;
+		color: var(--md-sys-color-primary);
+		border: 1px solid var(--md-sys-color-outline);
+		padding: 0.625rem 1.25rem;
+		&:hover:not(:disabled) {
+			background-color: var(--md-sys-color-surface-container-high);
+			border-color: var(--md-sys-color-primary);
+		}
+		&.back-btn {
+			color: var(--md-sys-color-on-surface-variant);
+			border-color: var(--md-sys-color-outline);
+		}
+	}
+
+	.btn-text {
+		background-color: transparent;
+		color: var(--md-sys-color-primary);
+		border: 1px solid transparent;
+		padding: 0.625rem 1rem;
+		&:hover:not(:disabled) {
+			background-color: var(--md-sys-color-surface-container-high);
+		}
+	}
+
+	.btn-tonal {
+		background-color: var(--md-sys-color-secondary-container);
+		color: var(--md-sys-color-on-secondary-container);
+		border: none;
+		padding: 0.625rem 1rem;
+		&:hover:not(:disabled) {
+			opacity: 0.9;
+		}
+	}
+
+	.btn-small {
+		padding: 0.375rem 0.75rem;
+		font-size: 0.75rem;
+		border-radius: 8px;
+		border: 1px solid var(--md-sys-color-outline);
+	}
+
+	.btn-tiny {
+		padding: 0.25rem 0.625rem;
+		font-size: 0.7rem;
+		border-radius: 6px;
+	}
+
+	.btn-icon {
+		background: transparent;
+		border: none;
+		color: var(--md-sys-color-on-surface-variant);
+		padding: 0.5rem;
+		border-radius: 50%;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		&:hover {
+			background-color: var(--md-sys-color-surface-container-high);
+			color: var(--md-sys-color-on-surface);
+		}
+	}
+
+	/* Chips & Badges */
+	.badge {
+		display: inline-block;
+		padding: 0.25rem 0.75rem;
+		border-radius: 99px;
+		font-size: 0.7rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+
+		&.badge-primary {
+			background-color: var(--md-sys-color-primary);
+			color: var(--md-sys-color-on-primary);
+		}
+		&.badge-success {
+			background-color: rgba(34, 197, 94, 0.15);
+			color: #16a34a;
+			border: 1px solid rgba(34, 197, 94, 0.3);
+		}
+		&.badge-warning {
+			background-color: rgba(245, 158, 11, 0.15);
+			color: #d97706;
+			border: 1px solid rgba(245, 158, 11, 0.3);
+		}
+		&.badge-error {
+			background-color: rgba(239, 68, 68, 0.15);
+			color: #dc2626;
+			border: 1px solid rgba(239, 68, 68, 0.3);
+		}
+		&.badge-track {
+			background-color: rgba(20, 184, 166, 0.15);
+			color: #0d9488;
+			border: 1px solid rgba(20, 184, 166, 0.3);
+		}
+	}
+
+	.chip-group {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+
+		&.small .chip {
+			font-size: 0.65rem;
+			padding: 0.125rem 0.5rem;
+		}
+		&.inline {
+			display: inline-flex;
+		}
+		&.vertical {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+	}
+
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.25rem 0.75rem;
+		border-radius: 8px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		border: 1px solid transparent;
+
+		&.chip-surface {
+			background-color: rgba(255, 255, 255, 0.2);
+			color: var(--md-sys-color-on-primary-container);
+			border-color: rgba(255, 255, 255, 0.3);
+		}
+		&.chip-primary {
+			background-color: rgba(var(--md-sys-color-primary-rgb), 0.1);
+			color: var(--md-sys-color-primary);
+			border-color: rgba(var(--md-sys-color-primary-rgb), 0.2);
+		}
+		&.chip-mentor {
+			background-color: rgba(139, 92, 246, 0.15);
+			color: #7c3aed;
+			border-color: rgba(139, 92, 246, 0.3);
+		}
+		&.chip-judge {
+			background-color: rgba(14, 165, 233, 0.15);
+			color: #0284c7;
+			border-color: rgba(14, 165, 233, 0.3);
+		}
+		&.chip-team {
+			background-color: rgba(16, 185, 129, 0.15);
+			color: #059669;
+			border-color: rgba(16, 185, 129, 0.3);
+		}
+	}
+
+	/* Alerts & Empty States */
+	.alert {
+		padding: 1rem;
+		border-radius: 12px;
+		border: 1px solid;
+		font-size: 0.875rem;
+
+		.alert-title {
+			font-weight: 700;
+			margin: 0 0 0.25rem 0;
+		}
+		.alert-desc {
+			margin: 0;
+		}
+
+		&.alert-error {
+			background-color: var(--md-sys-color-error-container);
+			color: var(--md-sys-color-on-error-container);
+			border-color: var(--md-sys-color-error);
+		}
+		&.alert-success {
+			background-color: rgba(16, 185, 129, 0.1);
+			color: #059669;
+			border-color: rgba(16, 185, 129, 0.3);
+		}
+	}
+
+	.empty-state {
+		padding: 3rem 2rem;
+		text-align: center;
+		border: 2px dashed var(--md-sys-color-outline-variant);
+		border-radius: 16px;
+
+		.empty-title {
+			font-size: 1rem;
+			font-weight: 700;
+			color: var(--md-sys-color-on-surface);
+			margin: 0 0 0.5rem 0;
+		}
+		.empty-desc {
+			font-size: 0.875rem;
+			color: var(--md-sys-color-on-surface-variant);
+			margin: 0;
+		}
+	}
+
+	.empty-text {
+		font-size: 0.75rem;
+		color: var(--md-sys-color-on-surface-variant);
+		font-style: italic;
+	}
+
+	/* Helper Utilities */
+	.font-mono {
+		font-family: monospace;
+		font-size: 0.8em;
+	}
+	.font-bold {
+		font-weight: 700;
+	}
+	.font-medium {
+		font-weight: 500;
+	}
+	.text-center {
+		text-align: center;
+	}
+	.text-primary {
+		color: var(--md-sys-color-primary);
+	}
+	.text-warning {
+		color: #d97706;
+		font-weight: 700;
+	}
+	.text-muted {
+		color: var(--md-sys-color-on-surface-variant);
+	}
+	.mb-4 {
+		margin-bottom: 1rem;
+	}
+	.py-2 {
+		padding-top: 0.5rem;
+		padding-bottom: 0.5rem;
+	}
+	.italic {
+		font-style: italic;
+	}
+	.opacity-60 {
+		opacity: 0.6;
+	}
+
+	/* Criteria Preview Box */
+	.preview-container {
+		border: 1px solid var(--md-sys-color-outline-variant);
+		border-radius: 12px;
+		overflow: hidden;
+
+		.preview-header {
+			background-color: var(--md-sys-color-surface-container);
+			padding: 0.75rem 1rem;
+			font-size: 0.75rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: var(--md-sys-color-on-surface-variant);
+			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+		}
+
+		.preview-list {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.preview-item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 0.75rem 1rem;
+			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+
+			&:last-child {
+				border-bottom: none;
+			}
+
+			.preview-name {
+				font-size: 0.875rem;
+				font-weight: 500;
+				color: var(--md-sys-color-on-surface);
+			}
+			.preview-weight {
+				font-size: 0.75rem;
+				font-weight: 700;
+				background-color: rgba(var(--md-sys-color-primary-rgb), 0.1);
+				color: var(--md-sys-color-primary);
+				padding: 0.25rem 0.625rem;
+				border-radius: 99px;
+			}
+		}
+	}
+
+	/* Loading Spinner */
+	.loading-container {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		min-height: 50vh;
+	}
+	.spinner {
+		width: 3rem;
+		height: 3rem;
+		border: 3px solid transparent;
+		border-top-color: var(--md-sys-color-primary);
+		border-bottom-color: var(--md-sys-color-primary);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+	@keyframes spin {
+		100% {
+			transform: rotate(360deg);
+		}
+	}
+</style>

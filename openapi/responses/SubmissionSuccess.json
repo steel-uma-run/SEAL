@@ -1,0 +1,10 @@
+{
+  "description": "Successfully retrieved the submission details",
+  "content": {
+    "application/json": {
+      "schema": {
+        "$ref": "../components/schemas/Submission.json"
+      }
+    }
+  }
+}

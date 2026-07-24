@@ -10,15 +10,20 @@ export class LocalStore<T> {
 
 		if (browser) {
 			const item = localStorage.getItem(key)
-			if (item) this.value = this.deserialize(item)
+			if (item) {
+				this.value = this.deserialize(item)
+			}
 		}
 
-		$effect(() => {
-			if (this.value == undefined) {
-				return
-			}
+		$effect.root(() => {
+			$effect(() => {
+				if (this.value === undefined) {
+					localStorage.removeItem(key)
+					return
+				}
 
-			localStorage.setItem(this.key, this.serialize(this.value))
+				localStorage.setItem(this.key, this.serialize(this.value))
+			})
 		})
 	}
 

@@ -104,9 +104,9 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     // Thời gian đăng kí 1/6 - 10/7
     OffsetDateTime regStartSummer =
-        OffsetDateTime.of(2026, 6, 1, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+        OffsetDateTime.of(2026, 7, 15, 7, 0, 0, 0, ZoneOffset.ofHours(7));
     OffsetDateTime regEndSummer =
-        OffsetDateTime.of(2026, 7, 10, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+        OffsetDateTime.of(2026, 7, 30, 18, 0, 0, 0, ZoneOffset.ofHours(7));
 
     // Thời gian thi đấu 15/7 - 30/7
     OffsetDateTime startSummer = OffsetDateTime.of(2026, 7, 15, 7, 0, 0, 0, ZoneOffset.ofHours(7));

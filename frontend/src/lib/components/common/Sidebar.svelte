@@ -9,19 +9,29 @@
 	import iconPerson from "@ktibow/iconset-material-symbols/person"
 	import iconRateReview from "@ktibow/iconset-material-symbols/rate-review"
 	import iconSettings from "@ktibow/iconset-material-symbols/settings"
+	import iconAssignmentReturn from "@ktibow/iconset-material-symbols/assignment-return"
+	import iconLogout from "@ktibow/iconset-material-symbols/logout"
+	import { auth, token } from "$lib/auth.svelte"
+	import { goto } from "$app/navigation"
 
 	interface Props {
 		role: Role
 	}
 
 	let { role }: Props = $props()
+
+	function handleLogout() {
+		auth.value = undefined
+		token.value = undefined
+		goto("/auth/login")
+	}
 </script>
 
 <NavigationRail>
 	{#if role == "COORDINATOR"}
 		<NavigationRailItem label="Dashboard" icon={iconHome} href="/coordinator" />
 
-		<NavigationRailItem label="Events" icon={iconEvent} href="/coordinator/seasons" active />
+		<NavigationRailItem label="Events" icon={iconEvent} href="/coordinator/seasons" />
 
 		<NavigationRailItem label="Teams" icon={iconGroups} href="/coordinator/teams" />
 
@@ -34,13 +44,16 @@
 		<NavigationRailItem label="Dashboard" icon={iconHome} href="/student" />
 
 		<NavigationRailItem label="Teams" icon={iconGroups} href="/student/teams" />
+
+		<NavigationRailItem label="Results" icon={iconAssignmentReturn} href="/student/results" />
 	{:else if role == "LECTURER"}
 		<NavigationRailItem label="Dashboard" icon={iconHome} href="/lecturer" />
 
-		<NavigationRailItem label="Teams" icon={iconGroups} href="/lecturer/teams" />
+		<NavigationRailItem label="Mentor" icon={iconGroups} href="/lecturer/teams" />
 
 		<NavigationRailItem label="Grading" icon={iconRateReview} href="/lecturer/grading" />
 	{/if}
 
 	<NavigationRailItem label="Settings" icon={iconSettings} href="/{role.toLowerCase()}/settings" />
+	<NavigationRailItem label="Logout" icon={iconLogout} onclick={handleLogout} />
 </NavigationRail>

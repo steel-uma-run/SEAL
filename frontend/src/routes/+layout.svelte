@@ -4,6 +4,7 @@
 	import { argbFromHex, Hct, hexFromArgb, SchemeRainbow } from "@poupe/material-color-utilities"
 	import { theme } from "$lib/theme.svelte"
 	import { client } from "$lib/api/client.gen"
+	import { token } from "$lib/auth.svelte"
 
 	import Header from "$lib/components/common/Header.svelte"
 
@@ -37,24 +38,12 @@
 				return request
 			}
 
-			const data = localStorage.getItem("auth_data")
-			if (data) {
-				let token = ""
-				try {
-					const parsed = JSON.parse(data)
-					token = parsed.token || parsed
-				} catch {
-					token = data
-				}
-				if (token && token !== "undefined" && token !== "null") {
-					request.headers.set("Authorization", `Bearer ${token}`)
-				}
+			if (token.value !== undefined) {
+				request.headers.set("Authorization", `Bearer ${token.value}`)
 			}
 		}
 		return request
 	})
-
-	client.setConfig({ baseUrl: "http://localhost:8080" })
 </script>
 
 <svelte:head>

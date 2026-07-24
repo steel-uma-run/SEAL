@@ -22,7 +22,7 @@ public class CriteriaController implements CriteriaApi {
   private final CriteriaService criteriaService;
 
   @Override
-  @PreAuthorize("hasRole('COORDINATOR')")
+  @PreAuthorize("isAuthenticated()")
   public ResponseEntity<CriteriaTemplateDto[]> getAllCriteriaTemplates() {
     return ResponseEntity.ok(criteriaService.getAllTemplates());
   }

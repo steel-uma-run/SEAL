@@ -1,45 +1,32 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
-	import { getSelfProfile } from "$lib/api"
+	import { auth } from "$lib/auth.svelte"
 	import Sidebar from "$lib/components/common/Sidebar.svelte"
 
 	let { children } = $props()
-	let isLoading = $state(false)
 
-	// onMount(async () => {
-	// 	try {
-	// 		const { data: profile, response: profileRes } = await getSelfProfile({ throwOnError: false })
-	// 		if (!profileRes?.ok || !profile) {
-	// 			goto("/auth/login")
-	// 			return
-	// 		}
-	// 		if (profile.role !== "LECTURER") {
-	// 			goto("/")
-	// 			return
-	// 		}
-	// 	} catch (err) {
-	// 		goto("/auth/login")
-	// 		return
-	// 	} finally {
-	// 		isLoading = false
-	// 	}
-	// })
+	onMount(async () => {
+		if (auth.value === undefined) {
+			goto("/auth/login")
+			return
+		}
+		if (auth.value.role !== "LECTURER") {
+			goto("/")
+			return
+		}
+	})
 </script>
 
-{#if isLoading}
-	<p>Loading...</p>
-{:else}
-	<div class="main">
-		<aside>
-			<Sidebar role="LECTURER" />
-		</aside>
+<div class="main">
+	<aside>
+		<Sidebar role="LECTURER" />
+	</aside>
 
-		<main>
-			{@render children()}
-		</main>
-	</div>
-{/if}
+	<main>
+		{@render children()}
+	</main>
+</div>
 
 <style lang="scss">
 	.main {
