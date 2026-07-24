@@ -89,14 +89,13 @@ public class DatabaseSeeder implements CommandLineRunner {
             + "• Giải Ba: 3.000.000 đồng và Giấy chứng nhận.\n"
             + "• Giải Khuyến khích: 1.500.000 đồng và Giấy chứng nhận.";
 
-    // Thời gian đăng kí 1/3 - 1/4
+    // --- KÌ SPRING 2026 ---
+    // Đăng ký: 1/3 - 20/3
     OffsetDateTime regStartSpring =
         OffsetDateTime.of(2026, 3, 1, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime regEndSpring = OffsetDateTime.of(2026, 4, 1, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime regEndSpring =
+        OffsetDateTime.of(2026, 3, 20, 18, 0, 0, 0, ZoneOffset.ofHours(7));
 
-    // Thời gian thi đấu 11/4 - 15/4
-    OffsetDateTime startSpring = OffsetDateTime.of(2026, 4, 11, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime endSpring = OffsetDateTime.of(2026, 4, 15, 18, 0, 0, 0, ZoneOffset.ofHours(7));
     HackathonEvent eventSpring =
         new HackathonEvent(
             "SEAL Hackathon Spring 2026",
@@ -109,15 +108,13 @@ public class DatabaseSeeder implements CommandLineRunner {
     eventSpring.setTeamsLimit(30);
     eventRepo.save(eventSpring);
 
-    // Thời gian đăng kí 1/6 - 10/7
+    // --- KÌ SUMMER 2026 ---
+    // Đăng ký: 20/7 - 13/8
     OffsetDateTime regStartSummer =
-        OffsetDateTime.of(2026, 7, 15, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+        OffsetDateTime.of(2026, 7, 20, 7, 0, 0, 0, ZoneOffset.ofHours(7));
     OffsetDateTime regEndSummer =
-        OffsetDateTime.of(2026, 7, 30, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+        OffsetDateTime.of(2026, 8, 13, 18, 0, 0, 0, ZoneOffset.ofHours(7));
 
-    // Thời gian thi đấu 15/7 - 30/7
-    OffsetDateTime startSummer = OffsetDateTime.of(2026, 7, 15, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime endSummer = OffsetDateTime.of(2026, 7, 30, 18, 0, 0, 0, ZoneOffset.ofHours(7));
     HackathonEvent eventSummer =
         new HackathonEvent(
             "SEAL Hackathon Summer 2026",
@@ -154,54 +151,67 @@ public class DatabaseSeeder implements CommandLineRunner {
     Track[] springTracks = {trSpringA, trSpringB, trSpringC};
     Track[] summerTracks = {trSumA, trSumB, trSumC};
 
-    // Rounds
+    // --- TIMELINE ROUNDS SPRING (Onsite ngày 22/3) ---
+    OffsetDateTime springRound1Start =
+        OffsetDateTime.of(2026, 3, 22, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime springRound1End =
+        OffsetDateTime.of(2026, 3, 22, 15, 30, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime springRound2Start =
+        OffsetDateTime.of(2026, 3, 22, 15, 30, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime springRound2End =
+        OffsetDateTime.of(2026, 3, 22, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+
     Round rdSpring1 =
         roundRepo.save(
             new Round(
                 "Round 1",
-                startSpring, // round phải sau regis
-                startSpring.plusHours(10),
-                startSpring.plusHours(11),
-                startSpring.plusHours(24),
-                startSpring.plusHours(25),
-                startSpring.plusHours(48),
-                "Vòng loại: Thuyết trình ý tưởng",
+                springRound1Start,
+                springRound1End,
+                "Vòng loại: Phát triển ý tưởng (Deadline Slide 10h00) & Chấm vòng bảng",
                 eventSpring));
     Round rdSpring2 =
         roundRepo.save(
             new Round(
                 "Round 2",
-                startSpring,
-                startSpring.plusHours(10),
-                startSpring.plusHours(11),
-                startSpring.plusHours(24),
-                startSpring.plusHours(25),
-                startSpring.plusHours(48),
-                "Chung kết: The Grand Finale",
+                springRound2Start,
+                springRound2End,
+                "Chung kết: The Grand Finale & Trao giải",
                 eventSpring));
+
+    // --- TIMELINE ROUNDS SUMMER (Onsite ngày 15/8) ---
+    //    OffsetDateTime sumRound1Start = OffsetDateTime.of(2026, 8, 15, 7, 0, 0, 0,
+    // ZoneOffset.ofHours(7));
+    //    OffsetDateTime sumRound1End = OffsetDateTime.of(2026, 8, 15, 15, 30, 0, 0,
+    // ZoneOffset.ofHours(7));
+    //    OffsetDateTime sumRound2Start = OffsetDateTime.of(2026, 8, 15, 15, 30, 0, 0,
+    // ZoneOffset.ofHours(7));
+    //    OffsetDateTime sumRound2End = OffsetDateTime.of(2026, 8, 15, 18, 0, 0, 0,
+    // ZoneOffset.ofHours(7));
+
+    OffsetDateTime sumRound1Start =
+        OffsetDateTime.of(2026, 7, 25, 0, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sumRound1End =
+        OffsetDateTime.of(2026, 7, 25, 15, 30, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sumRound2Start =
+        OffsetDateTime.of(2026, 7, 26, 15, 30, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sumRound2End =
+        OffsetDateTime.of(2026, 7, 26, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+
     Round rdSum1 =
         roundRepo.save(
             new Round(
                 "Round 1",
-                startSummer,
-                startSummer.plusHours(10),
-                startSummer.plusHours(11),
-                startSummer.plusHours(24),
-                startSummer.plusHours(25),
-                startSummer.plusHours(48),
-                "Vòng Sơ loại RAG",
+                sumRound1Start,
+                sumRound1End,
+                "Vòng loại: Phát triển ý tưởng (Deadline Slide 10h00) & Chấm vòng bảng",
                 eventSummer));
     Round rdSum2 =
         roundRepo.save(
             new Round(
                 "Round 2",
-                startSummer,
-                startSummer.plusHours(10),
-                startSummer.plusHours(11),
-                startSummer.plusHours(24),
-                startSummer.plusHours(25),
-                startSummer.plusHours(48),
-                "Chung kết Hackathon",
+                sumRound2Start,
+                sumRound2End,
+                "Chung kết: The Grand Finale & Trao giải",
                 eventSummer));
 
     // ==========================================
