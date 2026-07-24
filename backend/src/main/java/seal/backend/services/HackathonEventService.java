@@ -31,4 +31,6 @@ public interface HackathonEventService {
   List<TeamDto> getRanking(UUID eventId);
 
   void advance(UUID eventId);
+
+  void start(UUID eventId);
 }

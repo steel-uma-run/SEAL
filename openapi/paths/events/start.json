@@ -1,0 +1,23 @@
+{
+  "parameters": [
+    {
+      "name": "eventId",
+      "in": "path",
+      "required": true,
+      "schema": { "type": "string", "format": "uuid" }
+    }
+  ],
+  "post": {
+    "tags": ["events"],
+    "operationId": "start_event",
+    "summary": "Starts the first round of the event",
+    "responses": {
+      "204": {
+        "description": "Started successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

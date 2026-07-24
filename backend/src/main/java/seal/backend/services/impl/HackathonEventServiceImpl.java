@@ -301,4 +301,22 @@ public class HackathonEventServiceImpl implements HackathonEventService {
       roundRepo.save(nextRound.get());
     }
   }
+
+  @Transactional
+  @Override
+  public void start(UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event does not exist."));
+
+    if (event.hasStarted()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event has already started.");
+    }
+
+    Round firstRound = event.getRounds().getFirst();
+    firstRound.setActiveTime(OffsetDateTime.now());
+    roundRepo.save(firstRound);
+  }
 }
