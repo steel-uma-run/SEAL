@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.Criteria;
 import seal.backend.entities.CriteriaTemplate;
+import seal.backend.enums.EventStatus;
 import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.CriteriaTemplateRepository;
 import seal.backend.repositories.RoundRepository;
@@ -89,9 +90,11 @@ public class CriteriaServiceImpl implements CriteriaService {
                     new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Criteria template not found"));
 
-    if (roundRepo.existsByCriteria_CriteriaTemplate_Id(templateId)) {
+    if (roundRepo.existsByCriteria_CriteriaTemplate_IdAndEvent_StatusNot(
+        templateId, EventStatus.DRAFT)) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Cannot update a template that is already assigned to a round.");
+          HttpStatus.BAD_REQUEST,
+          "Cannot update a template that is assigned to an event which is already finalized or active.");
     }
 
     if (request.description() == null || request.description().isEmpty()) {
@@ -151,9 +154,11 @@ public class CriteriaServiceImpl implements CriteriaService {
                     new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Criteria template not found"));
 
-    if (roundRepo.existsByCriteria_CriteriaTemplate_Id(templateId)) {
+    if (roundRepo.existsByCriteria_CriteriaTemplate_IdAndEvent_StatusNot(
+        templateId, EventStatus.DRAFT)) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Cannot delete a template that is already assigned to a round.");
+          HttpStatus.BAD_REQUEST,
+          "Cannot delete a template that is assigned to an event which is already finalized or active.");
     }
 
     criteriaRepo.deleteByCriteriaTemplate(template);
