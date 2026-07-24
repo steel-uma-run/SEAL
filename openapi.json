@@ -136,6 +136,7 @@
     "/submission/{submissionId}/approve-regrade": {
       "$ref": "./openapi/paths/submission/approve_regrade.json"
     },
+
     "/auditlogs": {
       "$ref": "./openapi/paths/auditlogs/get_all.json"
     }
