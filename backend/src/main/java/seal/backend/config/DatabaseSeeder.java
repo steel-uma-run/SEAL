@@ -20,6 +20,7 @@ import seal.backend.entities.Lecturer;
 import seal.backend.entities.Round;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
+import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
 import seal.backend.entities.TemplatedCriteria;
 import seal.backend.entities.Track;
@@ -34,8 +35,10 @@ import seal.backend.repositories.CriteriaTemplateRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
 import seal.backend.repositories.RoundRepository;
+import seal.backend.repositories.ScoreRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
+import seal.backend.repositories.SubmissionRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.TemplatedCriteriaRepository;
 import seal.backend.repositories.TrackRepository;
@@ -58,6 +61,8 @@ public class DatabaseSeeder implements CommandLineRunner {
   private final LecturerRepository lecturerRepo;
   private final StudentRepository studentRepo;
   private final TeamRepository teamRepo;
+  private final SubmissionRepository submissionRepo;
+  private final ScoreRepository scoreRepo;
   private final PasswordEncoder passwordEncoder;
 
   private final Random random =
@@ -151,67 +156,103 @@ public class DatabaseSeeder implements CommandLineRunner {
     Track[] springTracks = {trSpringA, trSpringB, trSpringC};
     Track[] summerTracks = {trSumA, trSumB, trSumC};
 
+    // ==========================================
+    // 2. TẠO TRACKS & ROUNDS
+    // ==========================================
+    // (Giữ nguyên phần khởi tạo trSpringA, trSpringB... phía trên)
+
     // --- TIMELINE ROUNDS SPRING (Onsite ngày 22/3) ---
-    OffsetDateTime springRound1Start =
-        OffsetDateTime.of(2026, 3, 22, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime springRound1End =
+    // Khởi tạo tuần tự các mốc thời gian để thỏa mãn hàm isCoherent()
+    OffsetDateTime spr1Start = OffsetDateTime.of(2026, 3, 22, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime spr1End = OffsetDateTime.of(2026, 3, 22, 7, 10, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime spr1SubStart =
+        OffsetDateTime.of(2026, 3, 22, 7, 15, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime spr1SubEnd =
+        OffsetDateTime.of(2026, 3, 22, 10, 0, 0, 0, ZoneOffset.ofHours(7)); // Deadline Slide 10h
+    OffsetDateTime spr1GradStart =
+        OffsetDateTime.of(2026, 3, 22, 14, 0, 0, 0, ZoneOffset.ofHours(7)); // Chấm điểm 14h
+    OffsetDateTime spr1GradEnd =
         OffsetDateTime.of(2026, 3, 22, 15, 30, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime springRound2Start =
-        OffsetDateTime.of(2026, 3, 22, 15, 30, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime springRound2End =
-        OffsetDateTime.of(2026, 3, 22, 18, 0, 0, 0, ZoneOffset.ofHours(7));
 
     Round rdSpring1 =
         roundRepo.save(
             new Round(
                 "Round 1",
-                springRound1Start,
-                springRound1End,
+                spr1Start,
+                spr1End,
+                spr1GradStart,
+                spr1GradEnd,
+                spr1SubStart,
+                spr1SubEnd,
                 "Vòng loại: Phát triển ý tưởng (Deadline Slide 10h00) & Chấm vòng bảng",
                 eventSpring));
+
+    OffsetDateTime spr2Start = OffsetDateTime.of(2026, 3, 22, 15, 30, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime spr2End = OffsetDateTime.of(2026, 3, 22, 15, 40, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime spr2SubStart =
+        OffsetDateTime.of(2026, 3, 22, 15, 45, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime spr2SubEnd = OffsetDateTime.of(2026, 3, 22, 16, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime spr2GradStart =
+        OffsetDateTime.of(2026, 3, 22, 16, 15, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime spr2GradEnd = OffsetDateTime.of(2026, 3, 22, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+
     Round rdSpring2 =
         roundRepo.save(
             new Round(
                 "Round 2",
-                springRound2Start,
-                springRound2End,
-                "Chung kết: The Grand Finale & Trao giải",
+                spr2Start,
+                spr2End,
+                spr2GradStart,
+                spr2GradEnd,
+                spr2SubStart,
+                spr2SubEnd,
+                "Chung kết: The Grand Finale",
                 eventSpring));
 
-    // --- TIMELINE ROUNDS SUMMER (Onsite ngày 15/8) ---
-    //    OffsetDateTime sumRound1Start = OffsetDateTime.of(2026, 8, 15, 7, 0, 0, 0,
-    // ZoneOffset.ofHours(7));
-    //    OffsetDateTime sumRound1End = OffsetDateTime.of(2026, 8, 15, 15, 30, 0, 0,
-    // ZoneOffset.ofHours(7));
-    //    OffsetDateTime sumRound2Start = OffsetDateTime.of(2026, 8, 15, 15, 30, 0, 0,
-    // ZoneOffset.ofHours(7));
-    //    OffsetDateTime sumRound2End = OffsetDateTime.of(2026, 8, 15, 18, 0, 0, 0,
-    // ZoneOffset.ofHours(7));
-
-    OffsetDateTime sumRound1Start =
-        OffsetDateTime.of(2026, 7, 25, 0, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sumRound1End =
+    // --- TIMELINE ROUNDS SUMMER (Onsite ngày ***) ---
+    OffsetDateTime sum1Start = OffsetDateTime.of(2026, 7, 25, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum1End = OffsetDateTime.of(2026, 7, 25, 7, 10, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum1SubStart =
+        OffsetDateTime.of(2026, 7, 25, 7, 15, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum1SubEnd = OffsetDateTime.of(2026, 8, 25, 10, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum1GradStart =
+        OffsetDateTime.of(2026, 7, 25, 14, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum1GradEnd =
         OffsetDateTime.of(2026, 7, 25, 15, 30, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sumRound2Start =
-        OffsetDateTime.of(2026, 7, 26, 15, 30, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sumRound2End =
-        OffsetDateTime.of(2026, 7, 26, 18, 0, 0, 0, ZoneOffset.ofHours(7));
 
     Round rdSum1 =
         roundRepo.save(
             new Round(
                 "Round 1",
-                sumRound1Start,
-                sumRound1End,
-                "Vòng loại: Phát triển ý tưởng (Deadline Slide 10h00) & Chấm vòng bảng",
+                sum1Start,
+                sum1End,
+                sum1GradStart,
+                sum1GradEnd,
+                sum1SubStart,
+                sum1SubEnd,
+                "Vòng loại: Phát triển ý tưởng",
                 eventSummer));
+
+    OffsetDateTime sum2Start = OffsetDateTime.of(2026, 8, 15, 15, 30, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum2End = OffsetDateTime.of(2026, 8, 15, 15, 40, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum2SubStart =
+        OffsetDateTime.of(2026, 8, 15, 15, 45, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum2SubEnd = OffsetDateTime.of(2026, 8, 15, 16, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum2GradStart =
+        OffsetDateTime.of(2026, 8, 15, 16, 10, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum2GradEnd = OffsetDateTime.of(2026, 8, 15, 17, 0, 0, 0, ZoneOffset.ofHours(7));
+
     Round rdSum2 =
         roundRepo.save(
             new Round(
                 "Round 2",
-                sumRound2Start,
-                sumRound2End,
-                "Chung kết: The Grand Finale & Trao giải",
+                sum2Start,
+                sum2End,
+                sum2GradStart,
+                sum2GradEnd,
+                sum2SubStart,
+                sum2SubEnd,
+                "Chung kết: The Grand Finale",
                 eventSummer));
 
     // ==========================================
@@ -480,6 +521,77 @@ public class DatabaseSeeder implements CommandLineRunner {
       generateRealisticStudent(globalStudentCounter++, defaultPwd);
     }
 
+    // ==========================================
+    // 8. TẠO SUBMISSION VÀ SCORE
+    // ==========================================
+    log.info("Bat dau tao du lieu Submission cho Spring (Tat ca) va Summer (Demo 5 bai)...");
+
+    List<Team> allTeams = teamRepo.findAll();
+    int summerSubmissionCount = 0;
+
+    for (Team team : allTeams) {
+      boolean isSpringEvent = team.getHackathonEvent().getId().equals(eventSpring.getId());
+
+      if (!isSpringEvent) {
+        if (summerSubmissionCount >= 5) {
+          continue;
+        }
+        summerSubmissionCount++;
+      }
+
+      Round targetRound = isSpringEvent ? rdSpring1 : rdSum1;
+
+      // Thời gian nộp bài phải nằm giữa submissionStartTime (07h15) và submissionEndTime (10h00) ->
+      // Khoảng 165 phút
+      OffsetDateTime submitTime =
+          targetRound.getSubmissionStartTime().plusMinutes(random.nextInt(165));
+
+      String slug = team.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
+      String submissionTitle = "Giải pháp " + team.getName() + ": " + team.getDescription();
+      String submissionDesc =
+          "Dự án hoàn thiện. Tài liệu chi tiết bao gồm mã nguồn, video demo sản phẩm và slide trình bày kiến trúc hệ thống.";
+
+      String githubLink = "https://github.com/seal-hackathon-2026/" + slug;
+      String ytLink =
+          "https://youtube.com/watch?v=" + java.util.UUID.randomUUID().toString().substring(0, 8);
+      String slideLink =
+          "https://docs.google.com/presentation/d/"
+              + java.util.UUID.randomUUID().toString().substring(0, 15);
+
+      Submission submission =
+          new Submission(
+              submitTime,
+              submissionTitle,
+              submissionDesc,
+              githubLink,
+              ytLink,
+              slideLink,
+              team,
+              targetRound);
+      Submission savedSubmission = submissionRepo.save(submission);
+
+      //      // 3. CHẤM ĐIỂM (CHỈ DÀNH CHO KỲ SPRING)
+      // =      if (isSpringEvent) {
+      //        Track teamTrack = team.getTrack();
+      //        if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
+      //
+      //          for (Lecturer judge : teamTrack.getJudges()) {
+      //            for (Criteria criteria : targetRound.getCriteria()) {
+      //
+      //              int randomValue = 70 + random.nextInt(31);
+      //
+      //              // Dùng constructor sinh bởi @RequiredArgsConstructor
+      //              Score score = new Score(criteria, savedSubmission, judge, randomValue);
+      //              score.setComment("Đánh giá tiêu chí " + criteria.getName() + ": Bài làm đáp
+      // ứng tốt yêu cầu, trình bày rõ ràng.");
+      //
+      //              scoreRepo.save(score);
+      //            }
+      //          }
+      //        }
+      //      }
+    }
+
     log.info("Hoan tat nap du lieu!");
   }
 
@@ -592,7 +704,6 @@ public class DatabaseSeeder implements CommandLineRunner {
     return createStudent(fullName, email, mssv, "Đại học FPT", StudentType.FPT, password);
   }
 
-  // Tạo Team hỗ trợ n members
   private Team createTeam(
       String name,
       String description,
