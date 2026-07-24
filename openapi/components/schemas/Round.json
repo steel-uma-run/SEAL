@@ -5,13 +5,8 @@
     "id",
     "name",
     "description",
-    "start_time",
-    "end_time",
-    "grading_start_time",
-    "grading_end_time",
-    "submssion_start_time",
-    "submssion_end_time",
-    "event_id",
+    "active_duration",
+    "grading_duration",
     "criteria"
   ],
   "properties": {
@@ -25,11 +20,7 @@
     "description": {
       "type": "string"
     },
-    "start_time": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "end_time": {
+    "active_time": {
       "type": "string",
       "format": "date-time"
     },
@@ -37,17 +28,15 @@
       "type": "string",
       "format": "date-time"
     },
-    "grading_end_time": {
-      "type": "string",
-      "format": "date-time"
+    "active_duration": {
+      "type": "integer",
+      "format": "int64",
+      "description": "In milliseconds"
     },
-    "submission_start_time": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "submission_end_time": {
-      "type": "string",
-      "format": "date-time"
+    "grading_duration": {
+      "type": "integer",
+      "format": "int64",
+      "description": "In milliseconds"
     },
     "criteria": {
       "type": "array",

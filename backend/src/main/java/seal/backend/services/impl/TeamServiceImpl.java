@@ -73,7 +73,11 @@ public class TeamServiceImpl implements TeamService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found."));
 
     OffsetDateTime now = OffsetDateTime.now();
-    if (now.isBefore(hackathonEvent.getStartTime()) || now.isAfter(hackathonEvent.getEndTime())) {
+    if (hackathonEvent.getRegistrationStartTime() == null
+        || now.isAfter(
+            hackathonEvent
+                .getRegistrationStartTime()
+                .plus(hackathonEvent.getRegistrationDuration()))) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "This event is currently not open for team registration.");
     }
@@ -163,8 +167,11 @@ public class TeamServiceImpl implements TeamService {
     }
 
     OffsetDateTime now = OffsetDateTime.now();
-    if (now.isBefore(team.getHackathonEvent().getStartTime())
-        || now.isAfter(team.getHackathonEvent().getEndTime())) {
+    if (team.getHackathonEvent().getRegistrationStartTime() == null
+        || now.isAfter(
+            team.getHackathonEvent()
+                .getRegistrationStartTime()
+                .plus(team.getHackathonEvent().getRegistrationDuration()))) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "This event is currently not open for team registration.");
     }

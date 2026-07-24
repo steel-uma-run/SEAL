@@ -1,5 +1,6 @@
 package seal.backend.services.impl;
 
+import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -41,7 +42,7 @@ public class InviteServiceImpl implements InviteService {
   }
 
   @Override
-  @jakarta.transaction.Transactional
+  @Transactional
   public void acceptInvite(UUID inviteId) {
     TeamInvite invite =
         inviteRepository
@@ -57,8 +58,11 @@ public class InviteServiceImpl implements InviteService {
     Team team = invite.getInvitingTeam();
 
     OffsetDateTime now = OffsetDateTime.now();
-    if (now.isBefore(team.getHackathonEvent().getStartTime())
-        || now.isAfter(team.getHackathonEvent().getEndTime())) {
+    if (team.getHackathonEvent().getRegistrationStartTime() == null
+        || now.isAfter(
+            team.getHackathonEvent()
+                .getRegistrationStartTime()
+                .plus(team.getHackathonEvent().getRegistrationDuration()))) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "This event is currently not open for team registration.");
     }

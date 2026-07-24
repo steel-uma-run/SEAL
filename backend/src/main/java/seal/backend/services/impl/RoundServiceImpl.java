@@ -1,6 +1,7 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -41,44 +42,15 @@ public class RoundServiceImpl implements RoundService {
           HttpStatus.BAD_REQUEST, "Cannot create round. Event is not in DRAFT status.");
     }
 
-    if (request.startTime().isAfter(request.endTime())
-        || request.startTime().isEqual(request.endTime())) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Start time must be before end time.");
-    }
-
-    if (!request.startTime().isAfter(event.getEndTime())) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Round timeframe must start after the registration period ends.");
-    }
-
-    List<Round> allRounds = roundRepository.findByEventId(eventId);
-    for (Round existingRound : allRounds) {
-      if (existingRound.overlaps(request.startTime(), request.gradingEndTime())) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "The round time overlaps with an existing round in this event.");
-      }
-    }
-
     Round round =
         new Round(
             request.name(),
-            request.startTime(),
-            request.endTime(),
-            request.gradingStartTime(),
-            request.gradingEndTime(),
-            request.submissionStartTime(),
-            request.submissionEndTime(),
             request.description(),
+            Duration.ofMillis(request.activeDuration()),
+            Duration.ofMillis(request.gradingDuration()),
             event);
 
-    if (!round.isCoherent()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Timeframes are not coherent");
-    }
-
     Round savedRound = roundRepository.save(round);
-
     return savedRound.toDto();
   }
 
@@ -96,26 +68,17 @@ public class RoundServiceImpl implements RoundService {
           HttpStatus.BAD_REQUEST, "Cannot update round. Event is not in DRAFT status.");
     }
 
-    List<Round> allRounds = roundRepository.findByEventId(round.getEvent().getId());
-    for (Round existingRound : allRounds) {
-      if (existingRound.overlaps(round.getStartTime(), round.getGradingEndTime())) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "The round time overlaps with an existing round in this event.");
-      }
+    if (request.name() != null) {
+      round.setName(request.name());
     }
-
-    round.setName(request.name());
-    round.setDescription(request.description());
-    round.setStartTime(request.startTime());
-    round.setSubmissionStartTime(request.submissionStartTime());
-    round.setSubmissionEndTime(request.submissionEndTime());
-    round.setGradingStartTime(request.gradingStartTime());
-    round.setGradingEndTime(request.gradingEndTime());
-    round.setEndTime(request.endTime());
-
-    if (!round.isCoherent()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Timeframes are not coherent");
+    if (request.description() != null) {
+      round.setDescription(request.description());
+    }
+    if (request.activeDuration() != null) {
+      round.setActiveDuration(Duration.ofMillis(request.activeDuration()));
+    }
+    if (request.gradingDuration() != null) {
+      round.setGradingDuration(Duration.ofMillis(request.gradingDuration()));
     }
 
     return roundRepository.save(round).toDto();

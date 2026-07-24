@@ -1,6 +1,7 @@
 package seal.backend.config;
 
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -105,8 +106,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         new HackathonEvent(
             "SEAL Hackathon Spring 2026",
             "Mastering Domain-Specific AI RAG Systems",
-            regStartSpring,
-            regEndSpring,
+            Duration.ofDays(7),
             EventStatus.FINALIZED,
             springSeason,
             prizeStructure);
@@ -124,8 +124,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         new HackathonEvent(
             "SEAL Hackathon Summer 2026",
             "Empowering Enterprise with AI Agents",
-            regStartSummer,
-            regEndSummer,
+            Duration.ofDays(7),
             EventStatus.FINALIZED,
             summerSeason,
             prizeStructure);
@@ -178,13 +177,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         roundRepo.save(
             new Round(
                 "Round 1",
-                spr1Start,
-                spr1End,
-                spr1GradStart,
-                spr1GradEnd,
-                spr1SubStart,
-                spr1SubEnd,
                 "Vòng loại: Phát triển ý tưởng (Deadline Slide 10h00) & Chấm vòng bảng",
+                Duration.ofHours(10),
+                Duration.ofHours(48),
                 eventSpring));
 
     OffsetDateTime spr2Start = OffsetDateTime.of(2026, 3, 22, 15, 30, 0, 0, ZoneOffset.ofHours(7));
@@ -200,13 +195,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         roundRepo.save(
             new Round(
                 "Round 2",
-                spr2Start,
-                spr2End,
-                spr2GradStart,
-                spr2GradEnd,
-                spr2SubStart,
-                spr2SubEnd,
                 "Chung kết: The Grand Finale",
+                Duration.ofHours(10),
+                Duration.ofHours(48),
                 eventSpring));
 
     // --- TIMELINE ROUNDS SUMMER (Onsite ngày ***) ---
@@ -224,13 +215,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         roundRepo.save(
             new Round(
                 "Round 1",
-                sum1Start,
-                sum1End,
-                sum1GradStart,
-                sum1GradEnd,
-                sum1SubStart,
-                sum1SubEnd,
                 "Vòng loại: Phát triển ý tưởng",
+                Duration.ofHours(10),
+                Duration.ofHours(48),
                 eventSummer));
 
     OffsetDateTime sum2Start = OffsetDateTime.of(2026, 8, 15, 15, 30, 0, 0, ZoneOffset.ofHours(7));
@@ -246,13 +233,9 @@ public class DatabaseSeeder implements CommandLineRunner {
         roundRepo.save(
             new Round(
                 "Round 2",
-                sum2Start,
-                sum2End,
-                sum2GradStart,
-                sum2GradEnd,
-                sum2SubStart,
-                sum2SubEnd,
                 "Chung kết: The Grand Finale",
+                Duration.ofHours(10),
+                Duration.ofHours(48),
                 eventSummer));
 
     // ==========================================
@@ -543,8 +526,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
       // Thời gian nộp bài phải nằm giữa submissionStartTime (07h15) và submissionEndTime (10h00) ->
       // Khoảng 165 phút
-      OffsetDateTime submitTime =
-          targetRound.getSubmissionStartTime().plusMinutes(random.nextInt(165));
+      OffsetDateTime submitTime = targetRound.getActiveTime().plusMinutes(random.nextInt(165));
 
       String slug = team.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
       String submissionTitle = "Giải pháp " + team.getName() + ": " + team.getDescription();

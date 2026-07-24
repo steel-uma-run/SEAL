@@ -91,8 +91,8 @@ public class SubmissionServiceImpl implements SubmissionService {
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event is not ongoing."));
 
     OffsetDateTime now = OffsetDateTime.now();
-    if (now.isBefore(activeRound.getSubmissionStartTime())
-        || now.isAfter(activeRound.getSubmissionEndTime())) {
+    if (activeRound.getActiveTime() == null
+        | now.isAfter(activeRound.getActiveTime().plus(activeRound.getActiveDuration()))) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot submit right now");
     }
 
@@ -238,8 +238,12 @@ public class SubmissionServiceImpl implements SubmissionService {
                     new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission doesn't exist."));
 
     OffsetDateTime now = OffsetDateTime.now();
-    if (submission.getRound().getGradingStartTime().isAfter(now)
-        || submission.getRound().getGradingEndTime().isBefore(now)) {
+    if (submission.getRound().getGradingStartTime() == null
+        || now.isAfter(
+            submission
+                .getRound()
+                .getGradingStartTime()
+                .plus(submission.getRound().getGradingDuration()))) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Grading is not allowed right now");
     }
 
