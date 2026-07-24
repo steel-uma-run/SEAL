@@ -44,6 +44,22 @@ public class Round {
   @Nonnull
   private OffsetDateTime endTime;
 
+  @Column(columnDefinition = "timestamptz", nullable = false)
+  @Nonnull
+  private OffsetDateTime gradingStartTime;
+
+  @Column(columnDefinition = "timestamptz", nullable = false)
+  @Nonnull
+  private OffsetDateTime gradingEndTime;
+
+  @Column(columnDefinition = "timestamptz", nullable = false)
+  @Nonnull
+  private OffsetDateTime submissionStartTime;
+
+  @Column(columnDefinition = "timestamptz", nullable = false)
+  @Nonnull
+  private OffsetDateTime submissionEndTime;
+
   @Column(columnDefinition = "TEXT", nullable = false)
   @Nonnull
   private String description;
@@ -67,7 +83,24 @@ public class Round {
         getDescription(),
         getStartTime(),
         getEndTime(),
-        getEvent().getId(),
+        getGradingStartTime(),
+        getGradingEndTime(),
+        getSubmissionStartTime(),
+        getSubmissionEndTime(),
         getCriteria().stream().map(Criteria::toDto).toArray(CriteriaDto[]::new));
+  }
+
+  // Returns whether the timeframes are coherent
+  public boolean isCoherent() {
+    return startTime.isBefore(endTime)
+        && endTime.isBefore(submissionStartTime)
+        && submissionStartTime.isBefore(submissionEndTime)
+        && submissionEndTime.isBefore(gradingStartTime)
+        && gradingStartTime.isBefore(gradingEndTime);
+  }
+
+  // Returns whether this Round overlaps with a timeframe
+  public boolean overlaps(OffsetDateTime start, OffsetDateTime end) {
+    return startTime.isBefore(end) && start.isBefore(gradingEndTime);
   }
 }

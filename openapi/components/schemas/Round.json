@@ -7,6 +7,10 @@
     "description",
     "start_time",
     "end_time",
+    "grading_start_time",
+    "grading_end_time",
+    "submssion_start_time",
+    "submssion_end_time",
     "event_id",
     "criteria"
   ],
@@ -29,9 +33,21 @@
       "type": "string",
       "format": "date-time"
     },
-    "event_id": {
+    "grading_start_time": {
       "type": "string",
-      "format": "uuid"
+      "format": "date-time"
+    },
+    "grading_end_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "submission_start_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "submission_end_time": {
+      "type": "string",
+      "format": "date-time"
     },
     "criteria": {
       "type": "array",

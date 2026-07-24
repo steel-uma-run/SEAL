@@ -71,12 +71,12 @@ public class HackathonEventServiceImpl implements HackathonEventService {
       event.setDescription(request.description());
     }
 
-    if (request.price() != null) {
-      event.setPrice(request.price());
+    if (request.prize() != null) {
+      event.setPrize(request.prize());
     }
 
     if (request.endTime() != null) {
-      if (event.getStartTime() != null && !request.endTime().isAfter(event.getStartTime())) {
+      if (!request.endTime().isAfter(event.getStartTime())) {
         throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST, "End time must be after start time");
       }
@@ -84,7 +84,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     }
 
     if (request.startTime() != null) {
-      if (event.getEndTime() != null && !event.getEndTime().isAfter(request.startTime())) {
+      if (!event.getEndTime().isAfter(request.startTime())) {
         throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST, "End time must be after start time");
       }

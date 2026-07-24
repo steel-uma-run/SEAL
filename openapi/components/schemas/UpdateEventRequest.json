@@ -6,6 +6,8 @@
     "status": { "type": "string", "enum": ["DRAFT", "FINALIZED"] },
     "start_time": { "type": "string", "format": "date-time" },
     "end_time": { "type": "string", "format": "date-time" },
-    "price": { "type": "string" }
+    "grading_start_time": { "type": "string", "format": "date-time" },
+    "grading_end_time": { "type": "string", "format": "date-time" },
+    "prize": { "type": "string" }
   }
 }
