@@ -87,6 +87,10 @@
 	let newRoundDescription = $state("")
 	let newRoundStartTime = $state("")
 	let newRoundEndTime = $state("")
+	let newRoundSubmissionStartTime = $state("")
+	let newRoundSubmissionEndTime = $state("")
+	let newRoundGradingStartTime = $state("")
+	let newRoundGradingEndTime = $state("")
 	let isCreatingRound = $state(false)
 	let createRoundMessage = $state("")
 	let createRoundError = $state(false)
@@ -346,6 +350,10 @@
 		newRoundDescription = ""
 		newRoundStartTime = ""
 		newRoundEndTime = ""
+		newRoundSubmissionStartTime = ""
+		newRoundSubmissionEndTime = ""
+		newRoundGradingStartTime = ""
+		newRoundGradingEndTime = ""
 		createRoundMessage = ""
 		createRoundError = false
 		showCreateRoundModal = true
@@ -468,7 +476,11 @@
 			!newRoundName.trim() ||
 			!newRoundDescription.trim() ||
 			!newRoundStartTime ||
-			!newRoundEndTime
+			!newRoundEndTime ||
+			!newRoundSubmissionStartTime ||
+			!newRoundSubmissionEndTime ||
+			!newRoundGradingStartTime ||
+			!newRoundGradingEndTime
 		) {
 			createRoundMessage = "All fields are required."
 			createRoundError = true
@@ -477,9 +489,33 @@
 
 		const start = new Date(newRoundStartTime)
 		const end = new Date(newRoundEndTime)
+		const subStart = new Date(newRoundSubmissionStartTime)
+		const subEnd = new Date(newRoundSubmissionEndTime)
+		const gradStart = new Date(newRoundGradingStartTime)
+		const gradEnd = new Date(newRoundGradingEndTime)
 
 		if (start >= end) {
 			createRoundMessage = "Start time must be before end time."
+			createRoundError = true
+			return
+		}
+		if (end >= subStart) {
+			createRoundMessage = "End time must be before submission start time."
+			createRoundError = true
+			return
+		}
+		if (subStart >= subEnd) {
+			createRoundMessage = "Submission start time must be before submission end time."
+			createRoundError = true
+			return
+		}
+		if (subEnd >= gradStart) {
+			createRoundMessage = "Submission end time must be before grading start time."
+			createRoundError = true
+			return
+		}
+		if (gradStart >= gradEnd) {
+			createRoundMessage = "Grading start time must be before grading end time."
 			createRoundError = true
 			return
 		}
@@ -505,7 +541,11 @@
 					name: newRoundName.trim(),
 					description: newRoundDescription.trim(),
 					start_time: start.toISOString(),
-					end_time: end.toISOString()
+					end_time: end.toISOString(),
+					submission_start_time: subStart.toISOString(),
+					submission_end_time: subEnd.toISOString(),
+					grading_start_time: gradStart.toISOString(),
+					grading_end_time: gradEnd.toISOString()
 				},
 				throwOnError: false
 			})
@@ -1441,7 +1481,7 @@
 
 	{#if showCreateRoundModal}
 		<div class="modal-overlay">
-			<div class="modal-surface">
+			<div class="modal-surface large">
 				<div class="modal-header">
 					<h3>Create Round</h3>
 					<button onclick={() => (showCreateRoundModal = false)} class="btn-icon"
@@ -1475,6 +1515,26 @@
 						<div class="form-group">
 							<label>End Time *</label>
 							<input type="datetime-local" bind:value={newRoundEndTime} required />
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="form-group">
+							<label>Submission Start Time *</label>
+							<input type="datetime-local" bind:value={newRoundSubmissionStartTime} required />
+						</div>
+						<div class="form-group">
+							<label>Submission End Time *</label>
+							<input type="datetime-local" bind:value={newRoundSubmissionEndTime} required />
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="form-group">
+							<label>Grading Start Time *</label>
+							<input type="datetime-local" bind:value={newRoundGradingStartTime} required />
+						</div>
+						<div class="form-group">
+							<label>Grading End Time *</label>
+							<input type="datetime-local" bind:value={newRoundGradingEndTime} required />
 						</div>
 					</div>
 					<div class="modal-actions">
@@ -2062,10 +2122,13 @@
 	}
 
 	.form-row {
-		display: flex;
-		flex-direction: column;
-		grid-template-columns: 1fr 1fr;
+		display: grid;
+		grid-template-columns: 1fr;
 		gap: 1rem;
+
+		@media (min-width: 600px) {
+			grid-template-columns: 1fr 1fr;
+		}
 	}
 
 	.form-group {
