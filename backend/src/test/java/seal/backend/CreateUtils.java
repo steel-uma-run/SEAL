@@ -96,12 +96,17 @@ public class CreateUtils {
 
   public final HackathonEvent createOngoingEvent() {
     HackathonEvent event = createFinalizedEvent();
+    OffsetDateTime now = OffsetDateTime.now();
 
     Round round =
         new Round(
             randomString(50),
-            OffsetDateTime.now().minusDays(1),
-            OffsetDateTime.now().plusDays(1),
+            now.minusHours(1),
+            now.plusHours(10),
+            now.plusHours(11),
+            now.plusHours(24),
+            now.plusHours(25),
+            now.plusHours(48),
             randomString(50),
             event);
 

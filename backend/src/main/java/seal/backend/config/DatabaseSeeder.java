@@ -161,26 +161,46 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Round 1",
                 startSpring, // round phải sau regis
                 startSpring.plusHours(10),
+                startSpring.plusHours(11),
+                startSpring.plusHours(24),
+                startSpring.plusHours(25),
+                startSpring.plusHours(48),
                 "Vòng loại: Thuyết trình ý tưởng",
                 eventSpring));
     Round rdSpring2 =
         roundRepo.save(
             new Round(
                 "Round 2",
-                startSpring.plusDays(1),
-                endSpring,
+                startSpring,
+                startSpring.plusHours(10),
+                startSpring.plusHours(11),
+                startSpring.plusHours(24),
+                startSpring.plusHours(25),
+                startSpring.plusHours(48),
                 "Chung kết: The Grand Finale",
                 eventSpring));
     Round rdSum1 =
         roundRepo.save(
             new Round(
-                "Round 1", startSummer, startSummer.plusHours(8), "Vòng Sơ loại RAG", eventSummer));
+                "Round 1",
+                startSummer,
+                startSummer.plusHours(10),
+                startSummer.plusHours(11),
+                startSummer.plusHours(24),
+                startSummer.plusHours(25),
+                startSummer.plusHours(48),
+                "Vòng Sơ loại RAG",
+                eventSummer));
     Round rdSum2 =
         roundRepo.save(
             new Round(
                 "Round 2",
-                startSummer.plusHours(8),
-                endSummer,
+                startSummer,
+                startSummer.plusHours(10),
+                startSummer.plusHours(11),
+                startSummer.plusHours(24),
+                startSummer.plusHours(25),
+                startSummer.plusHours(48),
                 "Chung kết Hackathon",
                 eventSummer));
 
