@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Icon } from "m3-svelte"
-	import EventsListing from "$lib/components/EventsListing.svelte"
+	import ActiveSeasonEvents from "$lib/components/student/ActiveSeasonEvents.svelte"
 
 	import iconCalendar from "@ktibow/iconset-material-symbols/calendar-today"
 	import iconPerson from "@ktibow/iconset-material-symbols/person"
@@ -139,7 +139,7 @@
 	</div>
 
 	<div class="events-list">
-		<EventsListing />
+		<ActiveSeasonEvents activeSeason={currentSeason} events={activeEvents} />
 	</div>
 </div>
 
