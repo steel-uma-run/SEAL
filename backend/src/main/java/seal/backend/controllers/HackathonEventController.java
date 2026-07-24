@@ -142,6 +142,7 @@ public class HackathonEventController implements EventsApi {
       @PathVariable(name = "eventId") @NotNull UUID eventId) {
     List<SubmissionRankDto> rankings = eventService.getRanking(eventId);
     return ResponseEntity.ok(rankings.toArray(SubmissionRankDto[]::new));
+  }
     
   @PreAuthorize("hasAuthority('COORDINATOR') or hasRole('LECTURER')")
   public ResponseEntity<SubmissionDto[]> getSubmissionsByEvent(
