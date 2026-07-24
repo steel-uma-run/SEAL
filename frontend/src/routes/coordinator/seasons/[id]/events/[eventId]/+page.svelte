@@ -757,11 +757,13 @@
 				<div class="event-time-info">
 					<div class="time-item">
 						<Clock class="icon text-primary" />
-						<span><strong>Start:</strong> {formatDateTime(event.startTime)}</span>
+						<span
+							><strong>Start:</strong> {formatDateTime(event.startTime || event.start_time)}</span
+						>
 					</div>
 					<div class="time-item">
 						<Clock class="icon text-error" />
-						<span><strong>End:</strong> {formatDateTime(event.endTime)}</span>
+						<span><strong>End:</strong> {formatDateTime(event.endTime || event.end_time)}</span>
 					</div>
 				</div>
 			</div>
@@ -770,7 +772,7 @@
 			<div class="md3-card section-card">
 				<div class="section-header">
 					<div class="section-title-group">
-						<h2 class="section-title">Event Tracks & Experts</h2>
+						<h2 class="section-title">Event Tracks</h2>
 						<p class="section-desc">
 							Manage and configure track details, assigned mentors, judges, and teams.
 						</p>
@@ -797,7 +799,7 @@
 										onclick={() => openEditTrackModal(track)}
 										class="btn btn-text btn-small"
 									>
-										Edit
+										Assign to track
 									</button>
 								</div>
 
