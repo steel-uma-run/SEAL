@@ -58,42 +58,17 @@
 					if (eventsRes?.ok && eventsData && eventsData.length > 0) {
 						activeSeasonEvents = eventsData
 					} else {
-						// Fallback to local storage for mock events
-						if (typeof window !== "undefined") {
-							const key = `events_${activeSeason.id}`
-							const stored = localStorage.getItem(key)
-							if (stored) {
-								const allLocalEvents = JSON.parse(stored)
-								activeSeasonEvents = allLocalEvents.filter((e: any) => e.status === "FINALIZED")
-							}
-						}
-					}
-
-					// Fetch joined events
-					let joinedList: any[] = []
+						activeSeasonEvents = []
+					}					let joinedList: any[] = []
 					for (const event of activeSeasonEvents) {
 						let hasJoined = false
 
-						// 1. Check LocalStorage
-						if (typeof window !== "undefined") {
-							const localParts = localStorage.getItem(`participants_${event.id}`)
-							if (localParts) {
-								const parsed = JSON.parse(localParts)
-								if (parsed.some((p: any) => p.email === profile.email)) {
-									hasJoined = true
-								}
-							}
-						}
-
-						// 2. Check API if not found in local storage
-						if (!hasJoined) {
-							const { data: participants } = await getInterestedParticipants({
-								path: { eventId: event.id },
-								throwOnError: false
-							})
-							if (participants && participants.some((p: any) => p.email === profile.email)) {
-								hasJoined = true
-							}
+						const { data: participants } = await getInterestedParticipants({
+							path: { eventId: event.id },
+							throwOnError: false
+						})
+						if (participants && participants.some((p: any) => p.email === profile.email)) {
+							hasJoined = true
 						}
 
 						if (hasJoined) {
@@ -109,22 +84,12 @@
 							.slice()
 							.sort((a, b) => new Date(a.endTime).getTime() - new Date(b.endTime).getTime())[0]
 
-						// Check local storage for mock rounds
-						if (typeof window !== "undefined") {
-							const localRounds = localStorage.getItem(`rounds_${nearestEvent.id}`)
-							if (localRounds) {
-								roundsList = JSON.parse(localRounds)
-							}
-						}
-
-						if (roundsList.length === 0) {
-							const { data: rounds } = await getRounds({
-								path: { eventId: nearestEvent.id },
-								throwOnError: false
-							})
-							if (rounds) {
-								roundsList = rounds
-							}
+						const { data: rounds } = await getRounds({
+							path: { eventId: nearestEvent.id },
+							throwOnError: false
+						})
+						if (rounds && rounds.length > 0) {
+							roundsList = rounds
 						}
 					}
 					activeRounds = roundsList

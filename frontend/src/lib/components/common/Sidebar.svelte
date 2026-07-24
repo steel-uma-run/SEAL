@@ -51,7 +51,7 @@
 
 		<NavigationRailItem label="Create team" icon={iconAdd} href="/student/create-team" />
 
-		<NavigationRailItem label="Team Invitation" icon={iconMail} href="/student/teams?tab=invitations" />
+		<NavigationRailItem label="Team Invitation" icon={iconMail} href="/student/invitations" />
 
 		<NavigationRailItem label="Results" icon={iconAssignmentReturn} href="/student/results" />
 	{:else if role == "LECTURER"}

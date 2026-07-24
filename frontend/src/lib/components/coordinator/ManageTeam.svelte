@@ -264,42 +264,18 @@
 				showNotification("Team approved successfully!")
 				await loadRealTeams()
 				return
+			} else {
+				showNotification("Failed to approve team. API error.", "error")
 			}
 		} catch (err) {
-			console.error("API Team Approval failed, falling back to local:", err)
+			console.error("API Team Approval failed:", err)
+			showNotification("Failed to approve team. Network error.", "error")
 		}
-
-		// Fallback for mock data / local storage
-		if (typeof window !== "undefined" && eventId) {
-			const key = `teams_${eventId}`
-			const stored = localStorage.getItem(key)
-			if (stored) {
-				let localTeams = JSON.parse(stored)
-				localTeams = localTeams.map((t: any) =>
-					t.id === teamId ? { ...t, status: "APPROVED" } : t
-				)
-				localStorage.setItem(key, JSON.stringify(localTeams))
-			}
-		}
-		teams = teams.map((t) => (t.id === teamId ? { ...t, status: "APPROVED" } : t))
-		showNotification("Team approved successfully!")
 	}
 
 	async function handleRejectTeam(teamId: string, eventId?: string) {
-		// Since there's no reject endpoint, update local mock storage
-		if (typeof window !== "undefined" && eventId) {
-			const key = `teams_${eventId}`
-			const stored = localStorage.getItem(key)
-			if (stored) {
-				let localTeams = JSON.parse(stored)
-				localTeams = localTeams.map((t: any) =>
-					t.id === teamId ? { ...t, status: "REJECTED" } : t
-				)
-				localStorage.setItem(key, JSON.stringify(localTeams))
-			}
-		}
-		teams = teams.map((t) => (t.id === teamId ? { ...t, status: "REJECTED" } : t))
-		showNotification("Team request rejected.", "error")
+		// Reject API not yet implemented
+		showNotification("Reject team API not yet implemented.", "error")
 	}
 
 	function openViewModal(team: any) {

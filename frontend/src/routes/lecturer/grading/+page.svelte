@@ -66,9 +66,16 @@
 			lecturerProfile = profile
 
 			// Fetch all criteria templates to map criteria weights
-			const { data: templates } = await getAllCriteriaTemplates({ throwOnError: false })
-			if (templates) {
-				templates.forEach((t: any) => {
+			const { data: templates, error: templatesError } = await getAllCriteriaTemplates({ throwOnError: false })
+			let activeTemplates = templates;
+			
+			if (templatesError) {
+				console.error("Backend API for templates failed.", templatesError);
+				activeTemplates = [];
+			}
+
+			if (activeTemplates) {
+				activeTemplates.forEach((t: any) => {
 					if (t.criteria) {
 						t.criteria.forEach((c: any) => {
 							criteriaWeights[c.id] = c.weight || 0
@@ -148,6 +155,7 @@
 								tempTracks.push({
 									...track,
 									eventName: event.name,
+									eventId: event.id,
 									category,
 									submissions: trackSubmissions
 								})
@@ -184,7 +192,7 @@
 			</div>
 			<div>
 				<h1 class="page-title">Grading</h1>
-				<p class="page-subtitle">Submissions from teams you are assigned to judge.</p>
+				<p class="page-subtitle">Submissions from tracks you are assigned to judge.</p>
 			</div>
 		</div>
 
@@ -279,7 +287,7 @@
 
 											<div class="grading-actions">
 												<a
-													href="/lecturer/grading/{sub.team_id}/{sub.id}"
+													href="/lecturer/grading/{sub.team_id}/{sub.id}?event={track.eventId}"
 													class="grade-btn {sub.status === 'GRADED' ? 'graded' : ''}"
 												>
 													{sub.status === "GRADED" ? "Review Grade" : "Grade Now"}
