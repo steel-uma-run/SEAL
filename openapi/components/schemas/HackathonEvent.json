@@ -9,7 +9,8 @@
     "start_time",
     "end_time",
     "season_id",
-    "price"
+    "prize",
+    "rounds"
   ],
   "properties": {
     "id": {
@@ -38,8 +39,14 @@
       "type": "string",
       "format": "uuid"
     },
-    "price": {
+    "prize": {
       "type": "string"
+    },
+    "rounds": {
+      "type": "array",
+      "items": {
+        "$ref": "./Round.json"
+      }
     }
   }
 }

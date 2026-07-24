@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import seal.backend.enums.EventStatus;
 import seal.openapi.model.HackathonEventDto;
 import seal.openapi.model.HackathonEventStatusDto;
+import seal.openapi.model.RoundDto;
 
 @Entity
 @Table(name = "events")
@@ -69,7 +70,7 @@ public class HackathonEvent {
 
   @Column(columnDefinition = "TEXT")
   @Nonnull
-  private String price;
+  private String prize;
 
   @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
   private Set<Student> students = new HashSet<>();
@@ -101,6 +102,7 @@ public class HackathonEvent {
         getStartTime(),
         getEndTime(),
         getSeason().getId(),
-        getPrice());
+        getPrize(),
+        getRounds().stream().map(Round::toDto).toArray(RoundDto[]::new));
   }
 }

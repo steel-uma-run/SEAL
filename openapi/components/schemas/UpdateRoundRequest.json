@@ -1,12 +1,37 @@
 {
   "type": "object",
-  "required": ["start_time", "end_time", "name", "description"],
+  "required": [
+    "start_time",
+    "end_time",
+    "grading_start_time",
+    "grading_end_time",
+    "submission_start_time",
+    "submission_end_time",
+    "name",
+    "description"
+  ],
   "properties": {
     "start_time": {
       "type": "string",
       "format": "date-time"
     },
     "end_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "grading_start_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "grading_end_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "submission_start_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "submission_end_time": {
       "type": "string",
       "format": "date-time"
     },

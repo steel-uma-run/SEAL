@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import seal.backend.entities.AuditLog;
 import seal.backend.entities.Criteria;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Lecturer;
@@ -59,7 +60,7 @@ public class SubmissionServiceImpl implements SubmissionService {
   private final ScoreDeviationNotifRepository notifRepo;
   private final RegradeNotifRepository regradeNotifRepo;
   private final CriteriaRepository criteriaRepo;
-  private final AuditLogRepository auditLogRepo;
+  private final AuditLogRepository<AuditLog> auditLogRepo;
 
   private final Pattern githubPattern = Pattern.compile("^(https?://)?github\\.com");
   private final Pattern ytPattern = Pattern.compile("^(https?://)?youtube\\.com");
@@ -87,6 +88,12 @@ public class SubmissionServiceImpl implements SubmissionService {
             .getActiveRound()
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event is not ongoing."));
+
+    OffsetDateTime now = OffsetDateTime.now();
+    if (now.isBefore(activeRound.getSubmissionStartTime())
+        || now.isAfter(activeRound.getSubmissionEndTime())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot submit right now");
+    }
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     Student actor = studentRepo.findByEmail(auth.getName()).get();
@@ -229,6 +236,12 @@ public class SubmissionServiceImpl implements SubmissionService {
                 () ->
                     new ResponseStatusException(HttpStatus.NOT_FOUND, "Submission doesn't exist."));
 
+    OffsetDateTime now = OffsetDateTime.now();
+    if (submission.getRound().getGradingStartTime().isAfter(now)
+        || submission.getRound().getGradingEndTime().isBefore(now)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Grading is not allowed right now");
+    }
+
     // Constraint: can only grade submissions belonging to teams on the same track as the lecturer
     if (!actor.getJudgedTracks().contains(submission.getSubmitterTeam().getTrack())) {
       throw new ResponseStatusException(
@@ -261,6 +274,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required.");
       }
 
+      // TODO: fix ts
       // Make sure the criteria actually is a criteria for the round
       // Make sure the criteria actually is a criteria for the round
       // Criteria criteria =
