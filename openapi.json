@@ -84,6 +84,7 @@
     },
     "/events/{eventId}/rankings": {
       "$ref": "./openapi/paths/events/get_ranking.json"
+    },
     "/events/{eventId}/submissions": {
       "$ref": "./openapi/paths/events/get_submissions.json"
     },
