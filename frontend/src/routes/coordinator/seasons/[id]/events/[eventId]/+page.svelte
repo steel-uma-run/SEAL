@@ -87,6 +87,8 @@
 	let newRoundDescription = $state("")
 	let newRoundStartTime = $state("")
 	let newRoundEndTime = $state("")
+	let newRoundGradingStartTime = $state("")
+	let newRoundGradingEndTime = $state("")
 	let isCreatingRound = $state(false)
 	let createRoundMessage = $state("")
 	let createRoundError = $state(false)
@@ -346,6 +348,8 @@
 		newRoundDescription = ""
 		newRoundStartTime = ""
 		newRoundEndTime = ""
+		newRoundGradingStartTime = ""
+		newRoundGradingEndTime = ""
 		createRoundMessage = ""
 		createRoundError = false
 		showCreateRoundModal = true
@@ -468,18 +472,28 @@
 			!newRoundName.trim() ||
 			!newRoundDescription.trim() ||
 			!newRoundStartTime ||
-			!newRoundEndTime
+			!newRoundEndTime ||
+			!newRoundGradingStartTime ||
+			!newRoundGradingEndTime
 		) {
-			createRoundMessage = "All fields are required."
+			createRoundMessage = "Please fill in all required fields."
 			createRoundError = true
 			return
 		}
 
 		const start = new Date(newRoundStartTime)
 		const end = new Date(newRoundEndTime)
+		const gradingStart = new Date(newRoundGradingStartTime)
+		const gradingEnd = new Date(newRoundGradingEndTime)
 
 		if (start >= end) {
 			createRoundMessage = "Start time must be before end time."
+			createRoundError = true
+			return
+		}
+
+		if (gradingStart >= gradingEnd) {
+			createRoundMessage = "Grading start time must be before grading end time."
 			createRoundError = true
 			return
 		}
@@ -502,10 +516,13 @@
 			const { response, data: roundData } = await createRound({
 				path: { eventId },
 				body: {
+					event_id: eventId,
 					name: newRoundName.trim(),
 					description: newRoundDescription.trim(),
 					start_time: start.toISOString(),
-					end_time: end.toISOString()
+					end_time: end.toISOString(),
+					grading_start_time: gradingStart.toISOString(),
+					grading_end_time: gradingEnd.toISOString()
 				},
 				throwOnError: false
 			})
@@ -1043,7 +1060,6 @@
 										{#each eventRounds as round}
 											<tr>
 												<td class="font-bold">{round.name}</td>
-												<!-- CẬP NHẬT Ở ĐÂY: Thêm class truncate-text và title -->
 												<td class="text-muted wrap-text">
 													{round.description}
 												</td>
@@ -1465,16 +1481,37 @@
 							required
 						></textarea>
 					</div>
-					<div class="form-row">
-						<div class="form-group">
-							<label>Start Time *</label>
-							<input type="datetime-local" bind:value={newRoundStartTime} required />
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div class="space-y-1">
+							<label class="text-sm font-semibold text-(--md-on-surface) ml-1"
+								>Round Start Time</label
+							>
+							<input type="datetime-local" bind:value={newRoundStartTime} required class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)" />
 						</div>
-						<div class="form-group">
-							<label>End Time *</label>
-							<input type="datetime-local" bind:value={newRoundEndTime} required />
+						<div class="space-y-1">
+							<label class="text-sm font-semibold text-(--md-on-surface) ml-1"
+								>Round End Time</label
+							>
+							<input type="datetime-local" bind:value={newRoundEndTime} required class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)" />
 						</div>
 					</div>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div class="space-y-1">
+							<label class="text-sm font-semibold text-(--md-on-surface) ml-1"
+								>Grading Start Time</label
+							>
+							<input type="datetime-local" bind:value={newRoundGradingStartTime} required class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)" />
+						</div>
+						<div class="space-y-1">
+							<label class="text-sm font-semibold text-(--md-on-surface) ml-1"
+								>Grading End Time</label
+							>
+							<input type="datetime-local" bind:value={newRoundGradingEndTime} required class="w-full rounded-xl border border-(--md-outline) p-3 outline-none transition-all bg-(--md-surface-container-highest) text-(--md-on-surface) focus:border-(--md-primary) focus:ring-1 focus:ring-(--md-primary)" />
+						</div>
+					</div>
+					
 					<div class="modal-actions">
 						<button
 							type="button"

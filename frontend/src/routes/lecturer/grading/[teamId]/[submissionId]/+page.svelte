@@ -27,6 +27,8 @@
 	let criteriaTemplate: any = $state(null)
 	let submission: any = $state(null)
 	let hasGraded = $state(false)
+	let isGradingLocked = $state(false)
+	let gradingLockMessage = $state("")
 
 	// Form state: map criteria_id -> { value: number, comment: string }
 	let gradingData: Record<string, { value: number | null; comment: string }> = $state({})
@@ -110,6 +112,24 @@
 
 				// Initialize grading form data
 				if (criteriaTemplate.criteria) {
+					// Check grading time lock
+					if (rounds && rounds.length > 0) {
+						const activeRound = rounds[rounds.length - 1]
+						if (activeRound.grading_start_time && activeRound.grading_end_time) {
+							const now = new Date()
+							const startTime = new Date(activeRound.grading_start_time)
+							const endTime = new Date(activeRound.grading_end_time)
+							
+							if (now < startTime) {
+								isGradingLocked = true
+								gradingLockMessage = `Grading hasn't started yet. It will open on ${startTime.toLocaleString()}`
+							} else if (now > endTime) {
+								isGradingLocked = true
+								gradingLockMessage = `Grading is closed. The deadline was ${endTime.toLocaleString()}`
+							}
+						}
+					}
+
 					criteriaTemplate.criteria.forEach((c: any) => {
 						const existingScore = submission.scores?.find((s: any) => s.criteria_id === c.id && s.lecturer_id === profile?.id)
 						if (existingScore) {
@@ -399,6 +419,13 @@
 								<div class="alert alert--success">{successMessage}</div>
 							{/if}
 
+							{#if isGradingLocked && !hasGraded}
+								<div class="alert alert--error alert--inline">
+									<AlertCircle class="alert-icon" />
+									<p class="alert-text"><strong>Grading Locked:</strong> {gradingLockMessage}</p>
+								</div>
+							{/if}
+
 							<div class="criteria-list">
 								{#each criteriaTemplate.criteria as c}
 									<div class="criterion">
@@ -420,7 +447,7 @@
 													class="input {gradingData[c.id].value !== null && gradingData[c.id].value !== undefined && (gradingData[c.id].value < 0 || gradingData[c.id].value > 10) ? 'input--error' : ''}"
 													placeholder="e.g. 8.5"
 													required
-													disabled={hasGraded}
+													disabled={hasGraded || isGradingLocked}
 												/>
 												{#if gradingData[c.id].value !== null && gradingData[c.id].value !== undefined && (gradingData[c.id].value < 0 || gradingData[c.id].value > 10)}
 													<p class="field-error-text">Score must be between 0 and 10</p>
@@ -439,7 +466,7 @@
 												rows="2"
 												class="input textarea"
 												placeholder="Provide constructive feedback..."
-												disabled={hasGraded}
+												disabled={hasGraded || isGradingLocked}
 											></textarea>
 										</div>
 									</div>
@@ -449,7 +476,7 @@
 
 						{#if !hasGraded}
 							<div class="form-actions">
-								<button type="submit" disabled={isSubmitting || hasInvalidScores} class="btn-submit">
+								<button type="submit" disabled={isSubmitting || hasInvalidScores || isGradingLocked} class="btn-submit">
 									{#if isSubmitting}
 										<div class="spinner spinner--white"></div>
 										Submitting...
