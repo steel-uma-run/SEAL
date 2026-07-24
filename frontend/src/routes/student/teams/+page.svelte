@@ -454,51 +454,71 @@
 						<a href="/student" class="btn btn--primary" style="margin-top: 1rem;">Go to Dashboard</a>
 					</div>
 				{:else}
-					<div class="events-teams-grid">
+					<div class="tracks-grid">
 						{#each joinedEventTeams as item}
-							<div class="event-card-item">
-								<div class="event-card-item__header">
-									<span class="event-card-item__tag">Event</span>
-									<h3 class="event-card-item__title">{item.eventName}</h3>
-									<p class="event-card-item__desc">{item.eventDescription || "No description provided."}</p>
+							<div class="track-card">
+								<div class="track-top">
+									<div class="track-heading-row">
+										<h3 class="track-name">{item.eventName}</h3>
+										<span class="track-role-badge badge-mentor">Event</span>
+									</div>
+									<p class="track-event" style="margin-top: 0.5rem; white-space: normal;">
+										{item.eventDescription || "No description provided."}
+									</p>
 								</div>
 
-								<div class="event-card-item__body">
-									{#if item.hasTeam && item.team}
-										<div class="team-summary" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
-											<div>
-												<div class="team-summary__identity">
-													<Star class="team-summary__icon" />
-													<div>
-														<span class="team-summary__label">My Joined Team</span>
-														<h4 class="team-summary__name">{item.team.name}</h4>
+								<div class="track-teams-container">
+									<div class="teams-grid">
+										{#if item.hasTeam && item.team}
+											<div class="track-team-card">
+												<div class="sub-header">
+													<h4 class="team-name">{item.team.name}</h4>
+													{#if item.team.status === "PENDING"}
+														<span class="status-badge pending">
+															<Clock class="w-3 h-3" style="display:inline;" /> PENDING
+														</span>
+													{:else if item.team.status === "APPROVED"}
+														<span class="status-badge approved">
+															<CheckCircle class="w-3 h-3" style="display:inline;" /> APPROVED
+														</span>
+													{/if}
+												</div>
+
+												<div class="submission-area">
+													<h4 class="submission-label">TEAM INFO</h4>
+													<div class="submission-card">
+														<p class="submission-title">{item.team.members?.length || 1}/5 Members</p>
 													</div>
 												</div>
-												<div class="team-summary__meta" style="margin-bottom: 1.5rem;">
-													<span class="role-pill">{item.team.leader_id === profile?.id ? 'Team Leader' : 'Member'}</span>
-													{#if item.team.status === "PENDING"}
-														<span class="status-pill status-pill--pending">Pending Approval</span>
-													{:else if item.team.status === "APPROVED"}
-														<span class="status-pill status-pill--approved">Approved</span>
-													{/if}
-													<span class="members-pill">{item.team.members?.length || 1}/5 Members</span>
+
+												<div class="grading-actions">
+													<button
+														class="grade-btn"
+														onclick={() => (activeTeamDetail = item.team)}
+													>
+														View Team Details
+													</button>
 												</div>
 											</div>
-											<button
-												class="btn btn--primary btn--full"
-												onclick={() => (activeTeamDetail = item.team)}
-											>
-												View Team Detail &rarr;
-											</button>
-										</div>
-									{:else}
-										<div class="no-team-summary" style="display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 1rem; height: 100%;">
-											<p class="no-team-summary__text" style="text-align: center; margin: auto;">You are registered for this event but do not have a team yet.</p>
-											<a href="/student/create-team" class="btn btn--primary btn--full">
-												+ Create Team
-											</a>
-										</div>
-									{/if}
+										{:else}
+											<div class="track-team-card">
+												<div class="sub-header">
+													<h4 class="team-name" style="color: #6b7280;">No Team Created</h4>
+												</div>
+												<div class="submission-area">
+													<h4 class="submission-label">TEAM INFO</h4>
+													<div class="submission-card no-team">
+														<p class="submission-title no-team-text">You are registered for this event but do not have a team yet.</p>
+													</div>
+												</div>
+												<div class="grading-actions">
+													<a href="/student/create-team" class="grade-btn">
+														+ Create Team
+													</a>
+												</div>
+											</div>
+										{/if}
+									</div>
 								</div>
 							</div>
 						{/each}
@@ -939,22 +959,12 @@
 		padding: 1.5rem;
 		display: flex;
 		flex-direction: column;
-		justify-content: space-between;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-		transition: all 0.2s ease;
-
-		&:hover {
-			box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-			border-color: #ea580c;
-		}
+		border: 1px solid #e5e7eb;
+		box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
 
 		.teams-page--dark & {
 			background: #18181b;
 			border-color: #27272a;
-
-			&:hover {
-				border-color: #ea580c;
-			}
 		}
 
 		&__header {
@@ -2161,6 +2171,250 @@
 	}
 
 
-	</style>
+	
+	/* Flat Design specific CSS */
+	.tracks-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.track-card {
+		border-radius: 0.75rem;
+		padding: 1.5rem;
+		background: #f9fafb;
+		border: none;
+		box-shadow: none;
+	}
+	
+	.teams-page--dark .track-card {
+		background: #1a1a1a;
+	}
+
+	.track-top {
+		margin-bottom: 1.5rem;
+		border-bottom: 1px solid #e5e7eb;
+		padding-bottom: 1.5rem;
+	}
+	.teams-page--dark .track-top {
+		border-bottom-color: #333333;
+	}
+
+	.track-heading-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 0.5rem;
+		gap: 0.75rem;
+	}
+
+	.track-name {
+		font-size: 1.25rem;
+		line-height: 1.75rem;
+		font-weight: 700;
+		color: #111827;
+	}
+	
+	.teams-page--dark .track-name {
+		color: #f4f4f5;
+	}
+
+	.track-role-badge {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+		flex-shrink: 0;
+	}
+	
+	.badge-mentor {
+		background: #ffedd5;
+		color: #c2410c;
+	}
+	.teams-page--dark .badge-mentor {
+		background: rgba(194, 65, 12, 0.2);
+		color: #fb923c;
+	}
+
+	.track-event {
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+		color: #6b7280;
+	}
+	
+	.teams-page--dark .track-event {
+		color: #a1a1aa;
+	}
+
+	.teams-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+	}
+	@media (min-width: 768px) {
+		.teams-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	@media (min-width: 1024px) {
+		.teams-grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	.track-team-card {
+		box-sizing: border-box;
+		padding: 1.25rem;
+		border-radius: 0.75rem;
+		background: #ffffff;
+		border: 1px solid #e5e7eb;
+		box-shadow: none;
+		display: flex;
+		flex-direction: column;
+	}
+	
+	.teams-page--dark .track-team-card {
+		background: #18181b;
+		border-color: #3f3f46;
+	}
+
+	.sub-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 1.25rem;
+		padding-bottom: 1.25rem;
+		border-bottom: 1px solid #e5e7eb;
+		gap: 0.5rem;
+	}
+
+	.teams-page--dark .sub-header {
+		border-bottom-color: #3f3f46;
+	}
+
+	.team-name {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: #111827;
+	}
+	
+	.teams-page--dark .team-name {
+		color: #f4f4f5;
+	}
+
+	.status-badge {
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.25rem 0.75rem;
+		border-radius: 9999px;
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		white-space: nowrap;
+	}
+	
+	.status-badge.approved {
+		background: #dcfce7;
+		color: #15803d;
+	}
+	.teams-page--dark .status-badge.approved {
+		background: rgba(21, 128, 61, 0.2);
+		color: #4ade80;
+	}
+	
+	.status-badge.pending {
+		background: #fef08a;
+		color: #a16207;
+	}
+	.teams-page--dark .status-badge.pending {
+		background: rgba(161, 98, 7, 0.2);
+		color: #fde047;
+	}
+
+	.submission-area {
+		flex-grow: 1;
+		margin-bottom: 1.5rem;
+	}
+
+	.submission-label {
+		font-size: 0.75rem;
+		font-weight: 700;
+		color: #6b7280;
+		margin-bottom: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	
+	.teams-page--dark .submission-label {
+		color: #a1a1aa;
+	}
+
+	.submission-card {
+		box-sizing: border-box;
+		padding: 1rem;
+		border-radius: 0.5rem;
+		background: #f3f4f6;
+		border: 1px solid #e5e7eb;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	
+	.teams-page--dark .submission-card {
+		background: #27272a;
+		border-color: #3f3f46;
+	}
+	
+	.submission-card.no-team {
+		background: #fef2f2;
+	}
+	
+	.teams-page--dark .submission-card.no-team {
+		background: rgba(127, 29, 29, 0.2);
+	}
+
+	.submission-title {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #111827;
+	}
+	
+	.teams-page--dark .submission-title {
+		color: #d4d4d8;
+	}
+	
+	.submission-title.no-team-text {
+		color: #dc2626;
+	}
+	
+	.teams-page--dark .submission-title.no-team-text {
+		color: #fca5a5;
+	}
+
+	.grade-btn {
+		box-sizing: border-box;
+		width: 100%;
+		padding: 0.75rem 1.5rem;
+		border-radius: 0.5rem;
+		font-weight: 600;
+		font-size: 0.875rem;
+		border: none;
+		cursor: pointer;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background: #fbcfe8;
+		color: #be185d;
+		text-decoration: none;
+	}
+	
+	.teams-page--dark .grade-btn {
+		background: #fbcfe8;
+		color: #be185d;
+	}
+	
+</style>
 
 
