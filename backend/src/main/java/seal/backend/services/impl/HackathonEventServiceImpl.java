@@ -286,8 +286,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
             .getGradingStartTime()
             .plus(activeRound.getGradingDuration())
             .isAfter(OffsetDateTime.now())) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "The current round has not yet ended.");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Grading has not yet ended.");
     }
 
     List<Track> tracks = trackRepo.findByEventId(eventId);
@@ -369,9 +368,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event does not exist."));
 
     Round roundToGrade =
-        event
-            .getRounds()
-            .stream()
+        event.getRounds().stream()
             .filter(r -> r.getActiveTime() != null && r.getGradingStartTime() == null)
             .findFirst()
             .orElseThrow(
