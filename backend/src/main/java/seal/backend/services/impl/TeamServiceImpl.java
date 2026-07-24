@@ -203,4 +203,34 @@ public class TeamServiceImpl implements TeamService {
 
     inviteRepository.save(invite);
   }
+
+  @Override
+  public TeamDto getTeamInfo(UUID teamId) {
+    String currentUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
+    User currentUser =
+        userRepository
+            .findByEmail(currentUserEmail)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "User not authenticated."));
+
+    Team team =
+        teamRepository
+            .findById(teamId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
+
+    boolean isMember =
+        team.getMembers().stream().anyMatch(m -> m.getId().equals(currentUser.getId()));
+    boolean isLeader = team.getLeader().getId().equals(currentUser.getId());
+    boolean isCoordinator = currentUser.getRole() == Role.COORDINATOR;
+
+    if (!isMember && !isLeader && !isCoordinator) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot view this team.");
+    }
+
+    return team.toDto();
+  }
 }
