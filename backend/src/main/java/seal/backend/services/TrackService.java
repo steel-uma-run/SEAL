@@ -11,4 +11,6 @@ public interface TrackService {
   TrackDto createTrack(CreateTrackRequestDto request, UUID eventId);
 
   TrackDto updateTrack(UUID trackId, UpdateTrackRequestDto request);
+
+  void deleteTrack(UUID trackId);
 }
