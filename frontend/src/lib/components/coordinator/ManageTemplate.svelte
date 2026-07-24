@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { onMount } from "svelte"
-	import { getAllCriteriaTemplates, createCriteriaTemplate } from "$lib/api"
+	import {
+		getAllCriteriaTemplates,
+		createCriteriaTemplate,
+		updateCriteriaTemplate,
+		deleteCriteriaTemplate
+	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import {
 		Plus,
@@ -11,7 +16,8 @@
 		ChevronUp,
 		ClipboardList,
 		AlertCircle,
-		CheckCircle2
+		CheckCircle2,
+		Pencil
 	} from "@lucide/svelte"
 
 	// 1. DATA LOADER & STATES
@@ -89,12 +95,55 @@
 			totalWeight === 100
 	)
 
+	let modalMode = $state<"create" | "edit">("create")
+	let editingTemplateId = $state<string | null>(null)
+
 	function openModal() {
+		modalMode = "create"
+		editingTemplateId = null
 		templateDescription = ""
 		criteriaItems = [{ id: generateId(), name: "", weight: 0 }]
 		modalMessage = ""
 		modalError = false
 		showModal = true
+	}
+
+	function openEditModal(template: any) {
+		modalMode = "edit"
+		editingTemplateId = template.id
+		templateDescription = template.description || template.name || ""
+		criteriaItems = template.criteria.map((c: any) => ({
+			id: generateId(),
+			name: c.name,
+			weight: c.weight
+		}))
+		modalMessage = ""
+		modalError = false
+		showModal = true
+	}
+
+	async function handleDelete(templateId: string) {
+		if (
+			!confirm(
+				"Are you sure you want to delete this criteria template? This action is irreversible."
+			)
+		) {
+			return
+		}
+
+		try {
+			const { response } = await deleteCriteriaTemplate({
+				path: { templateId },
+				throwOnError: false
+			})
+			if (response?.ok) {
+				loadTemplates()
+			} else {
+				alert(response?.statusText || "Failed to delete template.")
+			}
+		} catch (err: any) {
+			alert(err.message || "An unexpected error occurred.")
+		}
 	}
 
 	function closeModal() {
@@ -128,28 +177,44 @@
 		modalError = false
 
 		try {
-			const { response, data } = await createCriteriaTemplate({
+			const payload = {
 				body: {
+					name: templateDescription,
 					description: templateDescription,
 					criteria: criteriaItems.map((item) => ({
-						id: item.id,
 						name: item.name,
+						description: item.name,
 						weight: Number(item.weight)
 					}))
 				},
 				throwOnError: false
-			})
+			}
+
+			let responseObj
+			if (modalMode === "edit" && editingTemplateId) {
+				responseObj = await updateCriteriaTemplate({
+					...payload,
+					path: { templateId: editingTemplateId }
+				})
+			} else {
+				responseObj = await createCriteriaTemplate(payload)
+			}
+
+			const { response } = responseObj
 
 			if (response?.ok) {
 				modalError = false
-				modalMessage = "Template created successfully!"
+				modalMessage =
+					modalMode === "edit" ? "Template updated successfully!" : "Template created successfully!"
 				setTimeout(() => {
 					showModal = false
 					loadTemplates()
 				}, 1500)
 			} else {
 				modalError = true
-				modalMessage = response?.statusText || "Failed to create template."
+				modalMessage =
+					response?.statusText ||
+					(modalMode === "edit" ? "Failed to update template." : "Failed to create template.")
 			}
 		} catch (err: any) {
 			modalError = true
@@ -249,13 +314,29 @@
 								<span class="weight-pill">100% Weight</span>
 							</td>
 							<td>
-								<button onclick={() => toggleExpand(template.id)} class="details-btn">
-									{#if isExpanded}
-										<ChevronUp class="icon-xs" /> Hide Details
-									{:else}
-										<ChevronDown class="icon-xs" /> View Details
-									{/if}
-								</button>
+								<div class="action-buttons-cell">
+									<button onclick={() => toggleExpand(template.id)} class="details-btn">
+										{#if isExpanded}
+											<ChevronUp class="icon-xs" /> Hide Details
+										{:else}
+											<ChevronDown class="icon-xs" /> View Details
+										{/if}
+									</button>
+									<button
+										onclick={() => openEditModal(template)}
+										class="details-btn edit-btn"
+										title="Edit Template"
+									>
+										<Pencil class="icon-xs" /> Edit
+									</button>
+									<button
+										onclick={() => handleDelete(template.id)}
+										class="details-btn delete-btn"
+										title="Delete Template"
+									>
+										<Trash2 class="icon-xs" /> Delete
+									</button>
+								</div>
 							</td>
 						</tr>
 
@@ -299,7 +380,11 @@
 
 			<h3 class="modal-title">
 				<ClipboardList class="icon-md icon-primary" />
-				Create Criteria Template
+				{#if modalMode === "edit"}
+					Edit Criteria Template
+				{:else}
+					Create Criteria Template
+				{/if}
 			</h3>
 
 			{#if modalMessage}
@@ -498,6 +583,7 @@
 	.search-input,
 	.input {
 		width: 100%;
+		box-sizing: border-box;
 		border: 1px solid var(--md-outline);
 		background: var(--md-surface-container-low);
 		color: var(--md-on-surface);
@@ -639,6 +725,30 @@
 
 		&:hover {
 			background: var(--md-surface-container-high);
+		}
+	}
+
+	.action-buttons-cell {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.details-btn.edit-btn {
+		color: var(--md-primary);
+		border-color: color-mix(in srgb, var(--md-primary) 30%, transparent);
+
+		&:hover {
+			background: color-mix(in srgb, var(--md-primary) 10%, transparent);
+		}
+	}
+
+	.details-btn.delete-btn {
+		color: #ef4444;
+		border-color: rgba(239, 68, 68, 0.3);
+
+		&:hover {
+			background: rgba(239, 68, 68, 0.1);
 		}
 	}
 
@@ -865,6 +975,7 @@
 
 	.criteria-name {
 		flex: 1;
+		min-width: 0;
 	}
 
 	.criteria-weight {
