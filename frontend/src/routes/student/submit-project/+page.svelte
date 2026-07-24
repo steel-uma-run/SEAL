@@ -21,12 +21,34 @@
 	let isLoading = $state(false)
 	let isPageLoading = $state(true)
 
-	let myEventId = $state<string | null>(null)
-	let mySeasonId = $state<string | null>(null)
-	let myTeamId = $state<string | null>(null)
-	let myTeamLeaderId = $state<string | null>(null)
+	let leaderTeams = $state<any[]>([])
+	let selectedLeaderTeamIndex = $state(0)
+
+	let currentLeaderTeam = $derived(leaderTeams[selectedLeaderTeamIndex] || null)
+	let myEventId = $derived(currentLeaderTeam?.eventId || null)
+	let mySeasonId = $derived(currentLeaderTeam?.seasonId || null)
+	let myTeamId = $derived(currentLeaderTeam?.teamId || null)
+	let myTeamLeaderId = $derived(currentLeaderTeam?.teamLeaderId || null)
 	let profileId = $state<string | null>(null)
 	let submissionsHistory = $state<any[]>([])
+
+	$effect(() => {
+		if (myTeamId) {
+			fetchSubmissions(myTeamId)
+		}
+	})
+
+	async function fetchSubmissions(teamId: string) {
+		const { data: subData } = await getAllSubmissions({
+			path: { teamId: teamId },
+			throwOnError: false
+		})
+		if (subData) {
+			submissionsHistory = subData
+		} else {
+			submissionsHistory = []
+		}
+	}
 
 	onMount(async () => {
 		try {
@@ -38,6 +60,8 @@
 				return
 			}
 			profileId = profileData.id
+
+			let foundTeams: any[] = []
 
 			const { data: seasons } = await getAllSeasons({ throwOnError: false })
 			if (seasons) {
@@ -54,39 +78,37 @@
 							})
 							if (participants) {
 								const me = participants.find((p: any) => p.email === profileData.email)
-								if (me && me.team_ids && me.team_ids.length > 0) {
+								if (me) {
 									const { data: eventTeams } = await getAllTeamsOfEvents({
 										path: { eventId: event.id } as any,
 										throwOnError: false
 									})
 									if (eventTeams) {
-										const team = eventTeams.find((t: any) => me.team_ids.includes(t.id))
+										const team = eventTeams.find(
+											(t: any) =>
+												(me.team_ids && me.team_ids.includes(t.id)) ||
+												t.leader_id === me.id ||
+												t.leaderId === me.id
+										)
 										if (team) {
-											myEventId = event.id
-											mySeasonId = season.id
-											myTeamId = team.id
-											myTeamLeaderId = team.leader_id
-											break
+											foundTeams.push({
+												eventId: event.id,
+												eventName: event.name,
+												seasonId: season.id,
+												teamId: team.id,
+												teamName: team.name,
+												teamLeaderId: team.leader_id || team.leaderId
+											})
 										}
 									}
 								}
 							}
 						}
 					}
-					if (myEventId) break
 				}
 			}
 
-			// Fetch submissions history
-			if (myTeamId) {
-				const { data: subData } = await getAllSubmissions({
-					path: { teamId: myTeamId },
-					throwOnError: false
-				})
-				if (subData) {
-					submissionsHistory = subData
-				}
-			}
+			leaderTeams = foundTeams
 		} catch (e) {
 			console.error("Error loading team info", e)
 		} finally {
@@ -160,7 +182,7 @@
 </svelte:head>
 
 <div class="submit-page">
-	<a href="/student" class="submit-page__back-link">
+	<a href="/student/results" class="submit-page__back-link">
 		<svg class="submit-page__back-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
 				stroke-linecap="round"
@@ -169,7 +191,7 @@
 				d="M10 19l-7-7m0 0l7-7m-7 7h18"
 			/>
 		</svg>
-		Back to Dashboard
+		Back to Results
 	</a>
 
 	<div class="submit-page__card">
@@ -207,6 +229,22 @@
 			</div>
 		{:else}
 			<form onsubmit={handleSubmit} class="submit-page__form">
+				{#if leaderTeams.length > 1}
+					<div class="submit-page__field">
+						<label class="submit-page__label">Select Event / Team</label>
+						<select
+							bind:value={selectedLeaderTeamIndex}
+							class="submit-page__input"
+						>
+							{#each leaderTeams as t, idx}
+								<option value={idx}>
+									{t.eventName}: {t.teamName}
+								</option>
+							{/each}
+						</select>
+					</div>
+				{/if}
+
 				<!-- Project Title -->
 				<div class="submit-page__field">
 					<label class="submit-page__label">Project Title (Required)</label>
@@ -430,7 +468,7 @@
 												{score.criteria_name || "Criteria"}
 											</span>
 											<span class="submit-page__score-value">
-												{score.value}/100
+												{score.value}/10
 											</span>
 										</div>
 									{/each}
@@ -439,7 +477,7 @@
 										<span class="submit-page__score-total-value">
 											{(
 												sub.scores.reduce((acc, curr) => acc + curr.value, 0) / sub.scores.length
-											).toFixed(1)}/100
+											).toFixed(1)}/10
 										</span>
 									</div>
 								</div>
