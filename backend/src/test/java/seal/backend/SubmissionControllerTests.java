@@ -1,6 +1,7 @@
 package seal.backend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.OffsetDateTime;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -26,6 +27,7 @@ import seal.backend.entities.Student;
 import seal.backend.entities.Team;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.TeamStatus;
+import seal.backend.repositories.RoundRepository;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.openapi.model.CreateTeamRequestPayloadDto;
@@ -41,6 +43,7 @@ class SubmissionControllerTests {
   @Autowired private MockMvc mvc;
   @Autowired private TeamRepository teamRepo;
   @Autowired private StudentRepository studentRepo;
+  @Autowired private RoundRepository roundRepo;
   @Autowired private CreateUtils createUtils;
   @Autowired private PasswordEncoder passwordEncoder;
 
@@ -156,6 +159,11 @@ class SubmissionControllerTests {
   @Order(3)
   void submitWorkNotEligible() throws Exception {
     String token = loginAndGetToken("student@example.com", "hunter2");
+
+    // set submission times
+    ongoingEvent.getActiveRound().get().setSubmissionStartTime(OffsetDateTime.now());
+    ongoingEvent.getActiveRound().get().setSubmissionEndTime(OffsetDateTime.now().plusHours(1));
+    roundRepo.save(ongoingEvent.getActiveRound().get());
 
     mvc.perform(
             MockMvcRequestBuilders.post(
