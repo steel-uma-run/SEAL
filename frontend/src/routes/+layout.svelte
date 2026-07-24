@@ -7,6 +7,7 @@
 	import { token } from "$lib/auth.svelte"
 
 	import Header from "$lib/components/common/Header.svelte"
+	import { dev } from "$app/environment"
 
 	let { children } = $props()
 
@@ -33,7 +34,9 @@
 		return str
 	})
 
-	client.setConfig({ baseUrl: "http://localhost:8080/api/v0" })
+	if (dev) {
+		client.setConfig({ baseUrl: "http://localhost:8080/api/v0" })
+	}
 
 	client.interceptors.request.use((request) => {
 		if (typeof window !== "undefined") {
