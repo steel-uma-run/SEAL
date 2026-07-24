@@ -68,19 +68,50 @@ public class Submission {
   @OneToMany(mappedBy = "submission", fetch = FetchType.LAZY)
   private List<Score> scores = new ArrayList<>();
 
-  public Double calculateTotalScore() {
+  @Column(name = "avg_score")
+  private Float avgScore;
+
+  public Double calculateTotalScore(Lecturer lecturer) {
     if (scores == null || scores.isEmpty()) {
       return null;
     }
 
     return scores.stream()
+        .filter(s -> s.getLecturer().getId().equals(lecturer.getId()))
         .mapToDouble(s -> (s.getValue() * s.getCriteria().getWeight()) / 10.0)
         .sum();
   }
 
-  public SubmissionDto toDto() {
-    Double calculatedTotal = calculateTotalScore();
+  public Float calculateAverageScore() {
+    if (scores == null || scores.isEmpty()) {
+      return null;
+    }
 
+    var lecturerIds = scores.stream().map(s -> s.getLecturer().getId()).distinct().toList();
+
+    if (lecturerIds.isEmpty()) {
+      return null;
+    }
+
+    double avg =
+        lecturerIds.stream()
+            .mapToDouble(
+                id ->
+                    scores.stream()
+                        .filter(s -> s.getLecturer().getId().equals(id))
+                        .mapToDouble(s -> (s.getValue() * s.getCriteria().getWeight()) / 10.0)
+                        .sum())
+            .average()
+            .orElse(0.0);
+
+    return (float) avg;
+  }
+
+  public void refreshAvgScore() {
+    this.avgScore = calculateAverageScore();
+  }
+
+  public SubmissionDto toDto() {
     return new SubmissionDto(
         getId(),
         getTitle(),
@@ -90,6 +121,6 @@ public class Submission {
         getSlideLink(),
         getSubmitTime(),
         scores.stream().map(Score::toDto).toArray(ScoreDto[]::new),
-        calculatedTotal != null ? calculatedTotal.floatValue() : null);
+        avgScore);
   }
 }
