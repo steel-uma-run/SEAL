@@ -5,24 +5,24 @@ import java.util.Random;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import seal.backend.entities.Coordinator;
-import seal.backend.entities.Criteria;
 import seal.backend.entities.CriteriaTemplate;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Round;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
+import seal.backend.entities.TemplatedCriteria;
 import seal.backend.enums.EventStatus;
 import seal.backend.enums.Role;
 import seal.backend.enums.Semester;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
 import seal.backend.repositories.CoordinatorRepository;
-import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.CriteriaTemplateRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.RoundRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
+import seal.backend.repositories.TemplatedCriteriaRepository;
 
 @Service
 public class CreateUtils {
@@ -31,7 +31,7 @@ public class CreateUtils {
   @Autowired private SeasonRepository seasonRepo;
   @Autowired private HackathonEventRepository eventRepo;
   @Autowired private RoundRepository roundRepo;
-  @Autowired private CriteriaRepository criteraRepo;
+  @Autowired private TemplatedCriteriaRepository templatedCriteriaRepo;
   @Autowired private CriteriaTemplateRepository criteriaTemplateRepo;
 
   public final String randomString(int len) {
@@ -112,11 +112,13 @@ public class CreateUtils {
   }
 
   public final CriteriaTemplate createCriteriaTemplate() {
-    CriteriaTemplate template = criteriaTemplateRepo.save(new CriteriaTemplate(randomString(50)));
+    CriteriaTemplate template =
+        criteriaTemplateRepo.save(new CriteriaTemplate(randomString(10), randomString(50)));
 
     for (int i = 0; i < 5; i++) {
-      Criteria crit = new Criteria(randomString(15), 20, template);
-      criteraRepo.save(crit);
+      TemplatedCriteria crit =
+          new TemplatedCriteria(randomString(10), randomString(15), 20, template);
+      templatedCriteriaRepo.save(crit);
     }
 
     return criteriaTemplateRepo.save(template);
