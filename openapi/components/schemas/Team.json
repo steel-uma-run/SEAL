@@ -24,6 +24,9 @@
       "type": "string",
       "format": "uuid"
     },
+    "eliminated_at_round": {
+      "$ref": "./Round.json"
+    },
     "track_id": {
       "type": "string",
       "format": "uuid"

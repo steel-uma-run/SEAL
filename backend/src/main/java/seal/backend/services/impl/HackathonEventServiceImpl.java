@@ -257,6 +257,16 @@ public class HackathonEventServiceImpl implements HackathonEventService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event is not ongoing."));
 
+    // make sure grading has finished
+    if (activeRound.getGradingStartTime() == null
+        || activeRound
+            .getGradingStartTime()
+            .plus(activeRound.getGradingDuration())
+            .isAfter(OffsetDateTime.now())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "The current round has not yet ended.");
+    }
+
     List<Track> tracks = trackRepo.findByEventId(eventId);
     if (tracks.size() <= 0) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event does not have any tracks.");

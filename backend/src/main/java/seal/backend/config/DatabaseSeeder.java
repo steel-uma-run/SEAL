@@ -523,6 +523,7 @@ public class DatabaseSeeder implements CommandLineRunner {
       }
 
       Round targetRound = isSpringEvent ? rdSpring1 : rdSum1;
+      targetRound.setActiveTime(OffsetDateTime.now());
 
       // Thời gian nộp bài phải nằm giữa submissionStartTime (07h15) và submissionEndTime (10h00) ->
       // Khoảng 165 phút
