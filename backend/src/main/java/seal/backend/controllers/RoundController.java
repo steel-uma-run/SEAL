@@ -1,5 +1,6 @@
 package seal.backend.controllers;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import seal.backend.config.GlobalConfig;
 import seal.backend.services.RoundService;
 import seal.openapi.api.RoundsApi;
+import seal.openapi.model.AssignCriteriaRequestArrayItemDto;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,7 +31,8 @@ public class RoundController implements RoundsApi {
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<Void> assignCriteria(
-      @PathVariable(name = "roundId") @NotNull UUID roundId, @RequestBody @NotNull UUID[] body) {
+      @PathVariable(name = "roundId") @NotNull UUID roundId,
+      @RequestBody @Valid @NotNull AssignCriteriaRequestArrayItemDto[] body) {
     roundService.assignCriteria(roundId, body);
     return ResponseEntity.noContent().build();
   }
