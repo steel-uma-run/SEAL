@@ -59,6 +59,10 @@ public class Team {
   @JoinColumn(name = "track_id", nullable = true)
   private Track track;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "eliminated_at_round_id", nullable = true)
+  private Round eliminatedAtRound;
+
   // eager to make the tests work
   @ManyToMany(fetch = FetchType.EAGER)
   private List<Student> members = new ArrayList<>();

@@ -1,6 +1,5 @@
 package seal.backend.repositories;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
