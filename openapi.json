@@ -31,6 +31,9 @@
     "/teams/{teamId}/approve": {
       "$ref": "./openapi/paths/teams/approve.json"
     },
+    "/teams/{teamId}/disqualify": {
+      "$ref": "./openapi/paths/teams/disqualify.json"
+    },
     "/teams/{teamId}/invite/{studentId}": {
       "$ref": "./openapi/paths/teams/invite.json"
     },

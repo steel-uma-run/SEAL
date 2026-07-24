@@ -63,6 +63,9 @@ public class Team {
   @JoinColumn(name = "eliminated_at_round_id", nullable = true)
   private Round eliminatedAtRound;
 
+  @Column(columnDefinition = "TEXT", nullable = true)
+  private String disqualifyReason;
+
   // eager to make the tests work
   @ManyToMany(fetch = FetchType.EAGER)
   private List<Student> members = new ArrayList<>();
@@ -80,6 +83,7 @@ public class Team {
         getMembers().stream().map(Student::getId).toArray(UUID[]::new),
         getLeader().getId(),
         eliminatedAtRound != null ? eliminatedAtRound.toDto() : null,
+        getDisqualifyReason(),
         getTrack() != null ? getTrack().getId() : null);
   }
 }

@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -235,16 +236,21 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     return resultList;
   }
 
+  @Transactional
   @Override
   public List<TeamDto> getRanking(UUID eventId) {
     List<Submission> allSubmissions =
         submissionRepository.findAllBySubmitterTeamHackathonEventId(eventId);
 
     // Chỉ lấy bài nộp MỚI NHẤT đã được chấm điểm của mỗi team
-    Map<Team, Submission> teamLatestSubmission = new java.util.HashMap<>();
+    Map<Team, Submission> teamLatestSubmission = new HashMap<>();
     for (Submission s : allSubmissions) {
       if (s.calculateAvgScore() != null) {
         Team t = s.getSubmitterTeam();
+
+        if (!t.isTeamValid()) continue;
+        if (t.getEliminatedAtRound() != null) continue;
+
         if (!teamLatestSubmission.containsKey(t)
             || s.getSubmitTime().isAfter(teamLatestSubmission.get(t).getSubmitTime())) {
           teamLatestSubmission.put(t, s);
@@ -297,12 +303,15 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     // eliminate teams that aren't advanced
     for (Track track : tracks) {
       List<Team> teams = teamRepo.findAllByTrackId(track.getId());
+      teams.removeIf(team -> !team.isTeamValid() || team.getEliminatedAtRound() != null);
+
       List<Team> topTeams =
           teams.stream()
               .<Map.Entry<Team, Double>>mapMulti(
                   (team, consumer) -> {
                     List<Submission> submissions =
                         submissionRepository.findAllBySubmitterTeamId(team.getId());
+
                     if (submissions.size() <= 0) {
                       // team automatically disqualified because they haven't submitted anything
                       return;
