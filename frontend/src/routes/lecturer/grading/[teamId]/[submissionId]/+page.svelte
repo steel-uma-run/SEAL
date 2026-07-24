@@ -110,16 +110,38 @@
 		}
 	}
 
-	// Calculate total score based on weights
+	// Calculate total score based on weights (only count valid scores between 0 and 10)
 	let totalScore = $derived.by(() => {
 		if (!criteriaTemplate || !criteriaTemplate.criteria) return 0
 		let total = 0
 		for (const c of criteriaTemplate.criteria) {
-			const val = gradingData[c.id]?.value || 0
-			total += (val * (c.weight || 0)) / 100
+			const val = gradingData[c.id]?.value
+			if (val !== null && val !== undefined && !isNaN(val) && val >= 0 && val <= 10) {
+				total += (val * (c.weight || 0)) / 100
+			}
 		}
 		return total
 	})
+
+	function handleScoreInput(criteriaId: string, event: Event) {
+		const input = event.target as HTMLInputElement
+		if (input.value === "") {
+			gradingData[criteriaId].value = null
+			return
+		}
+		const val = Number(input.value)
+		if (isNaN(val) || val < 0 || val > 10) {
+			gradingData[criteriaId].value = null
+			input.value = ""
+			errorMessage = "Score must be between 0 and 10. Invalid value was cleared."
+		} else {
+			gradingData[criteriaId].value = val
+			if (errorMessage && errorMessage.includes("between 0 and 10")) {
+				errorMessage = ""
+			}
+		}
+	}
+
 
 	// Check if any grade is below threshold (e.g., below 5) and requires a comment
 	let requiresDocumentedReason = $derived.by(() => {
@@ -128,7 +150,19 @@
 			const val = gradingData[c.id]?.value
 			const comment = gradingData[c.id]?.comment
 			// BR-47: Required documented reason if score is below 5
-			if (val !== null && val < 5 && (!comment || comment.trim() === "")) {
+			if (val !== null && val !== undefined && val < 5 && (!comment || comment.trim() === "")) {
+				return true
+			}
+		}
+		return false
+	})
+
+	// Check if any grade is out of range (< 0 or > 10)
+	let hasInvalidScores = $derived.by(() => {
+		if (!criteriaTemplate || !criteriaTemplate.criteria) return false
+		for (const c of criteriaTemplate.criteria) {
+			const val = gradingData[c.id]?.value
+			if (val !== null && val !== undefined && (val < 0 || val > 10)) {
 				return true
 			}
 		}
@@ -143,12 +177,12 @@
 		// Validation
 		for (const c of criteriaTemplate.criteria) {
 			const grade = gradingData[c.id]
-			if (grade.value === null) {
-				errorMessage = `Please enter a score for ${c.name}`
+			if (grade.value === null || grade.value === undefined || isNaN(Number(grade.value))) {
+				errorMessage = `Please enter a valid score for ${c.name}`
 				return
 			}
 			if (grade.value < 0 || grade.value > 10) {
-				errorMessage = `Score for ${c.name} must be between 0 and 10`
+				errorMessage = `Score for ${c.name} must be between 0 and 10.`
 				return
 			}
 		}
@@ -357,12 +391,18 @@
 													type="number"
 													min="0"
 													max="10"
-													bind:value={gradingData[c.id].value}
-													class="input"
+													step="0.1"
+													value={gradingData[c.id].value ?? ""}
+													oninput={(e) => handleScoreInput(c.id, e)}
+													onchange={(e) => handleScoreInput(c.id, e)}
+													class="input {gradingData[c.id].value !== null && gradingData[c.id].value !== undefined && (gradingData[c.id].value < 0 || gradingData[c.id].value > 10) ? 'input--error' : ''}"
 													placeholder="e.g. 8.5"
 													required
 													disabled={hasGraded}
 												/>
+												{#if gradingData[c.id].value !== null && gradingData[c.id].value !== undefined && (gradingData[c.id].value < 0 || gradingData[c.id].value > 10)}
+													<p class="field-error-text">Score must be between 0 and 10</p>
+												{/if}
 											</div>
 										</div>
 										<div>
@@ -387,7 +427,7 @@
 
 						{#if !hasGraded}
 							<div class="form-actions">
-								<button type="submit" disabled={isSubmitting} class="btn-submit">
+								<button type="submit" disabled={isSubmitting || hasInvalidScores} class="btn-submit">
 									{#if isSubmitting}
 										<div class="spinner spinner--white"></div>
 										Submitting...
@@ -808,6 +848,22 @@
 				resize: vertical;
 				min-height: 40px;
 			}
+		}
+
+		.input--error {
+			border-color: $red-500 !important;
+			background-color: #fef2f2 !important;
+
+			&:focus {
+				box-shadow: 0 0 0 2px #{$red-500} !important;
+			}
+		}
+
+		.field-error-text {
+			color: $red-500;
+			font-size: 0.75rem;
+			font-weight: 500;
+			margin-top: 0.25rem;
 		}
 
 		// ---- Form Actions ----

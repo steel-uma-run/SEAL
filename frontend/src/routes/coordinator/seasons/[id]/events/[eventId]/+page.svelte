@@ -19,6 +19,12 @@
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Clock, X, Plus } from "@lucide/svelte"
 
+	// Stub: updateRoundCriteria is not yet in the generated SDK
+	async function updateRoundCriteria(opts: any): Promise<any> {
+		console.warn("updateRoundCriteria not yet available in API SDK")
+		return { response: { ok: false } }
+	}
+
 	// Route Params
 	let seasonId = $derived($page.params.id || "")
 	let eventId = $derived($page.params.eventId || "")

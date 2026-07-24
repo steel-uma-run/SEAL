@@ -1,35 +1,12 @@
 <script lang="ts">
-	import { fade } from "svelte/transition"
-	import { theme } from "$lib/theme.svelte"
 	import { formatSeasonName } from "$lib/utils/seasons"
-	import { formatFullDate } from "$lib/utils/formatters.js"
-	import type { HackathonEvent } from "$lib/api"
+	import EventCard from "$lib/components/EventCard.svelte"
+	import KaomojiError from "$lib/components/KaomojiError.svelte"
 
 	let { activeSeason, events = [] } = $props<{
 		activeSeason: any
 		events: any[]
 	}>()
-
-	let currentIndex = $state(0)
-
-	function nextEvent() {
-		if (events.length > 0) {
-			currentIndex = (currentIndex + 1) % events.length
-		}
-	}
-
-	function prevEvent() {
-		if (events.length > 0) {
-			currentIndex = (currentIndex - 1 + events.length) % events.length
-		}
-	}
-
-	// Reset index if events list changes
-	$effect(() => {
-		if (currentIndex >= events.length) {
-			currentIndex = 0
-		}
-	})
 </script>
 
 <!-- Reusable Event Card Snippet -->
@@ -179,7 +156,7 @@
 					></button>
 				{/each}
 			</div>
-		{/if}
+		</div>
 	{/if}
 </div>
 

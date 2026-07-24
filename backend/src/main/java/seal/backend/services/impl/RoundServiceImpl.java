@@ -1,9 +1,11 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
-import java.util.Arrays;
+
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,10 +16,10 @@ import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Round;
 import seal.backend.enums.EventStatus;
 import seal.backend.repositories.CriteriaRepository;
-import seal.backend.repositories.CriteriaTemplateRepository;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.RoundRepository;
 import seal.backend.services.RoundService;
+import seal.openapi.model.AssignCriteriaRequestArrayItemDto;
 import seal.openapi.model.CreateRoundRequestDto;
 import seal.openapi.model.RoundDto;
 
@@ -27,7 +29,6 @@ public class RoundServiceImpl implements RoundService {
   private final HackathonEventRepository eventRepository;
   private final RoundRepository roundRepository;
   private final CriteriaRepository criteriaRepo;
-  private final CriteriaTemplateRepository criteriaTemplateRepository;
 
   @Override
   public RoundDto createRound(UUID eventId, CreateRoundRequestDto request) {
@@ -95,7 +96,7 @@ public class RoundServiceImpl implements RoundService {
 
   @Override
   @Transactional
-  public void assignCriteria(UUID roundId, UUID[] criteriaIds) {
+  public void assignCriteria(UUID roundId, AssignCriteriaRequestArrayItemDto[] criteriaDtos) {
     Round round =
         roundRepository
             .findById(roundId)
@@ -107,13 +108,21 @@ public class RoundServiceImpl implements RoundService {
           HttpStatus.BAD_REQUEST, "Cannot assign criteria. Event is not in DRAFT status.");
     }
 
-    List<Criteria> criterias = criteriaRepo.findAllById(Arrays.asList(criteriaIds));
-    if (criterias.size() < criteriaIds.length) {
-      // some IDs were nonexistent
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Some criteria were invalid");
+    // clear all existing criteria of this round (if any)
+    for (Criteria criteria : round.getCriteria()) {
+      criteriaRepo.delete(criteria);
+    }
+    round.getCriteria().clear();
+
+    // create new criteria from the dtos
+    List<Criteria> criteriaSet = new ArrayList<>();
+
+    for (AssignCriteriaRequestArrayItemDto dto : criteriaDtos) {
+      Criteria newCriteria = new Criteria(dto.name(), dto.description(), dto.weight(), round);
+      criteriaRepo.save(newCriteria);
     }
 
-    round.setCriteria(new HashSet<>(criterias));
+    round.setCriteria(criteriaSet);
     roundRepository.save(round);
   }
 }

@@ -1,12 +1,15 @@
 {
   "type": "object",
-  "required": ["id", "name", "weight"],
+  "required": ["id", "name", "description", "weight"],
   "properties": {
     "id": {
       "type": "string",
       "format": "uuid"
     },
     "name": {
+      "type": "string"
+    },
+    "description": {
       "type": "string"
     },
     "weight": {

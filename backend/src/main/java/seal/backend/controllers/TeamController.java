@@ -57,4 +57,9 @@ public class TeamController implements TeamsApi {
     teamService.inviteToTeam(teamId, studentId);
     return ResponseEntity.ok().build();
   }
+
+  @Override
+  public ResponseEntity<TeamDto> getTeamInfo(@PathVariable(name = "teamId") @NotNull UUID teamId) {
+    return ResponseEntity.ok(teamService.getTeamInfo(teamId));
+  }
 }

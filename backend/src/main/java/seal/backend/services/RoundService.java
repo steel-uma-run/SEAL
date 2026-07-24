@@ -2,6 +2,7 @@ package seal.backend.services;
 
 import java.util.List;
 import java.util.UUID;
+import seal.openapi.model.AssignCriteriaRequestArrayItemDto;
 import seal.openapi.model.CreateRoundRequestDto;
 import seal.openapi.model.RoundDto;
 
@@ -12,5 +13,5 @@ public interface RoundService {
 
   List<RoundDto> getRounds(UUID eventId);
 
-  void assignCriteria(UUID roundId, UUID[] criteriaIds);
+  void assignCriteria(UUID roundId, AssignCriteriaRequestArrayItemDto[] criteriaDtos);
 }

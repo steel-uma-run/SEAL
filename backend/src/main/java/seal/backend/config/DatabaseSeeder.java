@@ -20,6 +20,7 @@ import seal.backend.entities.Round;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
 import seal.backend.entities.Team;
+import seal.backend.entities.TemplatedCriteria;
 import seal.backend.entities.Track;
 import seal.backend.enums.EventStatus;
 import seal.backend.enums.Role;
@@ -35,6 +36,7 @@ import seal.backend.repositories.RoundRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.TeamRepository;
+import seal.backend.repositories.TemplatedCriteriaRepository;
 import seal.backend.repositories.TrackRepository;
 import seal.backend.repositories.UserRepository;
 
@@ -50,6 +52,7 @@ public class DatabaseSeeder implements CommandLineRunner {
   private final RoundRepository roundRepo;
   private final CriteriaTemplateRepository templateRepo;
   private final CriteriaRepository criteriaRepo;
+  private final TemplatedCriteriaRepository templatedCriteriaRepo;
   private final UserRepository userRepo;
   private final LecturerRepository lecturerRepo;
   private final StudentRepository studentRepo;
@@ -178,34 +181,102 @@ public class DatabaseSeeder implements CommandLineRunner {
     // ==========================================
     // 3. TẠO TIÊU CHÍ (CRITERIA)
     // ==========================================
-    CriteriaTemplate tempV1 = templateRepo.save(new CriteriaTemplate("Tiêu chí Vòng 1"));
-    CriteriaTemplate tempV2 = templateRepo.save(new CriteriaTemplate("Tiêu chí Vòng 2"));
+    CriteriaTemplate tempV1 =
+        templateRepo.save(new CriteriaTemplate("Tiêu chí Vòng 1", "Tiêu chí Vòng 1"));
+    CriteriaTemplate tempV2 =
+        templateRepo.save(new CriteriaTemplate("Tiêu chí Vòng 2", "Tiêu chí Vòng 2"));
 
-    List<Criteria> v1Criterias =
-        criteriaRepo.saveAll(
+    List<TemplatedCriteria> v1Criterias =
+        templatedCriteriaRepo.saveAll(
             Arrays.asList(
-                new Criteria("Tính đúng đắn & Hoàn thiện chức năng", 30, tempV1),
-                new Criteria("Ứng dụng AI trong giải pháp", 25, tempV1),
-                new Criteria("Thiết kế & Kiến trúc phần mềm", 15, tempV1),
-                new Criteria("Thuyết trình & Demo V1", 20, tempV1),
-                new Criteria("Teamwork & Tinh thần làm việc", 10, tempV1)));
+                new TemplatedCriteria(
+                    "Tính đúng đắn & Hoàn thiện chức năng",
+                    "Tính đúng đắn & Hoàn thiện chức năng",
+                    30,
+                    tempV1),
+                new TemplatedCriteria(
+                    "Ứng dụng AI trong giải pháp", "Ứng dụng AI trong giải pháp", 25, tempV1),
+                new TemplatedCriteria(
+                    "Thiết kế & Kiến trúc phần mềm", "Thiết kế & Kiến trúc phần mềm", 15, tempV1),
+                new TemplatedCriteria(
+                    "Thuyết trình & Demo V1", "Thuyết trình & Demo V1", 20, tempV1),
+                new TemplatedCriteria(
+                    "Teamwork & Tinh thần làm việc", "Teamwork & Tinh thần làm việc", 10, tempV1)));
 
-    List<Criteria> v2Criterias =
-        criteriaRepo.saveAll(
+    List<TemplatedCriteria> v2Criterias =
+        templatedCriteriaRepo.saveAll(
             Arrays.asList(
-                new Criteria("Độ hoàn thiện & Chất lượng sản phẩm", 25, tempV2),
-                new Criteria("Sáng tạo & Khả năng đổi mới", 25, tempV2),
-                new Criteria("Tính ứng dụng & Khả năng triển khai", 20, tempV2),
-                new Criteria("Trình bày & Demo sản phẩm V2", 20, tempV2),
-                new Criteria("Làm việc nhóm & Trả lời phản biện", 10, tempV2)));
+                new TemplatedCriteria(
+                    "Độ hoàn thiện & Chất lượng sản phẩm",
+                    "Độ hoàn thiện & Chất lượng sản phẩm",
+                    25,
+                    tempV2),
+                new TemplatedCriteria(
+                    "Sáng tạo & Khả năng đổi mới", "Sáng tạo & Khả năng đổi mới", 25, tempV2),
+                new TemplatedCriteria(
+                    "Tính ứng dụng & Khả năng triển khai",
+                    "Tính ứng dụng & Khả năng triển khai",
+                    20,
+                    tempV2),
+                new TemplatedCriteria(
+                    "Trình bày & Demo sản phẩm V2", "Trình bày & Demo sản phẩm V2", 20, tempV2),
+                new TemplatedCriteria(
+                    "Làm việc nhóm & Trả lời phản biện",
+                    "Làm việc nhóm & Trả lời phản biện",
+                    10,
+                    tempV2)));
 
-    rdSpring1.getCriteria().addAll(v1Criterias);
+    for (TemplatedCriteria templatedCriteria : v1Criterias) {
+      rdSpring1
+          .getCriteria()
+          .add(
+              new Criteria(
+                  templatedCriteria.getName(),
+                  templatedCriteria.getDescription(),
+                  templatedCriteria.getWeight(),
+                  rdSpring1));
+      criteriaRepo.saveAll(rdSpring1.getCriteria());
+    }
+
+    for (TemplatedCriteria templatedCriteria : v2Criterias) {
+      rdSpring2
+          .getCriteria()
+          .add(
+              new Criteria(
+                  templatedCriteria.getName(),
+                  templatedCriteria.getDescription(),
+                  templatedCriteria.getWeight(),
+                  rdSpring2));
+      criteriaRepo.saveAll(rdSpring2.getCriteria());
+    }
+
+    for (TemplatedCriteria templatedCriteria : v1Criterias) {
+      rdSum1
+          .getCriteria()
+          .add(
+              new Criteria(
+                  templatedCriteria.getName(),
+                  templatedCriteria.getDescription(),
+                  templatedCriteria.getWeight(),
+                  rdSum1));
+      criteriaRepo.saveAll(rdSum1.getCriteria());
+    }
+
+    for (TemplatedCriteria templatedCriteria : v1Criterias) {
+      rdSum2
+          .getCriteria()
+          .add(
+              new Criteria(
+                  templatedCriteria.getName(),
+                  templatedCriteria.getDescription(),
+                  templatedCriteria.getWeight(),
+                  rdSum2));
+      criteriaRepo.saveAll(rdSum2.getCriteria());
+    }
+
     roundRepo.save(rdSpring1);
-    rdSpring2.getCriteria().addAll(v2Criterias);
     roundRepo.save(rdSpring2);
-    rdSum1.getCriteria().addAll(v1Criterias);
     roundRepo.save(rdSum1);
-    rdSum2.getCriteria().addAll(v2Criterias);
     roundRepo.save(rdSum2);
 
     // ==========================================

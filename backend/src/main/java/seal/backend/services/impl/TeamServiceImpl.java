@@ -203,4 +203,15 @@ public class TeamServiceImpl implements TeamService {
 
     inviteRepository.save(invite);
   }
+
+  @Override
+  public TeamDto getTeamInfo(UUID teamId) {
+    Team team =
+        teamRepository
+            .findById(teamId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
+
+    return team.toDto();
+  }
 }
