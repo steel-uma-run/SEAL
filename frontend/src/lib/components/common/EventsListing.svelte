@@ -158,9 +158,6 @@
 	$bp-md: 768px;
 
 	.events-listing-container {
-		max-width: 72rem;
-		margin: 0 auto;
-		padding: 1.5rem;
 		width: 100%;
 	}
 

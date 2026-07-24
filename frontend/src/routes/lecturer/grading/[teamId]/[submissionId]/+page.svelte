@@ -11,7 +11,7 @@
 		Code,
 		Presentation
 	} from "@lucide/svelte"
-	import { getAllCriteriaTemplates, gradeSubmission, getAllSubmissions, getSelfProfile, requestRegrade } from "$lib/api"
+	import { getAllCriteriaTemplates, gradeSubmission, getAllSubmissions, getSelfProfile, requestRegrade, getRounds } from "$lib/api"
 	import { goto } from "$app/navigation"
 
 	let teamId = $derived($page.params.teamId)
@@ -21,6 +21,8 @@
 	let isSubmitting = $state(false)
 	let errorMessage = $state("")
 	let successMessage = $state("")
+
+	let eventId = $derived($page.url.searchParams.get("event"))
 
 	let criteriaTemplate: any = $state(null)
 	let submission: any = $state(null)
@@ -42,12 +44,15 @@
 	}
 
 	$effect(() => {
-		if (teamId && submissionId) {
-			loadData(teamId, submissionId)
+		if (teamId && submissionId && eventId) {
+			loadData(teamId, submissionId, eventId)
+		} else if (teamId && submissionId && !eventId) {
+			errorMessage = "Missing event context in URL. Please navigate from the Grading list."
+			isLoading = false
 		}
 	})
 
-	async function loadData(currentTeamId: string, currentSubmissionId: string) {
+	async function loadData(currentTeamId: string, currentSubmissionId: string, currentEventId: string) {
 		try {
 			// Fetch the submission based on teamId
 			const { data: submissions, error: submissionsError } = await getAllSubmissions({
@@ -71,20 +76,37 @@
 				return
 			}
 
-			// Fetch criteria templates
-			const { data: templates, error: templatesError } = await getAllCriteriaTemplates({ throwOnError: false })
+			// Fetch criteria from the rounds of this event
+			const { data: rounds, error: roundsError } = await getRounds({ path: { eventId: currentEventId }, throwOnError: false })
 
-			if (templatesError) {
-				errorMessage = `Failed to load criteria templates: ${templatesError?.message || JSON.stringify(templatesError)}`
+			let activeTemplates = null;
+
+			if (rounds && rounds.length > 0) {
+				// Get criteria from the latest round (or active round)
+				const round = rounds[rounds.length - 1];
+				if (round.criteria && round.criteria.length > 0) {
+					activeTemplates = [
+						{
+							id: round.id,
+							name: "Round Criteria",
+							description: "Criteria for the current round",
+							criteria: round.criteria
+						}
+					];
+				}
+			}
+
+			if (!activeTemplates) {
+				errorMessage = "No criteria assigned to the rounds for this event. Cannot grade submission."
 				isLoading = false
 				return
 			}
 
 			const { data: profile } = await getSelfProfile({ throwOnError: false })
 
-			if (templates && templates.length > 0) {
-				// We use the first template as a workaround since backend doesn't link Event/Round to a specific template
-				criteriaTemplate = templates[0]
+			if (activeTemplates && activeTemplates.length > 0) {
+				// We use the criteria from the round
+				criteriaTemplate = activeTemplates[0]
 
 				// Initialize grading form data
 				if (criteriaTemplate.criteria) {

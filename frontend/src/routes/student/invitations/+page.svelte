@@ -390,7 +390,7 @@
 </script>
 
 <svelte:head>
-	<title>Team Management - Student</title>
+	<title>Team Invitations - Student</title>
 </svelte:head>
 
 <div class="teams-page {theme.darkMode ? 'teams-page--dark' : ''}">
@@ -428,8 +428,8 @@
 				<Users class="page-header__icon" />
 			</div>
 			<div class="page-header__text">
-				<h1 class="page-header__title">Team</h1>
-				<p class="page-header__subtitle">Manage your hackathon teams, event registrations, and invitations</p>
+				<h1 class="page-header__title">Team Invitations</h1>
+				<p class="page-header__subtitle">Manage your incoming team invitations</p>
 			</div>
 		</div>
 	{/if}
@@ -443,304 +443,78 @@
 			<p class="error-box__text">{errorMessage}</p>
 		</div>
 	{:else}
-		{#if activeTeamDetail === null}
-				{#if joinedEventTeams.length === 0}
-					<div class="empty-invites">
-						<Users class="empty-invites__icon" />
-						<h3 class="empty-invites__title">No Event Registrations</h3>
-						<p class="empty-invites__desc">
-							You haven't registered for any active events yet. Head over to the dashboard to join an event!
-						</p>
-						<a href="/student" class="btn btn--primary" style="margin-top: 1rem;">Go to Dashboard</a>
-					</div>
-				{:else}
-					<div class="events-teams-grid">
-						{#each joinedEventTeams as item}
-							<div class="event-card-item">
-								<div class="event-card-item__header">
-									<span class="event-card-item__tag">Event</span>
-									<h3 class="event-card-item__title">{item.eventName}</h3>
-									<p class="event-card-item__desc">{item.eventDescription || "No description provided."}</p>
-								</div>
-
-								<div class="event-card-item__body">
-									{#if item.hasTeam && item.team}
-										<div class="team-summary" style="display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
-											<div>
-												<div class="team-summary__identity">
-													<Star class="team-summary__icon" />
-													<div>
-														<span class="team-summary__label">My Joined Team</span>
-														<h4 class="team-summary__name">{item.team.name}</h4>
-													</div>
-												</div>
-												<div class="team-summary__meta" style="margin-bottom: 1.5rem;">
-													<span class="role-pill">{item.team.leader_id === profile?.id ? 'Team Leader' : 'Member'}</span>
-													{#if item.team.status === "PENDING"}
-														<span class="status-pill status-pill--pending">Pending Approval</span>
-													{:else if item.team.status === "APPROVED"}
-														<span class="status-pill status-pill--approved">Approved</span>
-													{/if}
-													<span class="members-pill">{item.team.members?.length || 1}/5 Members</span>
-												</div>
-											</div>
-											<button
-												class="btn btn--primary btn--full"
-												onclick={() => (activeTeamDetail = item.team)}
-											>
-												View Team Detail &rarr;
-											</button>
-										</div>
-									{:else}
-										<div class="no-team-summary" style="display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 1rem; height: 100%;">
-											<p class="no-team-summary__text" style="text-align: center; margin: auto;">You are registered for this event but do not have a team yet.</p>
-											<a href="/student/create-team" class="btn btn--primary btn--full">
-												+ Create Team
-											</a>
-										</div>
-									{/if}
-								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
+		
+			{#if invites.length === 0}
+				<div class="empty-invites">
+					<Users class="empty-invites__icon" />
+					<h3 class="empty-invites__title">No Pending Invitations</h3>
+					<p class="empty-invites__desc">You haven't received any team invitations yet.</p>
+				</div>
 			{:else}
-				<div class="team-card">
-					<div class="team-card__top">
-						<div class="team-card__identity">
-							<div class="team-card__badge-icon">
-								<Star class="team-card__badge-svg" />
-							</div>
-							<div>
-								<h3 class="team-card__eyebrow">
-									MY TEAM • {myTeam.event_name || 'EVENT'}
-								</h3>
-								<h2 class="team-card__name">{myTeam.name || "Untitled Team"}</h2>
-							</div>
-						</div>
-
-						<div class="team-card__status-actions">
-							{#if myTeam.status === "PENDING"}
-								<span class="status-pill status-pill--pending">Status: Pending Approval</span>
-							{:else if myTeam.status === "APPROVED"}
-								<span class="status-pill status-pill--approved">Status: Approved</span>
-							{/if}
-
-							{#if myTeam.leader_id === profile?.id}
-								<a href="/student/submit-project" class="btn btn--primary btn--sm btn--submission">
-									<svg class="btn__icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-										><path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-										></path></svg
-									>
-									Submission
-								</a>
-							{/if}
-						</div>
-					</div>
-
-					<div class="info-grid info-grid--2">
-						<div class="info-card">
-							<p class="info-card__label">Team ID</p>
-							<p class="info-card__value info-card__value--mono">{myTeam.id}</p>
-						</div>
-						<div class="info-card">
-							<p class="info-card__label">My Role</p>
-							<p
-								class="info-card__value"
-								class:info-card__value--orange={studentUuid === myTeam.leader_id ||
-									studentUuid === myTeam.leaderId}
-								class:info-card__value--green={!(
-									studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
-								)}
-							>
-								{studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
-									? "Team Leader"
-									: "Member"}
-							</p>
-						</div>
-					</div>
-
-					<div class="info-grid info-grid--3">
-						<div class="info-card">
-							<p class="info-card__label">Track</p>
-							<p class="info-card__value">{myTeam.track_name || "N/A"}</p>
-						</div>
-						<div class="info-card">
-							<p class="info-card__label">Mentor(s)</p>
-							{#if myTeam.mentors && myTeam.mentors.length > 0}
-								<div class="tag-list">
-									{#each myTeam.mentors as mentor}
-										<span class="tag tag--violet">{mentor}</span>
-									{/each}
-								</div>
-							{:else}
-								<p class="info-card__value">N/A</p>
-							{/if}
-						</div>
-						<div class="info-card">
-							<p class="info-card__label">Active Round</p>
-							<p class="info-card__value info-card__value--blue">{myTeam.round_name || "N/A"}</p>
-						</div>
-					</div>
-
-					<div class="members-section">
-						<div class="members-section__header">
-							<h3 class="members-section__title">Team Members ({myTeam.members?.length || 1}/5)</h3>
-						</div>
-
-						<div class="members-list">
-							{#if myTeam.members && myTeam.members.length > 0}
-								{#each myTeam.members as member}
-									<div class="member-row">
-										<div class="member-row__details">
-											<div class="member-row__cell member-row__cell--name">
-												<span class="member-row__name">{member.name || "Unknown Member"}</span>
-												{#if member.id === studentUuid}
-													<span class="member-row__you">(You)</span>
-												{/if}
-											</div>
-											<span class="member-row__sep">|</span>
-											<div class="member-row__cell member-row__cell--id">
-												{#if member.student_id}
-													<span class="member-row__id-badge">{member.student_id}</span>
-												{:else}
-													<span class="member-row__none">NONE</span>
-												{/if}
-											</div>
-											<span class="member-row__sep">|</span>
-											<div class="member-row__cell member-row__cell--email">
-												{member.email || "No Email"}
-											</div>
-											<span class="member-row__sep">|</span>
-											<div class="member-row__cell member-row__cell--school">
-												{#if member.is_external}
-													<span class="member-row__school member-row__school--external"
-														>{member.school_name || "External"}</span
-													>
-												{:else}
-													<span class="member-row__school member-row__school--fpt"
-														>FPT University</span
-													>
-												{/if}
-											</div>
-										</div>
-
-										<div class="member-row__role">
-											{#if member.role === "Leader" || member.id === myTeam.leader_id || member.id === myTeam.leaderId}
-												<span class="role-badge role-badge--leader">Leader</span>
-											{:else}
-												<span class="role-badge role-badge--member">Member</span>
+				<div class="invites-list">
+					{#each invites as invite}
+						<div class="invite-card">
+							<div class="invite-card__main">
+								<div class="invite-card__info">
+									<div class="invite-card__icon-wrap">
+										<Users class="invite-card__icon" />
+									</div>
+									<div class="invite-card__text">
+										<h4 class="invite-card__title">Team Invitation</h4>
+										<p class="invite-card__desc">
+											You have been invited to join Team <span class="invite-card__team"
+												>{invite.team?.name || invite.inviting_team_id || "Unknown"}</span
+											>.
+										</p>
+										<div class="invite-card__meta">
+											<span class="invite-card__date"
+												><Clock class="invite-card__date-icon" /> Sent: {formatDate(
+													invite.sent_at
+												)}</span
+											>
+											{#if invite.status?.toUpperCase() === "PENDING"}
+												<span class="status-pill status-pill--sm status-pill--pending">Pending</span
+												>
+											{:else if invite.status?.toUpperCase() === "ACCEPTED"}
+												<span class="status-pill status-pill--sm status-pill--success"
+													>Accepted</span
+												>
+											{:else if invite.status?.toUpperCase() === "DECLINED"}
+												<span class="status-pill status-pill--sm status-pill--declined"
+													>Declined</span
+												>
 											{/if}
 										</div>
 									</div>
-								{/each}
-							{/if}
-						</div>
+								</div>
 
-						{#if studentUuid === myTeam.leader_id}
-							<div class="invite-panel">
-								<h4 class="invite-panel__title">
-									<UserPlus class="invite-panel__title-icon" />
-									Invite New Member
-								</h4>
-								<p class="invite-panel__desc">
-									Enter a student ID to invite them to your team. Teams can have up to 5 members.
-								</p>
-
-								{#if (myTeam.members?.length || 1) >= 5}
-									<div class="alert alert--warning">
-										Your team has reached the maximum size limit (5 members).
-									</div>
-								{:else}
-									<form onsubmit={handleInviteMember} class="invite-form">
-										<input
-											type="text"
-											bind:value={inviteStudentId}
-											placeholder="Enter student ID (e.g. SE160123)..."
-											required
-											class="form-input form-input--flex"
-										/>
+								{#if invite.status?.toUpperCase() === "PENDING"}
+									<div class="invite-card__actions">
 										<button
-											type="submit"
-											disabled={isInviting || !inviteStudentId.trim()}
-											class="btn btn--primary btn--invite"
+											onclick={() => handleAccept(invite.id)}
+											disabled={processingId === invite.id}
+											class="btn btn--success btn--sm"
 										>
-											{isInviting ? "Sending..." : "Send Invite"}
+											<CheckCircle class="btn__icon-sm" />
+											{processingId === invite.id ? "Processing..." : "Accept"}
 										</button>
-									</form>
-
-									{#if inviteMessage}
-										<p
-											class="form-message"
-											class:form-message--error={inviteError}
-											class:form-message--success={!inviteError}
+										<button
+											onclick={() => handleDecline(invite.id)}
+											disabled={processingId === invite.id}
+											class="btn btn--ghost btn--sm"
 										>
-											{inviteMessage}
-										</p>
-									{/if}
-
-									<div class="available-section">
-										<h5 class="available-section__title">
-											Students Without a Team ({availableStudents.length})
-										</h5>
-										{#if availableStudents.length > 0}
-											<div class="students-list">
-												{#each availableStudents as student}
-													<div class="student-row">
-														<div class="student-row__info">
-															<p class="student-row__name">
-																{student.fullName || student.full_name || student.name || "Unknown"}
-															</p>
-															<p class="student-row__meta">
-																{student.studentId || student.student_id || student.email || "No ID"}
-															</p>
-														</div>
-														<button
-															onclick={() => {
-																inviteStudentId =
-																	student.studentId || student.student_id || student.email || ""
-																handleInviteMember()
-															}}
-															class="btn btn--primary btn--xs"
-														>
-															Invite
-														</button>
-													</div>
-												{/each}
-											</div>
-										{:else}
-											<div class="empty-box">
-												<p class="empty-box__text">
-													There are no available students without a team to invite right now.
-												</p>
-											</div>
-										{/if}
+											<XCircle class="btn__icon-sm" />
+											Decline
+										</button>
 									</div>
 								{/if}
 							</div>
-
-							<div class="team-actions">
-								<button onclick={handleTransferLeadership} class="btn btn--ghost">
-									<ArrowRightLeft class="btn__icon-sm" />
-									Transfer Leadership
-								</button>
-							</div>
-						{/if}
-
-						<div class="leave-action">
-							<button onclick={handleLeaveTeam} class="btn btn--danger-ghost">
-								<LogOut class="btn__icon-sm" />
-								Leave Team
-							</button>
 						</div>
-					</div>
+					{/each}
 				</div>
 			{/if}
-	{/if}
+		{/if}
+	
 </div>
 
 <style lang="scss">
@@ -1113,7 +887,6 @@
 	.btn--secondary {
 		background: #4b5563;
 		color: #ffffff;
-		padding: 0.625rem 1.25rem; // add padding to match btn--primary
 		&:hover {
 			background: #374151;
 		}
@@ -2159,8 +1932,4 @@
 			}
 		}
 	}
-
-
-	</style>
-
-
+</style>

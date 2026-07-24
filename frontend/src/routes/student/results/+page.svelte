@@ -61,19 +61,7 @@
 						let hasJoined = false
 						let me: any = null
 
-						// 1. Check LocalStorage fallback
-						if (typeof window !== "undefined") {
-							const localParts = localStorage.getItem(`participants_${event.id}`)
-							if (localParts) {
-								try {
-									const parsed = JSON.parse(localParts)
-									me = parsed.find((p: any) => p.email === profile.email)
-									if (me) hasJoined = true
-								} catch (e) {}
-							}
-						}
-
-						// 2. Check API
+						// 1. Check API
 						const { data: participants } = await getInterestedParticipants({
 							path: { eventId: event.id },
 							throwOnError: false
