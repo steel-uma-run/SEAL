@@ -11,6 +11,7 @@ import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Lecturer;
 import seal.backend.entities.Team;
 import seal.backend.entities.Track;
+import seal.backend.enums.EventStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.LecturerRepository;
 import seal.backend.repositories.TeamRepository;
@@ -115,6 +116,27 @@ public class TrackServiceImpl implements TrackService {
 
     Track savedTrack = trackRepository.save(track);
     return savedTrack.toDto();
+  }
+
+  @Override
+  @Transactional
+  public void deleteTrack(UUID trackId) {
+    Track track =
+        trackRepository
+            .findById(trackId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track not found."));
+
+    if (track.getEvent().getStatus() != EventStatus.DRAFT) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot delete track. Event is not in DRAFT status.");
+    }
+
+    track.getMentors().clear();
+    track.getJudges().clear();
+    trackRepository.save(track);
+
+    trackRepository.delete(track);
   }
 
   private Track assignMentor(Track track, UUID mentorId) {

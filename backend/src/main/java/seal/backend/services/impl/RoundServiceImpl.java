@@ -1,9 +1,8 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +19,7 @@ import seal.backend.services.RoundService;
 import seal.openapi.model.AssignCriteriaRequestArrayItemDto;
 import seal.openapi.model.CreateRoundRequestDto;
 import seal.openapi.model.RoundDto;
+import seal.openapi.model.UpdateRoundRequestDto;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +71,51 @@ public class RoundServiceImpl implements RoundService {
   }
 
   @Override
+  @Transactional
+  public RoundDto updateRound(UUID roundId, UpdateRoundRequestDto request) {
+    Round round =
+        roundRepository
+            .findById(roundId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Round not found."));
+
+    if (round.getEvent().getStatus() != EventStatus.DRAFT) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Cannot update round. Event is not in DRAFT status.");
+    }
+
+    if (request.startTime().isAfter(request.endTime())
+        || request.startTime().isEqual(request.endTime())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Start time must be before end time.");
+    }
+
+    if (!request.startTime().isAfter(round.getEvent().getEndTime())) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Round timeframe must start after the registration period ends.");
+    }
+
+    List<Round> allRounds = roundRepository.findByEventId(round.getEvent().getId());
+    for (Round existingRound : allRounds) {
+      if (!existingRound.getId().equals(round.getId())) {
+        if (request.startTime().isBefore(existingRound.getEndTime())
+            && request.endTime().isAfter(existingRound.getStartTime())) {
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST,
+              "The round time overlaps with an existing round in this event.");
+        }
+      }
+    }
+
+    round.setName(request.name());
+    round.setDescription(request.description());
+    round.setStartTime(request.startTime());
+    round.setEndTime(request.endTime());
+
+    return roundRepository.save(round).toDto();
+  }
+
+  @Override
   public void deleteRound(UUID roundId) {
     Round round =
         roundRepository
@@ -113,7 +158,7 @@ public class RoundServiceImpl implements RoundService {
     round.getCriteria().clear();
 
     // create new criteria from the dtos
-    Set<Criteria> criteriaSet = new HashSet<>();
+    List<Criteria> criteriaSet = new ArrayList<>();
 
     for (AssignCriteriaRequestArrayItemDto dto : criteriaDtos) {
       Criteria newCriteria = new Criteria(dto.name(), dto.description(), dto.weight(), round);
