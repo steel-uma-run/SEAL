@@ -59,5 +59,18 @@
         "$ref": "../../responses/ClientErrorResponse.json"
       }
     }
+  },
+  "delete": {
+    "tags": ["tracks"],
+    "operationId": "delete_track",
+    "summary": "Delete a track",
+    "responses": {
+      "204": {
+        "description": "Deleted successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
   }
 }
