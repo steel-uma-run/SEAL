@@ -11,5 +11,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
   List<Submission> findAllBySubmitterTeamId(UUID teamId);
 
   List<Submission> findAllByEventId(UUID eventId);
+
   List<Submission> findAllBySubmitterTeamHackathonEventId(UUID eventId);
 }
