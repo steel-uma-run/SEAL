@@ -83,25 +83,12 @@ public class HackathonEvent {
 
   // Returns the currently active round. According to business rules/constraints an event can only
   // have 1 active round at any given time.
+  //
+  // "Active round" is the round that has been started most recently.
   public Optional<Round> getActiveRound() {
-    OffsetDateTime now = OffsetDateTime.now();
     return rounds.stream()
-        .filter(
-            round -> {
-              if (round.getGradingStartTime() != null) {
-                OffsetDateTime gradingEnd =
-                    round.getGradingStartTime().plus(round.getGradingDuration());
-                return gradingEnd.isAfter(now) && round.getGradingStartTime().isBefore(now);
-              }
-
-              if (round.getActiveTime() != null) {
-                OffsetDateTime activeEnd = round.getActiveTime().plus(round.getActiveDuration());
-
-                return activeEnd.isAfter(now) && round.getActiveTime().isBefore(now);
-              }
-
-              return false;
-            })
+        .filter(round -> round.getGradingStartTime() != null)
+        .sorted((a, b) -> b.getGradingStartTime().compareTo(a.getGradingStartTime()))
         .findFirst();
   }
 
