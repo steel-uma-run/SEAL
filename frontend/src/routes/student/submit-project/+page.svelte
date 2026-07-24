@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { goto } from "$app/navigation"
+	import { theme } from "$lib/theme.svelte"
 	import {
 		getSelfProfile,
 		getAllSeasons,
@@ -181,7 +182,7 @@
 	<title>Submit Project - SEAL</title>
 </svelte:head>
 
-<div class="submit-page">
+<div class="submit-page {theme.darkMode ? 'dark' : ''}">
 	<a href="/student/results" class="submit-page__back-link">
 		<svg class="submit-page__back-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path

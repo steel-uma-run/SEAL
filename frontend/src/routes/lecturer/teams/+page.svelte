@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
-	import { Users, ArrowLeft } from "@lucide/svelte"
+	import { Users, ArrowLeft, Star, ExternalLink, ShieldAlert, CheckCircle2, Clock, CheckCircle } from "@lucide/svelte"
 	import {
 		getSelfProfile,
 		getAllSeasons,
@@ -17,6 +17,7 @@
 	let isLoading = $state(true)
 	let errorMessage = $state("")
 	let activeTab: "past" | "ongoing" | "upcoming" = $state("ongoing")
+	let selectedTeam: any = $state(null)
 
 	function getSeasonCategory(season: any, currentInfo: any) {
 		const s1 =
@@ -29,86 +30,68 @@
 		return "upcoming"
 	}
 
-	let filteredTracks = $derived(allMentoredTracks.filter((t) => t.category === activeTab))
-	let totalTeams = $derived(
-		filteredTracks.reduce((acc, track) => acc + (track.teams ? track.teams.length : 0), 0)
+	let filteredTracks = $derived(
+		allMentoredTracks.filter((track) => track.seasonCategory === activeTab)
 	)
 
 	onMount(async () => {
 		try {
-			const { data: profile } = await getSelfProfile({ throwOnError: true })
+			const { data: profile } = await getSelfProfile()
 			lecturerProfile = profile
 
+			const { data: seasons } = await getAllSeasons()
 			const currentInfo = getCurrentSeasonInfo()
-			const { data: seasons } = await getAllSeasons({ throwOnError: true })
 
-			if (!seasons || seasons.length === 0) {
-				isLoading = false
-				return
-			}
+			let mentoredTracks: any[] = []
 
-			let tempTracks: any[] = []
+			if (seasons) {
+				for (let season of seasons) {
+					const category = getSeasonCategory(season, currentInfo)
+					const { data: events } = await getEventsInSeason({ path: { seasonId: season.id } })
 
-			for (const season of seasons) {
-				const category = getSeasonCategory(season, currentInfo)
-				const { data: events } = await getEventsInSeason({
-					path: { seasonId: season.id },
-					throwOnError: false
-				})
+					if (events) {
+						for (let event of events) {
+							const { data: tracks } = await getAllTracksOfEvent({ path: { eventId: event.id } })
+							const { data: teams } = await getAllTeamsOfEvents({ path: { eventId: event.id } })
 
-				if (!events) continue
-
-				for (const event of events) {
-					const { data: tracks } = await getAllTracksOfEvent({
-						path: { eventId: event.id },
-						throwOnError: false
-					})
-
-					if (tracks) {
-						const mentoredTracks = tracks.filter((t: any) =>
-							t.mentors?.find((m: any) => m.id == profile.id)
-						)
-
-						if (mentoredTracks.length > 0) {
-							const { data: teams } = await getAllTeamsOfEvents({
-								path: { eventId: event.id } as any,
-								throwOnError: false
-							})
-
-							for (let track of mentoredTracks) {
-								let trackTeams: any[] = []
-
-								if (teams) {
-									const eventMentoredTeams = teams.filter(
-										(team: any) => team.track_id === track.id || team.trackId === track.id
+							if (tracks) {
+								for (let track of tracks) {
+									// Check if current lecturer is mentor
+									const isMentor = track.mentors?.some(
+										(m: any) => m.id === profile.id || m.email === profile.email
 									)
+									if (isMentor) {
+										track.seasonCategory = category
+										track.eventName = event.name
+										track.seasonName = `${season.semester} ${season.year}`
 
-									for (let team of eventMentoredTeams) {
-										const { data: submissions } = await getAllSubmissions({
-											path: { teamId: team.id },
-											throwOnError: false
-										})
-										team.submissions = submissions || []
-										trackTeams.push(team)
+										let trackTeams: any[] = []
+										if (teams) {
+											const eventMentoredTeams = teams.filter(
+												(team: any) => team.track_id === track.id || team.trackId === track.id
+											)
+											for (let team of eventMentoredTeams) {
+												const { data: submissions } = await getAllSubmissions({
+													path: { teamId: team.id },
+													throwOnError: false
+												})
+												team.submissions = submissions || []
+												trackTeams.push(team)
+											}
+										}
+										track.teams = trackTeams
+										mentoredTracks.push(track)
 									}
 								}
-
-								tempTracks.push({
-									...track,
-									eventName: event.name,
-									category,
-									teams: trackTeams
-								})
 							}
 						}
 					}
 				}
 			}
 
-			allMentoredTracks = tempTracks
-		} catch (error: any) {
-			console.error("Failed to load mentored teams", error)
-			errorMessage = error.message || "Failed to load teams."
+			allMentoredTracks = mentoredTracks
+		} catch (err: any) {
+			errorMessage = err.message || "Failed to load mentored teams."
 		} finally {
 			isLoading = false
 		}
@@ -121,128 +104,248 @@
 
 <div class="mentor-page {theme.darkMode ? 'dark' : 'light'}">
 	<a href="/lecturer" class="back-link">
-		<ArrowLeft class="w-4 h-4" />
+		<ArrowLeft class="back-link__icon" />
 		Back to Dashboard
 	</a>
 
-	<div class="assigned-tracks-container">
-		<div class="page-header">
-			<div class="header-icon">
-				<Users class="w-6 h-6" />
-			</div>
-			<div>
-				<h1 class="page-title">Mentored Teams</h1>
-				<p class="page-subtitle">Teams you are assigned to mentor.</p>
-			</div>
-		</div>
-
-		<div class="filters-row">
-			<div class="tabs-container">
-				<button
-					class="tab-btn {activeTab === 'past' ? 'active' : ''}"
-					onclick={() => (activeTab = "past")}
-				>
-					Past
-				</button>
-				<button
-					class="tab-btn {activeTab === 'ongoing' ? 'active' : ''}"
-					onclick={() => (activeTab = "ongoing")}
-				>
-					Ongoing
-				</button>
-				<button
-					class="tab-btn {activeTab === 'upcoming' ? 'active' : ''}"
-					onclick={() => (activeTab = "upcoming")}
-				>
-					Upcoming
-				</button>
-			</div>
-		</div>
-
-		{#if isLoading}
-			<div class="loading-state">
-				<div class="spinner"></div>
-			</div>
-		{:else if errorMessage}
-			<div class="error-box">
-				{errorMessage}
-			</div>
-		{:else if filteredTracks.length === 0}
-			<div class="empty-state">
-				<Users class="empty-icon" />
-				<h3 class="empty-title">No Mentored Tracks</h3>
-				<p class="empty-text">
-					You haven't been assigned as a mentor to any {activeTab} tracks.
-				</p>
-			</div>
-		{:else}
-			<div class="tracks-grid">
-				{#each filteredTracks as track}
-					<div class="track-card">
-						<div class="track-top">
-							<div class="track-heading-row">
-								<h3 class="track-name">{track.name}</h3>
-								<span class="track-role-badge badge-mentor">Mentor</span>
-							</div>
-							<p class="track-event">
-								Event: <span>{track.eventName}</span>
-							</p>
-						</div>
-
-						<div class="track-teams-container">
-							{#if track.teams && track.teams.length > 0}
-								<div class="teams-grid">
-									{#each track.teams as team}
-										<div class="team-card">
-											<div class="team-card-top">
-												<h3 class="team-name">{team.name}</h3>
-												<span
-													class="status-badge {team.status === 'APPROVED' ? 'approved' : 'pending'}"
-												>
-													{team.status}
-												</span>
-											</div>
-
-											<div class="submission-area">
-												<h4 class="submission-label">Latest Submission</h4>
-												{#if team.submissions && team.submissions.length > 0}
-													{@const latestSub = team.submissions[team.submissions.length - 1]}
-													<div class="submission-card">
-														<p class="submission-title">{latestSub.title}</p>
-														<div class="submission-links">
-															{#if latestSub.github_link}
-																<a href={latestSub.github_link} target="_blank">GitHub</a>
-															{/if}
-															{#if latestSub.youtube_link}
-																<a href={latestSub.youtube_link} target="_blank" class="youtube"
-																	>YouTube</a
-																>
-															{/if}
-															{#if latestSub.slide_link}
-																<a href={latestSub.slide_link} target="_blank" class="slides"
-																	>Slides</a
-																>
-															{/if}
-														</div>
-													</div>
-												{:else}
-													<p class="no-submissions">No submissions yet.</p>
-												{/if}
-											</div>
-										</div>
-									{/each}
-								</div>
-							{:else}
-								<div class="no-teams-wrap">
-									<p class="no-submissions">No teams assigned to this track yet.</p>
-								</div>
-							{/if}
-						</div>
+	{#if selectedTeam}
+		<div class="team-detail-card">
+			<div class="team-card__top">
+				<div class="team-card__identity">
+					<div class="team-card__badge-icon">
+						<Star class="team-card__badge-svg" />
 					</div>
-				{/each}
+					<div>
+						<h3 class="team-card__eyebrow">
+							MENTORED TEAM • {selectedTeam.eventName || 'EVENT'}
+						</h3>
+						<h2 class="team-card__name">{selectedTeam.name || "Untitled Team"}</h2>
+					</div>
+				</div>
+
+				<div class="team-card__status-actions">
+					{#if selectedTeam.status === "PENDING"}
+						<span class="status-pill status-pill--pending">Status: Pending Approval</span>
+					{:else if selectedTeam.status === "APPROVED"}
+						<span class="status-pill status-pill--approved">Status: Approved</span>
+					{/if}
+				</div>
 			</div>
-		{/if}
-	</div>
+
+			<div class="info-grid info-grid--2">
+				<div class="info-card">
+					<p class="info-card__label">Team ID</p>
+					<p class="info-card__value info-card__value--mono">{selectedTeam.id}</p>
+				</div>
+				<div class="info-card">
+					<p class="info-card__label">My Role</p>
+					<p class="info-card__value info-card__value--orange">
+						Mentor
+					</p>
+				</div>
+			</div>
+
+			<div class="info-grid info-grid--2">
+				<div class="info-card">
+					<p class="info-card__label">Track</p>
+					<p class="info-card__value">{selectedTeam.trackName || "N/A"}</p>
+				</div>
+				<div class="info-card">
+					<p class="info-card__label">Submissions</p>
+					{#if selectedTeam.submissions && selectedTeam.submissions.length > 0}
+						<div class="tag-list" style="flex-direction: column;">
+							{#each selectedTeam.submissions as sub}
+								<div style="background: rgba(139,92,246,0.1); padding: 0.5rem; border-radius: 0.5rem;">
+									<p style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.25rem;">{sub.title}</p>
+									<div style="display: flex; gap: 0.5rem;">
+										{#if sub.github_link}<a href={sub.github_link} target="_blank" style="color: #6d28d9; font-size: 0.75rem; font-weight: bold; text-decoration: none;">GitHub</a>{/if}
+										{#if sub.youtube_link}<a href={sub.youtube_link} target="_blank" style="color: #ef4444; font-size: 0.75rem; font-weight: bold; text-decoration: none;">YouTube</a>{/if}
+										{#if sub.slide_link}<a href={sub.slide_link} target="_blank" style="color: #ea580c; font-size: 0.75rem; font-weight: bold; text-decoration: none;">Slides</a>{/if}
+									</div>
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<p class="info-card__value">No submissions</p>
+					{/if}
+				</div>
+			</div>
+
+			<div class="members-section">
+				<div class="members-section__header">
+					<h3 class="members-section__title">Team Members ({selectedTeam.members?.length || 1}/5)</h3>
+				</div>
+
+				<div class="members-list">
+					{#if selectedTeam.members && selectedTeam.members.length > 0}
+						{#each selectedTeam.members as member}
+							<div class="member-row">
+								<div class="member-row__details">
+									<div class="member-row__cell member-row__cell--name">
+										<span class="member-row__name">{member.name || "Unknown Member"}</span>
+									</div>
+									<span class="member-row__sep">|</span>
+									<div class="member-row__cell member-row__cell--id">
+										{#if member.student_id}
+											<span class="member-row__id-badge">{member.student_id}</span>
+										{:else}
+											<span class="member-row__none">NONE</span>
+										{/if}
+									</div>
+									<span class="member-row__sep">|</span>
+									<div class="member-row__cell member-row__cell--email">
+										{member.email || "No Email"}
+									</div>
+									<span class="member-row__sep">|</span>
+									<div class="member-row__cell member-row__cell--school">
+										{#if member.is_external}
+											<span class="member-row__school member-row__school--external"
+												>{member.school_name || "External"}</span
+											>
+										{:else}
+											<span class="member-row__school member-row__school--fpt"
+												>FPT University</span
+											>
+										{/if}
+									</div>
+								</div>
+
+								<div class="member-row__role">
+									{#if member.role === "Leader" || member.id === selectedTeam.leader_id || member.id === selectedTeam.leaderId}
+										<span class="role-badge role-badge--leader">Leader</span>
+									{:else}
+										<span class="role-badge role-badge--member">Member</span>
+									{/if}
+								</div>
+							</div>
+						{/each}
+					{/if}
+				</div>
+				
+				<div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+					<button class="btn btn--secondary" onclick={() => (selectedTeam = null)}>
+						Back to Teams
+					</button>
+				</div>
+			</div>
+		</div>
+	{:else}
+		<div class="assigned-tracks-container">
+			<div class="page-header">
+				<div class="header-icon">
+					<Users class="w-6 h-6" />
+				</div>
+				<div>
+					<h1 class="page-title">Mentored Teams</h1>
+					<p class="page-subtitle">Teams you are assigned to mentor.</p>
+				</div>
+			</div>
+
+			<div class="filters-row">
+				<div class="tabs-container">
+					<button
+						class="tab-btn {activeTab === 'past' ? 'active' : ''}"
+						onclick={() => (activeTab = "past")}
+					>
+						Past
+					</button>
+					<button
+						class="tab-btn {activeTab === 'ongoing' ? 'active' : ''}"
+						onclick={() => (activeTab = "ongoing")}
+					>
+						Ongoing
+					</button>
+					<button
+						class="tab-btn {activeTab === 'upcoming' ? 'active' : ''}"
+						onclick={() => (activeTab = "upcoming")}
+					>
+						Upcoming
+					</button>
+				</div>
+			</div>
+
+			{#if isLoading}
+				<div class="loading-state">
+					<div class="spinner"></div>
+				</div>
+			{:else if errorMessage}
+				<div class="error-box">
+					{errorMessage}
+				</div>
+			{:else if filteredTracks.length === 0}
+				<div class="empty-state">
+					<Users class="empty-icon" />
+					<h3 class="empty-title">No Mentored Teams</h3>
+					<p class="empty-text">
+						You haven't been assigned as a mentor to any {activeTab} tracks.
+					</p>
+				</div>
+			{:else}
+				<div class="tracks-grid">
+					{#each filteredTracks as track}
+						<div class="track-card">
+							<div class="track-top">
+								<div class="track-heading-row">
+									<h3 class="track-name">{track.name}</h3>
+									<span class="track-role-badge badge-mentor">Mentor</span>
+								</div>
+								<p class="track-event">
+									Event: <span>{track.eventName}</span>
+								</p>
+							</div>
+
+							<div class="track-teams-container">
+								{#if track.teams && track.teams.length > 0}
+									<div class="teams-grid">
+										{#each track.teams as team}
+											<div class="team-card">
+												<div class="sub-header">
+													<h4 class="team-name">{team.name}</h4>
+													{#if team.status === "PENDING"}
+														<span class="status-badge pending">
+															<Clock class="w-3 h-3" style="display:inline;" /> PENDING
+														</span>
+													{:else if team.status === "APPROVED"}
+														<span class="status-badge approved">
+															<CheckCircle class="w-3 h-3" style="display:inline;" /> APPROVED
+														</span>
+													{/if}
+												</div>
+
+												<div class="submission-area">
+													<h4 class="submission-label">Team Info</h4>
+													<div class="submission-card">
+														<p class="submission-title">{team.members?.length || 1}/5 Members</p>
+													</div>
+												</div>
+
+												<div class="grading-actions">
+													<button
+														class="grade-btn"
+														onclick={() => {
+															team.trackName = track.name;
+															team.eventName = track.eventName;
+															selectedTeam = team;
+														}}
+													>
+														View Team Details
+													</button>
+												</div>
+											</div>
+										{/each}
+									</div>
+								{:else}
+									<div class="no-teams-wrap">
+										<p class="no-submissions">No teams assigned yet.</p>
+									</div>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -452,13 +555,13 @@
 		flex-shrink: 0;
 	}
 
-	.badge-mentor {
-		background: rgb(237 233 254);
-		color: rgb(109 40 217);
+	.badge-judge {
+		background: rgb(254 226 226);
+		color: rgb(220 38 38);
 	}
-	.dark .badge-mentor {
-		background: rgb(109 40 217 / 0.2);
-		color: rgb(196 181 253);
+	.dark .badge-judge {
+		background: rgb(220 38 38 / 0.2);
+		color: rgb(252 165 165);
 	}
 
 	.track-event {
@@ -519,42 +622,13 @@
 		color: var(--md-on-surface);
 	}
 
-	.track-role-badge {
-		font-size: 0.75rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		padding: 0.25rem 0.625rem;
-		border-radius: 9999px;
-		flex-shrink: 0;
-	}
-
-	.badge-mentor {
-		background: rgb(219 234 254);
-		color: rgb(37 99 235);
-	}
-	.dark .badge-mentor {
-		background: rgb(37 99 235 / 0.2);
-		color: rgb(147 197 253);
-	}
-
-	.track-event {
-		font-size: 0.75rem;
-		color: var(--md-on-surface-variant);
-	}
-
-	.track-event span {
-		font-weight: 700;
-		color: var(--md-on-surface);
-	}
-
 	.team-card-divider {
 		height: 1px;
 		background-color: var(--md-outline-variant);
 		margin: 0.75rem 0;
 	}
 
-	.team-card-top {
+	.sub-header {
 		display: flex;
 		justify-content: space-between;
 		align-items: flex-start;
@@ -596,25 +670,6 @@
 	.dark .status-badge.pending {
 		background: rgb(180 83 9 / 0.2);
 		color: rgb(253 230 138);
-	}
-
-	.members-area {
-		margin-bottom: 1rem;
-	}
-
-	.members-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-
-	.member-chip {
-		font-size: 0.75rem;
-		padding: 0.25rem 0.625rem;
-		background: var(--md-surface-container-high);
-		color: var(--md-on-surface);
-		border-radius: 0.375rem;
-		font-weight: 500;
 	}
 
 	.submission-area {
@@ -678,6 +733,41 @@
 		color: rgb(249 115 22);
 	}
 
+	.grading-actions {
+		margin-top: 1.25rem;
+	}
+
+	.grade-btn {
+		display: block;
+		width: 100%;
+		border: none;
+		font-family: inherit;
+		font-size: 1rem;
+		cursor: pointer;
+		text-align: center;
+		padding: 0.625rem 1rem;
+		background: var(--md-primary);
+		color: var(--md-on-primary);
+		border-radius: 0.5rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.2s ease;
+		box-sizing: border-box;
+	}
+
+	.grade-btn:hover {
+		background: color-mix(in srgb, var(--md-primary) 80%, black);
+	}
+
+	.grade-btn.graded {
+		background: rgb(249 115 22); /* Orange 500 */
+		color: white;
+	}
+
+	.grade-btn.graded:hover {
+		background: color-mix(in srgb, rgb(249 115 22) 80%, black);
+	}
+
 	.no-teams-wrap {
 		text-align: center;
 		padding: 2rem 0;
@@ -687,4 +777,303 @@
 		font-size: 0.875rem;
 		color: var(--md-on-surface-variant);
 	}
+
+
+	/* DETAIL VIEW STYLES */
+	$bp-sm: 640px;
+	$bp-md: 768px;
+
+	.team-detail-card {
+		margin-bottom: 2rem;
+		padding: 1.5rem;
+		border-radius: 1.5rem;
+		border: 1px solid var(--md-outline-variant);
+		background: var(--md-surface-container);
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+		transition: all 0.3s ease;
+
+		@media (min-width: $bp-md) {
+			padding: 2rem;
+		}
+
+		&__top {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			flex-wrap: wrap;
+			margin-bottom: 1rem;
+		}
+
+		&__identity {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+		}
+
+		&__badge-icon {
+			padding: 0.625rem;
+			border-radius: 0.75rem;
+			background: rgb(249 115 22); /* Orange 500 */
+			color: #fff;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+		}
+		&__badge-svg {
+			width: 1.5rem;
+			height: 1.5rem;
+		}
+
+		&__eyebrow {
+			font-size: 0.75rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: rgb(234 88 12);
+			.dark & {
+				color: rgb(251 146 60);
+			}
+		}
+
+		&__name {
+			font-size: 1.5rem;
+			font-weight: 700;
+			color: var(--md-on-surface);
+			@media (min-width: $bp-md) {
+				font-size: 1.875rem;
+			}
+		}
+
+		&__status-actions {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			flex-wrap: wrap;
+		}
+	}
+
+	.status-pill {
+		padding: 0.375rem 0.75rem;
+		border-radius: 0.5rem;
+		border-width: 1px;
+		border-style: solid;
+		font-weight: 700;
+		font-size: 0.875rem;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+		display: inline-flex;
+		align-items: center;
+
+		&--pending {
+			color: #92400e;
+			background: rgba(254, 243, 199, 0.7);
+			border-color: #fde68a;
+			.dark & {
+				color: #fbbf24;
+				background: rgba(245, 158, 11, 0.1);
+				border-color: rgba(245, 158, 11, 0.2);
+			}
+		}
+		&--approved {
+			color: #065f46;
+			background: rgba(209, 250, 229, 0.7);
+			border-color: #a7f3d0;
+			.dark & {
+				color: #34d399;
+				background: rgba(16, 185, 129, 0.1);
+				border-color: rgba(16, 185, 129, 0.2);
+			}
+		}
+	}
+
+	.info-grid {
+		display: grid;
+		gap: 1rem;
+		margin-top: 2rem;
+		margin-bottom: 2rem;
+
+		&--2 {
+			grid-template-columns: 1fr;
+			@media (min-width: $bp-md) {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+	}
+
+	.info-card {
+		padding: 1.25rem;
+		border-radius: 1rem;
+		border: 1px solid var(--md-outline-variant);
+		background: var(--md-surface);
+
+		&__label {
+			font-size: 0.75rem;
+			color: var(--md-on-surface-variant);
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			margin-bottom: 0.5rem;
+		}
+
+		&__value {
+			font-weight: 600;
+			font-size: 0.875rem;
+			color: var(--md-on-surface);
+			&--mono {
+				font-family: monospace;
+				font-size: 0.875rem;
+			}
+			&--orange {
+				color: rgb(249 115 22);
+			}
+		}
+	}
+
+	.members-section {
+		border-top: 1px solid var(--md-outline-variant);
+		padding-top: 2rem;
+
+		&__header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1rem;
+		}
+		&__title {
+			font-size: 1.125rem;
+			font-weight: 700;
+			color: var(--md-on-surface);
+		}
+	}
+
+	.members-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin-bottom: 2rem;
+	}
+
+	.member-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1rem;
+		border-radius: 0.75rem;
+		background: var(--md-surface-container-low);
+		border: 1px solid var(--md-outline-variant);
+		transition: all 0.2s ease;
+
+		&:hover {
+			border-color: var(--md-outline);
+		}
+
+		&__details {
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+		}
+
+		&__cell {
+			font-size: 0.875rem;
+			color: var(--md-on-surface-variant);
+			&--name {
+				font-weight: 600;
+				color: var(--md-on-surface);
+			}
+			&--email {
+				/* default color */
+			}
+		}
+		
+		&__id-badge {
+			font-family: monospace;
+			background: var(--md-surface-container-high);
+			padding: 0.125rem 0.375rem;
+			border-radius: 0.25rem;
+			color: var(--md-on-surface);
+			font-weight: 600;
+		}
+		
+		&__none {
+			font-size: 0.75rem;
+			font-style: italic;
+			color: var(--md-on-surface-variant);
+		}
+
+		&__sep {
+			color: var(--md-outline-variant);
+		}
+
+		&__school {
+			&--fpt {
+				color: rgb(234 88 12);
+				font-weight: 500;
+			}
+			&--external {
+				color: rgb(139 92 246);
+				font-weight: 500;
+			}
+		}
+	}
+	
+	.role-badge {
+		font-size: 0.75rem;
+		font-weight: 700;
+		padding: 0.25rem 0.75rem;
+		border-radius: 9999px;
+		
+		&--leader {
+			background: rgb(255 237 213);
+			color: rgb(194 65 12);
+			.dark & {
+				background: rgba(194, 65, 12, 0.2);
+				color: rgb(251 146 60);
+			}
+		}
+		
+		&--member {
+			background: var(--md-surface-container-high);
+			color: var(--md-on-surface-variant);
+		}
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		font-weight: 600;
+		border-radius: 0.75rem;
+		transition: all 0.2s ease;
+		cursor: pointer;
+		border: none;
+		text-decoration: none;
+		white-space: nowrap;
+		padding: 0.625rem 1.25rem;
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+		&:active:not(:disabled) {
+			transform: scale(0.95);
+		}
+
+		&--secondary {
+			background: var(--md-surface-container-high);
+			color: var(--md-on-surface);
+			&:hover {
+				background: var(--md-surface-container-highest);
+			}
+		}
+	}
+
+	.badge-mentor {
+		background: rgb(255 237 213);
+		color: rgb(194 65 12);
+	}
+	.dark .badge-mentor {
+		background: rgba(194, 65, 12, 0.2);
+		color: rgb(251 146 60);
+	}
 </style>
+
