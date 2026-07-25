@@ -466,7 +466,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       for (Map.Entry<UUID, List<Score>> entry : scoresByCriteria.entrySet()) {
         if (entry.getValue().size() >= 2) {
           double avgCriteria =
-              entry.getValue().stream().mapToInt(Score::getValue).average().orElse(0.0);
+              entry.getValue().stream().mapToDouble(Score::getValue).average().orElse(0.0);
 
           for (Score s : entry.getValue()) {
             double deviation = Math.abs(s.getValue() - avgCriteria);

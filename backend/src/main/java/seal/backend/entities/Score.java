@@ -41,10 +41,9 @@ public class Score {
   @Nonnull
   private Lecturer lecturer;
 
-  // Stored as integer; enforce 0..100 at DB level via CHECK constraint if you want.
   @Column(name = "value", nullable = false)
   @Nonnull
-  private Integer value;
+  private Float value;
 
   @Column(columnDefinition = "TEXT")
   private String comment;
