@@ -3,6 +3,7 @@ package seal.backend.services.impl;
 import jakarta.transaction.Transactional;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
+import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
 import seal.backend.entities.Track;
 import seal.backend.enums.EventStatus;
@@ -21,6 +23,7 @@ import seal.backend.enums.StudentStatus;
 import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.SeasonRepository;
 import seal.backend.repositories.StudentRepository;
+import seal.backend.repositories.SubmissionRepository;
 import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.TrackRepository;
 import seal.backend.services.HackathonEventService;
@@ -35,6 +38,7 @@ import seal.openapi.model.UpdateEventRequestDto;
 @RequiredArgsConstructor
 public class HackathonEventServiceImpl implements HackathonEventService {
   private final HackathonEventRepository hackathonEventRepository;
+  private final SubmissionRepository submissionRepository;
   private final SeasonRepository seasonRepository;
   private final StudentRepository studentRepository;
   private final TeamRepository teamRepo;
@@ -236,5 +240,18 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     }
 
     return resultList;
+  }
+
+  @Override
+  public List<TeamDto> getRanking(UUID eventId) {
+    return submissionRepository.findAllBySubmitterTeamHackathonEventId(eventId).stream()
+        .filter(s -> s.calculateAvgScore() != null)
+        .sorted(
+            Comparator.comparing(
+                    Submission::calculateAvgScore, Comparator.nullsLast(Double::compareTo))
+                .reversed())
+        .map(Submission::getSubmitterTeam)
+        .map(Team::toDto)
+        .toList();
   }
 }

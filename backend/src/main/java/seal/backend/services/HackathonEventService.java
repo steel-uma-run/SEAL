@@ -27,4 +27,6 @@ public interface HackathonEventService {
   void finalizeEvent(UUID eventId);
 
   void markInterested(UUID eventId);
+
+  List<TeamDto> getRanking(UUID eventId);
 }

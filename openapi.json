@@ -61,6 +61,9 @@
     "/events": {
       "$ref": "./openapi/paths/events/create.json"
     },
+    "/events/{eventId}/ranking": {
+      "$ref": "./openapi/paths/events/ranking.json"
+    },
     "/events/{eventId}": {
       "$ref": "./openapi/paths/events/id_index.json"
     },
@@ -138,6 +141,9 @@
     },
     "/submission/{submissionId}/approve-regrade": {
       "$ref": "./openapi/paths/submission/approve_regrade.json"
+    },
+    "/submission/{submissionId}/reject-regrade/{notifId}": {
+      "$ref": "./openapi/paths/submission/reject_regrade.json"
     },
 
     "/auditlogs": {
