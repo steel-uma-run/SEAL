@@ -11,6 +11,7 @@
 		Clock,
 		CheckCircle
 	} from "@lucide/svelte"
+	import { getMaxMembers } from "$lib/utils/formatters"
 	import {
 		getSelfProfile,
 		getAllSeasons,
@@ -234,7 +235,7 @@
 			<div class="members-section">
 				<div class="members-section__header">
 					<h3 class="members-section__title">
-						Team Members ({selectedTeam.members?.length || 1}/5)
+						Team Members ({selectedTeam.members?.length || 1}/{getMaxMembers(selectedTeam.description)})
 					</h3>
 				</div>
 
@@ -375,7 +376,7 @@
 												<div class="submission-area">
 													<h4 class="submission-label">Team Info</h4>
 													<div class="submission-card">
-														<p class="submission-title">{team.members?.length || 1}/5 Members</p>
+														<p class="submission-title">{team.members?.length || 1}/{getMaxMembers(team.description)} Members</p>
 													</div>
 												</div>
 
@@ -691,26 +692,36 @@
 	.sub-header {
 		display: flex;
 		justify-content: space-between;
-		align-items: flex-start;
-		gap: 0.75rem;
+		align-items: center;
+		flex-wrap: nowrap;
+		gap: 0.5rem;
 		margin-bottom: 1rem;
 	}
 
 	.team-name {
-		font-size: 1.125rem;
-		line-height: 1.75rem;
+		font-size: clamp(0.875rem, 2vw, 1rem);
+		line-height: 1.5rem;
 		font-weight: 700;
 		color: var(--md-on-surface);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		min-width: 0;
+		flex: 1 1 auto;
 	}
 
 	.status-badge {
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		line-height: 1rem;
 		font-weight: 700;
 		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		padding: 0.25rem 0.625rem;
+		letter-spacing: 0.05em;
+		padding: 0.2rem 0.5rem;
 		border-radius: 9999px;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		white-space: nowrap;
 		flex-shrink: 0;
 	}
 

@@ -30,3 +30,17 @@ export function formatFullDate(dateString) {
 
 	return `${day}${suffix} ${month} ${year}`
 }
+
+/**
+ * Extract max members from description (e.g. [Expected Size: 3]), defaulting to 5
+ * @param {string} description
+ */
+export function getMaxMembers(description) {
+	if (!description) return 5
+	const match = String(description).match(/\[Expected Size:\s*(\d+)\]/i)
+	if (match && match[1]) {
+		const val = parseInt(match[1], 10)
+		if (val >= 3 && val <= 5) return val
+	}
+	return 5
+}
