@@ -140,7 +140,7 @@
 											submissions.forEach((sub: any) => {
 												const hasGraded =
 													sub.scores &&
-													sub.scores.some((s: any) => s.lecturer_id === lecturerProfile?.id)
+													sub.scores.some((s: any) => s.lecturer_id === lecturerProfile?.id || s.lecturerId === lecturerProfile?.id)
 												trackSubmissions.push({
 													...sub,
 													status: hasGraded ? "GRADED" : "PENDING",

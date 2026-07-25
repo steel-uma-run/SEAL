@@ -126,7 +126,7 @@
 				if (criteriaTemplate.criteria) {
 					criteriaTemplate.criteria.forEach((c: any) => {
 						const existingScore = submission.scores?.find(
-							(s: any) => s.criteria_id === c.id && s.lecturer_id === profile?.id
+							(s: any) => (s.criteria_id === c.id || s.criteriaId === c.id) && (s.lecturer_id === profile?.id || s.lecturerId === profile?.id)
 						)
 						if (existingScore) {
 							hasGraded = true
@@ -491,7 +491,7 @@
 						{/if}
 					</form>
 
-					{#if hasGraded}
+					{#if hasGraded && !successMessage}
 						<div class="card regrade-card" style="margin-top: 1.5rem;">
 							<h2 class="card-title">Request Re-grading</h2>
 							<p class="card-desc">
