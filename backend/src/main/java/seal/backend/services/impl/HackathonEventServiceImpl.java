@@ -5,9 +5,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -246,22 +244,8 @@ public class HackathonEventServiceImpl implements HackathonEventService {
 
   @Override
   public List<TeamDto> getRanking(UUID eventId) {
-    List<Submission> submissions =
-        submissionRepository.findAllBySubmitterTeamHackathonEventId(eventId);
-
-    Map<UUID, Submission> bestSubmissionByTeam =
-        submissions.stream()
-            .filter(s -> s.calculateAvgScore() != null)
-            .collect(
-                Collectors.toMap(
-                    s -> s.getSubmitterTeam().getId(),
-                    s -> s,
-                    (s1, s2) ->
-                        Double.compare(s1.calculateAvgScore(), s2.calculateAvgScore()) >= 0
-                            ? s1
-                            : s2));
-
-    return bestSubmissionByTeam.values().stream()
+    return submissionRepository.findAllBySubmitterTeamHackathonEventId(eventId).stream()
+        .filter(s -> s.calculateAvgScore() != null)
         .sorted(
             Comparator.comparing(
                     Submission::calculateAvgScore, Comparator.nullsLast(Double::compareTo))
