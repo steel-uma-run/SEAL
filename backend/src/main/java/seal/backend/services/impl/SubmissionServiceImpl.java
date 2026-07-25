@@ -397,6 +397,25 @@ public class SubmissionServiceImpl implements SubmissionService {
   }
 
   @Override
+  @Transactional
+  public void rejectRegrade(UUID submissionId, UUID notifId) {
+    RegradeNotif notif =
+        regradeNotifRepo
+            .findById(notifId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Regrade request not found."));
+
+    if (!notif.getSubmission().getId().equals(submissionId)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "This request does not belong to the given submission.");
+    }
+
+    regradeNotifRepo.delete(notif);
+  }
+
+  @Override
   public List<ScoreDeviationNotifDto> getScoreDeviations(UUID submissionId) {
     return notifRepo.findBySubmissionId(submissionId).stream()
         .map(
