@@ -74,7 +74,7 @@ public class Submission {
     }
 
     return scores.stream()
-        .mapToDouble(s -> (s.getValue() * s.getCriteria().getWeight()) / 10.0)
+        .mapToDouble(s -> (s.getValue() * s.getCriteria().getWeight()) / 100.0)
         .sum();
   }
 
@@ -83,7 +83,10 @@ public class Submission {
       return null;
     }
 
-    return calculateTotalScore() / scores.size();
+    long numLecturers = scores.stream().map(s -> s.getLecturer().getId()).distinct().count();
+    if (numLecturers == 0) return 0.0;
+
+    return calculateTotalScore() / numLecturers;
   }
 
   public SubmissionDto toDto() {
