@@ -1,14 +1,24 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
-	import { Users, ArrowLeft, Star, ExternalLink, ShieldAlert, CheckCircle2, Clock, CheckCircle } from "@lucide/svelte"
+	import {
+		Users,
+		ArrowLeft,
+		Star,
+		ExternalLink,
+		ShieldAlert,
+		CheckCircle2,
+		Clock,
+		CheckCircle
+	} from "@lucide/svelte"
 	import {
 		getSelfProfile,
 		getAllSeasons,
 		getEventsInSeason,
 		getAllTracksOfEvent,
 		getAllTeamsOfEvents,
-		getAllSubmissions
+		getAllSubmissions,
+		getInterestedParticipants
 	} from "$lib/api"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 
@@ -70,12 +80,45 @@
 											const eventMentoredTeams = teams.filter(
 												(team: any) => team.track_id === track.id || team.trackId === track.id
 											)
+
+											let participantsList: any[] = []
+											try {
+												const { data: participants } = await getInterestedParticipants({
+													path: { eventId: event.id },
+													throwOnError: false
+												})
+												if (participants) participantsList = participants
+											} catch (e) {}
+
 											for (let team of eventMentoredTeams) {
 												const { data: submissions } = await getAllSubmissions({
 													path: { teamId: team.id },
 													throwOnError: false
 												})
 												team.submissions = submissions || []
+
+												if (participantsList.length > 0) {
+													team.members = participantsList
+														.filter(
+															(p: any) =>
+																p.team_ids?.includes(team.id) ||
+																team.leader_id === p.id ||
+																team.leaderId === p.id
+														)
+														.map((p: any) => ({
+															id: p.id,
+															name: p.fullName || p.full_name || p.name || "Unknown",
+															email: p.email,
+															student_id: p.studentId || p.student_id || "",
+															is_external: p.isExternal || p.is_external || false,
+															school_name: p.schoolName || p.school_name || "",
+															role:
+																p.id === team.leader_id || p.id === team.leaderId
+																	? "Leader"
+																	: "Member"
+														}))
+												}
+
 												trackTeams.push(team)
 											}
 										}
@@ -117,7 +160,7 @@
 					</div>
 					<div>
 						<h3 class="team-card__eyebrow">
-							MENTORED TEAM • {selectedTeam.eventName || 'EVENT'}
+							MENTORED TEAM • {selectedTeam.eventName || "EVENT"}
 						</h3>
 						<h2 class="team-card__name">{selectedTeam.name || "Untitled Team"}</h2>
 					</div>
@@ -139,9 +182,7 @@
 				</div>
 				<div class="info-card">
 					<p class="info-card__label">My Role</p>
-					<p class="info-card__value info-card__value--orange">
-						Mentor
-					</p>
+					<p class="info-card__value info-card__value--orange">Mentor</p>
 				</div>
 			</div>
 
@@ -155,12 +196,31 @@
 					{#if selectedTeam.submissions && selectedTeam.submissions.length > 0}
 						<div class="tag-list" style="flex-direction: column;">
 							{#each selectedTeam.submissions as sub}
-								<div style="background: rgba(139,92,246,0.1); padding: 0.5rem; border-radius: 0.5rem;">
-									<p style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.25rem;">{sub.title}</p>
+								<div
+									style="background: rgba(139,92,246,0.1); padding: 0.5rem; border-radius: 0.5rem;"
+								>
+									<p style="font-weight: 600; font-size: 0.8rem; margin-bottom: 0.25rem;">
+										{sub.title}
+									</p>
 									<div style="display: flex; gap: 0.5rem;">
-										{#if sub.github_link}<a href={sub.github_link} target="_blank" style="color: #6d28d9; font-size: 0.75rem; font-weight: bold; text-decoration: none;">GitHub</a>{/if}
-										{#if sub.youtube_link}<a href={sub.youtube_link} target="_blank" style="color: #ef4444; font-size: 0.75rem; font-weight: bold; text-decoration: none;">YouTube</a>{/if}
-										{#if sub.slide_link}<a href={sub.slide_link} target="_blank" style="color: #ea580c; font-size: 0.75rem; font-weight: bold; text-decoration: none;">Slides</a>{/if}
+										{#if sub.github_link}<a
+												href={sub.github_link}
+												target="_blank"
+												style="color: #6d28d9; font-size: 0.75rem; font-weight: bold; text-decoration: none;"
+												>GitHub</a
+											>{/if}
+										{#if sub.youtube_link}<a
+												href={sub.youtube_link}
+												target="_blank"
+												style="color: #ef4444; font-size: 0.75rem; font-weight: bold; text-decoration: none;"
+												>YouTube</a
+											>{/if}
+										{#if sub.slide_link}<a
+												href={sub.slide_link}
+												target="_blank"
+												style="color: #ea580c; font-size: 0.75rem; font-weight: bold; text-decoration: none;"
+												>Slides</a
+											>{/if}
 									</div>
 								</div>
 							{/each}
@@ -173,7 +233,9 @@
 
 			<div class="members-section">
 				<div class="members-section__header">
-					<h3 class="members-section__title">Team Members ({selectedTeam.members?.length || 1}/5)</h3>
+					<h3 class="members-section__title">
+						Team Members ({selectedTeam.members?.length || 1}/5)
+					</h3>
 				</div>
 
 				<div class="members-list">
@@ -203,9 +265,7 @@
 												>{member.school_name || "External"}</span
 											>
 										{:else}
-											<span class="member-row__school member-row__school--fpt"
-												>FPT University</span
-											>
+											<span class="member-row__school member-row__school--fpt">FPT University</span>
 										{/if}
 									</div>
 								</div>
@@ -221,7 +281,7 @@
 						{/each}
 					{/if}
 				</div>
-				
+
 				<div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
 					<button class="btn btn--secondary" onclick={() => (selectedTeam = null)}>
 						Back to Teams
@@ -323,9 +383,9 @@
 													<button
 														class="grade-btn"
 														onclick={() => {
-															team.trackName = track.name;
-															team.eventName = track.eventName;
-															selectedTeam = team;
+															team.trackName = track.name
+															team.eventName = track.eventName
+															selectedTeam = team
 														}}
 													>
 														View Team Details
@@ -778,7 +838,6 @@
 		color: var(--md-on-surface-variant);
 	}
 
-
 	/* DETAIL VIEW STYLES */
 	$bp-sm: 640px;
 	$bp-md: 768px;
@@ -983,7 +1042,7 @@
 				/* default color */
 			}
 		}
-		
+
 		&__id-badge {
 			font-family: monospace;
 			background: var(--md-surface-container-high);
@@ -992,7 +1051,7 @@
 			color: var(--md-on-surface);
 			font-weight: 600;
 		}
-		
+
 		&__none {
 			font-size: 0.75rem;
 			font-style: italic;
@@ -1014,13 +1073,13 @@
 			}
 		}
 	}
-	
+
 	.role-badge {
 		font-size: 0.75rem;
 		font-weight: 700;
 		padding: 0.25rem 0.75rem;
 		border-radius: 9999px;
-		
+
 		&--leader {
 			background: rgb(255 237 213);
 			color: rgb(194 65 12);
@@ -1029,7 +1088,7 @@
 				color: rgb(251 146 60);
 			}
 		}
-		
+
 		&--member {
 			background: var(--md-surface-container-high);
 			color: var(--md-on-surface-variant);
@@ -1076,4 +1135,3 @@
 		color: rgb(251 146 60);
 	}
 </style>
-

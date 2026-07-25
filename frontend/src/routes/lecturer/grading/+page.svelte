@@ -66,12 +66,14 @@
 			lecturerProfile = profile
 
 			// Fetch all criteria templates to map criteria weights
-			const { data: templates, error: templatesError } = await getAllCriteriaTemplates({ throwOnError: false })
-			let activeTemplates = templates;
-			
+			const { data: templates, error: templatesError } = await getAllCriteriaTemplates({
+				throwOnError: false
+			})
+			let activeTemplates = templates
+
 			if (templatesError) {
-				console.error("Backend API for templates failed.", templatesError);
-				activeTemplates = [];
+				console.error("Backend API for templates failed.", templatesError)
+				activeTemplates = []
 			}
 
 			if (activeTemplates) {
@@ -136,7 +138,9 @@
 
 										if (submissions) {
 											submissions.forEach((sub: any) => {
-												const hasGraded = sub.scores && sub.scores.some((s: any) => s.lecturer_id === lecturerProfile?.id)
+												const hasGraded =
+													sub.scores &&
+													sub.scores.some((s: any) => s.lecturer_id === lecturerProfile?.id)
 												trackSubmissions.push({
 													...sub,
 													status: hasGraded ? "GRADED" : "PENDING",
@@ -258,7 +262,10 @@
 												<h4 class="team-name">{sub.team_name}</h4>
 												{#if sub.status === "GRADED"}
 													<span class="status-badge approved">
-														<CheckCircle class="w-3 h-3" style="display:inline;" /> {getLecturerScore(sub, lecturerProfile?.id) !== null ? getLecturerScore(sub, lecturerProfile?.id) + '/10' : "Graded"}
+														<CheckCircle class="w-3 h-3" style="display:inline;" />
+														{getLecturerScore(sub, lecturerProfile?.id) !== null
+															? getLecturerScore(sub, lecturerProfile?.id) + "/10"
+															: "Graded"}
 													</span>
 												{:else}
 													<span class="status-badge pending">

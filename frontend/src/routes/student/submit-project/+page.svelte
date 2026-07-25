@@ -233,10 +233,7 @@
 				{#if leaderTeams.length > 1}
 					<div class="submit-page__field">
 						<label class="submit-page__label">Select Event / Team</label>
-						<select
-							bind:value={selectedLeaderTeamIndex}
-							class="submit-page__input"
-						>
+						<select bind:value={selectedLeaderTeamIndex} class="submit-page__input">
 							{#each leaderTeams as t, idx}
 								<option value={idx}>
 									{t.eventName}: {t.teamName}

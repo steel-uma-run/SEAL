@@ -59,7 +59,8 @@
 						activeSeasonEvents = eventsData
 					} else {
 						activeSeasonEvents = []
-					}					let joinedList: any[] = []
+					}
+					let joinedList: any[] = []
 					for (const event of activeSeasonEvents) {
 						let hasJoined = false
 

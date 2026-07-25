@@ -11,7 +11,14 @@
 		Code,
 		Presentation
 	} from "@lucide/svelte"
-	import { getAllCriteriaTemplates, gradeSubmission, getAllSubmissions, getSelfProfile, requestRegrade, getRounds } from "$lib/api"
+	import {
+		getAllCriteriaTemplates,
+		gradeSubmission,
+		getAllSubmissions,
+		getSelfProfile,
+		requestRegrade,
+		getRounds
+	} from "$lib/api"
 	import { goto } from "$app/navigation"
 
 	let teamId = $derived($page.params.teamId)
@@ -52,7 +59,11 @@
 		}
 	})
 
-	async function loadData(currentTeamId: string, currentSubmissionId: string, currentEventId: string) {
+	async function loadData(
+		currentTeamId: string,
+		currentSubmissionId: string,
+		currentEventId: string
+	) {
 		try {
 			// Fetch the submission based on teamId
 			const { data: submissions, error: submissionsError } = await getAllSubmissions({
@@ -77,13 +88,16 @@
 			}
 
 			// Fetch criteria from the rounds of this event
-			const { data: rounds, error: roundsError } = await getRounds({ path: { eventId: currentEventId }, throwOnError: false })
+			const { data: rounds, error: roundsError } = await getRounds({
+				path: { eventId: currentEventId },
+				throwOnError: false
+			})
 
-			let activeTemplates = null;
+			let activeTemplates = null
 
 			if (rounds && rounds.length > 0) {
 				// Get criteria from the latest round (or active round)
-				const round = rounds[rounds.length - 1];
+				const round = rounds[rounds.length - 1]
 				if (round.criteria && round.criteria.length > 0) {
 					activeTemplates = [
 						{
@@ -92,7 +106,7 @@
 							description: "Criteria for the current round",
 							criteria: round.criteria
 						}
-					];
+					]
 				}
 			}
 
@@ -111,10 +125,15 @@
 				// Initialize grading form data
 				if (criteriaTemplate.criteria) {
 					criteriaTemplate.criteria.forEach((c: any) => {
-						const existingScore = submission.scores?.find((s: any) => s.criteria_id === c.id && s.lecturer_id === profile?.id)
+						const existingScore = submission.scores?.find(
+							(s: any) => s.criteria_id === c.id && s.lecturer_id === profile?.id
+						)
 						if (existingScore) {
 							hasGraded = true
-							gradingData[c.id] = { value: existingScore.value, comment: existingScore.comment || "" }
+							gradingData[c.id] = {
+								value: existingScore.value,
+								comment: existingScore.comment || ""
+							}
 						} else {
 							gradingData[c.id] = { value: null, comment: "" }
 						}
@@ -126,7 +145,10 @@
 			}
 		} catch (error: any) {
 			console.error("Failed to load data", error)
-			errorMessage = (error && error.message) ? error.message : JSON.stringify(error) || "Failed to load grading details."
+			errorMessage =
+				error && error.message
+					? error.message
+					: JSON.stringify(error) || "Failed to load grading details."
 		} finally {
 			isLoading = false
 		}
@@ -163,7 +185,6 @@
 			}
 		}
 	}
-
 
 	// Check if any grade is below threshold (e.g., below 5) and requires a comment
 	let requiresDocumentedReason = $derived.by(() => {
@@ -417,7 +438,11 @@
 													value={gradingData[c.id].value ?? ""}
 													oninput={(e) => handleScoreInput(c.id, e)}
 													onchange={(e) => handleScoreInput(c.id, e)}
-													class="input {gradingData[c.id].value !== null && gradingData[c.id].value !== undefined && (gradingData[c.id].value < 0 || gradingData[c.id].value > 10) ? 'input--error' : ''}"
+													class="input {gradingData[c.id].value !== null &&
+													gradingData[c.id].value !== undefined &&
+													(gradingData[c.id].value < 0 || gradingData[c.id].value > 10)
+														? 'input--error'
+														: ''}"
 													placeholder="e.g. 8.5"
 													required
 													disabled={hasGraded}
@@ -449,7 +474,11 @@
 
 						{#if !hasGraded}
 							<div class="form-actions">
-								<button type="submit" disabled={isSubmitting || hasInvalidScores} class="btn-submit">
+								<button
+									type="submit"
+									disabled={isSubmitting || hasInvalidScores}
+									class="btn-submit"
+								>
 									{#if isSubmitting}
 										<div class="spinner spinner--white"></div>
 										Submitting...
@@ -466,7 +495,8 @@
 						<div class="card regrade-card" style="margin-top: 1.5rem;">
 							<h2 class="card-title">Request Re-grading</h2>
 							<p class="card-desc">
-								You have already graded this submission. To change your score, you must submit a request with a valid reason to the coordinator for approval.
+								You have already graded this submission. To change your score, you must submit a
+								request with a valid reason to the coordinator for approval.
 							</p>
 
 							{#if regradeRequestSuccess}
@@ -475,7 +505,9 @@
 								</div>
 							{:else}
 								<div class="regrade-field">
-									<label class="field-label">Reason for Requesting Re-grade <span class="field-required">*</span></label>
+									<label class="field-label"
+										>Reason for Requesting Re-grade <span class="field-required">*</span></label
+									>
 									<textarea
 										bind:value={regradeReason}
 										rows="3"
