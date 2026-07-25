@@ -315,7 +315,7 @@
 			<div class="score-box">
 				<p class="score-label">Total Score</p>
 				<p class="score-value" class:pass={totalScore >= 50} class:fail={totalScore < 50}>
-					{totalScore.toFixed(1)}<span class="score-max">/100</span>
+					{totalScore.toFixed(2)}<span class="score-max">/100</span>
 				</p>
 			</div>
 		{/if}

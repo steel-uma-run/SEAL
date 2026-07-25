@@ -303,7 +303,7 @@
 															? 'score-val--pass'
 															: 'score-val--fail'}"
 													>
-														{sub.total_score.toFixed(1)}
+														{sub.total_score.toFixed(2)}
 													</span>
 													<span class="score-den">/100</span>
 												</div>
@@ -412,7 +412,7 @@
 													? 'score-val--pass'
 													: 'score-val--fail'}"
 											>
-												{histSub.total_score.toFixed(1)}
+												{histSub.total_score.toFixed(2)}
 											</span>
 											<span class="score-den">/100</span>
 										</div>

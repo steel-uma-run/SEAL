@@ -473,7 +473,7 @@
 									<div class="submit-page__score-total">
 										<span class="submit-page__score-total-label">Total Average</span>
 										<span class="submit-page__score-total-value">
-											{(sub.avg_score || 0).toFixed(1)}/100
+											{(sub.avg_score || 0).toFixed(2)}/100
 										</span>
 									</div>
 								</div>
