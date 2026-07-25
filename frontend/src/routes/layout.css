@@ -9,9 +9,19 @@
 		"calt" 1; /* fix for Chrome */
 
 	color: var(--md-sys-color-on-surface);
+	background-color: var(--md-sys-color-background);
 
 	--md-ref-typeface-brand: Inter, sans-serif;
 	--md-ref-typeface-plain: Inter, sans-serif;
+	color-scheme: light dark;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	background-color: var(--md-sys-color-background);
+	color: var(--md-sys-color-on-surface);
+	min-height: 100vh;
 }
 
 @supports (font-variation-settings: normal) {
@@ -25,11 +35,10 @@
 * {
 	padding: 0;
 	margin: 0;
+	box-sizing: border-box;
 }
 
 @function --m3-density(--size) {
 	result: var(--size);
 }
-:root {
-	color-scheme: light dark;
-}
+

@@ -27,6 +27,8 @@
 			entries.push(`--m3c-${token}: ${value};`)
 		}
 
+		entries.push(`color-scheme: ${theme.darkMode ? "dark" : "light"};`)
+
 		const str = `<style>:root {${entries.join("\n")}}</style>`
 		return str
 	})

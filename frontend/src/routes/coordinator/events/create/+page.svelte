@@ -186,35 +186,35 @@
 	/* Wrapper tạo màu nền xám nhạt cho toàn trang để nổi bật form */
 	.page-wrapper {
 		padding: 2rem;
-		background-color: #f8fafc;
+		background-color: var(--md-sys-color-background);
+		color: var(--md-sys-color-on-surface);
 		min-height: calc(100vh - 64px);
 		display: flex;
 		justify-content: center;
 	}
 
-	/* Hiệu ứng thẻ (Card) với đổ bóng mượt và bo góc */
 	.form-card {
-		background: #ffffff;
+		background: var(--md-sys-color-surface-container-low);
+		color: var(--md-sys-color-on-surface);
 		border-radius: 16px;
 		box-shadow:
-			0 10px 30px -5px rgba(0, 0, 0, 0.08),
-			0 4px 6px -2px rgba(0, 0, 0, 0.04);
+			0 10px 30px -5px rgba(0, 0, 0, 0.2),
+			0 4px 6px -2px rgba(0, 0, 0, 0.1);
 		padding: 2.5rem 3rem;
-		border: 1px solid #f1f5f9;
+		border: 1px solid var(--md-sys-color-outline-variant);
 		margin: 0;
 		width: 100%;
 		max-width: 900px;
 	}
 
-	/* Tiêu đề có điểm nhấn màu sắc */
 	.page-title {
-		color: var(--md-sys-color-primary, #8a2be2);
+		color: var(--md-sys-color-primary);
 		font-size: 1.8rem;
 		font-weight: 700;
 		margin-top: 0;
 		margin-bottom: 2.5rem;
 		padding-bottom: 1rem;
-		border-bottom: 2px solid #e2e8f0;
+		border-bottom: 2px solid var(--md-sys-color-outline-variant);
 		position: relative;
 	}
 
@@ -225,6 +225,7 @@
 		left: 0;
 		width: 80px;
 		height: 2px;
+		background-color: var(--md-sys-color-primary);
 	}
 
 	.body {
@@ -240,17 +241,16 @@
 		transition: transform 0.2s ease;
 	}
 
-	/* Label màu dịu hơn, đổi màu khi hover vào field */
 	.label {
 		margin: 0;
 		font-weight: 600;
 		font-size: 0.9rem;
-		color: #64748b;
+		color: var(--md-sys-color-on-surface-variant);
 		transition: color 0.2s ease;
 	}
 
 	.field:hover .label {
-		color: var(--md-sys-color-primary, #8a2be2);
+		color: var(--md-sys-color-primary);
 	}
 
 	.full-width {
@@ -272,21 +272,21 @@
 		justify-content: space-between;
 		margin-top: 1.5rem;
 		padding-top: 1.5rem;
-		border-top: 1px dashed #cbd5e1;
+		border-top: 1px dashed var(--md-sys-color-outline-variant);
 	}
 
 	.footer-info {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		background: #f1f5f9;
+		background: var(--md-sys-color-surface-container-high);
 		padding: 0.75rem 1.25rem;
 		border-radius: 8px;
 	}
 
 	.hint-text {
 		margin: 0;
-		color: #475569;
+		color: var(--md-sys-color-on-surface-variant);
 		font-size: 0.9rem;
 		font-weight: 500;
 	}
@@ -296,7 +296,7 @@
 	}
 
 	.error {
-		color: var(--md-sys-color-error, #ef4444);
+		color: var(--md-sys-color-error);
 		font-size: 0.85rem;
 		font-weight: 500;
 		margin-top: 0.25rem;
@@ -311,14 +311,15 @@
 
 	.global-error-box {
 		margin-top: 2rem;
-		background-color: #fef2f2;
-		border: 1px solid #fca5a5;
+		background-color: var(--md-sys-color-error-container);
+		border: 1px solid var(--md-sys-color-error);
 		padding: 1rem;
 		border-radius: 8px;
 		text-align: center;
 	}
 
 	.global-error-box .error {
+		color: var(--md-sys-color-on-error-container);
 		font-size: 1rem;
 		margin: 0;
 		justify-content: center;
