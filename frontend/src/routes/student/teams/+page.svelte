@@ -718,7 +718,17 @@
 															{student.fullName || student.full_name || student.name || "Unknown"}
 														</p>
 														<p class="student-row__meta">
-															{student.studentId || student.student_id || student.email || "No ID"}
+															<span class="student-row__id">{student.studentId || student.student_id || student.email || "No ID"}</span>
+															<span class="student-row__sep">•</span>
+															{#if student.isExternal || student.is_external}
+																<span class="student-row__school student-row__school--external"
+																	>{student.schoolName || student.school_name || "External"}</span
+																>
+															{:else}
+																<span class="student-row__school student-row__school--fpt"
+																	>FPT University</span
+																>
+															{/if}
 														</p>
 													</div>
 													<button
@@ -1708,8 +1718,8 @@
 
 			@media (min-width: $bp-md) {
 				grid-template-columns:
-					minmax(140px, 2fr) auto minmax(90px, 1fr) auto minmax(160px, 3fr)
-					auto minmax(100px, 1.5fr);
+					minmax(180px, 3fr) auto minmax(85px, 1fr) auto minmax(150px, 2.5fr)
+					auto minmax(110px, 1.5fr);
 				align-items: center;
 				column-gap: 1rem;
 			}
@@ -1722,7 +1732,11 @@
 			&--name {
 				display: flex;
 				align-items: center;
-				gap: 0.5rem;
+				flex-wrap: wrap;
+				gap: 0.25rem 0.5rem;
+				white-space: normal;
+				overflow: visible;
+				text-overflow: clip;
 			}
 			&--id {
 			}
@@ -1734,6 +1748,9 @@
 				}
 			}
 			&--school {
+				white-space: normal;
+				overflow: visible;
+				text-overflow: clip;
 			}
 		}
 
@@ -1993,7 +2010,32 @@
 		&__meta {
 			font-size: 0.75rem;
 			color: #6b7280;
-			margin-top: 0.125rem;
+			margin-top: 0.25rem;
+			display: flex;
+			align-items: center;
+			flex-wrap: wrap;
+			gap: 0.375rem;
+		}
+		&__sep {
+			color: #d1d5db;
+			.teams-page--dark & {
+				color: #3f3f46;
+			}
+		}
+		&__school {
+			font-weight: 600;
+			&--external {
+				color: #f97316;
+				.teams-page--dark & {
+					color: #fb923c;
+				}
+			}
+			&--fpt {
+				color: #ea580c;
+				.teams-page--dark & {
+					color: #fb923c;
+				}
+			}
 		}
 	}
 
