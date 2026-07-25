@@ -254,7 +254,7 @@
 
 				<!-- Project Title -->
 				<div class="submit-page__field">
-					<label class="submit-page__label">Project Title (Required)</label>
+					<label class="submit-page__label">Project Title <span class="required-asterisk">(*)</span></label>
 					<input
 						type="text"
 						bind:value={title}
@@ -266,7 +266,7 @@
 
 				<!-- Project Description -->
 				<div class="submit-page__field">
-					<label class="submit-page__label">Project Description (Required)</label>
+					<label class="submit-page__label">Project Description <span class="required-asterisk">(*)</span></label>
 					<textarea
 						bind:value={description}
 						required
@@ -278,7 +278,7 @@
 
 				<!-- Git Link -->
 				<div class="submit-page__field">
-					<label class="submit-page__label">Git Link (Required)</label>
+					<label class="submit-page__label">Git Link <span class="required-asterisk">(*)</span></label>
 					<div class="submit-page__input-wrap">
 						<div class="submit-page__input-icon">
 							<svg class="submit-page__input-svg" fill="currentColor" viewBox="0 0 24 24">
@@ -749,6 +749,12 @@
 
 			.dark & {
 				color: $zinc-300;
+			}
+
+			.required-asterisk {
+				color: $red-500;
+				margin-left: 0.25rem;
+				font-weight: 700;
 			}
 		}
 

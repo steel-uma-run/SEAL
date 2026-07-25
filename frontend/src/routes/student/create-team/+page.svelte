@@ -303,7 +303,7 @@
 				<form onsubmit={handleCreateTeam} class="team-form" class:team-form--disabled={hasNoEvents}>
 					<!-- Field 1: Event -->
 					<div class="form-group">
-						<label class="form-label">Selected Event</label>
+						<label class="form-label">Selected Event <span class="required-asterisk">(*)</span></label>
 						<select
 							bind:value={selectedEventId}
 							required
@@ -337,7 +337,7 @@
 
 					<!-- Field 2: Team Name -->
 					<div class="form-group">
-						<label class="form-label">Team Name</label>
+						<label class="form-label">Team Name <span class="required-asterisk">(*)</span></label>
 						<input
 							type="text"
 							bind:value={teamName}
@@ -349,7 +349,7 @@
 
 					<!-- Field 3: Expected Team Size -->
 					<div class="form-group">
-						<label class="form-label">Expected Team Size (3-5 members)</label>
+						<label class="form-label">Expected Team Size (3-5 members) <span class="required-asterisk">(*)</span></label>
 						<input
 							type="number"
 							bind:value={teamSize}
@@ -863,6 +863,11 @@
 		.create-team-page--dark & {
 			color: #d4d4d8;
 		} // text-zinc-300
+		.required-asterisk {
+			color: #ef4444;
+			margin-left: 0.25rem;
+			font-weight: 700;
+		}
 	}
 
 	// Form input - w-full rounded-xl p-3.5 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none border bg-gray-50 border-gray-200 text-gray-900 / bg-zinc-950 border-zinc-800 text-zinc-100
