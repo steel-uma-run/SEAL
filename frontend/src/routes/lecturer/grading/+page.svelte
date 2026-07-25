@@ -29,7 +29,7 @@
 		let total = 0
 		let totalWeight = 0
 		lecturerScores.forEach((s: any) => {
-			const weight = criteriaWeights[s.criteria_id || s.criteriaId] || 0
+			const weight = criteriaWeights[s.criteria_id || s.criteriaId] || 1
 			total += s.value * weight
 			totalWeight += weight
 		})
@@ -106,6 +106,21 @@
 				if (!events) continue
 
 				for (const event of events) {
+					// Fetch criteria from rounds for this event to get correct weights
+					const { data: rounds } = await getRounds({
+						path: { eventId: event.id },
+						throwOnError: false
+					})
+					if (rounds) {
+						rounds.forEach((r: any) => {
+							if (r.criteria) {
+								r.criteria.forEach((c: any) => {
+									criteriaWeights[c.id] = c.weight || 1
+								})
+							}
+						})
+					}
+
 					const { data: tracks } = await getAllTracksOfEvent({
 						path: { eventId: event.id },
 						throwOnError: false
