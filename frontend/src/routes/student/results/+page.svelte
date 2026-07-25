@@ -103,40 +103,9 @@
 
 								if (subs && subs.length > 0) {
 									processedSubs = subs.map((sub: any) => {
-										let totalScore = 0
-										if (sub.scores && sub.scores.length > 0) {
-											const scoresByLecturer: Record<string, any[]> = {}
-											sub.scores.forEach((score: any) => {
-												const lId = score.lecturer_id || score.lecturerId
-												if (!scoresByLecturer[lId]) scoresByLecturer[lId] = []
-												scoresByLecturer[lId].push(score)
-											})
-
-											const lecturerTotals: number[] = []
-											Object.values(scoresByLecturer).forEach((lecturerScores) => {
-												let total = 0
-												let totalWeight = 0
-												lecturerScores.forEach((score: any) => {
-													const cId = score.criteria_id || score.criteriaId
-													const c = allCriteriaMap.get(cId)
-													const weight = c && c.weight ? c.weight : 1
-													total += score.value * weight
-													totalWeight += weight
-												})
-												if (totalWeight > 0) {
-													lecturerTotals.push(total / totalWeight)
-												}
-											})
-
-											if (lecturerTotals.length > 0) {
-												const sum = lecturerTotals.reduce((a, b) => a + b, 0)
-												totalScore = sum / lecturerTotals.length
-											}
-										}
-
 										return {
 											...sub,
-											total_score: totalScore,
+											total_score: sub.avg_score || 0,
 											has_been_graded: sub.scores && sub.scores.length > 0
 										}
 									})

@@ -87,17 +87,18 @@
 							const me = participants.find((p: any) => p.email === profile.email)
 							if (me) {
 								hasJoined = true
-								if (me.team_ids && me.team_ids.length > 0) {
-									alreadyInTeam = true
-								} else {
-									const { data: eventTeams } = await getAllTeamsOfEvents({
-										path: { eventId: event.id } as any,
-										throwOnError: false
-									})
-									if (
-										eventTeams &&
-										eventTeams.some((t: any) => t.leader_id === me.id || t.leaderId === me.id)
-									) {
+								const { data: eventTeams } = await getAllTeamsOfEvents({
+									path: { eventId: event.id } as any,
+									throwOnError: false
+								})
+								if (eventTeams) {
+									const foundTeam = eventTeams.find(
+										(t: any) =>
+											(me.team_ids && me.team_ids.includes(t.id)) ||
+											t.leader_id === me.id ||
+											t.leaderId === me.id
+									)
+									if (foundTeam) {
 										alreadyInTeam = true
 									}
 								}
@@ -112,6 +113,12 @@
 				events = joinedList
 				if (events.length === 0) {
 					hasNoEvents = true
+				} else {
+					const firstAvailable = events.find((e) => !e.alreadyInTeam)
+					if (firstAvailable) {
+						selectedEventId = firstAvailable.id
+						showCreateForm = true
+					}
 				}
 			} else {
 				eventsError = "Could not load data."
@@ -270,7 +277,7 @@
 											showCreateForm = true
 										}}
 									>
-										+ Create Team for this Event
+										Create Team for this Event
 									</button>
 								{/if}
 							</div>
@@ -738,6 +745,9 @@
 		border: none;
 		text-decoration: none;
 		transition: all 0.2s ease;
+		box-sizing: border-box;
+		font-family: inherit;
+		line-height: 1.5;
 
 		&:disabled {
 			opacity: 0.7;
@@ -797,6 +807,26 @@
 			}
 			&:disabled {
 				opacity: 0.7;
+			}
+		}
+
+		&--primary {
+			background: #ea580c;
+			color: #fff;
+			padding: 0.75rem 1.25rem;
+			font-size: 1rem;
+			border-radius: 0.75rem;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+			&:hover {
+				background: #c2410c;
+			}
+
+			.create-team-page--dark & {
+				background: #f97316;
+				&:hover {
+					background: #ea580c;
+				}
 			}
 		}
 	}
