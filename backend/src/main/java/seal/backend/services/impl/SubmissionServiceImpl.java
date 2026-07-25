@@ -42,6 +42,7 @@ import seal.backend.repositories.TeamRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.SubmissionService;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
+import seal.openapi.model.RegradeRequestDto;
 import seal.openapi.model.RequestRegradePayloadDto;
 import seal.openapi.model.ScoreDeviationNotifDto;
 import seal.openapi.model.SubmissionDto;
@@ -339,6 +340,25 @@ public class SubmissionServiceImpl implements SubmissionService {
             .createdAt(OffsetDateTime.now())
             .build();
     regradeNotifRepo.save(notif);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<RegradeRequestDto> getAllRegradeRequests() {
+    return regradeNotifRepo.findAllByOrderByCreatedAtDesc().stream()
+        .map(
+            notif ->
+                new RegradeRequestDto(
+                    notif.getId(),
+                    notif.getSubmission().getId(),
+                    notif.getSubmission().getSubmitterTeam().getName(),
+                    notif.getLecturer().getId(),
+                    notif.getLecturer().getFullName(),
+                    notif.getReason(),
+                    notif.isResolved(),
+                    notif.getIsApproved(),
+                    notif.getCreatedAt()))
+        .toList();
   }
 
   @Override

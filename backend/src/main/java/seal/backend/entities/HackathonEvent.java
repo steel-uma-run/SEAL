@@ -88,7 +88,7 @@ public class HackathonEvent {
         .filter(
             round -> {
               OffsetDateTime now = OffsetDateTime.now();
-              return round.getStartTime().isBefore(now) && round.getEndTime().isAfter(now);
+              return round.getStartTime().isBefore(now) && round.getGradingEndTime().isAfter(now);
             })
         .findFirst();
   }

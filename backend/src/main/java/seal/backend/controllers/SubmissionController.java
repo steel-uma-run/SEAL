@@ -15,6 +15,7 @@ import seal.backend.config.GlobalConfig;
 import seal.backend.services.SubmissionService;
 import seal.openapi.api.SubmissionApi;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
+import seal.openapi.model.RegradeRequestDto;
 import seal.openapi.model.RequestRegradePayloadDto;
 import seal.openapi.model.ScoreDeviationNotifDto;
 import seal.openapi.model.SubmissionDto;
@@ -58,6 +59,13 @@ public class SubmissionController implements SubmissionApi {
       @RequestBody @Valid @NotNull RequestRegradePayloadDto body) {
     submissionService.requestRegrade(submissionId, body);
     return ResponseEntity.ok().build();
+  }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<RegradeRequestDto[]> getAllRegradeRequests() {
+    List<RegradeRequestDto> requests = submissionService.getAllRegradeRequests();
+    return ResponseEntity.ok(requests.toArray(RegradeRequestDto[]::new));
   }
 
   @Override
