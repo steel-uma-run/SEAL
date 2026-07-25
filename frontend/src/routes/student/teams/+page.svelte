@@ -641,7 +641,7 @@
 										<div class="member-row__cell member-row__cell--school">
 											{#if member.is_external}
 												<span class="member-row__school member-row__school--external"
-													>{member.school_name || "External"}</span
+													>{member.school_name || "External"} University</span
 												>
 											{:else}
 												<span class="member-row__school member-row__school--fpt"
@@ -722,7 +722,7 @@
 															<span class="student-row__sep">•</span>
 															{#if student.isExternal || student.is_external}
 																<span class="student-row__school student-row__school--external"
-																	>{student.schoolName || student.school_name || "External"}</span
+																	>{student.schoolName || student.school_name || "External"} University</span
 																>
 															{:else}
 																<span class="student-row__school student-row__school--fpt"
