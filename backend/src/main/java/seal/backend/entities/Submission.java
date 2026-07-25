@@ -68,50 +68,31 @@ public class Submission {
   @OneToMany(mappedBy = "submission", fetch = FetchType.LAZY)
   private List<Score> scores = new ArrayList<>();
 
-  @Column(name = "avg_score")
-  private Float avgScore;
-
-  public Double calculateTotalScore(Lecturer lecturer) {
+  public Double calculateTotalScore() {
     if (scores == null || scores.isEmpty()) {
       return null;
     }
 
     return scores.stream()
-        .filter(s -> s.getLecturer().getId().equals(lecturer.getId()))
-        .mapToDouble(s -> (s.getValue() * s.getCriteria().getWeight()) / 10.0)
+        .mapToDouble(s -> (s.getValue() * s.getCriteria().getWeight()) / 100.0)
         .sum();
   }
 
-  public Float calculateAverageScore() {
+  public Double calculateAvgScore() {
     if (scores == null || scores.isEmpty()) {
       return null;
     }
 
-    var lecturerIds = scores.stream().map(s -> s.getLecturer().getId()).distinct().toList();
+    long numLecturers = scores.stream().map(s -> s.getLecturer().getId()).distinct().count();
+    if (numLecturers == 0) return 0.0;
 
-    if (lecturerIds.isEmpty()) {
-      return null;
-    }
-
-    double avg =
-        lecturerIds.stream()
-            .mapToDouble(
-                id ->
-                    scores.stream()
-                        .filter(s -> s.getLecturer().getId().equals(id))
-                        .mapToDouble(s -> (s.getValue() * s.getCriteria().getWeight()) / 10.0)
-                        .sum())
-            .average()
-            .orElse(0.0);
-
-    return (float) avg;
-  }
-
-  public void refreshAvgScore() {
-    this.avgScore = calculateAverageScore();
+    return calculateTotalScore() / numLecturers;
   }
 
   public SubmissionDto toDto() {
+    Double calculatedTotal = calculateTotalScore();
+    Double calculatedAvg = calculateAvgScore();
+
     return new SubmissionDto(
         getId(),
         getTitle(),
@@ -121,6 +102,7 @@ public class Submission {
         getSlideLink(),
         getSubmitTime(),
         scores.stream().map(Score::toDto).toArray(ScoreDto[]::new),
-        avgScore);
+        calculatedTotal != null ? calculatedTotal.floatValue() : null,
+        calculatedAvg != null ? calculatedAvg.floatValue() : null);
   }
 }

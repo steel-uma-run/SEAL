@@ -299,13 +299,13 @@
 												<span class="score-label">Total Score</span>
 												<div class="score-value-row">
 													<span
-														class="score-val {sub.total_score >= 5
+														class="score-val {sub.total_score >= 50
 															? 'score-val--pass'
 															: 'score-val--fail'}"
 													>
-														{sub.total_score.toFixed(1)}
+														{sub.total_score.toFixed(2)}
 													</span>
-													<span class="score-den">/10</span>
+													<span class="score-den">/100</span>
 												</div>
 											</div>
 										{:else}
@@ -326,7 +326,7 @@
 															<p class="criteria-comment">"{score.comment}"</p>
 														{/if}
 													</div>
-													<div class="criteria-score">{score.value}/10</div>
+													<div class="criteria-score">{score.value}/100</div>
 												</div>
 											{/each}
 										</div>
@@ -408,13 +408,13 @@
 									{#if histSub.has_been_graded}
 										<div class="score-value-row">
 											<span
-												class="score-val {histSub.total_score >= 5
+												class="score-val {histSub.total_score >= 50
 													? 'score-val--pass'
 													: 'score-val--fail'}"
 											>
-												{histSub.total_score.toFixed(1)}
+												{histSub.total_score.toFixed(2)}
 											</span>
-											<span class="score-den">/10</span>
+											<span class="score-den">/100</span>
 										</div>
 									{:else}
 										<span class="badge-pending">Pending Review</span>
@@ -433,7 +433,7 @@
 													<p class="criteria-comment">"{score.comment}"</p>
 												{/if}
 											</div>
-											<div class="criteria-score">{score.value}/10</div>
+											<div class="criteria-score">{score.value}/100</div>
 										</div>
 									{/each}
 								</div>

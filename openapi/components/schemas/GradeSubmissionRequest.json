@@ -10,7 +10,8 @@
         "description": "The UUID of the Criteria this score is based off of"
       },
       "value": {
-        "type": "integer"
+        "type": "number",
+        "format": "float"
       },
       "comment": {
         "type": "string"

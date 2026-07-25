@@ -9,7 +9,8 @@
 		getAllTracksOfEvent,
 		getAllTeamsOfEvents,
 		getAllSubmissions,
-		getAllCriteriaTemplates
+		getAllCriteriaTemplates,
+		getRounds
 	} from "$lib/api"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 
@@ -27,14 +28,11 @@
 		)
 		if (lecturerScores.length === 0) return null
 		let total = 0
-		let totalWeight = 0
 		lecturerScores.forEach((s: any) => {
 			const weight = criteriaWeights[s.criteria_id || s.criteriaId] || 0
-			total += s.value * weight
-			totalWeight += weight
+			total += (s.value * weight) / 100
 		})
-		if (totalWeight === 0) return 0
-		return (total / totalWeight).toFixed(2)
+		return total.toFixed(2)
 	}
 
 	function getSeasonCategory(season: any, currentInfo: any) {
@@ -106,6 +104,21 @@
 				if (!events) continue
 
 				for (const event of events) {
+					// Fetch criteria from rounds for this event to get correct weights
+					const { data: rounds } = await getRounds({
+						path: { eventId: event.id },
+						throwOnError: false
+					})
+					if (rounds) {
+						rounds.forEach((r: any) => {
+							if (r.criteria) {
+								r.criteria.forEach((c: any) => {
+									criteriaWeights[c.id] = c.weight || 1
+								})
+							}
+						})
+					}
+
 					const { data: tracks } = await getAllTracksOfEvent({
 						path: { eventId: event.id },
 						throwOnError: false
@@ -140,7 +153,11 @@
 											submissions.forEach((sub: any) => {
 												const hasGraded =
 													sub.scores &&
-													sub.scores.some((s: any) => s.lecturer_id === lecturerProfile?.id || s.lecturerId === lecturerProfile?.id)
+													sub.scores.some(
+														(s: any) =>
+															s.lecturer_id === lecturerProfile?.id ||
+															s.lecturerId === lecturerProfile?.id
+													)
 												trackSubmissions.push({
 													...sub,
 													status: hasGraded ? "GRADED" : "PENDING",
@@ -264,7 +281,7 @@
 													<span class="status-badge approved">
 														<CheckCircle class="w-3 h-3" style="display:inline;" />
 														{getLecturerScore(sub, lecturerProfile?.id) !== null
-															? getLecturerScore(sub, lecturerProfile?.id) + "/10"
+															? getLecturerScore(sub, lecturerProfile?.id) + "/100"
 															: "Graded"}
 													</span>
 												{:else}
