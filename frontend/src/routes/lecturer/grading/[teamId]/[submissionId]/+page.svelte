@@ -154,21 +154,17 @@
 		}
 	}
 
-	// Calculate total score based on weights (only count valid scores between 0 and 10)
+	// Calculate total score based on weights (only count valid scores between 0 and 100)
 	let totalScore = $derived.by(() => {
 		if (!criteriaTemplate || !criteriaTemplate.criteria) return 0
 		let total = 0
-		let totalWeight = 0
 		for (const c of criteriaTemplate.criteria) {
 			const val = gradingData[c.id]?.value
-			if (val !== null && val !== undefined && !isNaN(val) && val >= 0 && val <= 10) {
-				const weight = c.weight || 1
-				total += val * weight
-				totalWeight += weight
+			if (val !== null && val !== undefined && !isNaN(val) && val >= 0 && val <= 100) {
+				total += (val * (c.weight || 0)) / 100
 			}
 		}
-		if (totalWeight === 0) return 0
-		return total / totalWeight
+		return total
 	})
 
 	function handleScoreInput(criteriaId: string, event: Event) {
@@ -178,10 +174,10 @@
 			return
 		}
 		const val = Number(input.value)
-		if (isNaN(val) || val < 0 || val > 10) {
+		if (isNaN(val) || val < 0 || val > 100) {
 			gradingData[criteriaId].value = null
 			input.value = ""
-			errorMessage = "Score must be between 0 and 10. Invalid value was cleared."
+			errorMessage = "Score must be between 0 and 100. Invalid value was cleared."
 		} else {
 			gradingData[criteriaId].value = val
 			if (errorMessage && errorMessage.includes("between 0 and 10")) {
@@ -196,8 +192,8 @@
 		for (const c of criteriaTemplate.criteria) {
 			const val = gradingData[c.id]?.value
 			const comment = gradingData[c.id]?.comment
-			// BR-47: Required documented reason if score is below 5
-			if (val !== null && val !== undefined && val < 5 && (!comment || comment.trim() === "")) {
+			// BR-47: Required documented reason if score is below 50
+			if (val !== null && val !== undefined && val < 50 && (!comment || comment.trim() === "")) {
 				return true
 			}
 		}
@@ -209,7 +205,7 @@
 		if (!criteriaTemplate || !criteriaTemplate.criteria) return false
 		for (const c of criteriaTemplate.criteria) {
 			const val = gradingData[c.id]?.value
-			if (val !== null && val !== undefined && (val < 0 || val > 10)) {
+			if (val !== null && val !== undefined && (val < 0 || val > 100)) {
 				return true
 			}
 		}
@@ -228,14 +224,14 @@
 				errorMessage = `Please enter a valid score for ${c.name}`
 				return
 			}
-			if (grade.value < 0 || grade.value > 10) {
-				errorMessage = `Score for ${c.name} must be between 0 and 10.`
+			if (grade.value < 0 || grade.value > 100) {
+				errorMessage = `Score for ${c.name} must be between 0 and 100.`
 				return
 			}
 		}
 
 		if (requiresDocumentedReason) {
-			errorMessage = "Please provide a comment (documented reason) for any score below 5."
+			errorMessage = "Please provide a comment (documented reason) for any score below 50."
 			return
 		}
 
@@ -318,8 +314,8 @@
 		{#if criteriaTemplate}
 			<div class="score-box">
 				<p class="score-label">Total Score</p>
-				<p class="score-value" class:pass={totalScore >= 5} class:fail={totalScore < 5}>
-					{totalScore.toFixed(1)}<span class="score-max">/10</span>
+				<p class="score-value" class:pass={totalScore >= 50} class:fail={totalScore < 50}>
+					{totalScore.toFixed(1)}<span class="score-max">/100</span>
 				</p>
 			</div>
 		{/if}
@@ -431,34 +427,34 @@
 												<p class="criterion-weight">Weight: {c.weight}%</p>
 											</div>
 											<div class="score-input">
-												<label class="field-label">Score (0-10)</label>
+												<label class="field-label">Score (0-100)</label>
 												<input
 													type="number"
 													min="0"
-													max="10"
-													step="0.1"
+													max="100"
+													step="1"
 													value={gradingData[c.id].value ?? ""}
 													oninput={(e) => handleScoreInput(c.id, e)}
 													onchange={(e) => handleScoreInput(c.id, e)}
 													class="input {gradingData[c.id].value !== null &&
 													gradingData[c.id].value !== undefined &&
-													(gradingData[c.id].value < 0 || gradingData[c.id].value > 10)
+													(gradingData[c.id].value < 0 || gradingData[c.id].value > 100)
 														? 'input--error'
 														: ''}"
-													placeholder="e.g. 8.5"
+													placeholder="e.g. 85"
 													required
 													disabled={hasGraded}
 												/>
-												{#if gradingData[c.id].value !== null && gradingData[c.id].value !== undefined && (gradingData[c.id].value < 0 || gradingData[c.id].value > 10)}
-													<p class="field-error-text">Score must be between 0 and 10</p>
+												{#if gradingData[c.id].value !== null && gradingData[c.id].value !== undefined && (gradingData[c.id].value < 0 || gradingData[c.id].value > 100)}
+													<p class="field-error-text">Score must be between 0 and 100</p>
 												{/if}
 											</div>
 										</div>
 										<div>
 											<label class="field-label">
 												Comment / Feedback
-												{#if gradingData[c.id].value !== null && gradingData[c.id].value < 5}
-													<span class="field-required">(Required for scores below 5)</span>
+												{#if gradingData[c.id].value !== null && gradingData[c.id].value < 50}
+													<span class="field-required">(Required for scores below 50)</span>
 												{/if}
 											</label>
 											<textarea

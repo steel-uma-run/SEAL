@@ -280,7 +280,7 @@
 													<span class="status-badge approved">
 														<CheckCircle class="w-3 h-3" style="display:inline;" />
 														{getLecturerScore(sub, lecturerProfile?.id) !== null
-															? getLecturerScore(sub, lecturerProfile?.id) + "/10"
+															? getLecturerScore(sub, lecturerProfile?.id) + "/100"
 															: "Graded"}
 													</span>
 												{:else}
