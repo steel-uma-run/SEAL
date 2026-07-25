@@ -82,8 +82,11 @@ public class TrackServiceImpl implements TrackService {
       track.getJudges().clear();
     }
 
-    // Save the track state (cleared lists) so constraints are evaluated against the clean state.
-    // track = trackRepository.save(track);
+    // Save the track state (cleared lists) so constraints are evaluated against the
+    // clean state.
+    if (request.mentorIds() != null || request.judgeIds() != null) {
+      track = trackRepository.saveAndFlush(track);
+    }
 
     // 3. Assign new mentors
     if (request.mentorIds() != null) {

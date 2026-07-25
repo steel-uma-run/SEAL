@@ -13,11 +13,13 @@
 		createRound,
 		getRounds,
 		updateTrack,
+		deleteTrack,
 		getAllCriteriaTemplates,
+		createCriteriaTemplate,
 		assignCriteria
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Clock, X, Plus } from "@lucide/svelte"
+	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark } from "@lucide/svelte"
 
 	// Stub: updateRoundCriteria is not yet in the generated SDK
 	async function updateRoundCriteria(opts: any): Promise<any> {
@@ -100,9 +102,32 @@
 	let assigningRound = $state<any>(null)
 	let criteriaTemplates = $state<any[]>([])
 	let selectedTemplateId = $state("")
+	let assignCriteriaList = $state<any[]>([])
 	let isAssigningCriteria = $state(false)
 	let assignCriteriaMessage = $state("")
 	let assignCriteriaError = $state(false)
+
+	// Save as Template State
+	let isSavingTemplate = $state(false)
+	let saveTemplateName = $state("")
+	let showSaveTemplateInput = $state(false)
+
+	let totalAssignWeight = $derived(
+		assignCriteriaList.reduce((sum, c) => sum + (Number(c.weight) || 0), 0)
+	)
+
+	function addAssignCriteriaRow() {
+		assignCriteriaList = [
+			...assignCriteriaList,
+			{ id: Date.now() + Math.random(), name: "", weight: 0 }
+		]
+	}
+
+	function removeAssignCriteriaRow(id: any) {
+		if (assignCriteriaList.length > 1) {
+			assignCriteriaList = assignCriteriaList.filter((item) => item.id !== id)
+		}
+	}
 
 	// Edit Criteria Modal State
 	let showEditCriteriaModal = $state(false)
@@ -115,10 +140,19 @@
 	let totalEditWeight = $derived(
 		editingCriteriaList.reduce((sum, c) => sum + (Number(c.weight) || 0), 0)
 	)
+
 	$effect(() => {
 		if (selectedTemplateId) {
 			assignCriteriaMessage = ""
 			assignCriteriaError = false
+			const template = criteriaTemplates.find((t) => t.id === selectedTemplateId)
+			if (template && template.criteria?.length > 0) {
+				assignCriteriaList = template.criteria.map((c: any, index: number) => ({
+					id: Date.now() + index,
+					name: c.name || "",
+					weight: Number(c.weight) || 0
+				}))
+			}
 		}
 	})
 
@@ -372,8 +406,12 @@
 	async function openAssignCriteriaModal(round: any) {
 		assigningRound = round
 		selectedTemplateId = ""
+		assignCriteriaList = [{ id: Date.now(), name: "", weight: 100 }]
 		assignCriteriaMessage = ""
 		assignCriteriaError = false
+		showSaveTemplateInput = false
+		saveTemplateName = ""
+		isSavingTemplate = false
 		criteriaTemplates = []
 		showAssignCriteriaModal = true
 		try {
@@ -384,26 +422,95 @@
 		}
 	}
 
-	async function handleAssignCriteria() {
-		if (!selectedTemplateId) {
-			assignCriteriaMessage = "Please select a criteria template."
+	async function handleSaveAsTemplate() {
+		if (assignCriteriaList.length === 0) {
+			assignCriteriaMessage = "Please add at least one criteria before saving as template."
 			assignCriteriaError = true
 			return
 		}
-		const template = criteriaTemplates.find((t) => t.id === selectedTemplateId)
-		if (!template || !template.criteria?.length) {
-			assignCriteriaMessage = "Selected template has no criteria."
+		if (totalAssignWeight !== 100) {
+			assignCriteriaMessage = "Total weight must equal exactly 100% to save as template."
 			assignCriteriaError = true
 			return
 		}
+		if (assignCriteriaList.some((c) => !c.name || !c.name.trim())) {
+			assignCriteriaMessage = "All criteria category names are required."
+			assignCriteriaError = true
+			return
+		}
+
+		if (!saveTemplateName.trim()) {
+			assignCriteriaMessage = "Please enter a Template Name to save."
+			assignCriteriaError = true
+			showSaveTemplateInput = true
+			return
+		}
+
+		isSavingTemplate = true
+		assignCriteriaMessage = ""
+		assignCriteriaError = false
+		try {
+			const payload = {
+				body: {
+					name: saveTemplateName.trim(),
+					description: saveTemplateName.trim(),
+					criteria: assignCriteriaList.map((item) => ({
+						name: item.name.trim(),
+						description: item.name.trim(),
+						weight: Number(item.weight)
+					}))
+				},
+				throwOnError: false
+			}
+			const { response, data } = await createCriteriaTemplate(payload)
+			if (response?.ok && data) {
+				assignCriteriaMessage = `Template "${saveTemplateName.trim()}" saved to Template Management successfully!`
+				assignCriteriaError = false
+				showSaveTemplateInput = false
+				saveTemplateName = ""
+				const templatesRes = await getAllCriteriaTemplates({ throwOnError: false })
+				if (templatesRes.data) {
+					criteriaTemplates = templatesRes.data
+					selectedTemplateId = (data as any).id || ""
+				}
+			} else {
+				assignCriteriaMessage = "Failed to save template to Template Management."
+				assignCriteriaError = true
+			}
+		} catch (err: any) {
+			assignCriteriaMessage = err.message || "Error saving template."
+			assignCriteriaError = true
+		} finally {
+			isSavingTemplate = false
+		}
+	}
+
+	async function handleAssignCriteria(e?: Event) {
+		if (e) e.preventDefault()
+		if (assignCriteriaList.length === 0) {
+			assignCriteriaMessage = "Please add at least one criteria."
+			assignCriteriaError = true
+			return
+		}
+		if (totalAssignWeight !== 100) {
+			assignCriteriaMessage = "Total weight must equal exactly 100%."
+			assignCriteriaError = true
+			return
+		}
+		if (assignCriteriaList.some((c) => !c.name || !c.name.trim())) {
+			assignCriteriaMessage = "All criteria category names are required."
+			assignCriteriaError = true
+			return
+		}
+
 		isAssigningCriteria = true
 		assignCriteriaMessage = ""
 		assignCriteriaError = false
 		try {
-			const criteriaBody = template.criteria.map((c: any) => ({
-				name: c.name,
-				description: c.description ?? "",
-				weight: c.weight
+			const criteriaBody = assignCriteriaList.map((c: any) => ({
+				name: c.name.trim(),
+				description: "",
+				weight: Number(c.weight)
 			}))
 			const { response } = await assignCriteria({
 				path: { roundId: assigningRound.id },
@@ -675,10 +782,13 @@
 		editTrackName = track.name || ""
 		editTrackDescription = track.description || ""
 
-		const mentors = track.mentor_ids || track.mentorIds || []
+		const rawMentors = track.mentors || track.mentor_ids || track.mentorIds || []
+		const mentors = rawMentors.map((m: any) => (typeof m === "string" ? m : m.id))
 		selectedMentorsForEditTrack = [...mentors]
 
-		selectedJudgesForEditTrack = [...(track.judge_ids || track.judgeIds || [])]
+		const rawJudges = track.judges || track.judge_ids || track.judgeIds || []
+		const judges = rawJudges.map((j: any) => (typeof j === "string" ? j : j.id))
+		selectedJudgesForEditTrack = [...judges]
 
 		selectedTeamsForEditTrack = teams
 			.filter((t) => t.track_id === track.id || t.trackId === track.id)
@@ -750,6 +860,29 @@
 			editTrackError = true
 		} finally {
 			isSavingEditTrack = false
+		}
+	}
+
+	async function handleDeleteTrack(track: any) {
+		if (!confirm(`Are you sure you want to delete track "${track.name}"?`)) {
+			return
+		}
+		try {
+			const { response, error: apiErr } = await deleteTrack({
+				path: { trackId: track.id },
+				throwOnError: false
+			})
+			if (response?.ok) {
+				await loadEventTracks()
+				await fetchEventDetails()
+				alert(`Track "${track.name}" deleted successfully!`)
+			} else {
+				const errBody = apiErr as any
+				alert(errBody?.detail || response?.statusText || "Failed to delete track.")
+			}
+		} catch (err: any) {
+			console.error("Error deleting track:", err)
+			alert(err.message || "An error occurred while deleting track.")
 		}
 	}
 
@@ -844,28 +977,47 @@
 				{#if eventTracks.length > 0}
 					<div class="track-grid">
 						{#each eventTracks as track}
+							{@const mentorList = (track.mentors || track.mentor_ids || []).map((m: any) =>
+								typeof m === "string" ? getLecturerName(m) : m.fullName || m.name
+							)}
+							{@const judgeList = (track.judges || track.judge_ids || []).map((j: any) =>
+								typeof j === "string" ? getLecturerName(j) : j.fullName || j.name
+							)}
 							<div class="track-card">
 								<div class="track-card-header">
 									<div class="track-title-wrapper">
 										<h3 class="track-name">{track.name}</h3>
 										<p class="track-desc">{track.description}</p>
 									</div>
-									<button
-										type="button"
-										onclick={() => openEditTrackModal(track)}
-										class="btn btn-text btn-small"
-									>
-										Assign to track
-									</button>
+									<div style="display: flex; gap: 0.5rem; align-items: center;">
+										<button
+											type="button"
+											onclick={() => openEditTrackModal(track)}
+											class="btn btn-text btn-small"
+										>
+											Assign to track
+										</button>
+										{#if event?.status?.toUpperCase() === "DRAFT"}
+											<button
+												type="button"
+												onclick={() => handleDeleteTrack(track)}
+												class="btn-icon"
+												style="color: var(--md-sys-color-error, #ba1a1a);"
+												title="Delete Track"
+											>
+												<Trash2 class="icon" style="width: 18px; height: 18px;" />
+											</button>
+										{/if}
+									</div>
 								</div>
 
 								<div class="track-card-content">
 									<div class="meta-group">
 										<span class="meta-label">Mentor</span>
 										<div class="chip-group small">
-											{#if track.mentor_ids && track.mentor_ids.length > 0}
-												{#each track.mentor_ids as mentorId}
-													<span class="chip chip-mentor">{getLecturerName(mentorId)}</span>
+											{#if mentorList.length > 0}
+												{#each mentorList as mentorName}
+													<span class="chip chip-mentor">{mentorName}</span>
 												{/each}
 											{:else}
 												<span class="empty-text">No mentor assigned</span>
@@ -876,9 +1028,9 @@
 									<div class="meta-group">
 										<span class="meta-label">Judges</span>
 										<div class="chip-group small">
-											{#if track.judge_ids && track.judge_ids.length > 0}
-												{#each track.judge_ids as judgeId}
-													<span class="chip chip-judge">{getLecturerName(judgeId)}</span>
+											{#if judgeList.length > 0}
+												{#each judgeList as judgeName}
+													<span class="chip chip-judge">{judgeName}</span>
 												{/each}
 											{:else}
 												<span class="empty-text">No judges assigned</span>
@@ -1014,6 +1166,16 @@
 													t.id === (team.track_id || team.trackId) ||
 													t.name === (team.track_id || team.trackId)
 											)}
+											{@const mentorList = track
+												? (track.mentors || track.mentor_ids || []).map((m: any) =>
+														typeof m === "string" ? getLecturerName(m) : m.fullName || m.name
+													)
+												: []}
+											{@const judgeList = track
+												? (track.judges || track.judge_ids || []).map((j: any) =>
+														typeof j === "string" ? getLecturerName(j) : j.fullName || j.name
+													)
+												: []}
 											<tr>
 												<td class="font-bold">{team.name}</td>
 												<td class="font-medium"
@@ -1040,10 +1202,10 @@
 													{/if}
 												</td>
 												<td>
-													{#if track && track.mentor_ids && track.mentor_ids.length > 0}
+													{#if mentorList.length > 0}
 														<div class="chip-group small inline">
-															{#each track.mentor_ids as mentorId}
-																<span class="chip chip-mentor">{getLecturerName(mentorId)}</span>
+															{#each mentorList as mentorName}
+																<span class="chip chip-mentor">{mentorName}</span>
 															{/each}
 														</div>
 													{:else}
@@ -1051,10 +1213,10 @@
 													{/if}
 												</td>
 												<td>
-													{#if track && track.judge_ids && track.judge_ids.length > 0}
+													{#if judgeList.length > 0}
 														<div class="chip-group small inline">
-															{#each track.judge_ids as judgeId}
-																<span class="chip chip-judge">{getLecturerName(judgeId)}</span>
+															{#each judgeList as judgeName}
+																<span class="chip chip-judge">{judgeName}</span>
 															{/each}
 														</div>
 													{:else}
@@ -1570,7 +1732,7 @@
 
 	{#if showAssignCriteriaModal && assigningRound}
 		<div class="modal-overlay">
-			<div class="modal-surface">
+			<div class="modal-surface large">
 				<div class="modal-header">
 					<div>
 						<h3>Assign Criteria</h3>
@@ -1585,16 +1747,16 @@
 						{assignCriteriaMessage}
 					</div>
 				{/if}
-				<div class="modal-form">
+				<form onsubmit={handleAssignCriteria} class="modal-form">
 					<div class="form-group">
-						<label>Select Template *</label>
+						<label for="assign-template-select">Select Template (Optional to pre-fill)</label>
 						{#if criteriaTemplates.length === 0}
 							<p class="helper-text italic py-2">
 								Loading templates… or none available. Create templates in Template Management first.
 							</p>
 						{:else}
-							<select bind:value={selectedTemplateId}>
-								<option value="">-- Choose a template --</option>
+							<select id="assign-template-select" bind:value={selectedTemplateId}>
+								<option value="">-- Choose a template to fill --</option>
 								{#each criteriaTemplates as template}
 									<option value={template.id}>{template.description}</option>
 								{/each}
@@ -1602,39 +1764,143 @@
 						{/if}
 					</div>
 
-					{#if selectedTemplateId}
-						{@const previewTemplate = criteriaTemplates.find((t) => t.id === selectedTemplateId)}
-						{#if previewTemplate?.criteria?.length > 0}
-							<div class="preview-container">
-								<div class="preview-header">Criteria Preview</div>
-								<div class="preview-list">
-									{#each previewTemplate.criteria as criterion}
-										<div class="preview-item">
-											<span class="preview-name">{criterion.name}</span>
-											<span class="preview-weight">{criterion.weight}%</span>
-										</div>
-									{/each}
-								</div>
+					<div
+						style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; margin-bottom: 0.5rem;"
+					>
+						<span style="font-weight: 600; font-size: 0.95rem;">Criteria List *</span>
+						<div style="display: flex; gap: 0.5rem; align-items: center;">
+							<button
+								type="button"
+								onclick={() => (showSaveTemplateInput = !showSaveTemplateInput)}
+								class="btn btn-outline small"
+								style="padding: 0.25rem 0.75rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.35rem;"
+							>
+								<Bookmark style="width: 14px; height: 14px;" />
+								{showSaveTemplateInput ? "Cancel Template Save" : "Save as Template"}
+							</button>
+							<button
+								type="button"
+								onclick={addAssignCriteriaRow}
+								class="btn btn-outline small"
+								style="padding: 0.25rem 0.75rem; font-size: 0.85rem;"
+							>
+								+ Add Row
+							</button>
+						</div>
+					</div>
+
+					{#if showSaveTemplateInput}
+						<div
+							class="form-group"
+							style="background-color: var(--md-sys-color-surface-container-lowest); padding: 1rem; border-radius: 16px; margin-bottom: 1rem; border: 1px solid var(--md-sys-color-outline-variant);"
+						>
+							<label
+								for="save-template-name-input"
+								style="font-size: 0.75rem; font-weight: 700; color: var(--md-sys-color-on-surface-variant);"
+							>
+								Save to Template Management *
+							</label>
+							<div style="display: flex; gap: 0.75rem; align-items: center;">
+								<input
+									id="save-template-name-input"
+									type="text"
+									bind:value={saveTemplateName}
+									placeholder="e.g. Round 1 Evaluation Template"
+									style="flex: 1;"
+								/>
+								<button
+									type="button"
+									onclick={handleSaveAsTemplate}
+									disabled={isSavingTemplate || !saveTemplateName.trim()}
+									class="btn btn-filled"
+									style="white-space: nowrap; padding: 0.75rem 1.25rem;"
+								>
+									{isSavingTemplate ? "Saving..." : "Save Template"}
+								</button>
 							</div>
-						{/if}
+						</div>
 					{/if}
 
-					<div class="modal-actions">
+					<div class="criteria-edit-list">
+						{#each assignCriteriaList as item, i (item.id)}
+							<div
+								class="form-row"
+								style="display: flex; flex-direction: row; gap: 0.75rem; margin-bottom: 0.75rem; align-items: flex-end;"
+							>
+								<div class="form-group" style="flex: 3; margin-bottom: 0;">
+									<label for="assign-crit-name-{i}" style="font-size: 0.8rem;"
+										>Criteria Category Name *</label
+									>
+									<input
+										id="assign-crit-name-{i}"
+										type="text"
+										bind:value={item.name}
+										required
+										placeholder="e.g. Technical Execution"
+									/>
+								</div>
+								<div class="form-group" style="flex: 1.2; margin-bottom: 0; min-width: 90px;">
+									<label for="assign-crit-weight-{i}" style="font-size: 0.8rem;">Weight (%) *</label
+									>
+									<input
+										id="assign-crit-weight-{i}"
+										type="number"
+										min="1"
+										max="100"
+										bind:value={item.weight}
+										required
+										placeholder="%"
+									/>
+								</div>
+								<button
+									type="button"
+									onclick={() => removeAssignCriteriaRow(item.id)}
+									disabled={assignCriteriaList.length <= 1}
+									class="btn-icon"
+									style="margin-bottom: 2px; color: var(--md-sys-color-error, #ba1a1a);"
+									title="Remove Row"
+								>
+									<Trash2 class="icon" style="width: 18px; height: 18px;" />
+								</button>
+							</div>
+						{/each}
+					</div>
+
+					<div
+						style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--md-sys-color-outline-variant, #ccc);"
+					>
+						<div>
+							<span style="font-weight: 500; font-size: 0.9rem;">Total Weight:</span>
+							<span
+								style="font-weight: bold; margin-left: 0.5rem; color: {totalAssignWeight === 100
+									? 'var(--md-sys-color-primary, #6750a4)'
+									: 'var(--md-sys-color-error, #ba1a1a)'}"
+							>
+								{totalAssignWeight}%
+							</span>
+							<span
+								style="font-size: 0.8rem; margin-left: 0.5rem; color: var(--md-sys-color-on-surface-variant, #666);"
+							>
+								(Must equal 100%)
+							</span>
+						</div>
+					</div>
+
+					<div class="modal-actions" style="margin-top: 1.5rem;">
 						<button
 							type="button"
 							onclick={() => (showAssignCriteriaModal = false)}
 							class="btn btn-text">Cancel</button
 						>
 						<button
-							type="button"
-							onclick={handleAssignCriteria}
-							disabled={isAssigningCriteria || !selectedTemplateId}
+							type="submit"
+							disabled={isAssigningCriteria || totalAssignWeight !== 100}
 							class="btn btn-filled"
 						>
 							{isAssigningCriteria ? "Assigning..." : "Confirm"}
 						</button>
 					</div>
-				</div>
+				</form>
 			</div>
 		</div>
 	{/if}
@@ -2161,6 +2427,7 @@
 		}
 
 		input[type="text"],
+		input[type="number"],
 		input[type="datetime-local"],
 		select,
 		textarea {
