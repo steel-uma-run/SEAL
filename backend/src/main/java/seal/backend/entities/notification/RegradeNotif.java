@@ -37,4 +37,7 @@ public class RegradeNotif extends Notif {
 
   @Column(nullable = false)
   private boolean isResolved;
+
+  @Column(name = "is_approved")
+  private Boolean isApproved;
 }

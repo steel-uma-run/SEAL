@@ -63,8 +63,10 @@ public class SubmissionController implements SubmissionApi {
   @Override
   @PreAuthorize("hasAuthority('COORDINATOR')")
   public ResponseEntity<Void> approveRegrade(
-      @PathVariable(name = "submissionId") @NotNull UUID submissionId) {
-    submissionService.approveRegrade(submissionId);
+      @PathVariable(name = "submissionId") @NotNull UUID submissionId,
+      @PathVariable(name = "notifId") @NotNull UUID notifId) {
+
+    submissionService.approveRegrade(submissionId, notifId);
     return ResponseEntity.ok().build();
   }
 

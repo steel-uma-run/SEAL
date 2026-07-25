@@ -12,6 +12,15 @@
           "type": "string",
           "format": "uuid"
         }
+      },
+      {
+        "name": "notifId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
       }
     ],
     "responses": {
