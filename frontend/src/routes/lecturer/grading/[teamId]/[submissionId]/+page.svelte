@@ -158,13 +158,17 @@
 	let totalScore = $derived.by(() => {
 		if (!criteriaTemplate || !criteriaTemplate.criteria) return 0
 		let total = 0
+		let totalWeight = 0
 		for (const c of criteriaTemplate.criteria) {
 			const val = gradingData[c.id]?.value
 			if (val !== null && val !== undefined && !isNaN(val) && val >= 0 && val <= 10) {
-				total += (val * (c.weight || 0)) / 100
+				const weight = c.weight || 1
+				total += val * weight
+				totalWeight += weight
 			}
 		}
-		return total
+		if (totalWeight === 0) return 0
+		return total / totalWeight
 	})
 
 	function handleScoreInput(criteriaId: string, event: Event) {
