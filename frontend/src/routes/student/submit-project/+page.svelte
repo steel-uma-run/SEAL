@@ -213,35 +213,44 @@
 			</div>
 		</div>
 
-		{#if myTeamLeaderId !== profileId}
+		{#if leaderTeams.length === 0}
 			<div class="submit-page__not-leader">
-				<svg class="submit-page__lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-					/>
-				</svg>
-				<h2 class="submit-page__not-leader-title">Only the Team Leader can submit</h2>
+				<h2 class="submit-page__not-leader-title">No Teams Found</h2>
 				<p class="submit-page__not-leader-text">
-					You are a member of this team. Please ask your team leader to submit the project.
+					You are not currently in any teams. Join an event and form a team first.
 				</p>
 			</div>
 		{:else}
-			<form onsubmit={handleSubmit} class="submit-page__form">
-				{#if leaderTeams.length > 1}
-					<div class="submit-page__field">
-						<label class="submit-page__label">Select Event / Team</label>
-						<select bind:value={selectedLeaderTeamIndex} class="submit-page__input">
-							{#each leaderTeams as t, idx}
-								<option value={idx}>
-									{t.eventName}: {t.teamName}
-								</option>
-							{/each}
-						</select>
-					</div>
-				{/if}
+			{#if leaderTeams.length > 1}
+				<div class="submit-page__field" style="margin-bottom: 2rem;">
+					<label class="submit-page__label">Select Event / Team</label>
+					<select bind:value={selectedLeaderTeamIndex} class="submit-page__input">
+						{#each leaderTeams as t, idx}
+							<option value={idx}>
+								{t.eventName}: {t.teamName}
+							</option>
+						{/each}
+					</select>
+				</div>
+			{/if}
+
+			{#if myTeamLeaderId !== profileId}
+				<div class="submit-page__not-leader">
+					<svg class="submit-page__lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+						/>
+					</svg>
+					<h2 class="submit-page__not-leader-title">Only the Team Leader can submit</h2>
+					<p class="submit-page__not-leader-text">
+						You are a member of this team. Please ask your team leader to submit the project.
+					</p>
+				</div>
+			{:else}
+				<form onsubmit={handleSubmit} class="submit-page__form">
 
 				<!-- Project Title -->
 				<div class="submit-page__field">
@@ -380,6 +389,7 @@
 					{isLoading ? "Submitting..." : "Submit Project"}
 				</button>
 			</form>
+		{/if}
 		{/if}
 	</div>
 
