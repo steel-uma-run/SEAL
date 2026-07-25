@@ -218,7 +218,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     OffsetDateTime sum1GradStart =
         OffsetDateTime.of(2026, 7, 25, 7, 0, 0, 0, ZoneOffset.ofHours(7));
     OffsetDateTime sum1GradEnd =
-        OffsetDateTime.of(2026, 7, 25, 15, 30, 0, 0, ZoneOffset.ofHours(7));
+        OffsetDateTime.of(2026, 7, 30, 15, 30, 0, 0, ZoneOffset.ofHours(7));
 
     Round rdSum1 =
         roundRepo.save(
