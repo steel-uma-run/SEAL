@@ -210,13 +210,13 @@ public class DatabaseSeeder implements CommandLineRunner {
                 eventSpring));
 
     // --- TIMELINE ROUNDS SUMMER (Onsite ngày ***) ---
-    OffsetDateTime sum1Start = OffsetDateTime.of(2026, 7, 25, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum1End = OffsetDateTime.of(2026, 7, 25, 7, 10, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum1Start = OffsetDateTime.of(2026, 7, 24, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum1End = OffsetDateTime.of(2026, 7, 24, 7, 10, 0, 0, ZoneOffset.ofHours(7));
     OffsetDateTime sum1SubStart =
-        OffsetDateTime.of(2026, 7, 25, 7, 15, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum1SubEnd = OffsetDateTime.of(2026, 8, 25, 10, 0, 0, 0, ZoneOffset.ofHours(7));
+        OffsetDateTime.of(2026, 7, 24, 7, 15, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime sum1SubEnd = OffsetDateTime.of(2026, 8, 24, 10, 0, 0, 0, ZoneOffset.ofHours(7));
     OffsetDateTime sum1GradStart =
-        OffsetDateTime.of(2026, 7, 25, 14, 0, 0, 0, ZoneOffset.ofHours(7));
+        OffsetDateTime.of(2026, 7, 25, 7, 0, 0, 0, ZoneOffset.ofHours(7));
     OffsetDateTime sum1GradEnd =
         OffsetDateTime.of(2026, 7, 25, 15, 30, 0, 0, ZoneOffset.ofHours(7));
 
