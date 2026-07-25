@@ -29,6 +29,7 @@
 		ArrowRightLeft,
 		ChevronDown
 	} from "@lucide/svelte"
+	import { getMaxMembers } from "$lib/utils/formatters"
 
 	let profile = $state<any>(null)
 	let invites = $state<any[]>([])
@@ -490,7 +491,7 @@
 											<div class="submission-area">
 												<h4 class="submission-label">TEAM INFO</h4>
 												<div class="submission-card">
-													<p class="submission-title">{item.team.members?.length || 1}/5 Members</p>
+													<p class="submission-title">{item.team.members?.length || 1}/{getMaxMembers(item.team.description)} Members</p>
 												</div>
 											</div>
 
@@ -611,7 +612,7 @@
 
 				<div class="members-section">
 					<div class="members-section__header">
-						<h3 class="members-section__title">Team Members ({myTeam.members?.length || 1}/5)</h3>
+						<h3 class="members-section__title">Team Members ({myTeam.members?.length || 1}/{getMaxMembers(myTeam.description)})</h3>
 					</div>
 
 					<div class="members-list">
@@ -670,12 +671,12 @@
 								Invite New Member
 							</h4>
 							<p class="invite-panel__desc">
-								Enter a student ID to invite them to your team. Teams can have up to 5 members.
+								Enter a student ID to invite them to your team. Teams can have up to {getMaxMembers(myTeam.description)} members.
 							</p>
 
-							{#if (myTeam.members?.length || 1) >= 5}
+							{#if (myTeam.members?.length || 1) >= getMaxMembers(myTeam.description)}
 								<div class="alert alert--warning">
-									Your team has reached the maximum size limit (5 members).
+									Your team has reached the maximum size limit ({getMaxMembers(myTeam.description)} members).
 								</div>
 							{:else}
 								<form onsubmit={handleInviteMember} class="invite-form">
@@ -2329,7 +2330,8 @@
 	.sub-header {
 		display: flex;
 		justify-content: space-between;
-		align-items: flex-start;
+		align-items: center;
+		flex-wrap: nowrap;
 		margin-bottom: 1.25rem;
 		padding-bottom: 1.25rem;
 		border-bottom: 1px solid #e5e7eb;
@@ -2341,9 +2343,14 @@
 	}
 
 	.team-name {
-		font-size: 1.125rem;
+		font-size: clamp(0.875rem, 2vw, 1rem);
 		font-weight: 700;
 		color: #111827;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		min-width: 0;
+		flex: 1 1 auto;
 	}
 
 	.teams-page--dark .team-name {
@@ -2351,14 +2358,15 @@
 	}
 
 	.status-badge {
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		font-weight: 700;
-		padding: 0.25rem 0.75rem;
+		padding: 0.2rem 0.5rem;
 		border-radius: 9999px;
-		display: flex;
+		display: inline-flex;
 		align-items: center;
-		gap: 0.375rem;
+		gap: 0.25rem;
 		white-space: nowrap;
+		flex-shrink: 0;
 	}
 
 	.status-badge.approved {

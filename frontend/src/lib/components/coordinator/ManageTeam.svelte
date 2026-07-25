@@ -21,6 +21,7 @@
 		Plus,
 		Clock
 	} from "@lucide/svelte"
+	import { getMaxMembers } from "$lib/utils/formatters"
 
 	// Teams State
 	let teams = $state<any[]>([])
@@ -241,7 +242,7 @@
 								? leaderStudent.fullName || leaderStudent.name
 								: team.leaderName || "Unknown Leader",
 							membersCount: team.members ? team.members.length : team.membersCount || 1,
-							maxMembers: 5,
+							maxMembers: getMaxMembers(team.description),
 							status: team.status || "PENDING"
 						})
 					}
