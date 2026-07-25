@@ -9,7 +9,8 @@
 		getAllTracksOfEvent,
 		getAllTeamsOfEvents,
 		getAllSubmissions,
-		getAllCriteriaTemplates
+		getAllCriteriaTemplates,
+		getRounds
 	} from "$lib/api"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 
