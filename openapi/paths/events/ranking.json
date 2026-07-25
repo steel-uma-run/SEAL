@@ -1,0 +1,37 @@
+{
+  "get": {
+    "tags": ["events"],
+    "operationId": "get_event_ranking",
+    "summary": "Get teams ranked by grade for an event",
+    "parameters": [
+      {
+        "name": "eventId",
+        "description": "ID of the event",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Successfully retrieved ranking",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/Team.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
