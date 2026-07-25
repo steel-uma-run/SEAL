@@ -13,6 +13,7 @@
 		createRound,
 		getRounds,
 		updateTrack,
+		deleteTrack,
 		getAllCriteriaTemplates,
 		createCriteriaTemplate,
 		assignCriteria
@@ -862,6 +863,29 @@
 		}
 	}
 
+	async function handleDeleteTrack(track: any) {
+		if (!confirm(`Are you sure you want to delete track "${track.name}"?`)) {
+			return
+		}
+		try {
+			const { response, error: apiErr } = await deleteTrack({
+				path: { trackId: track.id },
+				throwOnError: false
+			})
+			if (response?.ok) {
+				await loadEventTracks()
+				await fetchEventDetails()
+				alert(`Track "${track.name}" deleted successfully!`)
+			} else {
+				const errBody = apiErr as any
+				alert(errBody?.detail || response?.statusText || "Failed to delete track.")
+			}
+		} catch (err: any) {
+			console.error("Error deleting track:", err)
+			alert(err.message || "An error occurred while deleting track.")
+		}
+	}
+
 	function getLecturerName(lecturerId: string) {
 		const lec = lecturers.find((l) => l.id === lecturerId)
 		return lec ? lec.fullName || lec.name : lecturerId
@@ -965,13 +989,26 @@
 										<h3 class="track-name">{track.name}</h3>
 										<p class="track-desc">{track.description}</p>
 									</div>
-									<button
-										type="button"
-										onclick={() => openEditTrackModal(track)}
-										class="btn btn-text btn-small"
-									>
-										Assign to track
-									</button>
+									<div style="display: flex; gap: 0.5rem; align-items: center;">
+										<button
+											type="button"
+											onclick={() => openEditTrackModal(track)}
+											class="btn btn-text btn-small"
+										>
+											Assign to track
+										</button>
+										{#if event?.status?.toUpperCase() === "DRAFT"}
+											<button
+												type="button"
+												onclick={() => handleDeleteTrack(track)}
+												class="btn-icon"
+												style="color: var(--md-sys-color-error, #ba1a1a);"
+												title="Delete Track"
+											>
+												<Trash2 class="icon" style="width: 18px; height: 18px;" />
+											</button>
+										{/if}
+									</div>
 								</div>
 
 								<div class="track-card-content">
