@@ -121,6 +121,10 @@
 							for (const track of tracksData) {
 								if (track.judge_ids) {
 									track.judge_ids.forEach((jId: string) => assignedJudgesSet.add(jId))
+								} else if (track.judges) {
+									track.judges.forEach((j: any) =>
+										assignedJudgesSet.add(typeof j === "string" ? j : j.id)
+									)
 								}
 							}
 						}

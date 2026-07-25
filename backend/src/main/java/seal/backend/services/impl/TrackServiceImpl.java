@@ -31,11 +31,10 @@ public class TrackServiceImpl implements TrackService {
 
   @Override
   public TrackDto getTrack(UUID trackId) {
-    Track track =
-        trackRepository
-            .findById(trackId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
+    Track track = trackRepository
+        .findById(trackId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track does not exist."));
 
     return track.toDto();
   }
@@ -43,11 +42,10 @@ public class TrackServiceImpl implements TrackService {
   @Override
   @Transactional
   public TrackDto createTrack(CreateTrackRequestDto request, UUID eventId) {
-    HackathonEvent hackathonEvent =
-        eventRepo
-            .findById(eventId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event does not exist."));
+    HackathonEvent hackathonEvent = eventRepo
+        .findById(eventId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event does not exist."));
 
     Track newTrack = new Track(request.name(), request.description(), hackathonEvent);
     Track savedTrack = trackRepository.save(newTrack);
@@ -58,11 +56,10 @@ public class TrackServiceImpl implements TrackService {
   @Override
   @Transactional
   public TrackDto updateTrack(UUID trackId, UpdateTrackRequestDto request) {
-    Track track =
-        trackRepository
-            .findById(trackId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track does not exist."));
+    Track track = trackRepository
+        .findById(trackId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track does not exist."));
 
     if (request.name() != null) {
       track.setName(request.name());
@@ -82,8 +79,11 @@ public class TrackServiceImpl implements TrackService {
       track.getJudges().clear();
     }
 
-    // Save the track state (cleared lists) so constraints are evaluated against the clean state.
-    // track = trackRepository.save(track);
+    // Save the track state (cleared lists) so constraints are evaluated against the
+    // clean state.
+    if (request.mentorIds() != null || request.judgeIds() != null) {
+      track = trackRepository.saveAndFlush(track);
+    }
 
     // 3. Assign new mentors
     if (request.mentorIds() != null) {
@@ -121,11 +121,10 @@ public class TrackServiceImpl implements TrackService {
   @Override
   @Transactional
   public void deleteTrack(UUID trackId) {
-    Track track =
-        trackRepository
-            .findById(trackId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track not found."));
+    Track track = trackRepository
+        .findById(trackId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Track not found."));
 
     if (track.getEvent().getStatus() != EventStatus.DRAFT) {
       throw new ResponseStatusException(
@@ -140,11 +139,10 @@ public class TrackServiceImpl implements TrackService {
   }
 
   private Track assignMentor(Track track, UUID mentorId) {
-    Lecturer mentor =
-        lecturerRepository
-            .findById(mentorId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecturer not found."));
+    Lecturer mentor = lecturerRepository
+        .findById(mentorId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecturer not found."));
 
     if (track.getJudges().contains(mentor)) {
       throw new ResponseStatusException(
@@ -165,7 +163,8 @@ public class TrackServiceImpl implements TrackService {
 
     List<Track> allTracksInEvent = trackRepository.findByEventId(track.getEvent().getId());
     for (Track trackInEvent : allTracksInEvent) {
-      if (trackInEvent.getId().equals(track.getId())) continue;
+      if (trackInEvent.getId().equals(track.getId()))
+        continue;
 
       if (trackInEvent.getMentors().contains(mentor)) {
         throw new ResponseStatusException(
@@ -179,11 +178,10 @@ public class TrackServiceImpl implements TrackService {
   }
 
   private Track assignJudge(Track track, UUID judgeId) {
-    Lecturer judge =
-        lecturerRepository
-            .findById(judgeId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecturer not found."));
+    Lecturer judge = lecturerRepository
+        .findById(judgeId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lecturer not found."));
 
     if (track.getMentors().contains(judge)) {
       throw new ResponseStatusException(
@@ -204,7 +202,8 @@ public class TrackServiceImpl implements TrackService {
 
     List<Track> allTracksInEvent = trackRepository.findByEventId(track.getEvent().getId());
     for (Track trackInEvent : allTracksInEvent) {
-      if (trackInEvent.getId().equals(track.getId())) continue;
+      if (trackInEvent.getId().equals(track.getId()))
+        continue;
 
       if (trackInEvent.getJudges().contains(judge)) {
         throw new ResponseStatusException(
@@ -218,11 +217,10 @@ public class TrackServiceImpl implements TrackService {
   }
 
   private void assignTeam(Track track, UUID teamId) {
-    Team team =
-        teamRepository
-            .findById(teamId)
-            .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
+    Team team = teamRepository
+        .findById(teamId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
 
     if (!team.getHackathonEvent().getId().equals(track.getEvent().getId())) {
       throw new ResponseStatusException(

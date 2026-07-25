@@ -675,10 +675,13 @@
 		editTrackName = track.name || ""
 		editTrackDescription = track.description || ""
 
-		const mentors = track.mentor_ids || track.mentorIds || []
+		const rawMentors = track.mentors || track.mentor_ids || track.mentorIds || []
+		const mentors = rawMentors.map((m: any) => (typeof m === "string" ? m : m.id))
 		selectedMentorsForEditTrack = [...mentors]
 
-		selectedJudgesForEditTrack = [...(track.judge_ids || track.judgeIds || [])]
+		const rawJudges = track.judges || track.judge_ids || track.judgeIds || []
+		const judges = rawJudges.map((j: any) => (typeof j === "string" ? j : j.id))
+		selectedJudgesForEditTrack = [...judges]
 
 		selectedTeamsForEditTrack = teams
 			.filter((t) => t.track_id === track.id || t.trackId === track.id)
@@ -844,6 +847,12 @@
 				{#if eventTracks.length > 0}
 					<div class="track-grid">
 						{#each eventTracks as track}
+							{@const mentorList = (track.mentors || track.mentor_ids || []).map((m: any) =>
+								typeof m === "string" ? getLecturerName(m) : m.fullName || m.name
+							)}
+							{@const judgeList = (track.judges || track.judge_ids || []).map((j: any) =>
+								typeof j === "string" ? getLecturerName(j) : j.fullName || j.name
+							)}
 							<div class="track-card">
 								<div class="track-card-header">
 									<div class="track-title-wrapper">
@@ -863,9 +872,9 @@
 									<div class="meta-group">
 										<span class="meta-label">Mentor</span>
 										<div class="chip-group small">
-											{#if track.mentor_ids && track.mentor_ids.length > 0}
-												{#each track.mentor_ids as mentorId}
-													<span class="chip chip-mentor">{getLecturerName(mentorId)}</span>
+											{#if mentorList.length > 0}
+												{#each mentorList as mentorName}
+													<span class="chip chip-mentor">{mentorName}</span>
 												{/each}
 											{:else}
 												<span class="empty-text">No mentor assigned</span>
@@ -876,9 +885,9 @@
 									<div class="meta-group">
 										<span class="meta-label">Judges</span>
 										<div class="chip-group small">
-											{#if track.judge_ids && track.judge_ids.length > 0}
-												{#each track.judge_ids as judgeId}
-													<span class="chip chip-judge">{getLecturerName(judgeId)}</span>
+											{#if judgeList.length > 0}
+												{#each judgeList as judgeName}
+													<span class="chip chip-judge">{judgeName}</span>
 												{/each}
 											{:else}
 												<span class="empty-text">No judges assigned</span>
@@ -1014,6 +1023,16 @@
 													t.id === (team.track_id || team.trackId) ||
 													t.name === (team.track_id || team.trackId)
 											)}
+											{@const mentorList = track
+												? (track.mentors || track.mentor_ids || []).map((m: any) =>
+														typeof m === "string" ? getLecturerName(m) : m.fullName || m.name
+													)
+												: []}
+											{@const judgeList = track
+												? (track.judges || track.judge_ids || []).map((j: any) =>
+														typeof j === "string" ? getLecturerName(j) : j.fullName || j.name
+													)
+												: []}
 											<tr>
 												<td class="font-bold">{team.name}</td>
 												<td class="font-medium"
@@ -1040,10 +1059,10 @@
 													{/if}
 												</td>
 												<td>
-													{#if track && track.mentor_ids && track.mentor_ids.length > 0}
+													{#if mentorList.length > 0}
 														<div class="chip-group small inline">
-															{#each track.mentor_ids as mentorId}
-																<span class="chip chip-mentor">{getLecturerName(mentorId)}</span>
+															{#each mentorList as mentorName}
+																<span class="chip chip-mentor">{mentorName}</span>
 															{/each}
 														</div>
 													{:else}
@@ -1051,10 +1070,10 @@
 													{/if}
 												</td>
 												<td>
-													{#if track && track.judge_ids && track.judge_ids.length > 0}
+													{#if judgeList.length > 0}
 														<div class="chip-group small inline">
-															{#each track.judge_ids as judgeId}
-																<span class="chip chip-judge">{getLecturerName(judgeId)}</span>
+															{#each judgeList as judgeName}
+																<span class="chip chip-judge">{judgeName}</span>
 															{/each}
 														</div>
 													{:else}
