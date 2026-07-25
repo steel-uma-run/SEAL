@@ -303,7 +303,6 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     scoreRepo.saveAll(newScores);
-    submission.refreshAvgScore();
     submissionRepo.save(submission);
     checkScoreDeviation(submission);
   }
