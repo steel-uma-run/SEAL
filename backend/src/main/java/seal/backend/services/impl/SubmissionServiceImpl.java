@@ -87,12 +87,14 @@ public class SubmissionServiceImpl implements SubmissionService {
         event
             .getActiveRound()
             .orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event is not ongoing."));
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "It's not on the submission deadline."));
 
     OffsetDateTime now = OffsetDateTime.now();
     if (now.isBefore(activeRound.getSubmissionStartTime())
         || now.isAfter(activeRound.getSubmissionEndTime())) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot submit right now");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot submit right now.");
     }
 
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -102,7 +104,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         actor.getTeams().stream()
             .filter(pred -> pred.getHackathonEvent().equals(event))
             .findFirst()
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Not in a team"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Not in a team."));
 
     if (!actor.isTeamLeaderOf(studentTeam)) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only team leader can submit works.");
