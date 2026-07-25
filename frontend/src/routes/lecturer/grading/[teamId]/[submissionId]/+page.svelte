@@ -253,9 +253,7 @@
 
 			if (response?.ok) {
 				successMessage = "Submission graded successfully!"
-				setTimeout(() => {
-					goto("/lecturer/grading")
-				}, 1500)
+				hasGraded = true
 			} else {
 				const errorDetails = error || (await response?.json().catch(() => null))
 				errorMessage = `Failed to submit grades: ${errorDetails?.detail || errorDetails?.message || response?.statusText}`
@@ -491,7 +489,7 @@
 						{/if}
 					</form>
 
-					{#if hasGraded && !successMessage}
+					{#if hasGraded}
 						<div class="card regrade-card" style="margin-top: 1.5rem;">
 							<h2 class="card-title">Request Re-grading</h2>
 							<p class="card-desc">
