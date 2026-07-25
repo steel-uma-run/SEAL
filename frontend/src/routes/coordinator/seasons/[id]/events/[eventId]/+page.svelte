@@ -335,11 +335,21 @@
 				throwOnError: false
 			})
 			if (response?.ok && data) {
-				eventRounds = data
+				eventRounds = data.map((fetchedRound: any) => {
+					const existing = eventRounds.find((r) => r.id === fetchedRound.id)
+					const fetchedCrit =
+						fetchedRound.criteria || fetchedRound.criterias || fetchedRound.criteriaList || []
+					const existingCrit =
+						existing?.criteria || existing?.criterias || existing?.criteriaList || []
+					if (fetchedCrit.length === 0 && existingCrit.length > 0) {
+						return { ...fetchedRound, criteria: existingCrit }
+					}
+					return fetchedRound
+				})
 			} else {
 				eventRounds = []
 			}
-		} catch (err) {
+		} catch (err: any) {
 			console.error("Error loading event rounds from API:", err)
 			eventRounds = []
 		}
@@ -402,6 +412,9 @@
 			})
 			if (response?.ok) {
 				showAssignCriteriaModal = false
+				eventRounds = eventRounds.map((r) =>
+					r.id === assigningRound.id ? { ...r, criteria: criteriaBody } : r
+				)
 				await loadEventRounds()
 				alert(`Criteria assigned to round "${assigningRound.name}" successfully!`)
 			} else {
@@ -446,15 +459,14 @@
 		editCriteriaError = false
 
 		try {
-			const { response } = await updateRoundCriteria({
+			const criteriaBody = editingCriteriaList.map((c) => ({
+				name: c.name.trim(),
+				description: "",
+				weight: Number(c.weight)
+			}))
+			const { response } = await assignCriteria({
 				path: { roundId: editingRound.id },
-				body: {
-					criteria: editingCriteriaList.map((c) => ({
-						id: c.id,
-						name: c.name.trim(),
-						weight: Number(c.weight)
-					}))
-				},
+				body: criteriaBody,
 				throwOnError: false
 			})
 
@@ -1087,6 +1099,8 @@
 									</thead>
 									<tbody>
 										{#each eventRounds as round}
+											{@const roundCriteria =
+												round.criteria || round.criterias || round.criteriaList || []}
 											<tr>
 												<td class="font-bold">{round.name}</td>
 												<!-- CẬP NHẬT Ở ĐÂY: Thêm class truncate-text và title -->
@@ -1096,9 +1110,9 @@
 												<td>{formatDateTime(round.startTime || round.start_time)}</td>
 												<td>{formatDateTime(round.endTime || round.end_time)}</td>
 												<td>
-													{#if round.criteria && round.criteria.length > 0}
+													{#if roundCriteria.length > 0}
 														<div class="chip-group small vertical">
-															{#each round.criteria as criterion}
+															{#each roundCriteria as criterion}
 																<span class="chip chip-primary">
 																	{criterion.name}
 																	<span class="opacity-60">({criterion.weight}%)</span>
@@ -1118,11 +1132,9 @@
 																onclick={() => openAssignCriteriaModal(round)}
 																class="btn btn-tonal btn-small"
 															>
-																{round.criteria && round.criteria.length > 0
-																	? "Reassign"
-																	: "Assign Criteria"}
+																{roundCriteria.length > 0 ? "Reassign" : "Assign Criteria"}
 															</button>
-															{#if round.criteria && round.criteria.length > 0}
+															{#if roundCriteria.length > 0}
 																<button
 																	onclick={() => openEditCriteriaModal(round)}
 																	class="btn btn-tonal btn-small"

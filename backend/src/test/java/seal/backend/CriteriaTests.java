@@ -33,6 +33,7 @@ class CriteriaTests {
   @Test
   @Transactional
   void smokeTest() throws Exception {
+    int initialCount = criteriaService.getAllTemplates().length;
     List<CreateCriteriaTemplateRequestCriteriaArrayItemDto> criterias = new ArrayList<>();
 
     for (int i = 0; i < 5; i++) {
@@ -47,7 +48,7 @@ class CriteriaTests {
             createUtils.randomString(50),
             criterias.toArray(CreateCriteriaTemplateRequestCriteriaArrayItemDto[]::new)));
 
-    assertEquals(1, criteriaService.getAllTemplates().length);
+    assertEquals(initialCount + 1, criteriaService.getAllTemplates().length);
   }
 
   @Test
@@ -91,5 +92,9 @@ class CriteriaTests {
                     new AssignCriteriaRequestArrayItemDto(
                         crit.getName(), crit.getDescription(), crit.getWeight()))
             .toArray(AssignCriteriaRequestArrayItemDto[]::new));
+
+    assertEquals(
+        template.getCriteria().size(),
+        roundService.getRounds(event.getId()).get(0).criteria().length);
   }
 }
