@@ -277,7 +277,7 @@
 											showCreateForm = true
 										}}
 									>
-										Create Team for this Event
+										Create Team &rarr;
 									</button>
 								{/if}
 							</div>
@@ -291,13 +291,6 @@
 			<div class="form-container-box">
 				<div class="form-container-box__header">
 					<h3 class="form-container-box__title">Team Details</h3>
-					<button
-						type="button"
-						class="btn btn--ghost btn--close"
-						onclick={() => (showCreateForm = false)}
-					>
-						&larr; Cancel
-					</button>
 				</div>
 
 				<form onsubmit={handleCreateTeam} class="team-form" class:team-form--disabled={hasNoEvents}>
@@ -529,6 +522,16 @@
 
 		&__header {
 			margin-bottom: 1rem;
+		}
+
+		&__actions {
+			margin-top: auto;
+			.btn {
+				height: 2.75rem;
+				white-space: nowrap;
+				font-size: 0.95rem;
+				font-weight: 700;
+			}
 		}
 	}
 
