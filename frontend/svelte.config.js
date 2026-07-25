@@ -13,7 +13,7 @@ const config = {
 		})
 	],
 	kit: {
-		adapter: adapter(),
+		adapter: adapter({ fallback: "index.html" }),
 		prerender: {
 			handleUnseenRoutes: "warn"
 		}

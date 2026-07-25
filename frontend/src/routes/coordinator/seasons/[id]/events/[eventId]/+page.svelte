@@ -390,10 +390,14 @@
 		assignCriteriaMessage = ""
 		assignCriteriaError = false
 		try {
-			const criteriaIds = template.criteria.map((c: any) => c.id)
+			const criteriaBody = template.criteria.map((c: any) => ({
+				name: c.name,
+				description: c.description ?? "",
+				weight: c.weight
+			}))
 			const { response } = await assignCriteria({
 				path: { roundId: assigningRound.id },
-				body: criteriaIds,
+				body: criteriaBody,
 				throwOnError: false
 			})
 			if (response?.ok) {
