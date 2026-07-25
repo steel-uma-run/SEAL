@@ -174,8 +174,8 @@
 													if (tracksRes.data && Array.isArray(tracksRes.data)) {
 														const track = tracksRes.data.find((t: any) => t.id === trackId) as any
 														if (track) {
-															resolvedTeam.track_name =
-																track.name || track.title || "Unknown Track"
+															resolvedTeam.track_name = track.name || track.title || "Unknown Track"
+															resolvedTeam.mentors = track.mentors || []
 														}
 													}
 												} catch (e) {}
@@ -262,7 +262,7 @@
 			const found = joinedEventTeams.find((item) => item.eventId === targetEventId && item.hasTeam)
 			if (found && found.team) {
 				activeTeamDetail = found.team
-				}
+			}
 		}
 	})
 
@@ -429,7 +429,9 @@
 			</div>
 			<div class="page-header__text">
 				<h1 class="page-header__title">Team</h1>
-				<p class="page-header__subtitle">Manage your hackathon teams, event registrations, and invitations</p>
+				<p class="page-header__subtitle">
+					Manage your hackathon teams, event registrations, and invitations
+				</p>
 			</div>
 		</div>
 	{/if}
@@ -444,322 +446,322 @@
 		</div>
 	{:else}
 		{#if activeTeamDetail === null}
-				{#if joinedEventTeams.length === 0}
-					<div class="empty-invites">
-						<Users class="empty-invites__icon" />
-						<h3 class="empty-invites__title">No Event Registrations</h3>
-						<p class="empty-invites__desc">
-							You haven't registered for any active events yet. Head over to the dashboard to join an event!
-						</p>
-						<a href="/student" class="btn btn--primary" style="margin-top: 1rem;">Go to Dashboard</a>
-					</div>
-				{:else}
-					<div class="tracks-grid">
-						{#each joinedEventTeams as item}
-							<div class="track-card">
-								<div class="track-top">
-									<div class="track-heading-row">
-										<h3 class="track-name">{item.eventName}</h3>
-										<span class="track-role-badge badge-mentor">Event</span>
-									</div>
-									<p class="track-event" style="margin-top: 0.5rem; white-space: normal;">
-										{item.eventDescription || "No description provided."}
-									</p>
-								</div>
-
-								<div class="track-teams-container">
-									<div class="teams-grid">
-										{#if item.hasTeam && item.team}
-											<div class="track-team-card">
-												<div class="sub-header">
-													<h4 class="team-name">{item.team.name}</h4>
-													{#if item.team.status === "PENDING"}
-														<span class="status-badge pending">
-															<Clock class="w-3 h-3" style="display:inline;" /> PENDING
-														</span>
-													{:else if item.team.status === "APPROVED"}
-														<span class="status-badge approved">
-															<CheckCircle class="w-3 h-3" style="display:inline;" /> APPROVED
-														</span>
-													{/if}
-												</div>
-
-												<div class="submission-area">
-													<h4 class="submission-label">TEAM INFO</h4>
-													<div class="submission-card">
-														<p class="submission-title">{item.team.members?.length || 1}/5 Members</p>
-													</div>
-												</div>
-
-												<div class="grading-actions">
-													<button
-														class="grade-btn"
-														onclick={() => (activeTeamDetail = item.team)}
-													>
-														View Team Details
-													</button>
-												</div>
-											</div>
-										{:else}
-											<div class="track-team-card">
-												<div class="sub-header">
-													<h4 class="team-name" style="color: #6b7280;">No Team Created</h4>
-												</div>
-												<div class="submission-area">
-													<h4 class="submission-label">TEAM INFO</h4>
-													<div class="submission-card no-team">
-														<p class="submission-title no-team-text">You are registered for this event but do not have a team yet.</p>
-													</div>
-												</div>
-												<div class="grading-actions">
-													<a href="/student/create-team" class="grade-btn">
-														+ Create Team
-													</a>
-												</div>
-											</div>
-										{/if}
-									</div>
-								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
+			{#if joinedEventTeams.length === 0}
+				<div class="empty-invites">
+					<Users class="empty-invites__icon" />
+					<h3 class="empty-invites__title">No Event Registrations</h3>
+					<p class="empty-invites__desc">
+						You haven't registered for any active events yet. Head over to the dashboard to join an
+						event!
+					</p>
+					<a href="/student" class="btn btn--primary" style="margin-top: 1rem;">Go to Dashboard</a>
+				</div>
 			{:else}
-				<div class="team-card">
-					<div class="team-card__top">
-						<div class="team-card__identity">
-							<div class="team-card__badge-icon">
-								<Star class="team-card__badge-svg" />
-							</div>
-							<div>
-								<h3 class="team-card__eyebrow">
-									MY TEAM • {myTeam.event_name || 'EVENT'}
-								</h3>
-								<h2 class="team-card__name">{myTeam.name || "Untitled Team"}</h2>
-							</div>
-						</div>
-
-						<div class="team-card__status-actions">
-							{#if myTeam.status === "PENDING"}
-								<span class="status-pill status-pill--pending">Status: Pending Approval</span>
-							{:else if myTeam.status === "APPROVED"}
-								<span class="status-pill status-pill--approved">Status: Approved</span>
-							{/if}
-
-							{#if myTeam.leader_id === profile?.id}
-								<a href="/student/submit-project" class="btn btn--primary btn--sm btn--submission">
-									<svg class="btn__icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-										><path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-										></path></svg
-									>
-									Submission
-								</a>
-							{/if}
-						</div>
-					</div>
-
-					<div class="info-grid info-grid--2">
-						<div class="info-card">
-							<p class="info-card__label">Team ID</p>
-							<p class="info-card__value info-card__value--mono">{myTeam.id}</p>
-						</div>
-						<div class="info-card">
-							<p class="info-card__label">My Role</p>
-							<p
-								class="info-card__value"
-								class:info-card__value--orange={studentUuid === myTeam.leader_id ||
-									studentUuid === myTeam.leaderId}
-								class:info-card__value--green={!(
-									studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
-								)}
-							>
-								{studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
-									? "Team Leader"
-									: "Member"}
-							</p>
-						</div>
-					</div>
-
-					<div class="info-grid info-grid--3">
-						<div class="info-card">
-							<p class="info-card__label">Track</p>
-							<p class="info-card__value">{myTeam.track_name || "N/A"}</p>
-						</div>
-						<div class="info-card">
-							<p class="info-card__label">Mentor(s)</p>
-							{#if myTeam.mentors && myTeam.mentors.length > 0}
-								<div class="tag-list">
-									{#each myTeam.mentors as mentor}
-										<span class="tag tag--violet">{mentor}</span>
-									{/each}
+				<div class="tracks-grid">
+					{#each joinedEventTeams as item}
+						<div class="track-card">
+							<div class="track-top">
+								<div class="track-heading-row">
+									<h3 class="track-name">{item.eventName}</h3>
+									<span class="track-role-badge badge-mentor">Event</span>
 								</div>
-							{:else}
-								<p class="info-card__value">N/A</p>
-							{/if}
-						</div>
-						<div class="info-card">
-							<p class="info-card__label">Active Round</p>
-							<p class="info-card__value info-card__value--blue">{myTeam.round_name || "N/A"}</p>
-						</div>
-					</div>
+								<p class="track-event" style="margin-top: 0.5rem; white-space: normal;">
+									{item.eventDescription || "No description provided."}
+								</p>
+							</div>
 
-					<div class="members-section">
-						<div class="members-section__header">
-							<h3 class="members-section__title">Team Members ({myTeam.members?.length || 1}/5)</h3>
-						</div>
+							<div class="track-teams-container">
+								<div class="teams-grid">
+									{#if item.hasTeam && item.team}
+										<div class="track-team-card">
+											<div class="sub-header">
+												<h4 class="team-name">{item.team.name}</h4>
+												{#if item.team.status === "PENDING"}
+													<span class="status-badge pending">
+														<Clock class="w-3 h-3" style="display:inline;" /> PENDING
+													</span>
+												{:else if item.team.status === "APPROVED"}
+													<span class="status-badge approved">
+														<CheckCircle class="w-3 h-3" style="display:inline;" /> APPROVED
+													</span>
+												{/if}
+											</div>
 
-						<div class="members-list">
-							{#if myTeam.members && myTeam.members.length > 0}
-								{#each myTeam.members as member}
-									<div class="member-row">
-										<div class="member-row__details">
-											<div class="member-row__cell member-row__cell--name">
-												<span class="member-row__name">{member.name || "Unknown Member"}</span>
-												{#if member.id === studentUuid}
-													<span class="member-row__you">(You)</span>
-												{/if}
+											<div class="submission-area">
+												<h4 class="submission-label">TEAM INFO</h4>
+												<div class="submission-card">
+													<p class="submission-title">{item.team.members?.length || 1}/5 Members</p>
+												</div>
 											</div>
-											<span class="member-row__sep">|</span>
-											<div class="member-row__cell member-row__cell--id">
-												{#if member.student_id}
-													<span class="member-row__id-badge">{member.student_id}</span>
-												{:else}
-													<span class="member-row__none">NONE</span>
-												{/if}
-											</div>
-											<span class="member-row__sep">|</span>
-											<div class="member-row__cell member-row__cell--email">
-												{member.email || "No Email"}
-											</div>
-											<span class="member-row__sep">|</span>
-											<div class="member-row__cell member-row__cell--school">
-												{#if member.is_external}
-													<span class="member-row__school member-row__school--external"
-														>{member.school_name || "External"}</span
-													>
-												{:else}
-													<span class="member-row__school member-row__school--fpt"
-														>FPT University</span
-													>
-												{/if}
+
+											<div class="grading-actions">
+												<button class="grade-btn" onclick={() => (activeTeamDetail = item.team)}>
+													View Team Details
+												</button>
 											</div>
 										</div>
+									{:else}
+										<div class="track-team-card">
+											<div class="sub-header">
+												<h4 class="team-name" style="color: #6b7280;">No Team Created</h4>
+											</div>
+											<div class="submission-area">
+												<h4 class="submission-label">TEAM INFO</h4>
+												<div class="submission-card no-team">
+													<p class="submission-title no-team-text">
+														You are registered for this event but do not have a team yet.
+													</p>
+												</div>
+											</div>
+											<div class="grading-actions">
+												<a href="/student/create-team" class="grade-btn"> + Create Team </a>
+											</div>
+										</div>
+									{/if}
+								</div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		{:else}
+			<div class="team-card">
+				<div class="team-card__top">
+					<div class="team-card__identity">
+						<div class="team-card__badge-icon">
+							<Star class="team-card__badge-svg" />
+						</div>
+						<div>
+							<h3 class="team-card__eyebrow">
+								MY TEAM • {myTeam.event_name || "EVENT"}
+							</h3>
+							<h2 class="team-card__name">{myTeam.name || "Untitled Team"}</h2>
+						</div>
+					</div>
 
-										<div class="member-row__role">
-											{#if member.role === "Leader" || member.id === myTeam.leader_id || member.id === myTeam.leaderId}
-												<span class="role-badge role-badge--leader">Leader</span>
+					<div class="team-card__status-actions">
+						{#if myTeam.status === "PENDING"}
+							<span class="status-pill status-pill--pending">Status: Pending Approval</span>
+						{:else if myTeam.status === "APPROVED"}
+							<span class="status-pill status-pill--approved">Status: Approved</span>
+						{/if}
+
+						{#if myTeam.leader_id === profile?.id}
+							<a href="/student/submit-project" class="btn btn--primary btn--sm btn--submission">
+								<svg class="btn__icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+									><path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+									></path></svg
+								>
+								Submission
+							</a>
+						{/if}
+					</div>
+				</div>
+
+				<div class="info-grid info-grid--2">
+					<div class="info-card">
+						<p class="info-card__label">Team ID</p>
+						<p class="info-card__value info-card__value--mono">{myTeam.id}</p>
+					</div>
+					<div class="info-card">
+						<p class="info-card__label">My Role</p>
+						<p
+							class="info-card__value"
+							class:info-card__value--orange={studentUuid === myTeam.leader_id ||
+								studentUuid === myTeam.leaderId}
+							class:info-card__value--green={!(
+								studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
+							)}
+						>
+							{studentUuid === myTeam.leader_id || studentUuid === myTeam.leaderId
+								? "Team Leader"
+								: "Member"}
+						</p>
+					</div>
+				</div>
+
+				<div class="info-grid info-grid--3">
+					<div class="info-card">
+						<p class="info-card__label">Track</p>
+						<p class="info-card__value">{myTeam.track_name || "N/A"}</p>
+					</div>
+					<div class="info-card">
+						<p class="info-card__label">Mentor(s)</p>
+						{#if myTeam.mentors && myTeam.mentors.length > 0}
+							<div class="tag-list">
+								{#each myTeam.mentors as mentor}
+									<span class="tag tag--violet"
+										>{mentor.name || mentor} ({mentor.email || "No email"})</span
+									>
+								{/each}
+							</div>
+						{:else}
+							<p class="info-card__value">N/A</p>
+						{/if}
+					</div>
+					<div class="info-card">
+						<p class="info-card__label">Active Round</p>
+						<p class="info-card__value info-card__value--blue">{myTeam.round_name || "N/A"}</p>
+					</div>
+				</div>
+
+				<div class="members-section">
+					<div class="members-section__header">
+						<h3 class="members-section__title">Team Members ({myTeam.members?.length || 1}/5)</h3>
+					</div>
+
+					<div class="members-list">
+						{#if myTeam.members && myTeam.members.length > 0}
+							{#each myTeam.members as member}
+								<div class="member-row">
+									<div class="member-row__details">
+										<div class="member-row__cell member-row__cell--name">
+											<span class="member-row__name">{member.name || "Unknown Member"}</span>
+											{#if member.id === studentUuid}
+												<span class="member-row__you">(You)</span>
+											{/if}
+										</div>
+										<span class="member-row__sep">|</span>
+										<div class="member-row__cell member-row__cell--id">
+											{#if member.student_id}
+												<span class="member-row__id-badge">{member.student_id}</span>
 											{:else}
-												<span class="role-badge role-badge--member">Member</span>
+												<span class="member-row__none">NONE</span>
+											{/if}
+										</div>
+										<span class="member-row__sep">|</span>
+										<div class="member-row__cell member-row__cell--email">
+											{member.email || "No Email"}
+										</div>
+										<span class="member-row__sep">|</span>
+										<div class="member-row__cell member-row__cell--school">
+											{#if member.is_external}
+												<span class="member-row__school member-row__school--external"
+													>{member.school_name || "External"}</span
+												>
+											{:else}
+												<span class="member-row__school member-row__school--fpt"
+													>FPT University</span
+												>
 											{/if}
 										</div>
 									</div>
-								{/each}
+
+									<div class="member-row__role">
+										{#if member.role === "Leader" || member.id === myTeam.leader_id || member.id === myTeam.leaderId}
+											<span class="role-badge role-badge--leader">Leader</span>
+										{:else}
+											<span class="role-badge role-badge--member">Member</span>
+										{/if}
+									</div>
+								</div>
+							{/each}
+						{/if}
+					</div>
+
+					{#if studentUuid === myTeam.leader_id}
+						<div class="invite-panel">
+							<h4 class="invite-panel__title">
+								<UserPlus class="invite-panel__title-icon" />
+								Invite New Member
+							</h4>
+							<p class="invite-panel__desc">
+								Enter a student ID to invite them to your team. Teams can have up to 5 members.
+							</p>
+
+							{#if (myTeam.members?.length || 1) >= 5}
+								<div class="alert alert--warning">
+									Your team has reached the maximum size limit (5 members).
+								</div>
+							{:else}
+								<form onsubmit={handleInviteMember} class="invite-form">
+									<input
+										type="text"
+										bind:value={inviteStudentId}
+										placeholder="Enter student ID (e.g. SE160123)..."
+										required
+										class="form-input form-input--flex"
+									/>
+									<button
+										type="submit"
+										disabled={isInviting || !inviteStudentId.trim()}
+										class="btn btn--primary btn--invite"
+									>
+										{isInviting ? "Sending..." : "Send Invite"}
+									</button>
+								</form>
+
+								{#if inviteMessage}
+									<p
+										class="form-message"
+										class:form-message--error={inviteError}
+										class:form-message--success={!inviteError}
+									>
+										{inviteMessage}
+									</p>
+								{/if}
+
+								<div class="available-section">
+									<h5 class="available-section__title">
+										Students Without a Team ({availableStudents.length})
+									</h5>
+									{#if availableStudents.length > 0}
+										<div class="students-list">
+											{#each availableStudents as student}
+												<div class="student-row">
+													<div class="student-row__info">
+														<p class="student-row__name">
+															{student.fullName || student.full_name || student.name || "Unknown"}
+														</p>
+														<p class="student-row__meta">
+															{student.studentId || student.student_id || student.email || "No ID"}
+														</p>
+													</div>
+													<button
+														onclick={() => {
+															inviteStudentId =
+																student.studentId || student.student_id || student.email || ""
+															handleInviteMember()
+														}}
+														class="btn btn--primary btn--xs"
+													>
+														Invite
+													</button>
+												</div>
+											{/each}
+										</div>
+									{:else}
+										<div class="empty-box">
+											<p class="empty-box__text">
+												There are no available students without a team to invite right now.
+											</p>
+										</div>
+									{/if}
+								</div>
 							{/if}
 						</div>
 
-						{#if studentUuid === myTeam.leader_id}
-							<div class="invite-panel">
-								<h4 class="invite-panel__title">
-									<UserPlus class="invite-panel__title-icon" />
-									Invite New Member
-								</h4>
-								<p class="invite-panel__desc">
-									Enter a student ID to invite them to your team. Teams can have up to 5 members.
-								</p>
-
-								{#if (myTeam.members?.length || 1) >= 5}
-									<div class="alert alert--warning">
-										Your team has reached the maximum size limit (5 members).
-									</div>
-								{:else}
-									<form onsubmit={handleInviteMember} class="invite-form">
-										<input
-											type="text"
-											bind:value={inviteStudentId}
-											placeholder="Enter student ID (e.g. SE160123)..."
-											required
-											class="form-input form-input--flex"
-										/>
-										<button
-											type="submit"
-											disabled={isInviting || !inviteStudentId.trim()}
-											class="btn btn--primary btn--invite"
-										>
-											{isInviting ? "Sending..." : "Send Invite"}
-										</button>
-									</form>
-
-									{#if inviteMessage}
-										<p
-											class="form-message"
-											class:form-message--error={inviteError}
-											class:form-message--success={!inviteError}
-										>
-											{inviteMessage}
-										</p>
-									{/if}
-
-									<div class="available-section">
-										<h5 class="available-section__title">
-											Students Without a Team ({availableStudents.length})
-										</h5>
-										{#if availableStudents.length > 0}
-											<div class="students-list">
-												{#each availableStudents as student}
-													<div class="student-row">
-														<div class="student-row__info">
-															<p class="student-row__name">
-																{student.fullName || student.full_name || student.name || "Unknown"}
-															</p>
-															<p class="student-row__meta">
-																{student.studentId || student.student_id || student.email || "No ID"}
-															</p>
-														</div>
-														<button
-															onclick={() => {
-																inviteStudentId =
-																	student.studentId || student.student_id || student.email || ""
-																handleInviteMember()
-															}}
-															class="btn btn--primary btn--xs"
-														>
-															Invite
-														</button>
-													</div>
-												{/each}
-											</div>
-										{:else}
-											<div class="empty-box">
-												<p class="empty-box__text">
-													There are no available students without a team to invite right now.
-												</p>
-											</div>
-										{/if}
-									</div>
-								{/if}
-							</div>
-
-							<div class="team-actions">
-								<button onclick={handleTransferLeadership} class="btn btn--ghost">
-									<ArrowRightLeft class="btn__icon-sm" />
-									Transfer Leadership
-								</button>
-							</div>
-						{/if}
-
-						<div class="leave-action">
-							<button onclick={handleLeaveTeam} class="btn btn--danger-ghost">
-								<LogOut class="btn__icon-sm" />
-								Leave Team
+						<div class="team-actions">
+							<button onclick={handleTransferLeadership} class="btn btn--ghost">
+								<ArrowRightLeft class="btn__icon-sm" />
+								Transfer Leadership
 							</button>
 						</div>
+					{/if}
+
+					<div class="leave-action">
+						<button onclick={handleLeaveTeam} class="btn btn--danger-ghost">
+							<LogOut class="btn__icon-sm" />
+							Leave Team
+						</button>
 					</div>
 				</div>
-			{/if}
+			</div>
+		{/if}
 	{/if}
 </div>
 
@@ -850,7 +852,8 @@
 		cursor: pointer;
 		transition: all 0.2s ease;
 
-		&:hover, &:focus {
+		&:hover,
+		&:focus {
 			border-color: #ea580c;
 			outline: none;
 			background: #ffffff;
@@ -861,7 +864,8 @@
 			color: #f4f4f5;
 			border-color: #3f3f46;
 
-			&:hover, &:focus {
+			&:hover,
+			&:focus {
 				border-color: #ea580c;
 				background: #18181b;
 			}
@@ -960,7 +964,9 @@
 		display: flex;
 		flex-direction: column;
 		border: 1px solid #e5e7eb;
-		box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+		box-shadow:
+			0 1px 3px 0 rgba(0, 0, 0, 0.1),
+			0 1px 2px -1px rgba(0, 0, 0, 0.1);
 
 		.teams-page--dark & {
 			background: #18181b;
@@ -2170,8 +2176,6 @@
 		}
 	}
 
-
-	
 	/* Flat Design specific CSS */
 	.tracks-grid {
 		display: flex;
@@ -2186,7 +2190,7 @@
 		border: none;
 		box-shadow: none;
 	}
-	
+
 	.teams-page--dark .track-card {
 		background: #1a1a1a;
 	}
@@ -2214,7 +2218,7 @@
 		font-weight: 700;
 		color: #111827;
 	}
-	
+
 	.teams-page--dark .track-name {
 		color: #f4f4f5;
 	}
@@ -2228,7 +2232,7 @@
 		border-radius: 9999px;
 		flex-shrink: 0;
 	}
-	
+
 	.badge-mentor {
 		background: #ffedd5;
 		color: #c2410c;
@@ -2243,7 +2247,7 @@
 		line-height: 1.25rem;
 		color: #6b7280;
 	}
-	
+
 	.teams-page--dark .track-event {
 		color: #a1a1aa;
 	}
@@ -2274,7 +2278,7 @@
 		display: flex;
 		flex-direction: column;
 	}
-	
+
 	.teams-page--dark .track-team-card {
 		background: #18181b;
 		border-color: #3f3f46;
@@ -2299,7 +2303,7 @@
 		font-weight: 700;
 		color: #111827;
 	}
-	
+
 	.teams-page--dark .team-name {
 		color: #f4f4f5;
 	}
@@ -2314,7 +2318,7 @@
 		gap: 0.375rem;
 		white-space: nowrap;
 	}
-	
+
 	.status-badge.approved {
 		background: #dcfce7;
 		color: #15803d;
@@ -2323,7 +2327,7 @@
 		background: rgba(21, 128, 61, 0.2);
 		color: #4ade80;
 	}
-	
+
 	.status-badge.pending {
 		background: #fef08a;
 		color: #a16207;
@@ -2346,7 +2350,7 @@
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 	}
-	
+
 	.teams-page--dark .submission-label {
 		color: #a1a1aa;
 	}
@@ -2361,16 +2365,16 @@
 		justify-content: space-between;
 		align-items: center;
 	}
-	
+
 	.teams-page--dark .submission-card {
 		background: #27272a;
 		border-color: #3f3f46;
 	}
-	
+
 	.submission-card.no-team {
 		background: #fef2f2;
 	}
-	
+
 	.teams-page--dark .submission-card.no-team {
 		background: rgba(127, 29, 29, 0.2);
 	}
@@ -2380,15 +2384,15 @@
 		font-weight: 600;
 		color: #111827;
 	}
-	
+
 	.teams-page--dark .submission-title {
 		color: #d4d4d8;
 	}
-	
+
 	.submission-title.no-team-text {
 		color: #dc2626;
 	}
-	
+
 	.teams-page--dark .submission-title.no-team-text {
 		color: #fca5a5;
 	}
@@ -2409,12 +2413,9 @@
 		color: #be185d;
 		text-decoration: none;
 	}
-	
+
 	.teams-page--dark .grade-btn {
 		background: #fbcfe8;
 		color: #be185d;
 	}
-	
 </style>
-
-

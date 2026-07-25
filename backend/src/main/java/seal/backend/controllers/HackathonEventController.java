@@ -40,7 +40,7 @@ public class HackathonEventController implements EventsApi {
   private final RoundService roundService;
 
   @Override
-  @PreAuthorize("hasAnyAuthority('COORDINATOR', 'STUDENT')")
+  @PreAuthorize("hasAnyAuthority('COORDINATOR', 'STUDENT', 'LECTURER')")
   public ResponseEntity<StudentDto[]> getInterestedParticipants(
       @PathVariable(name = "eventId") @NotNull UUID eventId) {
     return ResponseEntity.ok(

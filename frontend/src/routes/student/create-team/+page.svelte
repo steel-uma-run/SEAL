@@ -96,9 +96,7 @@
 									})
 									if (
 										eventTeams &&
-										eventTeams.some(
-											(t: any) => t.leader_id === me.id || t.leaderId === me.id
-										)
+										eventTeams.some((t: any) => t.leader_id === me.id || t.leaderId === me.id)
 									) {
 										alreadyInTeam = true
 									}
@@ -244,7 +242,11 @@
 				<h2 class="section-subtitle">Your Joined Events</h2>
 				<div class="events-grid">
 					{#each events as event}
-						<div class="event-card-item {selectedEventId === event.id ? 'event-card-item--selected' : ''}">
+						<div
+							class="event-card-item {selectedEventId === event.id
+								? 'event-card-item--selected'
+								: ''}"
+						>
 							<div class="event-card-item__header">
 								<span class="event-tag">Joined Event</span>
 								<h3 class="event-title">{event.name}</h3>
@@ -281,9 +283,7 @@
 		{#if showCreateForm}
 			<div class="form-container-box">
 				<div class="form-container-box__header">
-					<h3 class="form-container-box__title">
-						Team Details
-					</h3>
+					<h3 class="form-container-box__title">Team Details</h3>
 					<button
 						type="button"
 						class="btn btn--ghost btn--close"
@@ -308,7 +308,8 @@
 							>
 							{#each events as event}
 								<option value={event.id} disabled={event.alreadyInTeam}>
-									{event.name} {event.alreadyInTeam ? "(Already in a team for this event)" : ""}
+									{event.name}
+									{event.alreadyInTeam ? "(Already in a team for this event)" : ""}
 								</option>
 							{/each}
 						</select>
@@ -342,7 +343,14 @@
 					<!-- Field 3: Expected Team Size -->
 					<div class="form-group">
 						<label class="form-label">Expected Team Size (3-5 members)</label>
-						<input type="number" bind:value={teamSize} min="3" max="5" required class="form-input" />
+						<input
+							type="number"
+							bind:value={teamSize}
+							min="3"
+							max="5"
+							required
+							class="form-input"
+						/>
 					</div>
 
 					<!-- Field 4: Description -->
@@ -364,7 +372,11 @@
 							class:form-message--success={!isError}
 						>
 							{#if !isError}
-								<svg class="form-message__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+								<svg
+									class="form-message__icon"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
 									><path
 										stroke-linecap="round"
 										stroke-linejoin="round"

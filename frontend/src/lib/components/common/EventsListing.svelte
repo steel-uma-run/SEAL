@@ -56,7 +56,9 @@
 		const end = new Date(event.end_time).getTime()
 
 		if (tab === "current") {
-			return (now >= start && now <= end) || event.status === "ACTIVE" || event.status === "FINALIZED"
+			return (
+				(now >= start && now <= end) || event.status === "ACTIVE" || event.status === "FINALIZED"
+			)
 		} else if (tab === "upcoming") {
 			return start > now || event.status === "DRAFT" || event.status === "PENDING"
 		} else if (tab === "past") {
@@ -96,19 +98,19 @@
 	<div class="tabs-nav">
 		<button
 			class="tab-btn {activeTab === 'current' ? 'tab-btn--active' : ''}"
-			onclick={() => (activeTab = 'current')}
+			onclick={() => (activeTab = "current")}
 		>
 			Current events
 		</button>
 		<button
 			class="tab-btn {activeTab === 'upcoming' ? 'tab-btn--active' : ''}"
-			onclick={() => (activeTab = 'upcoming')}
+			onclick={() => (activeTab = "upcoming")}
 		>
 			Upcoming events
 		</button>
 		<button
 			class="tab-btn {activeTab === 'past' ? 'tab-btn--active' : ''}"
-			onclick={() => (activeTab = 'past')}
+			onclick={() => (activeTab = "past")}
 		>
 			Past events
 		</button>

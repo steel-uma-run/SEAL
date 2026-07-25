@@ -174,8 +174,7 @@
 													if (tracksRes.data && Array.isArray(tracksRes.data)) {
 														const track = tracksRes.data.find((t: any) => t.id === trackId) as any
 														if (track) {
-															resolvedTeam.track_name =
-																track.name || track.title || "Unknown Track"
+															resolvedTeam.track_name = track.name || track.title || "Unknown Track"
 														}
 													}
 												} catch (e) {}
@@ -262,7 +261,7 @@
 			const found = joinedEventTeams.find((item) => item.eventId === targetEventId && item.hasTeam)
 			if (found && found.team) {
 				activeTeamDetail = found.team
-				}
+			}
 		}
 	})
 
@@ -443,78 +442,72 @@
 			<p class="error-box__text">{errorMessage}</p>
 		</div>
 	{:else}
-		
-			{#if invites.length === 0}
-				<div class="empty-invites">
-					<Users class="empty-invites__icon" />
-					<h3 class="empty-invites__title">No Pending Invitations</h3>
-					<p class="empty-invites__desc">You haven't received any team invitations yet.</p>
-				</div>
-			{:else}
-				<div class="invites-list">
-					{#each invites as invite}
-						<div class="invite-card">
-							<div class="invite-card__main">
-								<div class="invite-card__info">
-									<div class="invite-card__icon-wrap">
-										<Users class="invite-card__icon" />
-									</div>
-									<div class="invite-card__text">
-										<h4 class="invite-card__title">Team Invitation</h4>
-										<p class="invite-card__desc">
-											You have been invited to join Team <span class="invite-card__team"
-												>{invite.team?.name || invite.inviting_team_id || "Unknown"}</span
-											>.
-										</p>
-										<div class="invite-card__meta">
-											<span class="invite-card__date"
-												><Clock class="invite-card__date-icon" /> Sent: {formatDate(
-													invite.sent_at
-												)}</span
+		{#if invites.length === 0}
+			<div class="empty-invites">
+				<Users class="empty-invites__icon" />
+				<h3 class="empty-invites__title">No Pending Invitations</h3>
+				<p class="empty-invites__desc">You haven't received any team invitations yet.</p>
+			</div>
+		{:else}
+			<div class="invites-list">
+				{#each invites as invite}
+					<div class="invite-card">
+						<div class="invite-card__main">
+							<div class="invite-card__info">
+								<div class="invite-card__icon-wrap">
+									<Users class="invite-card__icon" />
+								</div>
+								<div class="invite-card__text">
+									<h4 class="invite-card__title">Team Invitation</h4>
+									<p class="invite-card__desc">
+										You have been invited to join Team <span class="invite-card__team"
+											>{invite.team?.name || invite.inviting_team_id || "Unknown"}</span
+										>.
+									</p>
+									<div class="invite-card__meta">
+										<span class="invite-card__date"
+											><Clock class="invite-card__date-icon" /> Sent: {formatDate(
+												invite.sent_at
+											)}</span
+										>
+										{#if invite.status?.toUpperCase() === "PENDING"}
+											<span class="status-pill status-pill--sm status-pill--pending">Pending</span>
+										{:else if invite.status?.toUpperCase() === "ACCEPTED"}
+											<span class="status-pill status-pill--sm status-pill--success">Accepted</span>
+										{:else if invite.status?.toUpperCase() === "DECLINED"}
+											<span class="status-pill status-pill--sm status-pill--declined">Declined</span
 											>
-											{#if invite.status?.toUpperCase() === "PENDING"}
-												<span class="status-pill status-pill--sm status-pill--pending">Pending</span
-												>
-											{:else if invite.status?.toUpperCase() === "ACCEPTED"}
-												<span class="status-pill status-pill--sm status-pill--success"
-													>Accepted</span
-												>
-											{:else if invite.status?.toUpperCase() === "DECLINED"}
-												<span class="status-pill status-pill--sm status-pill--declined"
-													>Declined</span
-												>
-											{/if}
-										</div>
+										{/if}
 									</div>
 								</div>
-
-								{#if invite.status?.toUpperCase() === "PENDING"}
-									<div class="invite-card__actions">
-										<button
-											onclick={() => handleAccept(invite.id)}
-											disabled={processingId === invite.id}
-											class="btn btn--success btn--sm"
-										>
-											<CheckCircle class="btn__icon-sm" />
-											{processingId === invite.id ? "Processing..." : "Accept"}
-										</button>
-										<button
-											onclick={() => handleDecline(invite.id)}
-											disabled={processingId === invite.id}
-											class="btn btn--ghost btn--sm"
-										>
-											<XCircle class="btn__icon-sm" />
-											Decline
-										</button>
-									</div>
-								{/if}
 							</div>
+
+							{#if invite.status?.toUpperCase() === "PENDING"}
+								<div class="invite-card__actions">
+									<button
+										onclick={() => handleAccept(invite.id)}
+										disabled={processingId === invite.id}
+										class="btn btn--success btn--sm"
+									>
+										<CheckCircle class="btn__icon-sm" />
+										{processingId === invite.id ? "Processing..." : "Accept"}
+									</button>
+									<button
+										onclick={() => handleDecline(invite.id)}
+										disabled={processingId === invite.id}
+										class="btn btn--ghost btn--sm"
+									>
+										<XCircle class="btn__icon-sm" />
+										Decline
+									</button>
+								</div>
+							{/if}
 						</div>
-					{/each}
-				</div>
-			{/if}
+					</div>
+				{/each}
+			</div>
 		{/if}
-	
+	{/if}
 </div>
 
 <style lang="scss">
@@ -604,7 +597,8 @@
 		cursor: pointer;
 		transition: all 0.2s ease;
 
-		&:hover, &:focus {
+		&:hover,
+		&:focus {
 			border-color: #ea580c;
 			outline: none;
 			background: #ffffff;
@@ -615,7 +609,8 @@
 			color: #f4f4f5;
 			border-color: #3f3f46;
 
-			&:hover, &:focus {
+			&:hover,
+			&:focus {
 				border-color: #ea580c;
 				background: #18181b;
 			}

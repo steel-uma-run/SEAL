@@ -12,11 +12,17 @@
 <div class="active-season-container">
 	{#if !activeSeason}
 		<div style="text-align: center">
-			<KaomojiError kind="neutral" text="We couldn't detect an active season matching today's date." />
+			<KaomojiError
+				kind="neutral"
+				text="We couldn't detect an active season matching today's date."
+			/>
 		</div>
 	{:else if events.length === 0}
 		<div style="text-align: center">
-			<KaomojiError kind="neutral" text="No events scheduled for {formatSeasonName(activeSeason)} yet. Check back later!" />
+			<KaomojiError
+				kind="neutral"
+				text="No events scheduled for {formatSeasonName(activeSeason)} yet. Check back later!"
+			/>
 		</div>
 	{:else}
 		<div>

@@ -89,7 +89,8 @@
 										(me.team_ids && me.team_ids.includes(t.id)) ||
 										t.leader_id === me.id ||
 										t.leaderId === me.id ||
-										(t.members && t.members.some((m: any) => m.id === me.id || m.email === me.email))
+										(t.members &&
+											t.members.some((m: any) => m.id === me.id || m.email === me.email))
 								)
 							}
 
@@ -118,7 +119,7 @@
 												lecturerScores.forEach((score: any) => {
 													const cId = score.criteria_id || score.criteriaId
 													const c = allCriteriaMap.get(cId)
-													const weight = (c && c.weight) ? c.weight : 1
+													const weight = c && c.weight ? c.weight : 1
 													total += score.value * weight
 													totalWeight += weight
 												})
@@ -225,7 +226,8 @@
 			<FileText class="results-page__empty-icon" />
 			<h3 class="results-page__empty-title">No Event Submissions Found</h3>
 			<p class="results-page__empty-text">
-				You haven't joined any active events or teams yet. Head over to the dashboard to join an event!
+				You haven't joined any active events or teams yet. Head over to the dashboard to join an
+				event!
 			</p>
 			<a href="/student" class="btn btn--primary" style="margin-top: 1.25rem;">Go to Dashboard</a>
 		</div>
@@ -265,7 +267,11 @@
 						{:else if !group.latestSubmission}
 							<div class="empty-sub-box">
 								<p>No project submitted for <strong>{group.team.name}</strong> yet.</p>
-								<a href="/student/submit-project" class="btn btn--primary btn--sm" style="margin-top: 0.75rem;">
+								<a
+									href="/student/submit-project"
+									class="btn btn--primary btn--sm"
+									style="margin-top: 0.75rem;"
+								>
 									Submit Project &rarr;
 								</a>
 							</div>
@@ -357,11 +363,7 @@
 							<RotateCcw class="btn__icon-sm" />
 							Resubmit Project
 						</a>
-						<button
-							type="button"
-							class="btn-close"
-							onclick={() => (activeHistoryGroup = null)}
-						>
+						<button type="button" class="btn-close" onclick={() => (activeHistoryGroup = null)}>
 							<X />
 						</button>
 					</div>
@@ -374,7 +376,9 @@
 							<div>
 								<h4 class="notice-title">No Previous Attempts</h4>
 								<p class="notice-desc">
-									This is your team's initial project submission for <strong>{activeHistoryGroup.eventName}</strong>. Any future re-submissions will be recorded in this history list.
+									This is your team's initial project submission for <strong
+										>{activeHistoryGroup.eventName}</strong
+									>. Any future re-submissions will be recorded in this history list.
 								</p>
 							</div>
 						</div>
@@ -388,7 +392,7 @@
 										<h3 class="history-title">{histSub.title}</h3>
 										<span class="history-attempt">
 											Attempt #{activeHistoryGroup.allSubmissions.length - index}
-											{index === 0 ? ' (Latest)' : ''}
+											{index === 0 ? " (Latest)" : ""}
 										</span>
 									</div>
 									<p class="history-desc">{histSub.description}</p>
@@ -403,7 +407,11 @@
 								<div class="history-score-wrap">
 									{#if histSub.has_been_graded}
 										<div class="score-value-row">
-											<span class="score-val {histSub.total_score >= 5 ? 'score-val--pass' : 'score-val--fail'}">
+											<span
+												class="score-val {histSub.total_score >= 5
+													? 'score-val--pass'
+													: 'score-val--fail'}"
+											>
 												{histSub.total_score.toFixed(1)}
 											</span>
 											<span class="score-den">/10</span>
