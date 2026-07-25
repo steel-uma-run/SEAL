@@ -11,4 +11,6 @@ public interface RegradeNotifRepository extends JpaRepository<RegradeNotif, UUID
       UUID submissionId, UUID lecturerId);
 
   List<RegradeNotif> findBySubmissionIdAndIsResolvedFalse(UUID submissionId);
+
+  List<RegradeNotif> findAllByOrderByCreatedAtDesc();
 }

@@ -3,6 +3,7 @@ package seal.backend.services;
 import java.util.List;
 import java.util.UUID;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
+import seal.openapi.model.RegradeRequestDto;
 import seal.openapi.model.RequestRegradePayloadDto;
 import seal.openapi.model.ScoreDeviationNotifDto;
 import seal.openapi.model.SubmissionDto;
@@ -22,6 +23,8 @@ public interface SubmissionService {
   List<ScoreDeviationNotifDto> getScoreDeviations(UUID submissionId);
 
   void requestRegrade(UUID submissionId, RequestRegradePayloadDto payload);
+
+  List<RegradeRequestDto> getAllRegradeRequests();
 
   void approveRegrade(UUID submissionId, UUID notifId);
 

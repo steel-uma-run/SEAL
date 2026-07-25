@@ -1,0 +1,25 @@
+{
+  "get": {
+    "tags": ["submission"],
+    "operationId": "get_all_regrade_requests",
+    "summary": "Coordinator gets all regrade requests",
+    "responses": {
+      "200": {
+        "description": "List of regrade requests",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/RegradeRequest.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
