@@ -8,8 +8,7 @@
     "youtube_link",
     "slide_link",
     "submitted_at",
-    "scores",
-    "avg_score"
+    "scores"
   ],
   "properties": {
     "id": {
@@ -40,6 +39,10 @@
       "items": {
         "$ref": "./Score.json"
       }
+    },
+    "total_score": {
+      "type": "number",
+      "format": "float"
     },
     "avg_score": {
       "type": "number",
