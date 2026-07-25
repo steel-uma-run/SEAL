@@ -139,7 +139,7 @@
     "/submission/{submissionId}/request-regrade": {
       "$ref": "./openapi/paths/submission/request_regrade.json"
     },
-    "/submission/{submissionId}/approve-regrade": {
+    "/submission/{submissionId}/approve-regrade/{notifId}": {
       "$ref": "./openapi/paths/submission/approve_regrade.json"
     },
     "/submission/{submissionId}/reject-regrade/{notifId}": {

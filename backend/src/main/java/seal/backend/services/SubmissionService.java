@@ -23,7 +23,7 @@ public interface SubmissionService {
 
   void requestRegrade(UUID submissionId, RequestRegradePayloadDto payload);
 
-  void approveRegrade(UUID submissionId);
+  void approveRegrade(UUID submissionId, UUID notifId);
 
   void rejectRegrade(UUID submissionId, UUID notifId);
 }

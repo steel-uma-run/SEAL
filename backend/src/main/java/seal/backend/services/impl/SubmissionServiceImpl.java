@@ -343,57 +343,67 @@ public class SubmissionServiceImpl implements SubmissionService {
 
   @Override
   @Transactional
-  public void approveRegrade(UUID submissionId) {
-    List<RegradeNotif> pendingNotifs =
-        regradeNotifRepo.findBySubmissionIdAndIsResolvedFalse(submissionId);
+  public void approveRegrade(UUID submissionId, UUID notifId) {
+    RegradeNotif notif =
+        regradeNotifRepo
+            .findById(notifId)
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Regrade request not found."));
 
-    if (pendingNotifs.isEmpty()) {
+    if (!notif.getSubmission().getId().equals(submissionId)) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "There are no requests for regrading.");
+          HttpStatus.BAD_REQUEST, "This request does not belong to the given submission.");
+    }
+    if (notif.isResolved()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "This request has already been resolved.");
     }
 
-    Submission submission = submissionRepo.findById(submissionId).get();
+    notif.setResolved(true);
+    notif.setIsApproved(true);
 
+    Submission submission = notif.getSubmission();
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     User actor = userRepo.findByEmail(auth.getName()).get();
 
-    for (RegradeNotif notif : pendingNotifs) {
-      notif.setResolved(true);
+    List<Score> oldScores =
+        submission.getScores().stream()
+            .filter(s -> s.getLecturer().getId().equals(notif.getLecturer().getId()))
+            .toList();
 
-      List<Score> oldScores =
-          submission.getScores().stream()
-              .filter(s -> s.getLecturer().getId().equals(notif.getLecturer().getId()))
-              .toList();
-
-      for (Score oldScore : oldScores) {
-        seal.backend.entities.audit.GradingLog gradingLog =
-            seal.backend.entities.audit.GradingLog.builder()
-                .actionTime(OffsetDateTime.now())
-                .actor(actor)
-                .submission(submission)
-                .action("DELETED_SCORE")
-                .details(
-                    "Coordinator approved regrade. Deleted old score value: "
-                        + oldScore.getValue()
-                        + " graded by lecturer ID: "
-                        + oldScore.getLecturer().getId())
-                .build();
-        auditLogRepo.save(gradingLog);
-      }
-
-      scoreRepo.deleteAll(oldScores);
-      submission.getScores().removeAll(oldScores);
+    for (Score oldScore : oldScores) {
+      seal.backend.entities.audit.GradingLog gradingLog =
+          seal.backend.entities.audit.GradingLog.builder()
+              .actionTime(OffsetDateTime.now())
+              .actor(actor)
+              .submission(submission)
+              .action("DELETED_SCORE")
+              .details(
+                  "Coordinator approved regrade. Deleted old score value: "
+                      + oldScore.getValue()
+                      + " graded by lecturer ID: "
+                      + oldScore.getLecturer().getId())
+              .build();
+      auditLogRepo.save(gradingLog);
     }
 
-    regradeNotifRepo.saveAll(pendingNotifs);
-    submissionRepo.save(submission);
+    scoreRepo.deleteAll(oldScores);
+    submission.getScores().removeAll(oldScores);
 
-    // Change the status of alerts to processed (true)
-    List<ScoreDeviationNotif> deviations = notifRepo.findBySubmissionId(submissionId);
+    List<ScoreDeviationNotif> deviations =
+        notifRepo.findBySubmissionId(submissionId).stream()
+            .filter(
+                d -> d.getLecturer().getId().equals(notif.getLecturer().getId()) && !d.isResolved())
+            .toList();
     for (ScoreDeviationNotif d : deviations) {
       d.setResolved(true);
     }
+
     notifRepo.saveAll(deviations);
+    regradeNotifRepo.save(notif);
+    submissionRepo.save(submission);
   }
 
   @Override
@@ -411,8 +421,15 @@ public class SubmissionServiceImpl implements SubmissionService {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "This request does not belong to the given submission.");
     }
+    if (notif.isResolved()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "This request has already been resolved.");
+    }
 
-    regradeNotifRepo.delete(notif);
+    notif.setResolved(true);
+    notif.setIsApproved(false);
+
+    regradeNotifRepo.save(notif);
   }
 
   @Override
