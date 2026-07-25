@@ -276,7 +276,6 @@
 									<div>
 										<div class="sub-title-row">
 											<h3 class="sub-title">{sub.title}</h3>
-											<span class="attempt-tag">Latest (Attempt #{group.allSubmissions.length})</span>
 										</div>
 										<p class="sub-desc">{sub.description}</p>
 										{#if sub.submitted_at}
@@ -288,6 +287,7 @@
 									</div>
 
 									<div class="score-pill-wrap">
+										<span class="attempt-tag">Latest (Attempt #{group.allSubmissions.length})</span>
 										{#if sub.has_been_graded}
 											<div class="score-box">
 												<span class="score-label">Total Score</span>
@@ -761,6 +761,8 @@
 		color: #1d4ed8;
 		padding: 0.2rem 0.5rem;
 		border-radius: 9999px;
+		white-space: nowrap;
+		flex-shrink: 0;
 
 		.results-page--dark & {
 			background: rgba(29, 78, 216, 0.2);
@@ -790,6 +792,14 @@
 			width: 0.875rem;
 			height: 0.875rem;
 		}
+	}
+
+	.score-pill-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		justify-content: flex-end;
 	}
 
 	.score-box {
@@ -841,6 +851,8 @@
 		color: #d97706;
 		padding: 0.375rem 0.75rem;
 		border-radius: 0.75rem;
+		white-space: nowrap;
+		flex-shrink: 0;
 
 		.results-page--dark & {
 			background: rgba(217, 119, 6, 0.15);
