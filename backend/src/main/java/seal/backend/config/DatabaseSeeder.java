@@ -549,7 +549,8 @@ public class DatabaseSeeder implements CommandLineRunner {
       String slug = team.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
       String submissionTitle = "Giải pháp " + team.getName() + ": " + team.getDescription();
       String submissionDesc =
-          "Dự án hoàn thiện. Tài liệu chi tiết bao gồm mã nguồn, video demo sản phẩm và slide trình bày kiến trúc hệ thống.";
+          "Dự án hoàn thiện. Tài liệu chi tiết bao gồm mã nguồn, video demo sản phẩm và slide trình"
+              + " bày kiến trúc hệ thống.";
 
       String githubLink = "https://github.com/seal-hackathon-2026/" + slug;
       String ytLink =

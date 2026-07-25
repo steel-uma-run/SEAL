@@ -168,7 +168,8 @@ public class RoundServiceImpl implements RoundService {
 
     for (AssignCriteriaRequestArrayItemDto dto : criteriaDtos) {
       Criteria newCriteria = new Criteria(dto.name(), dto.description(), dto.weight(), round);
-      criteriaRepo.save(newCriteria);
+      Criteria savedCriteria = criteriaRepo.save(newCriteria);
+      criteriaSet.add(savedCriteria);
     }
 
     round.setCriteria(criteriaSet);
