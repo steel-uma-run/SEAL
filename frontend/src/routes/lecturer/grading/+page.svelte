@@ -28,14 +28,11 @@
 		)
 		if (lecturerScores.length === 0) return null
 		let total = 0
-		let totalWeight = 0
 		lecturerScores.forEach((s: any) => {
-			const weight = criteriaWeights[s.criteria_id || s.criteriaId] || 1
-			total += s.value * weight
-			totalWeight += weight
+			const weight = criteriaWeights[s.criteria_id || s.criteriaId] || 0
+			total += (s.value * weight) / 100
 		})
-		if (totalWeight === 0) return 0
-		return (total / totalWeight).toFixed(2)
+		return total.toFixed(2)
 	}
 
 	function getSeasonCategory(season: any, currentInfo: any) {
@@ -156,7 +153,11 @@
 											submissions.forEach((sub: any) => {
 												const hasGraded =
 													sub.scores &&
-													sub.scores.some((s: any) => s.lecturer_id === lecturerProfile?.id || s.lecturerId === lecturerProfile?.id)
+													sub.scores.some(
+														(s: any) =>
+															s.lecturer_id === lecturerProfile?.id ||
+															s.lecturerId === lecturerProfile?.id
+													)
 												trackSubmissions.push({
 													...sub,
 													status: hasGraded ? "GRADED" : "PENDING",
