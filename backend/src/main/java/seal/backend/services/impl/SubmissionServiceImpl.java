@@ -274,12 +274,12 @@ public class SubmissionServiceImpl implements SubmissionService {
     List<Score> newScores = new ArrayList<>();
 
     for (GradeSubmissionRequestArrayItemDto dto : scores) {
-      if (dto.value() < 0 || dto.value() > 100) {
+      if (dto.value() < 0 || dto.value() > 10) {
         throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST, "Score must be between 0 and 100.");
       }
 
-      if (dto.value() < 50 && dto.comment() == null) {
+      if (dto.value() < 5 && dto.comment() == null) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A comment is required.");
       }
 
@@ -510,7 +510,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       for (Map.Entry<Lecturer, Double> entry : totalScoresPerJudge.entrySet()) {
         double deviation = Math.abs(entry.getValue() - averageTotal);
 
-        if (deviation >= 20.0) {
+        if (deviation >= 2.0) {
           ScoreDeviationNotif notif =
               ScoreDeviationNotif.builder()
                   .submission(submission)
