@@ -43,6 +43,7 @@
 		display: flex;
 		flex-direction: column;
 		flex-grow: 1;
+		height: 100%;
 	}
 
 	.image-container {
@@ -62,6 +63,7 @@
 		display: flex;
 		flex-direction: column;
 		flex: 1 1 auto;
+		height: 100%;
 	}
 
 	.name {
@@ -91,5 +93,8 @@
 
 	.action-container {
 		margin-top: auto;
+		padding-top: 1rem;
+		display: flex;
+		justify-content: flex-end;
 	}
 </style>

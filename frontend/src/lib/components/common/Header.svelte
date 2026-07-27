@@ -6,6 +6,13 @@
 	import iconLightMode from "@ktibow/iconset-material-symbols/light-mode"
 	import { auth, token } from "$lib/auth.svelte"
 	import { goto } from "$app/navigation"
+	import { page } from "$app/state"
+
+	let isDashboard = $derived(
+		page.url.pathname.startsWith("/student") ||
+			page.url.pathname.startsWith("/coordinator") ||
+			page.url.pathname.startsWith("/lecturer")
+	)
 
 	function logout() {
 		auth.value = undefined
@@ -24,7 +31,7 @@
 	</div>
 
 	<div class="buttons">
-		{#if auth.value !== undefined}
+		{#if auth.value !== undefined && !isDashboard}
 			<Button variant="outlined" onclick={logout}>Logout</Button>
 		{/if}
 
