@@ -164,4 +164,21 @@ public class HackathonEventController implements EventsApi {
     eventService.start(eventId);
     return ResponseEntity.noContent().build();
   }
+
+  @Override
+  //  @PreAuthorize("isAuthenticated()")
+  public ResponseEntity<String> exportCertificate(
+      @PathVariable(name = "eventId") @NotNull UUID eventId,
+      @PathVariable(name = "teamId") @NotNull UUID teamId) {
+
+    byte[] imageBytes = eventService.exportTeamCertificate(eventId, teamId);
+
+    String base64Image = java.util.Base64.getEncoder().encodeToString(imageBytes);
+
+    return ResponseEntity.ok()
+        .header(
+            org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"Certificate_" + teamId + ".txt\"")
+        .body(base64Image);
+  }
 }

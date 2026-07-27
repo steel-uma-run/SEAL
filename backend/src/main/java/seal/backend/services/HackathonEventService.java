@@ -33,4 +33,6 @@ public interface HackathonEventService {
   void advance(UUID eventId);
 
   void start(UUID eventId);
+
+  byte[] exportTeamCertificate(UUID eventId, UUID teamId);
 }

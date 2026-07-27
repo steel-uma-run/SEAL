@@ -97,6 +97,9 @@
     "/events/{eventId}/start": {
       "$ref": "./openapi/paths/events/start.json"
     },
+    "/events/{eventId}/teams/{teamId}/certificate": {
+      "$ref": "./openapi/paths/events/export_certificate.json"
+    },
 
     "/tracks/{trackId}": {
       "$ref": "./openapi/paths/tracks/id_index.json"
