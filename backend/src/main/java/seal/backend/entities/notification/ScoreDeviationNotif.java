@@ -8,6 +8,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -55,5 +56,6 @@ public class ScoreDeviationNotif extends Notif {
 
   @Column(name = "judge_reason", columnDefinition = "TEXT", nullable = false)
   @Nonnull
+  @Builder.Default
   private String judgeReason = ""; // Give reason if judge rejects regrade
 }

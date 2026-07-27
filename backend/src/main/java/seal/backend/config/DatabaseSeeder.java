@@ -527,7 +527,16 @@ public class DatabaseSeeder implements CommandLineRunner {
 
       // Thời gian nộp bài phải nằm giữa submissionStartTime (07h15) và submissionEndTime (10h00) ->
       // Khoảng 165 phút
-      OffsetDateTime submitTime = targetRound.getActiveTime().plusMinutes(random.nextInt(165));
+      OffsetDateTime roundTime = targetRound.getActiveTime();
+      OffsetDateTime submitTime;
+
+      if (roundTime != null) {
+        // Nếu roundTime có giá trị, chạy hàm plusMinutes bình thường
+        submitTime = roundTime.plusMinutes(random.nextInt(165));
+      } else {
+        // Nếu roundTime bị null, ta gán cứng bằng thời điểm hiện tại cộng thêm số phút random
+        submitTime = OffsetDateTime.now().plusMinutes(random.nextInt(165));
+      }
 
       String slug = team.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
       String submissionTitle = "Giải pháp " + team.getName() + ": " + team.getDescription();

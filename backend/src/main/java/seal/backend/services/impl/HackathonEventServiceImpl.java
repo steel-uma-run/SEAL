@@ -1,6 +1,9 @@
 package seal.backend.services.impl;
 
 import jakarta.transaction.Transactional;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -10,7 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -328,5 +333,92 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     Round firstRound = event.getRounds().getFirst();
     firstRound.setActiveTime(OffsetDateTime.now());
     roundRepo.save(firstRound);
+  }
+
+  @Override
+  public byte[] exportTeamCertificate(UUID eventId, UUID teamId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    Team team =
+        teamRepo
+            .findById(teamId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found"));
+
+    if (!team.getHackathonEvent().getId().equals(eventId)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Team does not belong to this event");
+    }
+
+    // --- CHECK RANKING ---
+    // Gọi hàm getRanking hiện có để lấy danh sách các team đã được xếp hạng (từ cao xuống thấp)
+    //    List<TeamDto> rankedTeams = getRanking(eventId);
+    //
+    //    // Tìm thứ hạng của team hiện tại trong danh sách (index bắt đầu từ 0)
+    //    int teamRankIndex = -1;
+    //    for (int i = 0; i < rankedTeams.size(); i++) {
+    //      if (rankedTeams.get(i).id().equals(teamId)) {
+    //        teamRankIndex = i;
+    //        break;
+    //      }
+    //    }
+    //
+    //    // 3. Quy định số lượng team được nhận giải (Ví dụ: Top 4)
+    //    int topThreshold = 4;
+    //
+    //    // Nếu không tìm thấy team trong bảng xếp hạng (chưa nộp bài/chưa chấm điểm)
+    //    if (teamRankIndex == -1) {
+    //      throw new ResponseStatusException(
+    //          HttpStatus.BAD_REQUEST, "Team has not been ranked yet or did not submit any work.");
+    //    }
+    //    // Nếu team nằm ngoài ngưỡng đạt giải (index >= 3 tức là hạng 4 trở xuống)
+    //    else if (teamRankIndex >= topThreshold) {
+    //      throw new ResponseStatusException(
+    //          HttpStatus.FORBIDDEN,
+    //          "Team is not in the Top " + topThreshold + " to receive a certificate.");
+    //    }
+
+    // đọc file ảnh
+    try {
+      ClassPathResource templateResource =
+          new ClassPathResource("templates/certificate_template.png");
+      BufferedImage image = ImageIO.read(templateResource.getInputStream());
+      Graphics2D g2d = image.createGraphics();
+
+      g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      g2d.setRenderingHint(
+          RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+      // Setup Font chữ (Tùy chỉnh tên font, kiểu in đậm và size cho hợp với template)
+      ClassPathResource fontResource = new ClassPathResource("fonts/CatchyMager.ttf");
+      Font customFont = Font.createFont(Font.TRUETYPE_FONT, fontResource.getInputStream());
+
+      Font finalFont = customFont.deriveFont(Font.PLAIN, 120);
+      g2d.setFont(finalFont);
+      g2d.setColor(Color.BLACK);
+
+      String teamName = team.getName().toUpperCase();
+
+      FontMetrics fontMetrics = g2d.getFontMetrics(finalFont);
+      int textWidth = fontMetrics.stringWidth(teamName);
+
+      int x = (image.getWidth() - textWidth) / 2; // Căn giữa theo chiều ngang
+      int y = (image.getHeight() / 2) - 25; // Căn giữa theo chiều dọc
+
+      g2d.drawString(teamName, x, y);
+      g2d.dispose();
+
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      ImageIO.write(image, "png", baos);
+      return baos.toByteArray();
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new ResponseStatusException(
+          HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate certificate");
+    }
   }
 }
