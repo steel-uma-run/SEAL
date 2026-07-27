@@ -139,6 +139,12 @@
     "/submission/{submissionId}/deviations": {
       "$ref": "./openapi/paths/submission/get_deviations.json"
     },
+    "/submission/{submissionId}/deviations/{notifId}/accept": {
+      "$ref": "./openapi/paths/submission/accept_deviation.json"
+    },
+    "/submission/{submissionId}/deviations/{notifId}/reject": {
+      "$ref": "./openapi/paths/submission/reject_deviation.json"
+    },
 
     "/auditlogs": {
       "$ref": "./openapi/paths/auditlogs/get_all.json"

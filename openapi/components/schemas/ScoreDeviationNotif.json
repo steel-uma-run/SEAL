@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "required": ["id", "submission_id", "lecturer_id", "judge_score", "average_score", "is_resolved", "created_at"],
+  "required": ["id", "submission_id", "lecturer_id", "judge_score", "average_score", "is_resolved", "status", "created_at"],
   "properties": {
     "id": {
       "type": "string",
@@ -28,6 +28,14 @@
     },
     "is_resolved": {
       "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "description": "PENDING, ACCEPTED, or REJECTED"
+    },
+    "judge_reason": {
+      "type": "string",
+      "description": "Reason provided by judge if they reject the deviation"
     },
     "created_at": {
       "type": "string",

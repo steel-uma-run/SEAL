@@ -19,4 +19,8 @@ public interface SubmissionService {
   void gradeSubmission(UUID submissionId, GradeSubmissionRequestArrayItemDto[] scores);
 
   List<ScoreDeviationNotifDto> getScoreDeviations(UUID submissionId);
+
+  void acceptDeviation(UUID submissionId, UUID notifId);
+
+  void rejectDeviation(UUID submissionId, UUID notifId, String reason);
 }
