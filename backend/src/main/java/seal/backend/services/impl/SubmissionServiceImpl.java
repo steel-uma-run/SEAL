@@ -69,18 +69,13 @@ public class SubmissionServiceImpl implements SubmissionService {
   @Override
   @Transactional
   public void submitWork(UUID eventId, SubmitWorkRequestDto request) {
-    if (request.githubLink() == null
-        || request.githubLink().trim().isEmpty()
-        || !request.githubLink().toLowerCase().contains("github")) {
+    if (!githubPattern.matcher(request.githubLink()).find()) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "GitHub link must be a valid HTTP(S) link to GitHub");
     }
-    if (request.youtubeLink() != null && !request.youtubeLink().trim().isEmpty()) {
-      String ytLower = request.youtubeLink().toLowerCase();
-      if (!ytLower.contains("youtube.com") && !ytLower.contains("youtu.be")) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "YouTube link must be a valid HTTP(S) link to YouTube");
-      }
+    if (!ytPattern.matcher(request.youtubeLink()).find()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "YouTube link must be a valid HTTP(S) link to YouTube");
     }
 
     HackathonEvent event =
@@ -114,7 +109,7 @@ public class SubmissionServiceImpl implements SubmissionService {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only team leader can submit works.");
     }
 
-    if (studentTeam.getMembers().isEmpty()) {
+    if (!studentTeam.isTeamValid()) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Team is not eligible to participate.");
     }

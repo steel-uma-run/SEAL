@@ -85,13 +85,18 @@
 										(profileData.team_ids && profileData.team_ids.includes(t.id))
 
 									if (isLeader || isMember) {
+										const memberCount = t.members ? t.members.length : (t.member_ids ? t.member_ids.length : (t.membersCount || 1))
+										const status = t.status || t.team_status || t.teamStatus || "APPROVED"
 										foundTeams.push({
 											eventId: event.id,
 											eventName: event.name,
 											seasonId: season.id,
 											teamId: t.id,
 											teamName: t.name,
-											teamLeaderId: t.leader_id || t.leaderId
+											teamLeaderId: t.leader_id || t.leaderId,
+											isLeader,
+											memberCount,
+											status
 										})
 									}
 								}
@@ -113,8 +118,28 @@
 		e.preventDefault()
 
 		// BR-42, BR-43: GitHub link validation
-		if (!submitLink.trim().toLowerCase().includes("github")) {
-			submitMessage = "Error: Git Link must be a valid GitHub repository URL."
+		if (!submitLink.trim().toLowerCase().includes("github.com")) {
+			submitMessage = "Error: Git Link must be a valid GitHub repository URL (must contain github.com)."
+			return
+		}
+
+		if (!youtubeLink.trim().toLowerCase().includes("youtube.com")) {
+			submitMessage = "Error: YouTube Link must be a valid URL starting with http(s)://youtube.com (do not use short links like youtu.be)."
+			return
+		}
+
+		if (currentLeaderTeam && !currentLeaderTeam.isLeader && myTeamLeaderId !== profileId) {
+			submitMessage = "Error: Only the team leader can submit projects for this team."
+			return
+		}
+
+		if (currentLeaderTeam && currentLeaderTeam.status !== "APPROVED") {
+			submitMessage = `Error: Team is not eligible to participate (Status: ${currentLeaderTeam.status}).`
+			return
+		}
+
+		if (currentLeaderTeam && (currentLeaderTeam.memberCount < 3 || currentLeaderTeam.memberCount > 5)) {
+			submitMessage = `Error: Team must have between 3 and 5 members (Current: ${currentLeaderTeam.memberCount}).`
 			return
 		}
 
@@ -226,7 +251,7 @@
 				</div>
 			{/if}
 
-			{#if myTeamLeaderId !== profileId}
+			{#if myTeamLeaderId !== profileId && (currentLeaderTeam && !currentLeaderTeam.isLeader)}
 				<div class="submit-page__not-leader">
 					<svg class="submit-page__lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
@@ -239,6 +264,36 @@
 					<h2 class="submit-page__not-leader-title">Only the Team Leader can submit</h2>
 					<p class="submit-page__not-leader-text">
 						You are a member of this team. Please ask your team leader to submit the project.
+					</p>
+				</div>
+			{:else if currentLeaderTeam && currentLeaderTeam.status !== "APPROVED"}
+				<div class="submit-page__not-leader">
+					<svg class="submit-page__lock-icon" style="color: #e65100;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+						/>
+					</svg>
+					<h2 class="submit-page__not-leader-title">Team Not Approved Yet</h2>
+					<p class="submit-page__not-leader-text">
+						Your team status is currently <strong>{currentLeaderTeam.status}</strong>. Only teams approved by the coordinator are eligible to submit works.
+					</p>
+				</div>
+			{:else if currentLeaderTeam && (currentLeaderTeam.memberCount < 3 || currentLeaderTeam.memberCount > 5)}
+				<div class="submit-page__not-leader">
+					<svg class="submit-page__lock-icon" style="color: #c62828;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+						/>
+					</svg>
+					<h2 class="submit-page__not-leader-title">Ineligible Member Count</h2>
+					<p class="submit-page__not-leader-text">
+						Your team currently has <strong>{currentLeaderTeam.memberCount} member(s)</strong>. According to hackathon rules, a team must have between 3 and 5 members to participate and submit projects.
 					</p>
 				</div>
 			{:else}
@@ -293,7 +348,7 @@
 
 				<!-- YouTube Link -->
 				<div class="submit-page__field">
-					<label class="submit-page__label">YouTube Link (Optional)</label>
+					<label class="submit-page__label">YouTube Link <span class="required-asterisk">(*)</span></label>
 					<div class="submit-page__input-wrap">
 						<div class="submit-page__input-icon">
 							<svg class="submit-page__input-svg" fill="currentColor" viewBox="0 0 24 24">
@@ -305,7 +360,8 @@
 						<input
 							type="url"
 							bind:value={youtubeLink}
-							placeholder="https://youtube.com/..."
+							required
+							placeholder="https://youtube.com/watch?v=..."
 							class="submit-page__input submit-page__input--with-icon"
 						/>
 					</div>
