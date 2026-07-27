@@ -15,8 +15,6 @@ import seal.backend.config.GlobalConfig;
 import seal.backend.services.SubmissionService;
 import seal.openapi.api.SubmissionApi;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
-import seal.openapi.model.RegradeRequestDto;
-import seal.openapi.model.RequestRegradePayloadDto;
 import seal.openapi.model.ScoreDeviationNotifDto;
 import seal.openapi.model.SubmissionDto;
 
@@ -50,41 +48,5 @@ public class SubmissionController implements SubmissionApi {
 
     List<ScoreDeviationNotifDto> deviations = submissionService.getScoreDeviations(submissionId);
     return ResponseEntity.ok(deviations.toArray(ScoreDeviationNotifDto[]::new));
-  }
-
-  @Override
-  @PreAuthorize("hasRole('LECTURER')")
-  public ResponseEntity<Void> requestRegrade(
-      @PathVariable(name = "submissionId") @NotNull UUID submissionId,
-      @RequestBody @Valid @NotNull RequestRegradePayloadDto body) {
-    submissionService.requestRegrade(submissionId, body);
-    return ResponseEntity.ok().build();
-  }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<RegradeRequestDto[]> getAllRegradeRequests() {
-    List<RegradeRequestDto> requests = submissionService.getAllRegradeRequests();
-    return ResponseEntity.ok(requests.toArray(RegradeRequestDto[]::new));
-  }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<Void> approveRegrade(
-      @PathVariable(name = "submissionId") @NotNull UUID submissionId,
-      @PathVariable(name = "notifId") @NotNull UUID notifId) {
-
-    submissionService.approveRegrade(submissionId, notifId);
-    return ResponseEntity.ok().build();
-  }
-
-  @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
-  public ResponseEntity<Void> rejectRegrade(
-      @PathVariable(name = "submissionId") @NotNull UUID submissionId,
-      @PathVariable(name = "notifId") @NotNull UUID notifId) {
-
-    submissionService.rejectRegrade(submissionId, notifId);
-    return ResponseEntity.ok().build();
   }
 }

@@ -139,18 +139,6 @@
     "/submission/{submissionId}/deviations": {
       "$ref": "./openapi/paths/submission/get_deviations.json"
     },
-    "/submission/{submissionId}/request-regrade": {
-      "$ref": "./openapi/paths/submission/request_regrade.json"
-    },
-    "/regrade-requests": {
-      "$ref": "./openapi/paths/submission/get_regrade_requests.json"
-    },
-    "/submission/{submissionId}/approve-regrade/{notifId}": {
-      "$ref": "./openapi/paths/submission/approve_regrade.json"
-    },
-    "/submission/{submissionId}/reject-regrade/{notifId}": {
-      "$ref": "./openapi/paths/submission/reject_regrade.json"
-    },
 
     "/auditlogs": {
       "$ref": "./openapi/paths/auditlogs/get_all.json"
