@@ -166,7 +166,7 @@ public class HackathonEventController implements EventsApi {
   }
 
   @Override
-  //  @PreAuthorize("isAuthenticated()")
+  @PreAuthorize("isAuthenticated()")
   public ResponseEntity<String> exportCertificate(
       @PathVariable(name = "eventId") @NotNull UUID eventId,
       @PathVariable(name = "teamId") @NotNull UUID teamId) {
