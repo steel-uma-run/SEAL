@@ -44,4 +44,10 @@ public class ScoreDeviationNotif extends Notif {
 
   @Column(nullable = false)
   private boolean isResolved;
+
+  @Column(name = "status")
+  private String status; // PENDING, ACCEPTED, REJECTED
+
+  @Column(name = "judge_reason", columnDefinition = "TEXT")
+  private String judgeReason; // Give reason if judge rejects regrade
 }

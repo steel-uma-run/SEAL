@@ -15,6 +15,7 @@ import seal.backend.config.GlobalConfig;
 import seal.backend.services.SubmissionService;
 import seal.openapi.api.SubmissionApi;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
+import seal.openapi.model.RequestRegradePayloadDto;
 import seal.openapi.model.ScoreDeviationNotifDto;
 import seal.openapi.model.SubmissionDto;
 
@@ -48,5 +49,23 @@ public class SubmissionController implements SubmissionApi {
 
     List<ScoreDeviationNotifDto> deviations = submissionService.getScoreDeviations(submissionId);
     return ResponseEntity.ok(deviations.toArray(ScoreDeviationNotifDto[]::new));
+  }
+
+  @Override
+  @PreAuthorize("hasRole('LECTURER')")
+  public ResponseEntity<Void> acceptDeviation(
+      @PathVariable UUID submissionId, @PathVariable UUID notifId) {
+    submissionService.acceptDeviation(submissionId, notifId);
+    return ResponseEntity.ok().build();
+  }
+
+  @Override
+  @PreAuthorize("hasRole('LECTURER')")
+  public ResponseEntity<Void> rejectDeviation(
+      @PathVariable UUID submissionId,
+      @PathVariable UUID notifId,
+      @RequestBody @Valid RequestRegradePayloadDto body) {
+    submissionService.rejectDeviation(submissionId, notifId, body.reason());
+    return ResponseEntity.ok().build();
   }
 }

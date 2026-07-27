@@ -7,4 +7,6 @@ import seal.backend.entities.notification.ScoreDeviationNotif;
 
 public interface ScoreDeviationNotifRepository extends JpaRepository<ScoreDeviationNotif, UUID> {
   List<ScoreDeviationNotif> findBySubmissionId(UUID submissionId);
+
+  List<ScoreDeviationNotif> findAllByOrderByCreatedAtDesc();
 }

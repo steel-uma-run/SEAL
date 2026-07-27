@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
 import seal.backend.entities.Track;
 import seal.backend.entities.User;
+import seal.backend.entities.audit.GradingLog;
 import seal.backend.entities.notification.ScoreDeviationNotif;
 import seal.backend.enums.Role;
 import seal.backend.repositories.AuditLogRepository;
@@ -324,84 +326,232 @@ public class SubmissionServiceImpl implements SubmissionService {
                     notif.getJudgeScore(),
                     notif.getAverageScore(),
                     notif.isResolved(),
+                    notif.getStatus(),
+                    notif.getJudgeReason(),
                     notif.getCreatedAt()))
         .toList();
   }
 
   private void checkScoreDeviation(Submission submission) {
-    // Remove any unprocessed alerts before rescanning to avoid data duplication.
-    List<ScoreDeviationNotif> oldDeviations =
-        notifRepo.findBySubmissionId(submission.getId()).stream()
-            .filter(n -> !n.isResolved())
-            .toList();
-    if (!oldDeviations.isEmpty()) {
-      notifRepo.deleteAll(oldDeviations);
-    }
-
     List<Score> allScores = submission.getScores();
     Map<Lecturer, List<Score>> scoresByJudge =
         allScores.stream().collect(Collectors.groupingBy(Score::getLecturer));
 
-    if (scoresByJudge.size() >= 2) {
-      Map<Lecturer, Double> totalScoresPerJudge = new HashMap<>();
-      for (Map.Entry<Lecturer, List<Score>> entry : scoresByJudge.entrySet()) {
-        double totalScore =
-            entry.getValue().stream()
-                .mapToDouble(s -> s.getValue() * s.getCriteria().getWeight() / 100.0)
-                .sum();
-        totalScoresPerJudge.put(entry.getKey(), totalScore);
+    if (scoresByJudge.size() < 2) {
+      return;
+    }
+
+    List<ScoreDeviationNotif> existingNotifs = notifRepo.findBySubmissionId(submission.getId());
+
+    Set<UUID> resolvedLecturerIds =
+        existingNotifs.stream()
+            .filter(ScoreDeviationNotif::isResolved)
+            .filter(n -> n.getLecturer() != null)
+            .map(n -> n.getLecturer().getId())
+            .collect(Collectors.toSet());
+
+    Map<UUID, ScoreDeviationNotif> pendingTotalNotifs =
+        existingNotifs.stream()
+            .filter(n -> !n.isResolved())
+            .filter(n -> n.getCriteria() == null)
+            .filter(n -> n.getLecturer() != null)
+            .collect(Collectors.toMap(n -> n.getLecturer().getId(), n -> n, (n1, n2) -> n1));
+
+    Map<Lecturer, Double> totalScoresPerJudge = new HashMap<>();
+    for (Map.Entry<Lecturer, List<Score>> entry : scoresByJudge.entrySet()) {
+      double totalScore =
+          entry.getValue().stream()
+              .mapToDouble(s -> s.getValue() * s.getCriteria().getWeight() / 100.0)
+              .sum();
+      totalScoresPerJudge.put(entry.getKey(), totalScore);
+    }
+
+    double averageTotal =
+        totalScoresPerJudge.values().stream()
+            .mapToDouble(Double::doubleValue)
+            .average()
+            .orElse(0.0);
+
+    // CHECK LỆCH TỔNG ĐIỂM
+    for (Map.Entry<Lecturer, Double> entry : totalScoresPerJudge.entrySet()) {
+      Lecturer lecturer = entry.getKey();
+      UUID lecturerId = lecturer.getId();
+      double judgeScore = entry.getValue();
+      double deviation = Math.abs(judgeScore - averageTotal);
+
+      if (resolvedLecturerIds.contains(lecturerId)) {
+        continue;
       }
 
-      double averageTotal =
-          totalScoresPerJudge.values().stream()
-              .mapToDouble(Double::doubleValue)
-              .average()
-              .orElse(0.0);
+      boolean isCurrentlyDeviated = (deviation >= 2.0);
 
-      for (Map.Entry<Lecturer, Double> entry : totalScoresPerJudge.entrySet()) {
-        double deviation = Math.abs(entry.getValue() - averageTotal);
-
-        if (deviation >= 2.0) {
+      if (isCurrentlyDeviated) {
+        if (pendingTotalNotifs.containsKey(lecturerId)) {
+          ScoreDeviationNotif existingNotif = pendingTotalNotifs.get(lecturerId);
+          existingNotif.setJudgeScore(judgeScore);
+          existingNotif.setAverageScore(averageTotal);
+          notifRepo.save(existingNotif);
+        } else {
           ScoreDeviationNotif notif =
               ScoreDeviationNotif.builder()
                   .submission(submission)
-                  .lecturer(entry.getKey())
-                  .judgeScore(entry.getValue())
+                  .lecturer(lecturer)
+                  .judgeScore(judgeScore)
                   .averageScore(averageTotal)
                   .createdAt(OffsetDateTime.now())
+                  .status("PENDING")
                   .isResolved(false)
                   .build();
           notifRepo.save(notif);
         }
+      } else {
+        if (pendingTotalNotifs.containsKey(lecturerId)) {
+          notifRepo.delete(pendingTotalNotifs.get(lecturerId));
+        }
       }
+    }
 
-      Map<UUID, List<Score>> scoresByCriteria =
-          allScores.stream().collect(Collectors.groupingBy(score -> score.getCriteria().getId()));
+    // CHECK LỆCH ĐIỂM THÀNH PHẦN THEO TIÊU CHÍ
+    Map<UUID, List<Score>> scoresByCriteria =
+        allScores.stream().collect(Collectors.groupingBy(score -> score.getCriteria().getId()));
 
-      for (Map.Entry<UUID, List<Score>> entry : scoresByCriteria.entrySet()) {
-        if (entry.getValue().size() >= 2) {
-          double avgCriteria =
-              entry.getValue().stream().mapToDouble(Score::getValue).average().orElse(0.0);
+    Map<String, ScoreDeviationNotif> pendingCriteriaNotifs =
+        existingNotifs.stream()
+            .filter(n -> !n.isResolved())
+            .filter(n -> n.getCriteria() != null && n.getLecturer() != null)
+            .collect(
+                Collectors.toMap(
+                    n ->
+                        n.getLecturer().getId().toString()
+                            + "_"
+                            + n.getCriteria().getId().toString(),
+                    n -> n,
+                    (n1, n2) -> n1));
 
-          for (Score s : entry.getValue()) {
-            double deviation = Math.abs(s.getValue() - avgCriteria);
+    for (Map.Entry<UUID, List<Score>> entry : scoresByCriteria.entrySet()) {
+      UUID criteriaId = entry.getKey();
+      List<Score> criteriaScores = entry.getValue();
 
-            if (deviation >= 2.0) {
+      if (criteriaScores.size() >= 2) {
+        double avgCriteria =
+            criteriaScores.stream().mapToDouble(Score::getValue).average().orElse(0.0);
+
+        for (Score s : criteriaScores) {
+          Lecturer lecturer = s.getLecturer();
+          UUID lecturerId = lecturer.getId();
+          double judgeScore = (double) s.getValue();
+          double deviation = Math.abs(judgeScore - avgCriteria);
+
+          if (resolvedLecturerIds.contains(lecturerId)) {
+            continue;
+          }
+
+          String mapKey = lecturerId.toString() + "_" + criteriaId.toString();
+          boolean isCurrentlyDeviated = (deviation >= 2.0);
+
+          if (isCurrentlyDeviated) {
+            if (pendingCriteriaNotifs.containsKey(mapKey)) {
+              ScoreDeviationNotif existingNotif = pendingCriteriaNotifs.get(mapKey);
+              existingNotif.setJudgeScore(judgeScore);
+              existingNotif.setAverageScore(avgCriteria);
+              notifRepo.save(existingNotif);
+            } else {
               ScoreDeviationNotif notif =
                   ScoreDeviationNotif.builder()
                       .submission(submission)
                       .criteria(s.getCriteria())
-                      .lecturer(s.getLecturer())
-                      .judgeScore((double) s.getValue())
+                      .lecturer(lecturer)
+                      .judgeScore(judgeScore)
                       .averageScore(avgCriteria)
                       .createdAt(OffsetDateTime.now())
+                      .status("PENDING")
                       .isResolved(false)
                       .build();
               notifRepo.save(notif);
+            }
+          } else {
+            if (pendingCriteriaNotifs.containsKey(mapKey)) {
+              notifRepo.delete(pendingCriteriaNotifs.get(mapKey));
             }
           }
         }
       }
     }
+  }
+
+  @Override
+  @Transactional
+  public void acceptDeviation(UUID submissionId, UUID notifId) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    Lecturer actor =
+        lecturerRepo
+            .findByEmail(auth.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+
+    ScoreDeviationNotif notif =
+        notifRepo
+            .findById(notifId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notif not found."));
+
+    if (!notif.getLecturer().getId().equals(actor.getId())) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This notification is not for you.");
+    }
+    if (notif.isResolved()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Already resolved.");
+    }
+
+    Submission submission = notif.getSubmission();
+
+    List<Score> oldScores =
+        submission.getScores().stream()
+            .filter(s -> s.getLecturer().getId().equals(actor.getId()))
+            .toList();
+
+    // Lưu Audit Log
+    for (Score oldScore : oldScores) {
+      GradingLog gradingLog =
+          GradingLog.builder()
+              .actionTime(OffsetDateTime.now())
+              .actor(actor)
+              .submission(submission)
+              .action("DELETED_SCORE_BY_LECTURER")
+              .details("Lecturer accepted deviation and deleted old score.")
+              .build();
+      auditLogRepo.save(gradingLog);
+    }
+
+    scoreRepo.deleteAll(oldScores);
+    submission.getScores().removeAll(oldScores);
+
+    notif.setResolved(true);
+    notif.setStatus("ACCEPTED");
+    notifRepo.save(notif);
+    submissionRepo.save(submission);
+  }
+
+  @Override
+  @Transactional
+  public void rejectDeviation(UUID submissionId, UUID notifId, String reason) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    Lecturer actor =
+        lecturerRepo
+            .findByEmail(auth.getName())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN));
+
+    ScoreDeviationNotif notif =
+        notifRepo
+            .findById(notifId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notif not found."));
+
+    if (!notif.getLecturer().getId().equals(actor.getId())) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "This notification is not for you.");
+    }
+
+    notif.setResolved(true);
+    notif.setStatus("REJECTED");
+    notif.setJudgeReason(reason);
+    notifRepo.save(notif);
   }
 }
