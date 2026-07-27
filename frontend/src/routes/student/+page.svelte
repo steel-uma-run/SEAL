@@ -430,16 +430,8 @@
 	// ----------------------------------------------------------------------------
 	.events-grid {
 		display: grid;
-		grid-template-columns: 1fr;
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 		gap: 1.5rem; // gap-6
-
-		@media (min-width: $bp-md) {
-			grid-template-columns: repeat(2, 1fr);
-		}
-
-		@media (min-width: $bp-lg) {
-			grid-template-columns: repeat(3, 1fr);
-		}
 	}
 
 	// ----------------------------------------------------------------------------

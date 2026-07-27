@@ -14,6 +14,8 @@
 
 <style lang="scss">
 	.elevated-card {
+		height: 100%;
+		width: 100%;
 		border-radius: 12px;
 		background-color: var(--md-sys-color-surface-container-low);
 		/* Làm bóng đổ mềm mại và chuyên nghiệp hơn */
