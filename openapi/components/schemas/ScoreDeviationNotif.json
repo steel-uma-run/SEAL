@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "required": ["id", "submission_id", "lecturer_id", "judge_score", "average_score", "is_resolved", "status", "created_at"],
+  "required": ["id", "submission_id", "lecturer_id", "judge_score", "average_score", "is_resolved", "status", "judge_reason", "created_at"],
   "properties": {
     "id": {
       "type": "string",
@@ -31,7 +31,12 @@
     },
     "status": {
       "type": "string",
-      "description": "PENDING, ACCEPTED, or REJECTED"
+      "enum": [
+        "PENDING",
+        "ACCEPTED",
+        "REJECTED"
+      ],
+      "description": "Status of the deviation notification"
     },
     "judge_reason": {
       "type": "string",
