@@ -73,34 +73,26 @@
 					})
 					if (events) {
 						for (const event of events) {
-							const { data: participants } = await getInterestedParticipants({
-								path: { eventId: event.id },
+							const { data: eventTeams } = await getAllTeamsOfEvents({
+								path: { eventId: event.id } as any,
 								throwOnError: false
 							})
-							if (participants) {
-								const me = participants.find((p: any) => p.email === profileData.email)
-								if (me) {
-									const { data: eventTeams } = await getAllTeamsOfEvents({
-										path: { eventId: event.id } as any,
-										throwOnError: false
-									})
-									if (eventTeams) {
-										const team = eventTeams.find(
-											(t: any) =>
-												(me.team_ids && me.team_ids.includes(t.id)) ||
-												t.leader_id === me.id ||
-												t.leaderId === me.id
-										)
-										if (team) {
-											foundTeams.push({
-												eventId: event.id,
-												eventName: event.name,
-												seasonId: season.id,
-												teamId: team.id,
-												teamName: team.name,
-												teamLeaderId: team.leader_id || team.leaderId
-											})
-										}
+							if (eventTeams) {
+								for (const t of eventTeams) {
+									const isLeader = t.leader_id === profileData.id || t.leaderId === profileData.id
+									const isMember = (t.members && t.members.some((m: any) => m.id === profileData.id || m === profileData.id)) ||
+										(t.member_ids && t.member_ids.includes(profileData.id)) ||
+										(profileData.team_ids && profileData.team_ids.includes(t.id))
+
+									if (isLeader || isMember) {
+										foundTeams.push({
+											eventId: event.id,
+											eventName: event.name,
+											seasonId: season.id,
+											teamId: t.id,
+											teamName: t.name,
+											teamLeaderId: t.leader_id || t.leaderId
+										})
 									}
 								}
 							}
@@ -121,8 +113,8 @@
 		e.preventDefault()
 
 		// BR-42, BR-43: GitHub link validation
-		if (!submitLink.trim().startsWith("https://github.com/")) {
-			submitMessage = "Error: Git Link must be a valid https://github.com/ repository URL."
+		if (!submitLink.trim().toLowerCase().includes("github")) {
+			submitMessage = "Error: Git Link must be a valid GitHub repository URL."
 			return
 		}
 
