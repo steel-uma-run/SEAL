@@ -144,7 +144,7 @@
 			</ElevatedCard>
 		</section>
 
-		<Leaderboard />
+		<Leaderboard eventId={id} event={data.event} tracks={data.tracks} rounds={data.rounds} />
 
 		<section class="tracks">
 			<div class="title">
