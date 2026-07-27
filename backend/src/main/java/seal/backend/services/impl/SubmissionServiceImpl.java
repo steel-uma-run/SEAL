@@ -30,6 +30,7 @@ import seal.backend.entities.User;
 import seal.backend.entities.audit.GradingLog;
 import seal.backend.entities.notification.ScoreDeviationNotif;
 import seal.backend.enums.Role;
+import seal.backend.enums.ScoreDeviationStatus;
 import seal.backend.repositories.AuditLogRepository;
 import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.HackathonEventRepository;
@@ -43,6 +44,7 @@ import seal.backend.repositories.UserRepository;
 import seal.backend.services.SubmissionService;
 import seal.openapi.model.GradeSubmissionRequestArrayItemDto;
 import seal.openapi.model.ScoreDeviationNotifDto;
+import seal.openapi.model.ScoreDeviationNotifStatusDto;
 import seal.openapi.model.SubmissionDto;
 import seal.openapi.model.SubmitWorkRequestDto;
 
@@ -273,7 +275,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     for (GradeSubmissionRequestArrayItemDto dto : scores) {
       if (dto.value() < 0 || dto.value() > 10) {
         throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST, "Score must be between 0 and 100.");
+            HttpStatus.BAD_REQUEST, "Score must be between 0 and 10.");
       }
 
       if (dto.value() < 5 && dto.comment() == null) {
@@ -326,7 +328,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                     notif.getJudgeScore(),
                     notif.getAverageScore(),
                     notif.isResolved(),
-                    notif.getStatus(),
+                    ScoreDeviationNotifStatusDto.valueOf(notif.getStatus().name()),
                     notif.getJudgeReason(),
                     notif.getCreatedAt()))
         .toList();
@@ -399,7 +401,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                   .judgeScore(judgeScore)
                   .averageScore(averageTotal)
                   .createdAt(OffsetDateTime.now())
-                  .status("PENDING")
+                  .status(ScoreDeviationStatus.PENDING)
                   .isResolved(false)
                   .build();
           notifRepo.save(notif);
@@ -464,7 +466,7 @@ public class SubmissionServiceImpl implements SubmissionService {
                       .judgeScore(judgeScore)
                       .averageScore(avgCriteria)
                       .createdAt(OffsetDateTime.now())
-                      .status("PENDING")
+                      .status(ScoreDeviationStatus.PENDING)
                       .isResolved(false)
                       .build();
               notifRepo.save(notif);
@@ -525,7 +527,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     submission.getScores().removeAll(oldScores);
 
     notif.setResolved(true);
-    notif.setStatus("ACCEPTED");
+    notif.setStatus(ScoreDeviationStatus.ACCEPTED);
     notifRepo.save(notif);
     submissionRepo.save(submission);
   }
@@ -550,7 +552,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     notif.setResolved(true);
-    notif.setStatus("REJECTED");
+    notif.setStatus(ScoreDeviationStatus.REJECTED);
     notif.setJudgeReason(reason);
     notifRepo.save(notif);
   }

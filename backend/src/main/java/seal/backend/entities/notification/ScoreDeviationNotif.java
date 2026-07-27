@@ -3,6 +3,8 @@ package seal.backend.entities.notification;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -14,6 +16,7 @@ import seal.backend.entities.Criteria;
 import seal.backend.entities.Lecturer;
 import seal.backend.entities.Notif;
 import seal.backend.entities.Submission;
+import seal.backend.enums.ScoreDeviationStatus;
 
 @Entity
 @SuperBuilder
@@ -45,9 +48,12 @@ public class ScoreDeviationNotif extends Notif {
   @Column(nullable = false)
   private boolean isResolved;
 
-  @Column(name = "status")
-  private String status; // PENDING, ACCEPTED, REJECTED
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  @Nonnull
+  private ScoreDeviationStatus status;
 
-  @Column(name = "judge_reason", columnDefinition = "TEXT")
-  private String judgeReason; // Give reason if judge rejects regrade
+  @Column(name = "judge_reason", columnDefinition = "TEXT", nullable = false)
+  @Nonnull
+  private String judgeReason = ""; // Give reason if judge rejects regrade
 }
