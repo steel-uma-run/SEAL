@@ -7,9 +7,10 @@
 
 	interface Props {
 		event: HackathonEvent
+		href?: string
 	}
 
-	const { event }: Props = $props()
+	const { event, href }: Props = $props()
 </script>
 
 <ElevatedCard>
@@ -26,7 +27,7 @@
 			<p class="desc">{event.description}</p>
 
 			<div class="action-container">
-				<Button variant="tonal" iconType="left" href="/events/{event.id}">
+				<Button variant="tonal" iconType="left" href={href || `/events/${event.id}`}>
 					<Icon icon={iconArrowForward} /> Details
 				</Button>
 			</div>
@@ -48,7 +49,8 @@
 
 	.image-container {
 		width: 100%;
-		aspect-ratio: 16 / 9;
+		height: 180px;
+		max-height: 200px;
 		overflow: hidden;
 	}
 
@@ -56,6 +58,11 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		transition: transform 0.3s ease;
+	}
+
+	.content:hover img {
+		transform: scale(1.04);
 	}
 
 	.body {
