@@ -11,6 +11,7 @@
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 	import DashboardUI from "$lib/components/student/DashboardUI.svelte"
 	import ActiveSeasonEvents from "$lib/components/student/ActiveSeasonEvents.svelte"
+	import EventCard from "$lib/components/EventCard.svelte"
 
 	let profile: any = $state(null)
 	let seasons: any[] = $state([])
@@ -173,23 +174,7 @@
 			{:else}
 				<div class="events-grid">
 					{#each joinedEvents as event}
-						<div class="event-card">
-							<div class="event-card__body">
-								<div class="event-card__header">
-									<h3 class="event-card__name">
-										{event.name}
-									</h3>
-									<span class="event-card__badge"> Joined </span>
-								</div>
-								<p class="event-card__description">
-									{event.description}
-								</p>
-							</div>
-							<div class="event-card__footer">
-								<span class="event-card__meta"> Active Season Event </span>
-								<a href="/events/{event.id}" class="event-card__link"> View details &rarr; </a>
-							</div>
-						</div>
+						<EventCard {event} isJoined={true} />
 					{/each}
 				</div>
 			{/if}
@@ -214,6 +199,7 @@
 	.dashboard-page {
 		max-width: 1600px;
 		width: 100%;
+		margin: 0 auto;
 	}
 
 	// ----------------------------------------------------------------------------
@@ -426,105 +412,11 @@
 
 	// ----------------------------------------------------------------------------
 	// Events Grid
-	// grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6
 	// ----------------------------------------------------------------------------
 	.events-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-		gap: 1.5rem; // gap-6
-	}
-
-	// ----------------------------------------------------------------------------
-	// Event Card
-	// border rounded-2xl p-6 flex flex-col justify-between bg-(--md-surface-container)
-	// hover:bg-(--md-surface-container-high) transition-all duration-300 shadow-sm
-	// ----------------------------------------------------------------------------
-	.event-card {
-		border: 1px solid var(--md-outline-variant);
-		border-radius: 1rem; // rounded-2xl
-		padding: 1.5rem; // p-6
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		background-color: var(--md-surface-container);
-		transition: all 0.3s ease;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // shadow-sm
-
-		&:hover {
-			background-color: var(--md-surface-container-high);
-		}
-
-		&__header {
-			display: flex;
-			justify-content: space-between;
-			align-items: flex-start;
-			gap: 1rem; // gap-4
-			margin-bottom: 0.75rem; // mb-3
-		}
-
-		&__name {
-			font-weight: 800; // font-extrabold
-			font-size: 1.125rem; // text-lg
-			color: var(--md-on-surface);
-			// line-clamp-1
-			display: -webkit-box;
-			-webkit-line-clamp: 1;
-			-webkit-box-orient: vertical;
-			overflow: hidden;
-			line-clamp: 1;
-		}
-
-		&__badge {
-			display: inline-flex;
-			padding: 0.125rem 0.625rem; // px-2.5 py-0.5
-			border-radius: 9999px; // rounded-full
-			font-size: 0.625rem; // text-[10px]
-			font-weight: 700; // font-bold
-			text-transform: uppercase;
-			letter-spacing: 0.05em; // tracking-wider
-			background-color: rgba(16, 185, 129, 0.1); // bg-emerald-500/10
-			color: #10b981; // text-emerald-500
-			border: 1px solid rgba(16, 185, 129, 0.2); // border-emerald-500/20
-			flex-shrink: 0; // shrink-0
-			white-space: nowrap;
-		}
-
-		&__description {
-			font-size: 0.875rem; // text-sm
-			color: var(--md-on-surface-variant);
-			line-height: 1.625; // leading-relaxed
-			margin-bottom: 1rem; // mb-4
-			// line-clamp-2
-			display: -webkit-box;
-			-webkit-line-clamp: 2;
-			-webkit-box-orient: vertical;
-			overflow: hidden;
-			line-clamp: 2;
-		}
-
-		&__footer {
-			padding-top: 1rem; // pt-4
-			border-top: 1px solid var(--md-outline-variant);
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-		}
-
-		&__meta {
-			font-size: 0.75rem; // text-xs
-			color: var(--md-on-surface-variant);
-		}
-
-		&__link {
-			font-size: 0.75rem; // text-xs
-			font-weight: 700; // font-bold
-			color: var(--md-primary);
-			cursor: pointer;
-			text-decoration: none;
-
-			&:hover {
-				text-decoration: underline; // hover:underline
-			}
-		}
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 340px));
+		justify-content: start;
+		gap: 1.5rem;
 	}
 </style>
