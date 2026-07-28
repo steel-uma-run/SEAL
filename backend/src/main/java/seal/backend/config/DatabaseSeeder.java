@@ -19,6 +19,7 @@ import seal.backend.entities.CriteriaTemplate;
 import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Lecturer;
 import seal.backend.entities.Round;
+import seal.backend.entities.Score;
 import seal.backend.entities.Season;
 import seal.backend.entities.Student;
 import seal.backend.entities.Submission;
@@ -477,35 +478,33 @@ public class DatabaseSeeder implements CommandLineRunner {
               targetRound);
       Submission savedSubmission = submissionRepo.save(submission);
 
-      //      // --- CHẤM ĐIỂM (CHỈ DÀNH CHO KỲ SPRING) ---
-      //      if (isSpringEvent) {
-      //        Track teamTrack = team.getTrack();
-      //
-      //        if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
-      //
-      //          for (Criteria criteria : targetRound.getCriteria()) {
-      //            // Sinh 1 điểm gốc (từ 6.0 đến 8.0) cho Tiêu chí này của Team này
-      //            float baseScore = 6.0f + random.nextInt(3);
-      //
-      //            int judgeCount = 0;
-      //            for (Lecturer judge : teamTrack.getJudges()) {
-      //              // Chỉ lấy 3 giám khảo đầu tiên (code phòng thủ)
-      //              if (judgeCount >= 3) break;
-      //
-      //              // Các giám khảo sẽ cho điểm lệch nhau tối đa 0.5 (vd: 7.0 và 7.5)
-      //              // Khoảng cách này < 2.0 -> KHÔNG BAO GIỜ TRIGGER LỆCH ĐIỂM!
-      //              float judgeScore = baseScore + (random.nextBoolean() ? 0.5f : 0.0f);
-      //
-      //              Score score = new Score(criteria, savedSubmission, judge, judgeScore);
-      //              score.setComment("Đánh giá " + criteria.getName() + " đạt yêu cầu chuyên
-      // môn.");
-      //              scoreRepo.save(score);
-      //
-      //              judgeCount++;
-      //            }
-      //          }
-      //        }
-      //      }
+      // --- CHẤM ĐIỂM (CHỈ DÀNH CHO KỲ SPRING) ---
+      if (isSpringEvent) {
+        Track teamTrack = team.getTrack();
+
+        if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
+
+          for (Criteria criteria : targetRound.getCriteria()) {
+            // Sinh 1 điểm gốc (từ 6.0 đến 8.0) cho Tiêu chí này của Team này
+            float baseScore = 6.0f + random.nextInt(3);
+
+            int judgeCount = 0;
+            for (Lecturer judge : teamTrack.getJudges()) {
+              // Chỉ lấy 3 giám khảo đầu tiên
+              if (judgeCount >= 3) break;
+
+              // Các giám khảo sẽ cho điểm lệch nhau tối đa 0.5 (vd: 7.0 và 7.5)
+              float judgeScore = baseScore + (random.nextBoolean() ? 0.5f : 0.0f);
+
+              Score score = new Score(criteria, savedSubmission, judge, judgeScore);
+              score.setComment("Đánh giá " + criteria.getName() + " đạt yêu cầu chuyên môn.");
+              scoreRepo.save(score);
+
+              judgeCount++;
+            }
+          }
+        }
+      }
     }
 
     log.info("Hoan tat nap du lieu thanh cong!");

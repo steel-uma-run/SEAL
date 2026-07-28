@@ -237,12 +237,29 @@ public class HackathonEventServiceImpl implements HackathonEventService {
 
   @Override
   public List<TeamDto> getRanking(UUID eventId) {
-    return submissionRepository.findAllBySubmitterTeamHackathonEventId(eventId).stream()
-        .filter(s -> s.calculateAvgScore() != null)
+    List<Submission> allSubmissions =
+        submissionRepository.findAllBySubmitterTeamHackathonEventId(eventId);
+
+    // Chỉ lấy bài nộp MỚI NHẤT đã được chấm điểm của mỗi team
+    Map<Team, Submission> teamLatestSubmission = new java.util.HashMap<>();
+    for (Submission s : allSubmissions) {
+      if (s.calculateAvgScore() != null) {
+        Team t = s.getSubmitterTeam();
+        if (!teamLatestSubmission.containsKey(t)
+            || s.getSubmitTime().isAfter(teamLatestSubmission.get(t).getSubmitTime())) {
+          teamLatestSubmission.put(t, s);
+        }
+      }
+    }
+
+    // 2. Sắp xếp các bài nộp mới nhất theo điểm số giảm dần, nếu bằng điểm thì ưu tiên nộp sớm
+    return teamLatestSubmission.values().stream()
         .sorted(
-            Comparator.comparing(
-                    Submission::calculateAvgScore, Comparator.nullsLast(Double::compareTo))
-                .reversed())
+            java.util.Comparator.comparing(
+                    Submission::calculateAvgScore,
+                    java.util.Comparator.nullsLast(Double::compareTo))
+                .reversed()
+                .thenComparing(Submission::getSubmitTime))
         .map(Submission::getSubmitterTeam)
         .map(Team::toDto)
         .toList();
@@ -356,31 +373,31 @@ public class HackathonEventServiceImpl implements HackathonEventService {
 
     // --- CHECK RANKING ---
     // Gọi hàm getRanking hiện có để lấy danh sách các team đã được xếp hạng (từ cao xuống thấp)
-    //    List<TeamDto> rankedTeams = getRanking(eventId);
-    //
-    //    // Tìm thứ hạng của team hiện tại trong danh sách (index bắt đầu từ 0)
-    //    int teamRankIndex = -1;
-    //    for (int i = 0; i < rankedTeams.size(); i++) {
-    //      if (rankedTeams.get(i).id().equals(teamId)) {
-    //        teamRankIndex = i;
-    //        break;
-    //      }
-    //    }
-    //
-    //    // 3. Quy định số lượng team được nhận giải (Ví dụ: Top 4)
-    //    int topThreshold = 4;
-    //
-    //    // Nếu không tìm thấy team trong bảng xếp hạng (chưa nộp bài/chưa chấm điểm)
-    //    if (teamRankIndex == -1) {
-    //      throw new ResponseStatusException(
-    //          HttpStatus.BAD_REQUEST, "Team has not been ranked yet or did not submit any work.");
-    //    }
-    //    // Nếu team nằm ngoài ngưỡng đạt giải (index >= 3 tức là hạng 4 trở xuống)
-    //    else if (teamRankIndex >= topThreshold) {
-    //      throw new ResponseStatusException(
-    //          HttpStatus.FORBIDDEN,
-    //          "Team is not in the Top " + topThreshold + " to receive a certificate.");
-    //    }
+    List<TeamDto> rankedTeams = getRanking(eventId);
+
+    // Tìm thứ hạng của team hiện tại trong danh sách (index bắt đầu từ 0)
+    int teamRankIndex = -1;
+    for (int i = 0; i < rankedTeams.size(); i++) {
+      if (rankedTeams.get(i).id().equals(teamId)) {
+        teamRankIndex = i;
+        break;
+      }
+    }
+
+    // 3. Quy định số lượng team được nhận giải (Ví dụ: Top 4)
+    int topThreshold = 4;
+
+    // Nếu không tìm thấy team trong bảng xếp hạng (chưa nộp bài/chưa chấm điểm)
+    if (teamRankIndex == -1) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Team has not been ranked yet or did not submit any work.");
+    }
+    // Nếu team nằm ngoài ngưỡng đạt giải (index >= 3 tức là hạng 4 trở xuống)
+    else if (teamRankIndex >= topThreshold) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN,
+          "Team is not in the Top " + topThreshold + " to receive a certificate.");
+    }
 
     // đọc file ảnh
     try {
@@ -448,7 +465,12 @@ public class HackathonEventServiceImpl implements HackathonEventService {
 
     List<Submission> rankedSubmissions =
         teamLatestSubmission.values().stream()
-            .sorted(java.util.Comparator.comparing(Submission::calculateAvgScore).reversed())
+            .sorted(
+                java.util.Comparator.comparing(
+                        Submission::calculateAvgScore,
+                        java.util.Comparator.nullsLast(Double::compareTo))
+                    .reversed()
+                    .thenComparing(Submission::getSubmitTime))
             .toList();
 
     Set<String> criteriaNames = new java.util.LinkedHashSet<>();
