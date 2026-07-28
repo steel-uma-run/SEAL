@@ -28,8 +28,7 @@
 	}
 
 	// Route Params
-	let seasonId = $derived($page.params.id || "")
-	let eventId = $derived($page.params.eventId || "")
+	let eventId = $derived($page.params.id || "")
 
 	// Event Details State
 	let event = $state<any>(null)
@@ -892,7 +891,7 @@
 	}
 
 	$effect(() => {
-		if (seasonId && eventId) {
+		if (eventId) {
 			fetchEventDetails()
 			loadLecturers()
 			loadEventTracks()
@@ -904,9 +903,9 @@
 <div class="coordinator-event-details">
 	<!-- Top Action Bar -->
 	<div class="action-bar">
-		<button onclick={() => goto("/coordinator/seasons")} class="btn btn-outline back-btn">
+		<button onclick={() => goto("/coordinator/events")} class="btn btn-outline back-btn">
 			<ArrowLeft class="icon" />
-			Back to Season Details
+			Back to Events
 		</button>
 	</div>
 

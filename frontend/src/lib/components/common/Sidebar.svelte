@@ -33,13 +33,11 @@
 	{#if role == "COORDINATOR"}
 		<NavigationRailItem label="Dashboard" icon={iconHome} href="/coordinator" />
 
-		<NavigationRailItem label="Events" icon={iconEvent} href="/coordinator/seasons" />
+		<NavigationRailItem label="Events" icon={iconEvent} href="/coordinator/events" />
 
 		<NavigationRailItem label="Teams" icon={iconGroups} href="/coordinator/teams" />
 
 		<NavigationRailItem label="Users" icon={iconPerson} href="/coordinator/users" />
-
-		<NavigationRailItem label="Lecturers" icon={iconPerson} href="/coordinator/experts" />
 
 		<NavigationRailItem label="Criteria" icon={iconRubric} href="/coordinator/templates" />
 	{:else if role == "STUDENT"}
