@@ -21,6 +21,7 @@
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark, Download } from "@lucide/svelte"
+	import Leaderboard from "../../../events/[id]/Leaderboard.svelte"
 
 	// Stub: updateRoundCriteria is not yet in the generated SDK
 	async function updateRoundCriteria(opts: any): Promise<any> {
@@ -39,7 +40,7 @@
 	// Students & Teams List State
 	let students = $state<any[]>([])
 	let teams = $state<any[]>([])
-	let activeTab = $state<"students" | "teams" | "rounds">("students")
+	let activeTab = $state<"students" | "teams" | "rounds" | "leaderboard">("students")
 
 	// Create Team Modal State
 	let showCreateTeamModal = $state(false)
@@ -1134,6 +1135,12 @@
 					>
 						Rounds ({eventRounds.length})
 					</button>
+					<button
+						onclick={() => (activeTab = "leaderboard")}
+						class="tab-btn {activeTab === 'leaderboard' ? 'active' : ''}"
+					>
+						Leaderboard
+					</button>
 				</div>
 
 				<div class="tab-content">
@@ -1366,6 +1373,8 @@
 								<p class="empty-title">No rounds created for this event yet.</p>
 							</div>
 						{/if}
+					{:else if activeTab === "leaderboard"}
+						<Leaderboard {eventId} {event} tracks={eventTracks} rounds={eventRounds} />
 					{/if}
 				</div>
 			</div>
