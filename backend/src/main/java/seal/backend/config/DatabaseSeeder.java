@@ -77,9 +77,7 @@ public class DatabaseSeeder implements CommandLineRunner {
       return;
     }
 
-    log.info(
-        "Bat dau khoi tao du lieu (Spring 2026: 25 Teams | Summer 2026: 20 Teams + 10 Free"
-            + " Students)...");
+    log.info("Bat dau khoi tao du lieu...");
     String defaultPwd = passwordEncoder.encode("123456");
 
     // ==========================================
@@ -95,40 +93,70 @@ public class DatabaseSeeder implements CommandLineRunner {
             + "• Giải Ba: 3.000.000 đồng và Giấy chứng nhận.\n"
             + "• Giải Khuyến khích: 1.500.000 đồng và Giấy chứng nhận.";
 
-    // --- KÌ SPRING 2026 ---
-    // Đăng ký: 1/3 - 20/3
+    //    // --- KÌ SPRING 2026 ---
+    //    // Đăng ký: 1/3 - 20/3
+    //    OffsetDateTime regStartSpring =
+    //        OffsetDateTime.of(2026, 3, 1, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+    //    OffsetDateTime regEndSpring =
+    //        OffsetDateTime.of(2026, 3, 20, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+    //
+    //    HackathonEvent eventSpring =
+    //        new HackathonEvent(
+    //            "SEAL Hackathon Spring 2026",
+    //            "Mastering Domain-Specific AI RAG Systems",
+    //            Duration.ofDays(7),
+    //            EventStatus.FINALIZED,
+    //            springSeason,
+    //            prizeStructure);
+    //    eventSpring.setTeamsLimit(30);
+    //    eventRepo.save(eventSpring);
+    //
+    //    // --- KÌ SUMMER 2026 ---
+    //    // Đăng ký: 20/7 - 13/8
+    //    OffsetDateTime regStartSummer =
+    //        OffsetDateTime.of(2026, 7, 20, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+    //    OffsetDateTime regEndSummer =
+    //        OffsetDateTime.of(2026, 8, 13, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+    //
+    //    HackathonEvent eventSummer =
+    //        new HackathonEvent(
+    //            "SEAL Hackathon Summer 2026",
+    //            "Empowering Enterprise with AI Agents",
+    //            Duration.ofDays(7),
+    //            EventStatus.FINALIZED,
+    //            summerSeason,
+    //            prizeStructure);
+    //    eventSummer.setTeamsLimit(30);
+    //    eventRepo.save(eventSummer);
+
+    // --- KÌ SPRING 2026 (FINALIZED) ---
     OffsetDateTime regStartSpring =
         OffsetDateTime.of(2026, 3, 1, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime regEndSpring =
-        OffsetDateTime.of(2026, 3, 20, 18, 0, 0, 0, ZoneOffset.ofHours(7));
-
     HackathonEvent eventSpring =
         new HackathonEvent(
             "SEAL Hackathon Spring 2026",
-            "Mastering Domain-Specific AI RAG Systems",
+            "Mastering RAG",
             Duration.ofDays(7),
             EventStatus.FINALIZED,
             springSeason,
             prizeStructure);
     eventSpring.setTeamsLimit(30);
+    eventSpring.setRegistrationStartTime(regStartSpring);
     eventRepo.save(eventSpring);
 
-    // --- KÌ SUMMER 2026 ---
-    // Đăng ký: 20/7 - 13/8
+    // --- KÌ SUMMER 2026 (FINALIZED) ---
     OffsetDateTime regStartSummer =
         OffsetDateTime.of(2026, 7, 20, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime regEndSummer =
-        OffsetDateTime.of(2026, 8, 13, 18, 0, 0, 0, ZoneOffset.ofHours(7));
-
     HackathonEvent eventSummer =
         new HackathonEvent(
             "SEAL Hackathon Summer 2026",
-            "Empowering Enterprise with AI Agents",
+            "AI Agents",
             Duration.ofDays(7),
             EventStatus.FINALIZED,
             summerSeason,
             prizeStructure);
     eventSummer.setTeamsLimit(30);
+    eventSummer.setRegistrationStartTime(regStartSummer);
     eventRepo.save(eventSummer);
 
     // ==========================================
@@ -143,100 +171,36 @@ public class DatabaseSeeder implements CommandLineRunner {
     Track trSpringC =
         trackRepo.save(new Track("Execution and reporting app", "Thực thi AI Agent", eventSpring));
 
-    // Tracks cho Summer 2026
-    Track trSumA =
-        trackRepo.save(new Track("AI Infrastructure", "Hạ tầng mô hình ngôn ngữ lớn", eventSummer));
-    Track trSumB =
-        trackRepo.save(
-            new Track("Data Pipeline & Security", "Đường ống dữ liệu và Bảo mật", eventSummer));
-    Track trSumC =
-        trackRepo.save(
-            new Track("Smart UI/UX & Edge AI", "Giao diện thông minh và Edge AI", eventSummer));
+    Track trSumA = trackRepo.save(new Track("AI Infrastructure", "Hạ tầng", eventSummer));
+    Track trSumB = trackRepo.save(new Track("Data Pipeline & Security", "Dữ liệu", eventSummer));
+    Track trSumC = trackRepo.save(new Track("Smart UI/UX & Edge AI", "Giao diện", eventSummer));
+
     Track[] springTracks = {trSpringA, trSpringB, trSpringC};
     Track[] summerTracks = {trSumA, trSumB, trSumC};
 
-    // ==========================================
-    // 2. TẠO TRACKS & ROUNDS
-    // ==========================================
-    // (Giữ nguyên phần khởi tạo trSpringA, trSpringB... phía trên)
-
-    // --- TIMELINE ROUNDS SPRING (Onsite ngày 22/3) ---
-    // Khởi tạo tuần tự các mốc thời gian để thỏa mãn hàm isCoherent()
-    OffsetDateTime spr1Start = OffsetDateTime.of(2026, 3, 22, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime spr1End = OffsetDateTime.of(2026, 3, 22, 7, 10, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime spr1SubStart =
-        OffsetDateTime.of(2026, 3, 22, 7, 15, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime spr1SubEnd =
-        OffsetDateTime.of(2026, 3, 22, 10, 0, 0, 0, ZoneOffset.ofHours(7)); // Deadline Slide 10h
-    OffsetDateTime spr1GradStart =
-        OffsetDateTime.of(2026, 3, 22, 14, 0, 0, 0, ZoneOffset.ofHours(7)); // Chấm điểm 14h
-    OffsetDateTime spr1GradEnd =
-        OffsetDateTime.of(2026, 3, 22, 15, 30, 0, 0, ZoneOffset.ofHours(7));
+    // --- ROUNDS SPRING (SET CỨNG THỜI GIAN QUÁ KHỨ ĐỂ CHẤM ĐIỂM) ---
+    OffsetDateTime spr1Active = OffsetDateTime.of(2026, 3, 22, 7, 0, 0, 0, ZoneOffset.ofHours(7));
+    OffsetDateTime spr1Grading = OffsetDateTime.of(2026, 3, 22, 14, 0, 0, 0, ZoneOffset.ofHours(7));
 
     Round rdSpring1 =
-        roundRepo.save(
-            new Round(
-                "Round 1",
-                "Vòng loại: Phát triển ý tưởng (Deadline Slide 10h00) & Chấm vòng bảng",
-                Duration.ofHours(10),
-                Duration.ofHours(48),
-                eventSpring));
-
-    OffsetDateTime spr2Start = OffsetDateTime.of(2026, 3, 22, 15, 30, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime spr2End = OffsetDateTime.of(2026, 3, 22, 15, 40, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime spr2SubStart =
-        OffsetDateTime.of(2026, 3, 22, 15, 45, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime spr2SubEnd = OffsetDateTime.of(2026, 3, 22, 16, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime spr2GradStart =
-        OffsetDateTime.of(2026, 3, 22, 16, 15, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime spr2GradEnd = OffsetDateTime.of(2026, 3, 22, 18, 0, 0, 0, ZoneOffset.ofHours(7));
+        new Round("Round 1", "Vòng loại", Duration.ofHours(10), Duration.ofHours(48), eventSpring);
+    rdSpring1.setActiveTime(spr1Active);
+    rdSpring1.setGradingStartTime(spr1Grading);
+    rdSpring1 = roundRepo.save(rdSpring1);
 
     Round rdSpring2 =
-        roundRepo.save(
-            new Round(
-                "Round 2",
-                "Chung kết: The Grand Finale",
-                Duration.ofHours(10),
-                Duration.ofHours(48),
-                eventSpring));
+        new Round("Round 2", "Chung kết", Duration.ofHours(10), Duration.ofHours(48), eventSpring);
+    rdSpring2 = roundRepo.save(rdSpring2); // R2 chưa active
 
-    // --- TIMELINE ROUNDS SUMMER (Onsite ngày ***) ---
-    OffsetDateTime sum1Start = OffsetDateTime.of(2026, 7, 24, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum1End = OffsetDateTime.of(2026, 7, 24, 7, 10, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum1SubStart =
-        OffsetDateTime.of(2026, 7, 24, 7, 15, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum1SubEnd = OffsetDateTime.of(2026, 8, 24, 10, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum1GradStart =
-        OffsetDateTime.of(2026, 7, 25, 7, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum1GradEnd =
-        OffsetDateTime.of(2026, 7, 30, 15, 30, 0, 0, ZoneOffset.ofHours(7));
-
+    // --- ROUNDS SUMMER (ĐỂ NULL THỜI GIAN ĐỂ TEST NÚT BẤM) ---
     Round rdSum1 =
         roundRepo.save(
             new Round(
-                "Round 1",
-                "Vòng loại: Phát triển ý tưởng",
-                Duration.ofHours(10),
-                Duration.ofHours(48),
-                eventSummer));
-
-    OffsetDateTime sum2Start = OffsetDateTime.of(2026, 8, 15, 15, 30, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum2End = OffsetDateTime.of(2026, 8, 15, 15, 40, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum2SubStart =
-        OffsetDateTime.of(2026, 8, 15, 15, 45, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum2SubEnd = OffsetDateTime.of(2026, 8, 15, 16, 0, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum2GradStart =
-        OffsetDateTime.of(2026, 8, 15, 16, 10, 0, 0, ZoneOffset.ofHours(7));
-    OffsetDateTime sum2GradEnd = OffsetDateTime.of(2026, 8, 15, 17, 0, 0, 0, ZoneOffset.ofHours(7));
-
+                "Round 1", "Vòng loại", Duration.ofHours(10), Duration.ofHours(48), eventSummer));
     Round rdSum2 =
         roundRepo.save(
             new Round(
-                "Round 2",
-                "Chung kết: The Grand Finale",
-                Duration.ofHours(10),
-                Duration.ofHours(48),
-                eventSummer));
+                "Round 2", "Chung kết", Duration.ofHours(10), Duration.ofHours(48), eventSummer));
 
     // ==========================================
     // 3. TẠO TIÊU CHÍ (CRITERIA)
@@ -249,95 +213,47 @@ public class DatabaseSeeder implements CommandLineRunner {
     List<TemplatedCriteria> v1Criterias =
         templatedCriteriaRepo.saveAll(
             Arrays.asList(
-                new TemplatedCriteria(
-                    "Tính đúng đắn & Hoàn thiện chức năng",
-                    "Tính đúng đắn & Hoàn thiện chức năng",
-                    30,
-                    tempV1),
-                new TemplatedCriteria(
-                    "Ứng dụng AI trong giải pháp", "Ứng dụng AI trong giải pháp", 25, tempV1),
-                new TemplatedCriteria(
-                    "Thiết kế & Kiến trúc phần mềm", "Thiết kế & Kiến trúc phần mềm", 15, tempV1),
-                new TemplatedCriteria(
-                    "Thuyết trình & Demo V1", "Thuyết trình & Demo V1", 20, tempV1),
-                new TemplatedCriteria(
-                    "Teamwork & Tinh thần làm việc", "Teamwork & Tinh thần làm việc", 10, tempV1)));
+                new TemplatedCriteria("Tính đúng đắn", "Mô tả tính đúng đắn", 30, tempV1),
+                new TemplatedCriteria("Ứng dụng AI", "Mô tả ứng dụng AI", 25, tempV1),
+                new TemplatedCriteria("Kiến trúc phần mềm", "Mô tả thiết kế", 15, tempV1),
+                new TemplatedCriteria("Thuyết trình & Demo", "Thuyết trình", 20, tempV1),
+                new TemplatedCriteria("Teamwork", "Teamwork", 10, tempV1)));
 
     List<TemplatedCriteria> v2Criterias =
         templatedCriteriaRepo.saveAll(
             Arrays.asList(
                 new TemplatedCriteria(
-                    "Độ hoàn thiện & Chất lượng sản phẩm",
-                    "Độ hoàn thiện & Chất lượng sản phẩm",
-                    25,
-                    tempV2),
+                    "Độ hoàn thiện & Chất lượng sản phẩm", "Chất lượng", 25, tempV2),
+                new TemplatedCriteria("Sáng tạo & Khả năng đổi mới", "Sáng tạo", 25, tempV2),
                 new TemplatedCriteria(
-                    "Sáng tạo & Khả năng đổi mới", "Sáng tạo & Khả năng đổi mới", 25, tempV2),
+                    "Tính ứng dụng & Khả năng triển khai", "Triển khai", 20, tempV2),
+                new TemplatedCriteria("Trình bày & Demo sản phẩm V2", "Demo V2", 20, tempV2),
                 new TemplatedCriteria(
-                    "Tính ứng dụng & Khả năng triển khai",
-                    "Tính ứng dụng & Khả năng triển khai",
-                    20,
-                    tempV2),
-                new TemplatedCriteria(
-                    "Trình bày & Demo sản phẩm V2", "Trình bày & Demo sản phẩm V2", 20, tempV2),
-                new TemplatedCriteria(
-                    "Làm việc nhóm & Trả lời phản biện",
-                    "Làm việc nhóm & Trả lời phản biện",
-                    10,
-                    tempV2)));
+                    "Làm việc nhóm & Trả lời phản biện", "Phản biện", 10, tempV2)));
 
-    for (TemplatedCriteria templatedCriteria : v1Criterias) {
+    for (TemplatedCriteria tc : v1Criterias) {
       rdSpring1
           .getCriteria()
-          .add(
-              new Criteria(
-                  templatedCriteria.getName(),
-                  templatedCriteria.getDescription(),
-                  templatedCriteria.getWeight(),
-                  rdSpring1));
-      criteriaRepo.saveAll(rdSpring1.getCriteria());
-    }
-
-    for (TemplatedCriteria templatedCriteria : v2Criterias) {
-      rdSpring2
-          .getCriteria()
-          .add(
-              new Criteria(
-                  templatedCriteria.getName(),
-                  templatedCriteria.getDescription(),
-                  templatedCriteria.getWeight(),
-                  rdSpring2));
-      criteriaRepo.saveAll(rdSpring2.getCriteria());
-    }
-
-    for (TemplatedCriteria templatedCriteria : v1Criterias) {
+          .add(new Criteria(tc.getName(), tc.getDescription(), tc.getWeight(), rdSpring1));
       rdSum1
           .getCriteria()
-          .add(
-              new Criteria(
-                  templatedCriteria.getName(),
-                  templatedCriteria.getDescription(),
-                  templatedCriteria.getWeight(),
-                  rdSum1));
-      criteriaRepo.saveAll(rdSum1.getCriteria());
+          .add(new Criteria(tc.getName(), tc.getDescription(), tc.getWeight(), rdSum1));
     }
+    criteriaRepo.saveAll(rdSpring1.getCriteria());
+    criteriaRepo.saveAll(rdSum1.getCriteria());
 
-    for (TemplatedCriteria templatedCriteria : v1Criterias) {
+    for (TemplatedCriteria tc : v2Criterias) {
+      rdSpring2
+          .getCriteria()
+          .add(new Criteria(tc.getName(), tc.getDescription(), tc.getWeight(), rdSpring2));
       rdSum2
           .getCriteria()
-          .add(
-              new Criteria(
-                  templatedCriteria.getName(),
-                  templatedCriteria.getDescription(),
-                  templatedCriteria.getWeight(),
-                  rdSum2));
-      criteriaRepo.saveAll(rdSum2.getCriteria());
+          .add(new Criteria(tc.getName(), tc.getDescription(), tc.getWeight(), rdSum2));
     }
+    criteriaRepo.saveAll(rdSpring2.getCriteria());
+    criteriaRepo.saveAll(rdSum2.getCriteria());
 
-    roundRepo.save(rdSpring1);
-    roundRepo.save(rdSpring2);
-    roundRepo.save(rdSum1);
-    roundRepo.save(rdSum2);
+    roundRepo.saveAll(Arrays.asList(rdSpring1, rdSpring2, rdSum1, rdSum2));
 
     // ==========================================
     // 4. GIÁM KHẢO (LECTURERS) & MAPPING
@@ -350,40 +266,41 @@ public class DatabaseSeeder implements CommandLineRunner {
             .passwordHash(defaultPwd)
             .build());
 
-    Lecturer lChien = createLecturer("Nguyễn Văn Chiến", "chiennv@seal.edu.vn", defaultPwd);
-    Lecturer lTri = createLecturer("Phạm Thanh Trí", "tript@seal.edu.vn", defaultPwd);
-    Lecturer lSang = createLecturer("Nguyễn Minh Sang", "sangnm@seal.edu.vn", defaultPwd);
-    Lecturer lLam = createLecturer("Nguyễn Ngọc Lâm", "lamnn@seal.edu.vn", defaultPwd);
-    Lecturer lChi = createLecturer("Lê Thị Quỳnh Chi", "chiltq@seal.edu.vn", defaultPwd);
-    Lecturer lThinh = createLecturer("Đỗ Phúc Thịnh", "thinhdp@seal.edu.vn", defaultPwd);
-    Lecturer lPhuc = createLecturer("Trần Thiên Phúc", "phuctt@seal.edu.vn", defaultPwd);
-    Lecturer lDuong = createLecturer("Phạm Thái Dương", "duongpt@seal.edu.vn", defaultPwd);
-    Lecturer lPhuong = createLecturer("Lâm Hữu Khánh Phương", "phuonglhk@seal.edu.vn", defaultPwd);
+    Lecturer lNam = createLecturer("Lê Hoàng Nam", "namlh@seal.edu.vn", defaultPwd);
+    Lecturer lNgoc = createLecturer("Phạm Bích Ngọc", "ngocpb@seal.edu.vn", defaultPwd);
+    Lecturer lAnh = createLecturer("Vũ Đức Anh", "anhvd@seal.edu.vn", defaultPwd);
+    Lecturer lMai = createLecturer("Trần Thanh Mai", "maitt@seal.edu.vn", defaultPwd);
+    Lecturer lSon = createLecturer("Đặng Thái Sơn", "sondt@seal.edu.vn", defaultPwd);
+    Lecturer lHuong = createLecturer("Nguyễn Quỳnh Hương", "huongnq@seal.edu.vn", defaultPwd);
+    Lecturer lBao = createLecturer("Bùi Quốc Bảo", "baobq@seal.edu.vn", defaultPwd);
+    Lecturer lDung = createLecturer("Hồ Trí Dũng", "dunght@seal.edu.vn", defaultPwd);
+    Lecturer lTrang = createLecturer("Đinh Thu Trang", "trangdt@seal.edu.vn", defaultPwd);
 
-    // Map Giám khảo
-    // Spring Tracks
-    assignMentorAndJudges(trSpringA, Arrays.asList(lChien, lTri), Arrays.asList(lSang, lLam));
+    // Gán 3 Judges và 2 Mentors cho mỗi Track
+    assignMentorAndJudges(trSpringA, Arrays.asList(lNam, lNgoc, lAnh), Arrays.asList(lMai, lSon));
+    assignMentorAndJudges(trSpringB, Arrays.asList(lMai, lSon, lHuong), Arrays.asList(lBao, lDung));
+    assignMentorAndJudges(
+        trSpringC, Arrays.asList(lBao, lDung, lTrang), Arrays.asList(lNam, lNgoc));
 
-    assignMentorAndJudges(trSpringB, Arrays.asList(lSang, lLam), Arrays.asList(lChi, lThinh));
-
-    assignMentorAndJudges(trSpringC, Arrays.asList(lChi, lThinh), Arrays.asList(lChien, lTri));
-
-    // Summer Tracks
-    assignMentorAndJudges(trSumA, Arrays.asList(lPhuc, lDuong), Arrays.asList(lSang, lLam));
-    assignMentorAndJudges(trSumB, Arrays.asList(lChi, lThinh), Arrays.asList(lChien, lTri));
-    assignMentorAndJudges(trSumC, Arrays.asList(lLam, lPhuong), Arrays.asList(lChi, lThinh));
+    assignMentorAndJudges(trSumA, Arrays.asList(lNam, lMai, lBao), Arrays.asList(lNgoc, lSon));
+    assignMentorAndJudges(trSumB, Arrays.asList(lNgoc, lSon, lDung), Arrays.asList(lAnh, lHuong));
+    assignMentorAndJudges(trSumC, Arrays.asList(lAnh, lHuong, lTrang), Arrays.asList(lNam, lDung));
 
     // ==========================================
     // 5. KHỞI TẠO CÁC TEAM CỐ ĐỊNH (CHO VIỆC DEMO CHÍNH)
     // ==========================================
-    log.info("Khoi tao cac Team co dinh...");
+    log.info("Khoi tao Teams co dinh...");
 
+    // --- TEAM CỐ ĐỊNH 1: SLOTHUB ---
     Student sXuan =
-        createStudent("Trương Hoàng Mỹ Xuân", "xuanthm@fpt.edu.vn", "SE180106", defaultPwd);
+        createStudent("Trương Hoàng Mỹ Xuân", "xuanthm@fpt.edu.vn", "SE203450", defaultPwd);
     Student sTrung =
-        createStudent("Nguyễn Văn Trung", "trungnv@fpt.edu.vn", "SE180107", defaultPwd);
-    Student sKhang = createStudent("Trần Tuấn Khang", "khangtt@fpt.edu.vn", "SE180101", defaultPwd);
-    Student sTu = createStudent("Võ Minh Tú", "tuvm@fpt.edu.vn", "SE180202", defaultPwd);
+        createStudent("Nguyễn Thành Trung", "trungnt@fpt.edu.vn", "SE203654", defaultPwd);
+    Student sTriet =
+        createStudent("Nguyễn Thế Triết", "trietnt@fpt.edu.vn", "SE203403", defaultPwd);
+    Student sDien = createStudent("Nguyễn Khoa Điền", "diennk@fpt.edu.vn", "SE203419", defaultPwd);
+    Student sTrung2 =
+        createStudent("Nguyễn Thành Trung", "trungnt2@fpt.edu.vn", "SE203435", defaultPwd);
 
     createTeam(
         "Slothub",
@@ -392,9 +309,11 @@ public class DatabaseSeeder implements CommandLineRunner {
         trSumA,
         sXuan,
         sTrung,
-        sKhang,
-        sTu);
+        sTriet,
+        sDien,
+        sTrung2);
 
+    // --- TEAM CỐ ĐỊNH 2: 404NOTFOUND ---
     Student sGiaHieu = createStudent("Đinh Gia Hiếu", "hieudg@fpt.edu.vn", "SE180301", defaultPwd);
     Student sHieu = createStudent("Phạm Trung Hiếu", "hieupt@fpt.edu.vn", "SE180201", defaultPwd);
     Student sKiet = createStudent("Lê Tuấn Kiệt", "kietlt@fpt.edu.vn", "SE180102", defaultPwd);
@@ -480,7 +399,6 @@ public class DatabaseSeeder implements CommandLineRunner {
       // Chia đều 25 team cho Spring, 25 team cho Summer
       HackathonEvent currentEvent = (i < 25) ? eventSpring : eventSummer;
       Track currentTrack = (i < 25) ? springTracks[i % 3] : summerTracks[i % 3];
-
       String teamName = profTeamNames[i];
       String projectDesc = profProjects[i % profProjects.length];
 
@@ -488,7 +406,6 @@ public class DatabaseSeeder implements CommandLineRunner {
       Student leader = generateRealisticStudent(globalStudentCounter++, defaultPwd);
       int numMembers = random.nextInt(3) + 2; // Sinh số ngẫu nhiên 2, 3 hoặc 4
       Student[] members = new Student[numMembers];
-
       for (int j = 0; j < numMembers; j++) {
         members[j] = generateRealisticStudent(globalStudentCounter++, defaultPwd);
       }
@@ -505,7 +422,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     // ==========================================
-    // 8. TẠO SUBMISSION VÀ SCORE
+    // 8. TẠO SUBMISSION VÀ SCORE (SPRING: TẤT CẢ, SUMMER: DEMO 5 BÀI)
     // ==========================================
     log.info("Bat dau tao du lieu Submission cho Spring (Tat ca) va Summer (Demo 5 bai)...");
 
@@ -515,6 +432,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     for (Team team : allTeams) {
       boolean isSpringEvent = team.getHackathonEvent().getId().equals(eventSpring.getId());
 
+      // Logic giới hạn: Chỉ tạo 5 bài nộp cho kỳ Summer
       if (!isSpringEvent) {
         if (summerSubmissionCount >= 5) {
           continue;
@@ -523,20 +441,16 @@ public class DatabaseSeeder implements CommandLineRunner {
       }
 
       Round targetRound = isSpringEvent ? rdSpring1 : rdSum1;
-      targetRound.setActiveTime(OffsetDateTime.now());
+
+      // Đảm bảo targetRound đã được set activeTime trước đó để tránh lỗi NullPointerException
+      if (targetRound.getActiveTime() == null) {
+        targetRound.setActiveTime(OffsetDateTime.now());
+      }
 
       // Thời gian nộp bài phải nằm giữa submissionStartTime (07h15) và submissionEndTime (10h00) ->
       // Khoảng 165 phút
       OffsetDateTime roundTime = targetRound.getActiveTime();
-      OffsetDateTime submitTime;
-
-      if (roundTime != null) {
-        // Nếu roundTime có giá trị, chạy hàm plusMinutes bình thường
-        submitTime = roundTime.plusMinutes(random.nextInt(165));
-      } else {
-        // Nếu roundTime bị null, ta gán cứng bằng thời điểm hiện tại cộng thêm số phút random
-        submitTime = OffsetDateTime.now().plusMinutes(random.nextInt(165));
-      }
+      OffsetDateTime submitTime = roundTime.plusMinutes(random.nextInt(165));
 
       String slug = team.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
       String submissionTitle = "Giải pháp " + team.getName() + ": " + team.getDescription();
@@ -563,29 +477,38 @@ public class DatabaseSeeder implements CommandLineRunner {
               targetRound);
       Submission savedSubmission = submissionRepo.save(submission);
 
-      //      // 3. CHẤM ĐIỂM (CHỈ DÀNH CHO KỲ SPRING)
-      // =      if (isSpringEvent) {
+      //      // --- CHẤM ĐIỂM (CHỈ DÀNH CHO KỲ SPRING) ---
+      //      if (isSpringEvent) {
       //        Track teamTrack = team.getTrack();
+      //
       //        if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
       //
-      //          for (Lecturer judge : teamTrack.getJudges()) {
-      //            for (Criteria criteria : targetRound.getCriteria()) {
+      //          for (Criteria criteria : targetRound.getCriteria()) {
+      //            // Sinh 1 điểm gốc (từ 6.0 đến 8.0) cho Tiêu chí này của Team này
+      //            float baseScore = 6.0f + random.nextInt(3);
       //
-      //              int randomValue = 70 + random.nextInt(31);
+      //            int judgeCount = 0;
+      //            for (Lecturer judge : teamTrack.getJudges()) {
+      //              // Chỉ lấy 3 giám khảo đầu tiên (code phòng thủ)
+      //              if (judgeCount >= 3) break;
       //
-      //              // Dùng constructor sinh bởi @RequiredArgsConstructor
-      //              Score score = new Score(criteria, savedSubmission, judge, randomValue);
-      //              score.setComment("Đánh giá tiêu chí " + criteria.getName() + ": Bài làm đáp
-      // ứng tốt yêu cầu, trình bày rõ ràng.");
+      //              // Các giám khảo sẽ cho điểm lệch nhau tối đa 0.5 (vd: 7.0 và 7.5)
+      //              // Khoảng cách này < 2.0 -> KHÔNG BAO GIỜ TRIGGER LỆCH ĐIỂM!
+      //              float judgeScore = baseScore + (random.nextBoolean() ? 0.5f : 0.0f);
       //
+      //              Score score = new Score(criteria, savedSubmission, judge, judgeScore);
+      //              score.setComment("Đánh giá " + criteria.getName() + " đạt yêu cầu chuyên
+      // môn.");
       //              scoreRepo.save(score);
+      //
+      //              judgeCount++;
       //            }
       //          }
       //        }
       //      }
     }
 
-    log.info("Hoan tat nap du lieu!");
+    log.info("Hoan tat nap du lieu thanh cong!");
   }
 
   // ==========================================
@@ -602,26 +525,8 @@ public class DatabaseSeeder implements CommandLineRunner {
   }
 
   private void assignMentorAndJudges(Track track, List<Lecturer> judges, List<Lecturer> mentors) {
-    if (judges != null) {
-      int judgeCount = 0;
-      for (Lecturer j : judges) {
-        if (judgeCount < 3) {
-          track.getJudges().add(j);
-          judgeCount++;
-        }
-      }
-    }
-
-    if (mentors != null) {
-      int mentorCount = 0;
-      for (Lecturer m : mentors) {
-        if (mentorCount < 3) {
-          track.getMentors().add(m);
-          mentorCount++;
-        }
-      }
-    }
-
+    if (judges != null) track.getJudges().addAll(judges);
+    if (mentors != null) track.getMentors().addAll(mentors);
     trackRepo.save(track);
   }
 
@@ -708,7 +613,6 @@ public class DatabaseSeeder implements CommandLineRunner {
       leader.getEvents().add(event);
       studentRepo.save(leader);
     }
-
     Team team = new Team();
     team.setName(name);
     team.setDescription(description);
@@ -725,12 +629,9 @@ public class DatabaseSeeder implements CommandLineRunner {
       }
       team.getMembers().add(member);
     }
-
     Team savedTeam = teamRepo.save(team);
-
     leader.getTeams().add(savedTeam);
     studentRepo.save(leader);
-
     for (Student member : members) {
       member.getTeams().add(savedTeam);
       studentRepo.save(member);
