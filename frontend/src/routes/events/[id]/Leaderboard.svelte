@@ -5,10 +5,11 @@
 		getEventRanking,
 		getAllTeamsOfEvents,
 		getInterestedParticipants,
-		getSubmissionsByEvent
+		getSubmissionsByEvent,
+		exportEventRanking
 	} from "$lib/api"
 	import { Button, Chip } from "m3-svelte"
-	import { Trophy } from "@lucide/svelte"
+	import { Trophy, Download } from "@lucide/svelte"
 
 	interface Props {
 		eventId?: string
@@ -192,6 +193,41 @@
 		}
 	}
 
+	let isExportingCsv = $state(false)
+
+	async function handleExportCsv() {
+		if (!eventId) return
+		isExportingCsv = true
+		try {
+			const res = await exportEventRanking({
+				path: { eventId },
+				throwOnError: false
+			})
+			if (res.data) {
+				const csvText = typeof res.data === "string" ? res.data : JSON.stringify(res.data)
+				const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" })
+				const url = URL.createObjectURL(blob)
+				const link = document.createElement("a")
+				link.href = url
+				const eventName = event?.name ? event.name.replace(/\s+/g, "_") : eventId
+				link.setAttribute("download", `Ranking_${eventName}.csv`)
+				document.body.appendChild(link)
+				link.click()
+				document.body.removeChild(link)
+				URL.revokeObjectURL(url)
+			} else {
+				alert(
+					"Failed to export CSV: " + (res.error ? JSON.stringify(res.error) : "No data returned")
+				)
+			}
+		} catch (err: any) {
+			console.error("CSV Export error:", err)
+			alert("An error occurred while exporting CSV.")
+		} finally {
+			isExportingCsv = false
+		}
+	}
+
 	$effect(() => {
 		if (eventId) {
 			fetchLeaderboardData()
@@ -207,24 +243,38 @@
 			<h2>Leaderboard</h2>
 		</div>
 
-		{#if isAuthorizedUser && allProcessedTeams.length > 0}
-			<div class="toggle-group">
+		<div style="display: flex; gap: 0.75rem; align-items: center;">
+			{#if isAuthorizedUser && auth.value?.role === "COORDINATOR"}
 				<button
 					type="button"
-					class:active={filterMode === "TOP_10"}
-					onclick={() => (filterMode = "TOP_10")}
+					class="btn-export-csv"
+					disabled={isExportingCsv}
+					onclick={handleExportCsv}
 				>
-					Top 10
+					<Download size={16} />
+					{isExportingCsv ? "Exporting..." : "Export CSV"}
 				</button>
-				<button
-					type="button"
-					class:active={filterMode === "ALL"}
-					onclick={() => (filterMode = "ALL")}
-				>
-					All Graded ({allProcessedTeams.length})
-				</button>
-			</div>
-		{/if}
+			{/if}
+
+			{#if isAuthorizedUser && allProcessedTeams.length > 0}
+				<div class="toggle-group">
+					<button
+						type="button"
+						class:active={filterMode === "TOP_10"}
+						onclick={() => (filterMode = "TOP_10")}
+					>
+						Top 10
+					</button>
+					<button
+						type="button"
+						class:active={filterMode === "ALL"}
+						onclick={() => (filterMode = "ALL")}
+					>
+						All Graded ({allProcessedTeams.length})
+					</button>
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	<p class="subtitle">
@@ -390,6 +440,31 @@
 		margin: 0;
 		font-size: 0.9rem;
 		opacity: 70%;
+	}
+
+	.btn-export-csv {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.45rem 0.9rem;
+		border-radius: 999px;
+		font-size: 0.85rem;
+		font-weight: 600;
+		border: 1px solid var(--md-sys-color-primary, #0061a4);
+		background-color: var(--md-sys-color-primary-container, #d1e4ff);
+		color: var(--md-sys-color-on-primary-container, #001d36);
+		cursor: pointer;
+		transition: all 0.2s ease;
+
+		&:hover:not(:disabled) {
+			opacity: 0.9;
+			transform: translateY(-1px);
+		}
+
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
 	}
 
 	.toggle-group {

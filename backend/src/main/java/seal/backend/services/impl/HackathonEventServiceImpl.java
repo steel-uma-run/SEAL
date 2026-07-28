@@ -413,6 +413,7 @@ public class HackathonEventServiceImpl implements HackathonEventService {
   }
 
   @Override
+  @Transactional
   public String exportEventRankingCsv(UUID eventId) {
     HackathonEvent event =
         hackathonEventRepository

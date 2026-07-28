@@ -16,10 +16,11 @@
 		deleteTrack,
 		getAllCriteriaTemplates,
 		createCriteriaTemplate,
-		assignCriteria
+		assignCriteria,
+		exportEventRanking
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark } from "@lucide/svelte"
+	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark, Download } from "@lucide/svelte"
 
 	// Stub: updateRoundCriteria is not yet in the generated SDK
 	async function updateRoundCriteria(opts: any): Promise<any> {
@@ -890,6 +891,41 @@
 		return lec ? lec.fullName || lec.name : lecturerId
 	}
 
+	let isExportingCsv = $state(false)
+
+	async function handleExportCsv() {
+		if (!eventId) return
+		isExportingCsv = true
+		try {
+			const res = await exportEventRanking({
+				path: { eventId },
+				throwOnError: false
+			})
+			if (res.data) {
+				const csvText = typeof res.data === "string" ? res.data : JSON.stringify(res.data)
+				const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" })
+				const url = URL.createObjectURL(blob)
+				const link = document.createElement("a")
+				link.href = url
+				const eventName = event?.name ? event.name.replace(/\s+/g, "_") : eventId
+				link.setAttribute("download", `Ranking_${eventName}.csv`)
+				document.body.appendChild(link)
+				link.click()
+				document.body.removeChild(link)
+				URL.revokeObjectURL(url)
+			} else {
+				alert(
+					"Failed to export CSV: " + (res.error ? JSON.stringify(res.error) : "No data returned")
+				)
+			}
+		} catch (err: any) {
+			console.error("CSV Export error:", err)
+			alert(err.message || "An error occurred while exporting CSV.")
+		} finally {
+			isExportingCsv = false
+		}
+	}
+
 	$effect(() => {
 		if (eventId) {
 			fetchEventDetails()
@@ -902,10 +938,24 @@
 
 <div class="coordinator-event-details">
 	<!-- Top Action Bar -->
-	<div class="action-bar">
+	<div
+		class="action-bar"
+		style="display: flex; justify-content: space-between; align-items: center;"
+	>
 		<button onclick={() => goto("/coordinator/events")} class="btn btn-outline back-btn">
 			<ArrowLeft class="icon" />
 			Back to Events
+		</button>
+
+		<button
+			type="button"
+			onclick={handleExportCsv}
+			disabled={isExportingCsv}
+			class="btn btn-primary export-btn"
+			style="display: inline-flex; align-items: center; gap: 0.5rem;"
+		>
+			<Download class="icon" style="width: 18px; height: 18px;" />
+			{isExportingCsv ? "Exporting..." : "Export CSV"}
 		</button>
 	</div>
 
