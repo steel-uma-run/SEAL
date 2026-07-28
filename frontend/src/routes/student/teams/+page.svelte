@@ -13,7 +13,9 @@
 		getAllTeamsOfEvents,
 		getAllTracksOfEvent,
 		getRounds,
-		getAllAccounts
+		getAllAccounts,
+		exportCertificate,
+		getEventRanking
 	} from "$lib/api"
 	import { goto } from "$app/navigation"
 	import { page } from "$app/state"
@@ -43,6 +45,12 @@
 	let inviteStudentId = $state("")
 	let isInviting = $state(false)
 	let inviteMessage = $state("")
+
+	// Certificate export state
+	let isExportingCert = $state(false)
+	let certExportMessage = $state("")
+	let certExportError = $state(false)
+	let isTeamRanked = $state(false)
 	let inviteError = $state(false)
 
 	let studentUuid = $state<string | null>(null)
@@ -263,6 +271,7 @@
 			const found = joinedEventTeams.find((item) => item.eventId === targetEventId && item.hasTeam)
 			if (found && found.team) {
 				activeTeamDetail = found.team
+				checkTeamRanked(found.eventId, found.team.id)
 			}
 		}
 	})
@@ -388,6 +397,66 @@
 	function handleTransferLeadership() {
 		alert(`The "Transfer Leadership" action is not currently supported by the backend API.`)
 	}
+
+	async function checkTeamRanked(eventId: string, teamId: string) {
+		try {
+			const rankingRes = await getEventRanking({ path: { eventId } as any, throwOnError: false })
+			if (rankingRes.data && Array.isArray(rankingRes.data)) {
+				isTeamRanked = rankingRes.data.some((t: any) => t.id === teamId)
+			} else {
+				isTeamRanked = false
+			}
+		} catch {
+			isTeamRanked = false
+		}
+	}
+
+	async function handleExportCertificate() {
+		if (!myTeam) return
+		const eventId = myTeam.event_id
+		const teamId = myTeam.id
+		if (!eventId || !teamId) {
+			certExportError = true
+			certExportMessage = "Cannot determine event or team ID."
+			return
+		}
+
+		isExportingCert = true
+		certExportMessage = ""
+		certExportError = false
+
+		try {
+			const { data: base64, response: res } = await exportCertificate({
+				path: { eventId, teamId } as any,
+				throwOnError: false
+			})
+
+			if (res?.ok && base64) {
+				// Decode base64 and trigger PNG download
+				const binary = atob(base64 as string)
+				const bytes = new Uint8Array(binary.length)
+				for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+				const blob = new Blob([bytes], { type: "image/png" })
+				const url = URL.createObjectURL(blob)
+				const a = document.createElement("a")
+				a.href = url
+				a.download = `Certificate_${myTeam.name || teamId}.png`
+				document.body.appendChild(a)
+				a.click()
+				document.body.removeChild(a)
+				URL.revokeObjectURL(url)
+				certExportMessage = "Certificate downloaded successfully!"
+			} else {
+				certExportError = true
+				certExportMessage = "Your team has not been graded/ranked yet. Certificate is not available."
+			}
+		} catch (err: any) {
+			certExportError = true
+			certExportMessage = `Failed to export certificate: ${err?.message || "Unknown error"}`
+		} finally {
+			isExportingCert = false
+		}
+	}
 </script>
 
 <svelte:head>
@@ -496,7 +565,7 @@
 											</div>
 
 											<div class="grading-actions">
-												<button class="grade-btn" onclick={() => (activeTeamDetail = item.team)}>
+												<button class="grade-btn" onclick={() => { activeTeamDetail = item.team; checkTeamRanked(item.eventId, item.team.id) }}>
 													View Team Details
 												</button>
 											</div>
@@ -559,6 +628,29 @@
 								>
 								Submission
 							</a>
+						{/if}
+
+						<!-- Export Certificate Button -->
+						<button
+							class="btn btn--cert btn--sm"
+							disabled={!isTeamRanked || isExportingCert}
+							title={isTeamRanked ? 'Download your team certificate' : 'Certificate is only available for ranked (graded) teams'}
+							onclick={handleExportCertificate}
+						>
+							{#if isExportingCert}
+								<svg class="btn__icon-sm btn__spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+								</svg>
+								Exporting...
+							{:else}
+								<svg class="btn__icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+								</svg>
+								{isTeamRanked ? '🏆 Export Certificate' : '🔒 Certificate Locked'}
+							{/if}
+						</button>
+						{#if certExportMessage}
+							<p class="cert-msg {certExportError ? 'cert-msg--error' : 'cert-msg--success'}">{certExportMessage}</p>
 						{/if}
 					</div>
 				</div>
@@ -1343,6 +1435,45 @@
 			padding: 0.375rem 1rem;
 			border-radius: 0.5rem;
 			font-size: 0.875rem;
+		}
+
+		&--cert {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.4rem;
+			padding: 0.375rem 1rem;
+			border-radius: 0.5rem;
+			font-size: 0.875rem;
+			font-weight: 700;
+			cursor: pointer;
+			border: none;
+			transition: all 0.2s ease;
+			background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+			color: #7c3500;
+			box-shadow: 0 2px 8px rgba(253, 160, 133, 0.4);
+
+			&:hover:not(:disabled) {
+				background: linear-gradient(135deg, #f5c842 0%, #fb7a5a 100%);
+				transform: translateY(-1px);
+				box-shadow: 0 4px 12px rgba(253, 160, 133, 0.5);
+			}
+
+			&:disabled {
+				background: #e5e7eb;
+				color: #9ca3af;
+				cursor: not-allowed;
+				box-shadow: none;
+				transform: none;
+			}
+
+			.teams-page--dark &:disabled {
+				background: #3f3f46;
+				color: #71717a;
+			}
+
+			.btn__spin {
+				animation: spin 1s linear infinite;
+			}
 		}
 
 		&--invite {
@@ -2467,5 +2598,33 @@
 	.teams-page--dark .grade-btn {
 		background: #fbcfe8;
 		color: #be185d;
+	}
+
+	.cert-msg {
+		margin-top: 0.5rem;
+		font-size: 0.8rem;
+		font-weight: 500;
+		padding: 0.35rem 0.75rem;
+		border-radius: 0.4rem;
+
+		&--success {
+			background: #dcfce7;
+			color: #166534;
+		}
+
+		&--error {
+			background: #fee2e2;
+			color: #991b1b;
+		}
+	}
+
+	.teams-page--dark .cert-msg--success {
+		background: rgba(21, 128, 61, 0.2);
+		color: #86efac;
+	}
+
+	.teams-page--dark .cert-msg--error {
+		background: rgba(153, 27, 27, 0.2);
+		color: #fca5a5;
 	}
 </style>

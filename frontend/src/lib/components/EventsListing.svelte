@@ -157,7 +157,8 @@
 	.event-cards {
 		display: grid;
 		gap: 24px;
-		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 340px));
+		justify-content: start;
 		align-items: stretch;
 	}
 

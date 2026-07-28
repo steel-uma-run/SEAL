@@ -51,8 +51,10 @@
 
 	.event-cards {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 340px));
+		justify-content: start;
 		gap: 1.5rem;
 		margin-bottom: 3rem;
 	}
 </style>
+

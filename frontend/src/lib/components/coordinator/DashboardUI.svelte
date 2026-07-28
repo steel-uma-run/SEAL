@@ -146,6 +146,8 @@
 <style lang="scss">
 	.dashboard {
 		width: 100%;
+		max-width: 1600px;
+		margin: 0 auto;
 	}
 
 	.dashboard__header {

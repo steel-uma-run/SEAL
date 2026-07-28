@@ -486,12 +486,9 @@
 
 	.events-grid {
 		display: grid;
-		grid-template-columns: 1fr;
-		gap: 1rem;
-
-		@media (min-width: $bp-md) {
-			grid-template-columns: repeat(2, 1fr);
-		}
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 340px));
+		justify-content: start;
+		gap: 1.5rem;
 	}
 
 	.event-card-item {
