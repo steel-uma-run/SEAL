@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
@@ -420,5 +421,86 @@ public class HackathonEventServiceImpl implements HackathonEventService {
       throw new ResponseStatusException(
           HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate certificate");
     }
+  }
+
+  @Override
+  public String exportEventRankingCsv(UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    List<Submission> allSubmissions =
+        submissionRepository.findAllBySubmitterTeamHackathonEventId(eventId);
+
+    // Chỉ lấy submission mới nhất của mỗi team và đã được chấm điểm
+    Map<Team, Submission> teamLatestSubmission = new java.util.HashMap<>();
+    for (Submission s : allSubmissions) {
+      if (s.calculateAvgScore() != null) {
+        Team t = s.getSubmitterTeam();
+        if (!teamLatestSubmission.containsKey(t)
+            || s.getSubmitTime().isAfter(teamLatestSubmission.get(t).getSubmitTime())) {
+          teamLatestSubmission.put(t, s);
+        }
+      }
+    }
+
+    List<Submission> rankedSubmissions =
+        teamLatestSubmission.values().stream()
+            .sorted(java.util.Comparator.comparing(Submission::calculateAvgScore).reversed())
+            .toList();
+
+    Set<String> criteriaNames = new java.util.LinkedHashSet<>();
+    for (Submission s : rankedSubmissions) {
+      for (seal.backend.entities.Score score : s.getScores()) {
+        criteriaNames.add(score.getCriteria().getName());
+      }
+    }
+
+    StringBuilder csv = new StringBuilder();
+    csv.append('\ufeff');
+
+    csv.append("\"BẢNG ĐIỂM XẾP HẠNG - ")
+        .append(event.getName().toUpperCase().replace("\"", "\"\""))
+        .append("\"\n\n");
+
+    csv.append("Thứ hạng,Tên Đội");
+    for (String cName : criteriaNames) {
+      csv.append(",\"").append(cName.replace("\"", "\"\"")).append("\"");
+    }
+    csv.append(",Tổng điểm\n");
+
+    int rank = 1;
+    for (Submission s : rankedSubmissions) {
+      csv.append(rank++).append(",");
+      csv.append("\"").append(s.getSubmitterTeam().getName().replace("\"", "\"\"")).append("\",");
+
+      Map<String, Double> totalScorePerCriteria = new java.util.HashMap<>();
+      Map<String, Integer> judgeCountPerCriteria = new java.util.HashMap<>();
+
+      for (seal.backend.entities.Score score : s.getScores()) {
+        String cName = score.getCriteria().getName();
+        double weightedScore = (score.getValue() * score.getCriteria().getWeight()) / 100.0;
+
+        totalScorePerCriteria.put(
+            cName, totalScorePerCriteria.getOrDefault(cName, 0.0) + weightedScore);
+        judgeCountPerCriteria.put(cName, judgeCountPerCriteria.getOrDefault(cName, 0) + 1);
+      }
+
+      for (String cName : criteriaNames) {
+        if (totalScorePerCriteria.containsKey(cName)) {
+          double avgCriteriaScore =
+              totalScorePerCriteria.get(cName) / judgeCountPerCriteria.get(cName);
+          csv.append(String.format(java.util.Locale.US, "%.2f", avgCriteriaScore)).append(",");
+        } else {
+          csv.append("0.00,");
+        }
+      }
+
+      csv.append(String.format(java.util.Locale.US, "%.2f", s.calculateAvgScore())).append("\n");
+    }
+
+    return csv.toString();
   }
 }
