@@ -371,18 +371,6 @@ public class HackathonEventServiceImpl implements HackathonEventService {
           HttpStatus.BAD_REQUEST, "Team does not belong to this event");
     }
 
-    // --- CHECK RANKING (Đảm bảo team đã nộp bài và được chấm điểm) ---
-    List<TeamDto> rankedTeams = getRanking(eventId);
-
-    // Kiểm tra xem team hiện tại có nằm trong danh sách đã xếp hạng không
-    boolean isRanked = rankedTeams.stream().anyMatch(t -> t.id().equals(teamId));
-
-    // Nếu không tìm thấy team trong bảng xếp hạng (chưa nộp bài/chưa chấm điểm)
-    if (!isRanked) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Team has not been ranked yet or did not submit any work.");
-    }
-
     // đọc file ảnh
     try {
       ClassPathResource templateResource =
