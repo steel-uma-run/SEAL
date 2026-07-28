@@ -1,0 +1,33 @@
+{
+  "get": {
+    "tags": ["events"],
+    "operationId": "export_event_ranking",
+    "summary": "Export team ranking scores to CSV",
+    "parameters": [
+      {
+        "name": "eventId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "CSV content of the ranking",
+        "content": {
+          "text/csv": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

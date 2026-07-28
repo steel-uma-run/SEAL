@@ -181,4 +181,19 @@ public class HackathonEventController implements EventsApi {
             "attachment; filename=\"Certificate_" + teamId + ".txt\"")
         .body(base64Image);
   }
+
+  @Override
+  @PreAuthorize("hasAuthority('COORDINATOR')")
+  public ResponseEntity<String> exportEventRanking(
+      @PathVariable(name = "eventId") @NotNull UUID eventId) {
+
+    String csvContent = eventService.exportEventRankingCsv(eventId);
+
+    return ResponseEntity.ok()
+        .header(
+            org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+            "attachment; filename=\"Ranking_" + eventId + ".csv\"")
+        .header(org.springframework.http.HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8")
+        .body(csvContent);
+  }
 }
