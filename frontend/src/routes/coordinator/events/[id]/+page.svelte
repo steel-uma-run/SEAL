@@ -947,17 +947,6 @@
 			<ArrowLeft class="icon" />
 			Back to Events
 		</button>
-
-		<button
-			type="button"
-			onclick={handleExportCsv}
-			disabled={isExportingCsv}
-			class="btn btn-primary export-btn"
-			style="display: inline-flex; align-items: center; gap: 0.5rem;"
-		>
-			<Download class="icon" style="width: 18px; height: 18px;" />
-			{isExportingCsv ? "Exporting..." : "Export CSV"}
-		</button>
 	</div>
 
 	{#if isLoading}
