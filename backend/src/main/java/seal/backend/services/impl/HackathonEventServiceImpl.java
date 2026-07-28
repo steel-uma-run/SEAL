@@ -371,32 +371,16 @@ public class HackathonEventServiceImpl implements HackathonEventService {
           HttpStatus.BAD_REQUEST, "Team does not belong to this event");
     }
 
-    // --- CHECK RANKING ---
-    // Gọi hàm getRanking hiện có để lấy danh sách các team đã được xếp hạng (từ cao xuống thấp)
+    // --- CHECK RANKING (Đảm bảo team đã nộp bài và được chấm điểm) ---
     List<TeamDto> rankedTeams = getRanking(eventId);
 
-    // Tìm thứ hạng của team hiện tại trong danh sách (index bắt đầu từ 0)
-    int teamRankIndex = -1;
-    for (int i = 0; i < rankedTeams.size(); i++) {
-      if (rankedTeams.get(i).id().equals(teamId)) {
-        teamRankIndex = i;
-        break;
-      }
-    }
-
-    // 3. Quy định số lượng team được nhận giải (Ví dụ: Top 4)
-    int topThreshold = 4;
+    // Kiểm tra xem team hiện tại có nằm trong danh sách đã xếp hạng không
+    boolean isRanked = rankedTeams.stream().anyMatch(t -> t.id().equals(teamId));
 
     // Nếu không tìm thấy team trong bảng xếp hạng (chưa nộp bài/chưa chấm điểm)
-    if (teamRankIndex == -1) {
+    if (!isRanked) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Team has not been ranked yet or did not submit any work.");
-    }
-    // Nếu team nằm ngoài ngưỡng đạt giải (index >= 3 tức là hạng 4 trở xuống)
-    else if (teamRankIndex >= topThreshold) {
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN,
-          "Team is not in the Top " + topThreshold + " to receive a certificate.");
     }
 
     // đọc file ảnh
