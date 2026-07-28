@@ -235,7 +235,9 @@
 			<div class="members-section">
 				<div class="members-section__header">
 					<h3 class="members-section__title">
-						Team Members ({selectedTeam.members?.length || 1}/{getMaxMembers(selectedTeam.description)})
+						Team Members ({selectedTeam.members?.length || 1}/{getMaxMembers(
+							selectedTeam.description
+						)})
 					</h3>
 				</div>
 
@@ -376,7 +378,9 @@
 												<div class="submission-area">
 													<h4 class="submission-label">Team Info</h4>
 													<div class="submission-card">
-														<p class="submission-title">{team.members?.length || 1}/{getMaxMembers(team.description)} Members</p>
+														<p class="submission-title">
+															{team.members?.length || 1}/{getMaxMembers(team.description)} Members
+														</p>
 													</div>
 												</div>
 

@@ -491,7 +491,9 @@
 											<div class="submission-area">
 												<h4 class="submission-label">TEAM INFO</h4>
 												<div class="submission-card">
-													<p class="submission-title">{item.team.members?.length || 1}/{getMaxMembers(item.team.description)} Members</p>
+													<p class="submission-title">
+														{item.team.members?.length || 1}/{getMaxMembers(item.team.description)} Members
+													</p>
 												</div>
 											</div>
 
@@ -612,7 +614,9 @@
 
 				<div class="members-section">
 					<div class="members-section__header">
-						<h3 class="members-section__title">Team Members ({myTeam.members?.length || 1}/{getMaxMembers(myTeam.description)})</h3>
+						<h3 class="members-section__title">
+							Team Members ({myTeam.members?.length || 1}/{getMaxMembers(myTeam.description)})
+						</h3>
 					</div>
 
 					<div class="members-list">
@@ -671,7 +675,9 @@
 								Invite New Member
 							</h4>
 							<p class="invite-panel__desc">
-								Enter a student ID to invite them to your team. Teams can have up to {getMaxMembers(myTeam.description)} members.
+								Enter a student ID to invite them to your team. Teams can have up to {getMaxMembers(
+									myTeam.description
+								)} members.
 							</p>
 
 							{#if (myTeam.members?.length || 1) >= getMaxMembers(myTeam.description)}
@@ -719,7 +725,12 @@
 															{student.fullName || student.full_name || student.name || "Unknown"}
 														</p>
 														<p class="student-row__meta">
-															<span class="student-row__id">{student.studentId || student.student_id || student.email || "No ID"}</span>
+															<span class="student-row__id"
+																>{student.studentId ||
+																	student.student_id ||
+																	student.email ||
+																	"No ID"}</span
+															>
 															<span class="student-row__sep">•</span>
 															{#if student.isExternal || student.is_external}
 																<span class="student-row__school student-row__school--external"

@@ -296,7 +296,9 @@
 				<form onsubmit={handleCreateTeam} class="team-form" class:team-form--disabled={hasNoEvents}>
 					<!-- Field 1: Event -->
 					<div class="form-group">
-						<label class="form-label">Selected Event <span class="required-asterisk">(*)</span></label>
+						<label class="form-label"
+							>Selected Event <span class="required-asterisk">(*)</span></label
+						>
 						<select
 							bind:value={selectedEventId}
 							required
@@ -342,7 +344,9 @@
 
 					<!-- Field 3: Expected Team Size -->
 					<div class="form-group">
-						<label class="form-label">Expected Team Size (3-5 members) <span class="required-asterisk">(*)</span></label>
+						<label class="form-label"
+							>Expected Team Size (3-5 members) <span class="required-asterisk">(*)</span></label
+						>
 						<input
 							type="number"
 							bind:value={teamSize}
