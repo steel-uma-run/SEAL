@@ -1,0 +1,67 @@
+{
+  "put": {
+    "tags": ["teams"],
+    "operationId": "update_team_template",
+    "summary": "Update an existing team template",
+    "parameters": [
+      {
+        "name": "templateId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/CreateTeamTemplateRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Updated successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/TeamTemplate.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  },
+  "delete": {
+    "tags": ["teams"],
+    "operationId": "delete_team_template",
+    "summary": "Delete a team template",
+    "parameters": [
+      {
+        "name": "templateId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    ],
+    "responses": {
+      "204": {
+        "description": "Deleted successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

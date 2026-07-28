@@ -1,0 +1,55 @@
+{
+  "get": {
+    "tags": ["teams"],
+    "operationId": "get_all_team_templates",
+    "summary": "Get a list of all team templates",
+    "responses": {
+      "200": {
+        "description": "Team templates data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "../../components/schemas/TeamTemplate.json"
+              }
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  },
+  "post": {
+    "tags": ["teams"],
+    "operationId": "create_team_template",
+    "summary": "Create a team template",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/CreateTeamTemplateRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Created successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/TeamTemplate.json"
+            }
+          }
+        }
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

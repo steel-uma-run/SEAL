@@ -13,6 +13,7 @@ import seal.backend.entities.HackathonEvent;
 import seal.backend.entities.Student;
 import seal.backend.entities.Team;
 import seal.backend.entities.TeamInvite;
+import seal.backend.entities.TeamTemplate;
 import seal.backend.entities.User;
 import seal.backend.enums.InviteStatus;
 import seal.backend.enums.Role;
@@ -22,14 +23,18 @@ import seal.backend.repositories.HackathonEventRepository;
 import seal.backend.repositories.StudentRepository;
 import seal.backend.repositories.TeamInviteRepository;
 import seal.backend.repositories.TeamRepository;
+import seal.backend.repositories.TeamTemplateRepository;
 import seal.backend.repositories.UserRepository;
 import seal.backend.services.TeamService;
 import seal.openapi.model.CreateTeamRequestPayloadDto;
+import seal.openapi.model.CreateTeamTemplateRequestDto;
 import seal.openapi.model.TeamDto;
+import seal.openapi.model.TeamTemplateDto;
 
 @Service
 @RequiredArgsConstructor
 public class TeamServiceImpl implements TeamService {
+  private final TeamTemplateRepository templateRepo;
   private final TeamRepository teamRepository;
   private final HackathonEventRepository hackathonEventRepository;
   private final StudentRepository studentRepository;
@@ -220,5 +225,46 @@ public class TeamServiceImpl implements TeamService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
 
     return team.toDto();
+  }
+
+  @Transactional
+  @Override
+  public TeamTemplateDto[] getAllTemplates() {
+    return templateRepo.findAll().stream().map(TeamTemplate::toDto).toArray(TeamTemplateDto[]::new);
+  }
+
+  @Transactional
+  @Override
+  public TeamTemplateDto createTemplate(CreateTeamTemplateRequestDto request) {
+    TeamTemplate template = new TeamTemplate();
+    template.setName(request.name());
+    template.setDescription(request.description());
+    return templateRepo.save(template).toDto();
+  }
+
+  @Transactional
+  @Override
+  public TeamTemplateDto updateTemplate(UUID templateId, CreateTeamTemplateRequestDto request) {
+    TeamTemplate template =
+        templateRepo
+            .findById(templateId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team template not found"));
+
+    template.setName(request.name());
+    template.setDescription(request.description());
+    return templateRepo.save(template).toDto();
+  }
+
+  @Transactional
+  @Override
+  public void deleteTemplate(UUID templateId) {
+    TeamTemplate template =
+        templateRepo
+            .findById(templateId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team template not found"));
+
+    templateRepo.delete(template);
   }
 }

@@ -16,8 +16,10 @@ import seal.backend.services.SubmissionService;
 import seal.backend.services.TeamService;
 import seal.openapi.api.TeamsApi;
 import seal.openapi.model.CreateTeamRequestPayloadDto;
+import seal.openapi.model.CreateTeamTemplateRequestDto;
 import seal.openapi.model.SubmissionDto;
 import seal.openapi.model.TeamDto;
+import seal.openapi.model.TeamTemplateDto;
 
 @RestController
 @RequiredArgsConstructor
@@ -61,5 +63,34 @@ public class TeamController implements TeamsApi {
   @Override
   public ResponseEntity<TeamDto> getTeamInfo(@PathVariable(name = "teamId") @NotNull UUID teamId) {
     return ResponseEntity.ok(teamService.getTeamInfo(teamId));
+  }
+
+  @Override
+  @PreAuthorize("hasAnyRole('STUDENT', 'LECTURER')")
+  public ResponseEntity<TeamTemplateDto[]> getAllTeamTemplates() {
+    return ResponseEntity.ok(teamService.getAllTemplates());
+  }
+
+  @Override
+  @PreAuthorize("hasAnyRole('STUDENT', 'LECTURER')")
+  public ResponseEntity<TeamTemplateDto> createTeamTemplate(
+      @RequestBody @NotNull CreateTeamTemplateRequestDto request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(teamService.createTemplate(request));
+  }
+
+  @Override
+  @PreAuthorize("hasAnyRole('STUDENT', 'LECTURER')")
+  public ResponseEntity<TeamTemplateDto> updateTeamTemplate(
+      @PathVariable(name = "templateId") @NotNull UUID templateId,
+      @RequestBody @NotNull CreateTeamTemplateRequestDto request) {
+    return ResponseEntity.ok(teamService.updateTemplate(templateId, request));
+  }
+
+  @Override
+  @PreAuthorize("hasAnyRole('STUDENT', 'LECTURER')")
+  public ResponseEntity<Void> deleteTeamTemplate(
+      @PathVariable(name = "templateId") @NotNull UUID templateId) {
+    teamService.deleteTemplate(templateId);
+    return ResponseEntity.noContent().build();
   }
 }
