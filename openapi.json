@@ -11,7 +11,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080/api/v0"
+      "url": "https://nope.pakeha.co/api/v0"
     }
   ],
   "paths": {
