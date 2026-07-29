@@ -315,12 +315,8 @@
 <style lang="scss">
 	.dashboard-page {
 		max-width: 1600px;
-	}
-
-	@media (min-width: 768px) {
-		.dashboard-page {
-			padding: 2.5rem;
-		}
+		width: 100%;
+		margin: 0 auto;
 	}
 
 	.loading-state {

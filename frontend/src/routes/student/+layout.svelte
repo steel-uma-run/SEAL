@@ -44,19 +44,32 @@
 
 <style lang="scss">
 	.main {
-		min-height: 100vh;
+		min-height: calc(100vh - 3rem);
+		display: flex;
 
 		main {
+			flex: 1;
 			display: flex;
 			flex-direction: column;
-			padding: 1rem;
+			padding: 2rem 3.5rem;
 			margin-left: 96px;
+			width: calc(100% - 96px);
+			box-sizing: border-box;
+
+			@media (max-width: 768px) {
+				padding: 1.25rem 1.5rem;
+				margin-left: 80px;
+				width: calc(100% - 80px);
+			}
 		}
 	}
 
 	aside {
 		position: fixed;
-		height: 100vh;
+		top: 3rem;
+		left: 0;
+		width: 96px;
+		height: calc(100vh - 3rem);
 		z-index: 999;
 	}
 </style>
