@@ -80,12 +80,20 @@
 							if (eventTeams) {
 								for (const t of eventTeams) {
 									const isLeader = t.leader_id === profileData.id || t.leaderId === profileData.id
-									const isMember = (t.members && t.members.some((m: any) => m.id === profileData.id || m === profileData.id)) ||
+									const isMember =
+										(t.members &&
+											t.members.some(
+												(m: any) => m.id === profileData.id || m === profileData.id
+											)) ||
 										(t.member_ids && t.member_ids.includes(profileData.id)) ||
 										(profileData.team_ids && profileData.team_ids.includes(t.id))
 
 									if (isLeader || isMember) {
-										const memberCount = t.members ? t.members.length : (t.member_ids ? t.member_ids.length : (t.membersCount || 1))
+										const memberCount = t.members
+											? t.members.length
+											: t.member_ids
+												? t.member_ids.length
+												: t.membersCount || 1
 										const status = t.status || t.team_status || t.teamStatus || "APPROVED"
 										foundTeams.push({
 											eventId: event.id,
@@ -119,12 +127,14 @@
 
 		// BR-42, BR-43: GitHub link validation
 		if (!submitLink.trim().toLowerCase().includes("github.com")) {
-			submitMessage = "Error: Git Link must be a valid GitHub repository URL (must contain github.com)."
+			submitMessage =
+				"Error: Git Link must be a valid GitHub repository URL (must contain github.com)."
 			return
 		}
 
 		if (!youtubeLink.trim().toLowerCase().includes("youtube.com")) {
-			submitMessage = "Error: YouTube Link must be a valid URL starting with http(s)://youtube.com (do not use short links like youtu.be)."
+			submitMessage =
+				"Error: YouTube Link must be a valid URL starting with http(s)://youtube.com (do not use short links like youtu.be)."
 			return
 		}
 
@@ -138,7 +148,10 @@
 			return
 		}
 
-		if (currentLeaderTeam && (currentLeaderTeam.memberCount < 3 || currentLeaderTeam.memberCount > 5)) {
+		if (
+			currentLeaderTeam &&
+			(currentLeaderTeam.memberCount < 3 || currentLeaderTeam.memberCount > 5)
+		) {
 			submitMessage = `Error: Team must have between 3 and 5 members (Current: ${currentLeaderTeam.memberCount}).`
 			return
 		}
@@ -251,7 +264,7 @@
 				</div>
 			{/if}
 
-			{#if myTeamLeaderId !== profileId && (currentLeaderTeam && !currentLeaderTeam.isLeader)}
+			{#if myTeamLeaderId !== profileId && currentLeaderTeam && !currentLeaderTeam.isLeader}
 				<div class="submit-page__not-leader">
 					<svg class="submit-page__lock-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
@@ -268,7 +281,13 @@
 				</div>
 			{:else if currentLeaderTeam && currentLeaderTeam.status !== "APPROVED"}
 				<div class="submit-page__not-leader">
-					<svg class="submit-page__lock-icon" style="color: #e65100;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg
+						class="submit-page__lock-icon"
+						style="color: #e65100;"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -278,12 +297,19 @@
 					</svg>
 					<h2 class="submit-page__not-leader-title">Team Not Approved Yet</h2>
 					<p class="submit-page__not-leader-text">
-						Your team status is currently <strong>{currentLeaderTeam.status}</strong>. Only teams approved by the coordinator are eligible to submit works.
+						Your team status is currently <strong>{currentLeaderTeam.status}</strong>. Only teams
+						approved by the coordinator are eligible to submit works.
 					</p>
 				</div>
 			{:else if currentLeaderTeam && (currentLeaderTeam.memberCount < 3 || currentLeaderTeam.memberCount > 5)}
 				<div class="submit-page__not-leader">
-					<svg class="submit-page__lock-icon" style="color: #c62828;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg
+						class="submit-page__lock-icon"
+						style="color: #c62828;"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -293,87 +319,122 @@
 					</svg>
 					<h2 class="submit-page__not-leader-title">Ineligible Member Count</h2>
 					<p class="submit-page__not-leader-text">
-						Your team currently has <strong>{currentLeaderTeam.memberCount} member(s)</strong>. According to hackathon rules, a team must have between 3 and 5 members to participate and submit projects.
+						Your team currently has <strong>{currentLeaderTeam.memberCount} member(s)</strong>.
+						According to hackathon rules, a team must have between 3 and 5 members to participate
+						and submit projects.
 					</p>
 				</div>
 			{:else}
 				<form onsubmit={handleSubmit} class="submit-page__form">
-
-				<!-- Project Title -->
-				<div class="submit-page__field">
-					<label class="submit-page__label">Project Title <span class="required-asterisk">(*)</span></label>
-					<input
-						type="text"
-						bind:value={title}
-						required
-						placeholder="Enter your project title"
-						class="submit-page__input"
-					/>
-				</div>
-
-				<!-- Project Description -->
-				<div class="submit-page__field">
-					<label class="submit-page__label">Project Description <span class="required-asterisk">(*)</span></label>
-					<textarea
-						bind:value={description}
-						required
-						rows="4"
-						placeholder="Describe your project"
-						class="submit-page__textarea"
-					/>
-				</div>
-
-				<!-- Git Link -->
-				<div class="submit-page__field">
-					<label class="submit-page__label">Git Link <span class="required-asterisk">(*)</span></label>
-					<div class="submit-page__input-wrap">
-						<div class="submit-page__input-icon">
-							<svg class="submit-page__input-svg" fill="currentColor" viewBox="0 0 24 24">
-								<path
-									fill-rule="evenodd"
-									d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-									clip-rule="evenodd"
-								/>
-							</svg>
-						</div>
+					<!-- Project Title -->
+					<div class="submit-page__field">
+						<label class="submit-page__label"
+							>Project Title <span class="required-asterisk">(*)</span></label
+						>
 						<input
-							type="url"
-							bind:value={submitLink}
+							type="text"
+							bind:value={title}
 							required
-							placeholder="https://github.com/..."
-							class="submit-page__input submit-page__input--with-icon"
+							placeholder="Enter your project title"
+							class="submit-page__input"
 						/>
 					</div>
-				</div>
 
-				<!-- YouTube Link -->
-				<div class="submit-page__field">
-					<label class="submit-page__label">YouTube Link <span class="required-asterisk">(*)</span></label>
-					<div class="submit-page__input-wrap">
-						<div class="submit-page__input-icon">
-							<svg class="submit-page__input-svg" fill="currentColor" viewBox="0 0 24 24">
-								<path
-									d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"
-								/>
-							</svg>
-						</div>
-						<input
-							type="url"
-							bind:value={youtubeLink}
+					<!-- Project Description -->
+					<div class="submit-page__field">
+						<label class="submit-page__label"
+							>Project Description <span class="required-asterisk">(*)</span></label
+						>
+						<textarea
+							bind:value={description}
 							required
-							placeholder="https://youtube.com/watch?v=..."
-							class="submit-page__input submit-page__input--with-icon"
+							rows="4"
+							placeholder="Describe your project"
+							class="submit-page__textarea"
 						/>
 					</div>
-				</div>
 
-				<!-- Presentation Slide Link -->
-				<div class="submit-page__field">
-					<label class="submit-page__label">Presentation Slide Link</label>
-					<div class="submit-page__input-wrap">
-						<div class="submit-page__input-icon">
+					<!-- Git Link -->
+					<div class="submit-page__field">
+						<label class="submit-page__label"
+							>Git Link <span class="required-asterisk">(*)</span></label
+						>
+						<div class="submit-page__input-wrap">
+							<div class="submit-page__input-icon">
+								<svg class="submit-page__input-svg" fill="currentColor" viewBox="0 0 24 24">
+									<path
+										fill-rule="evenodd"
+										d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</div>
+							<input
+								type="url"
+								bind:value={submitLink}
+								required
+								placeholder="https://github.com/..."
+								class="submit-page__input submit-page__input--with-icon"
+							/>
+						</div>
+					</div>
+
+					<!-- YouTube Link -->
+					<div class="submit-page__field">
+						<label class="submit-page__label"
+							>YouTube Link <span class="required-asterisk">(*)</span></label
+						>
+						<div class="submit-page__input-wrap">
+							<div class="submit-page__input-icon">
+								<svg class="submit-page__input-svg" fill="currentColor" viewBox="0 0 24 24">
+									<path
+										d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"
+									/>
+								</svg>
+							</div>
+							<input
+								type="url"
+								bind:value={youtubeLink}
+								required
+								placeholder="https://youtube.com/watch?v=..."
+								class="submit-page__input submit-page__input--with-icon"
+							/>
+						</div>
+					</div>
+
+					<!-- Presentation Slide Link -->
+					<div class="submit-page__field">
+						<label class="submit-page__label">Presentation Slide Link</label>
+						<div class="submit-page__input-wrap">
+							<div class="submit-page__input-icon">
+								<svg
+									class="submit-page__input-svg"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+									/>
+								</svg>
+							</div>
+							<input
+								type="url"
+								bind:value={slideLink}
+								placeholder="Google Slides or PPT link"
+								class="submit-page__input submit-page__input--with-icon"
+							/>
+						</div>
+					</div>
+
+					<!-- Submit message -->
+					{#if submitMessage}
+						<div class="submit-page__message">
 							<svg
-								class="submit-page__input-svg"
+								class="submit-page__message-icon"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -382,62 +443,36 @@
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="2"
-									d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
+									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
+							{submitMessage}
 						</div>
-						<input
-							type="url"
-							bind:value={slideLink}
-							placeholder="Google Slides or PPT link"
-							class="submit-page__input submit-page__input--with-icon"
-						/>
-					</div>
-				</div>
-
-				<!-- Submit message -->
-				{#if submitMessage}
-					<div class="submit-page__message">
-						<svg
-							class="submit-page__message-icon"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-						{submitMessage}
-					</div>
-				{/if}
-
-				<!-- Submit button -->
-				<button type="submit" disabled={isLoading} class="submit-page__submit-btn">
-					{#if isLoading}
-						<svg class="submit-page__spinner" fill="none" viewBox="0 0 24 24">
-							<circle
-								class="submit-page__spinner-circle"
-								cx="12"
-								cy="12"
-								r="10"
-								stroke="currentColor"
-								stroke-width="4"
-							/>
-							<path
-								class="submit-page__spinner-path"
-								fill="currentColor"
-								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-							/>
-						</svg>
 					{/if}
-					{isLoading ? "Submitting..." : "Submit Project"}
-				</button>
-			</form>
-		{/if}
+
+					<!-- Submit button -->
+					<button type="submit" disabled={isLoading} class="submit-page__submit-btn">
+						{#if isLoading}
+							<svg class="submit-page__spinner" fill="none" viewBox="0 0 24 24">
+								<circle
+									class="submit-page__spinner-circle"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								/>
+								<path
+									class="submit-page__spinner-path"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								/>
+							</svg>
+						{/if}
+						{isLoading ? "Submitting..." : "Submit Project"}
+					</button>
+				</form>
+			{/if}
 		{/if}
 	</div>
 

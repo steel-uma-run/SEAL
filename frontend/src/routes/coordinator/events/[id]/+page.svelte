@@ -16,10 +16,12 @@
 		deleteTrack,
 		getAllCriteriaTemplates,
 		createCriteriaTemplate,
-		assignCriteria
+		assignCriteria,
+		exportEventRanking
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark } from "@lucide/svelte"
+	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark, Download } from "@lucide/svelte"
+	import Leaderboard from "../../../events/[id]/Leaderboard.svelte"
 
 	// Stub: updateRoundCriteria is not yet in the generated SDK
 	async function updateRoundCriteria(opts: any): Promise<any> {
@@ -28,8 +30,7 @@
 	}
 
 	// Route Params
-	let seasonId = $derived($page.params.id || "")
-	let eventId = $derived($page.params.eventId || "")
+	let eventId = $derived($page.params.id || "")
 
 	// Event Details State
 	let event = $state<any>(null)
@@ -39,7 +40,7 @@
 	// Students & Teams List State
 	let students = $state<any[]>([])
 	let teams = $state<any[]>([])
-	let activeTab = $state<"students" | "teams" | "rounds">("students")
+	let activeTab = $state<"students" | "teams" | "rounds" | "leaderboard">("students")
 
 	// Create Team Modal State
 	let showCreateTeamModal = $state(false)
@@ -891,8 +892,43 @@
 		return lec ? lec.fullName || lec.name : lecturerId
 	}
 
+	let isExportingCsv = $state(false)
+
+	async function handleExportCsv() {
+		if (!eventId) return
+		isExportingCsv = true
+		try {
+			const res = await exportEventRanking({
+				path: { eventId },
+				throwOnError: false
+			})
+			if (res.data) {
+				const csvText = typeof res.data === "string" ? res.data : JSON.stringify(res.data)
+				const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" })
+				const url = URL.createObjectURL(blob)
+				const link = document.createElement("a")
+				link.href = url
+				const eventName = event?.name ? event.name.replace(/\s+/g, "_") : eventId
+				link.setAttribute("download", `Ranking_${eventName}.csv`)
+				document.body.appendChild(link)
+				link.click()
+				document.body.removeChild(link)
+				URL.revokeObjectURL(url)
+			} else {
+				alert(
+					"Failed to export CSV: " + (res.error ? JSON.stringify(res.error) : "No data returned")
+				)
+			}
+		} catch (err: any) {
+			console.error("CSV Export error:", err)
+			alert(err.message || "An error occurred while exporting CSV.")
+		} finally {
+			isExportingCsv = false
+		}
+	}
+
 	$effect(() => {
-		if (seasonId && eventId) {
+		if (eventId) {
 			fetchEventDetails()
 			loadLecturers()
 			loadEventTracks()
@@ -903,10 +939,13 @@
 
 <div class="coordinator-event-details">
 	<!-- Top Action Bar -->
-	<div class="action-bar">
-		<button onclick={() => goto("/coordinator/seasons")} class="btn btn-outline back-btn">
+	<div
+		class="action-bar"
+		style="display: flex; justify-content: space-between; align-items: center;"
+	>
+		<button onclick={() => goto("/coordinator/events")} class="btn btn-outline back-btn">
 			<ArrowLeft class="icon" />
-			Back to Season Details
+			Back to Events
 		</button>
 	</div>
 
@@ -1084,6 +1123,12 @@
 						class="tab-btn {activeTab === 'rounds' ? 'active' : ''}"
 					>
 						Rounds ({eventRounds.length})
+					</button>
+					<button
+						onclick={() => (activeTab = "leaderboard")}
+						class="tab-btn {activeTab === 'leaderboard' ? 'active' : ''}"
+					>
+						Leaderboard
 					</button>
 				</div>
 
@@ -1317,6 +1362,8 @@
 								<p class="empty-title">No rounds created for this event yet.</p>
 							</div>
 						{/if}
+					{:else if activeTab === "leaderboard"}
+						<Leaderboard {eventId} {event} tracks={eventTracks} rounds={eventRounds} />
 					{/if}
 				</div>
 			</div>

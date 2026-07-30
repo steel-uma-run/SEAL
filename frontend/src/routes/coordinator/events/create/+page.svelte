@@ -36,7 +36,8 @@
 
 	let errors: Errors = $state({})
 
-	async function handleSubmit() {
+	async function handleSubmit(e?: SubmitEvent) {
+		if (e) e.preventDefault()
 		errors = {}
 
 		try {
@@ -82,18 +83,19 @@
 				seasonId = seasonResp.data.id
 			}
 
+			const durationMs = registrationEndTime.getTime() - registrationStartTime.getTime()
+
 			const eventResp = await createEvent({
 				body: {
 					season_id: seasonId!,
 					name: name,
 					description: description,
-					start_time: registrationStartTime.toISOString(),
-					end_time: registrationEndTime.toISOString(),
-					price: prize
+					registration_duration: durationMs,
+					prize: prize
 				}
 			})
 
-			goto(`/events/${eventResp.data.id}`)
+			goto(`/coordinator/events/${eventResp.data.id}`)
 		} catch (err: any) {
 			errors.generic =
 				err?.detail || err?.message || JSON.stringify(err) || "An unknown error occurred"

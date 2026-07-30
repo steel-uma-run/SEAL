@@ -448,7 +448,8 @@
 				certExportMessage = "Certificate downloaded successfully!"
 			} else {
 				certExportError = true
-				certExportMessage = "Your team has not been graded/ranked yet. Certificate is not available."
+				certExportMessage =
+					"Your team has not been graded/ranked yet. Certificate is not available."
 			}
 		} catch (err: any) {
 			certExportError = true
@@ -560,12 +561,20 @@
 											<div class="submission-area">
 												<h4 class="submission-label">TEAM INFO</h4>
 												<div class="submission-card">
-													<p class="submission-title">{item.team.members?.length || 1}/{getMaxMembers(item.team.description)} Members</p>
+													<p class="submission-title">
+														{item.team.members?.length || 1}/{getMaxMembers(item.team.description)} Members
+													</p>
 												</div>
 											</div>
 
 											<div class="grading-actions">
-												<button class="grade-btn" onclick={() => { activeTeamDetail = item.team; checkTeamRanked(item.eventId, item.team.id) }}>
+												<button
+													class="grade-btn"
+													onclick={() => {
+														activeTeamDetail = item.team
+														checkTeamRanked(item.eventId, item.team.id)
+													}}
+												>
 													View Team Details
 												</button>
 											</div>
@@ -634,23 +643,42 @@
 						<button
 							class="btn btn--cert btn--sm"
 							disabled={!isTeamRanked || isExportingCert}
-							title={isTeamRanked ? 'Download your team certificate' : 'Certificate is only available for ranked (graded) teams'}
+							title={isTeamRanked
+								? "Download your team certificate"
+								: "Certificate is only available for ranked (graded) teams"}
 							onclick={handleExportCertificate}
 						>
 							{#if isExportingCert}
-								<svg class="btn__icon-sm btn__spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+								<svg
+									class="btn__icon-sm btn__spin"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+									/>
 								</svg>
 								Exporting...
 							{:else}
 								<svg class="btn__icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+									/>
 								</svg>
-								{isTeamRanked ? '🏆 Export Certificate' : '🔒 Certificate Locked'}
+								{isTeamRanked ? "🏆 Export Certificate" : "🔒 Certificate Locked"}
 							{/if}
 						</button>
 						{#if certExportMessage}
-							<p class="cert-msg {certExportError ? 'cert-msg--error' : 'cert-msg--success'}">{certExportMessage}</p>
+							<p class="cert-msg {certExportError ? 'cert-msg--error' : 'cert-msg--success'}">
+								{certExportMessage}
+							</p>
 						{/if}
 					</div>
 				</div>
@@ -704,7 +732,9 @@
 
 				<div class="members-section">
 					<div class="members-section__header">
-						<h3 class="members-section__title">Team Members ({myTeam.members?.length || 1}/{getMaxMembers(myTeam.description)})</h3>
+						<h3 class="members-section__title">
+							Team Members ({myTeam.members?.length || 1}/{getMaxMembers(myTeam.description)})
+						</h3>
 					</div>
 
 					<div class="members-list">
@@ -763,7 +793,9 @@
 								Invite New Member
 							</h4>
 							<p class="invite-panel__desc">
-								Enter a student ID to invite them to your team. Teams can have up to {getMaxMembers(myTeam.description)} members.
+								Enter a student ID to invite them to your team. Teams can have up to {getMaxMembers(
+									myTeam.description
+								)} members.
 							</p>
 
 							{#if (myTeam.members?.length || 1) >= getMaxMembers(myTeam.description)}
@@ -811,7 +843,12 @@
 															{student.fullName || student.full_name || student.name || "Unknown"}
 														</p>
 														<p class="student-row__meta">
-															<span class="student-row__id">{student.studentId || student.student_id || student.email || "No ID"}</span>
+															<span class="student-row__id"
+																>{student.studentId ||
+																	student.student_id ||
+																	student.email ||
+																	"No ID"}</span
+															>
 															<span class="student-row__sep">•</span>
 															{#if student.isExternal || student.is_external}
 																<span class="student-row__school student-row__school--external"

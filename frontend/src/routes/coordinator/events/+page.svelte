@@ -174,7 +174,7 @@
 </script>
 
 <svelte:head>
-	<title>Season Management - SEAL</title>
+	<title>Events Management - SEAL</title>
 </svelte:head>
 
 <div class="header">
@@ -225,11 +225,8 @@
 						).toLocaleDateString()}
 					</span>
 				</div>
-
 				<div class="event-actions">
-					<Button href="/coordinator/seasons/{event.season_id}/events/{event.id}" variant="tonal"
-						>Manage</Button
-					>
+					<Button href="/coordinator/events/{event.id}" variant="tonal">Manage</Button>
 					{#if event.status === "DRAFT"}
 						<Button onclick={() => openEditModal(event)} variant="tonal">
 							<Pencil style="width: 1rem; height: 1rem; margin-right: 0.25rem;" />
