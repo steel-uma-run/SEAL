@@ -9,7 +9,8 @@
 
 	const { event, isJoined = false }: Props = $props()
 
-	const defaultBanner = "https://images.unsplash.com/photo-1631350397792-8e0c2de5b637?q=80&w=870&auto=format&fit=crop"
+	const defaultBanner =
+		"https://images.unsplash.com/photo-1631350397792-8e0c2de5b637?q=80&w=870&auto=format&fit=crop"
 </script>
 
 <div class="event-card">
