@@ -194,14 +194,35 @@ public class DatabaseSeeder implements CommandLineRunner {
     rdSpring2 = roundRepo.save(rdSpring2); // R2 chưa active
 
     // --- ROUNDS SUMMER (ĐỂ NULL THỜI GIAN ĐỂ TEST NÚT BẤM) ---
+    //    Round rdSum1 =
+    //        roundRepo.save(
+    //            new Round(
+    //                "Round 1", "Vòng loại", Duration.ofHours(10), Duration.ofHours(48),
+    // eventSummer));
+    //    Round rdSum2 =
+    //        roundRepo.save(
+    //            new Round(
+    //                "Round 2", "Chung kết", Duration.ofHours(10), Duration.ofHours(48),
+    // eventSummer));
+
+    // --- ROUNDS SUMMER DEMO ---
+    // Nộp bài (Active): 2 phút | Chấm điểm (Grading): 5 phút
     Round rdSum1 =
         roundRepo.save(
             new Round(
-                "Round 1", "Vòng loại", Duration.ofHours(10), Duration.ofHours(48), eventSummer));
+                "Round 1",
+                "Vòng loại",
+                Duration.ofMinutes(10),
+                Duration.ofMinutes(7),
+                eventSummer));
     Round rdSum2 =
         roundRepo.save(
             new Round(
-                "Round 2", "Chung kết", Duration.ofHours(10), Duration.ofHours(48), eventSummer));
+                "Round 2",
+                "Chung kết",
+                Duration.ofMinutes(10),
+                Duration.ofMinutes(7),
+                eventSummer));
 
     // ==========================================
     // 3. TẠO TIÊU CHÍ (CRITERIA)
@@ -502,6 +523,24 @@ public class DatabaseSeeder implements CommandLineRunner {
 
               judgeCount++;
             }
+          }
+        }
+      } // --- CHẤM ĐIỂM DEMO CHO SLOTHUB (KỲ SUMMER) ---
+      else if (team.getName().equals("Slothub")) {
+        Track teamTrack = team.getTrack();
+        if (teamTrack != null && teamTrack.getJudges().size() >= 2) {
+          for (Criteria criteria : targetRound.getCriteria()) {
+            // Giám khảo 1 (Lê Hoàng Nam - namlh@seal.edu.vn) cho điểm 8.0
+            Lecturer judge1 = teamTrack.getJudges().get(0);
+            Score score1 = new Score(criteria, savedSubmission, judge1, 8.0f);
+            score1.setComment("Giải pháp rất tốt, đáp ứng đúng yêu cầu của hệ thống RAG.");
+            scoreRepo.save(score1);
+
+            // Giám khảo 2 (Trần Thanh Mai - maitt@seal.edu.vn) cho điểm 8.5
+            Lecturer judge2 = teamTrack.getJudges().get(1);
+            Score score2 = new Score(criteria, savedSubmission, judge2, 8.5f);
+            score2.setComment("Kiến trúc Agentic RAG khá ổn định và có tính ứng dụng cao.");
+            scoreRepo.save(score2);
           }
         }
       }
