@@ -428,12 +428,12 @@
 				</div>
 
 				<!-- Deviations Section -->
-				{#if deviations.length > 0}
+				{#if deviations.filter(d => !d.criteria_id && !d.criteriaId && (!d.status || d.status === "PENDING")).length > 0}
 					<div class="card" style="margin-top: 1.5rem">
 						<h2 class="card-title">Score Deviations</h2>
-						<p class="card-desc">Your score deviates significantly from other judges.</p>
+						<p class="card-desc">Your total score deviates significantly from other judges.</p>
 						<div class="deviations-list">
-							{#each deviations as dev}
+							{#each deviations.filter(d => !d.criteria_id && !d.criteriaId && (!d.status || d.status === "PENDING")) as dev}
 								{#if !dev.is_resolved}
 									<div class="deviation-card">
 										<div class="deviation-header">
@@ -451,7 +451,7 @@
 											<button
 												onclick={() => handleAcceptDeviation(dev.id)}
 												class="btn-submit"
-												style="background: var(--md-sys-color-primary, #6750a4);"
+												style="background: #F37021;"
 											>
 												Accept & Regrade
 											</button>
@@ -503,11 +503,19 @@
 
 							<div class="criteria-list">
 								{#each criteriaTemplate.criteria as c}
+									{@const totalDevResolved = deviations.some(d => (!d.criteria_id && !d.criteriaId) && (d.status === "ACCEPTED" || d.status === "REJECTED"))}
+								{@const criteriaDev = totalDevResolved ? null : deviations.find(d => (d.criteria_id === c.id || d.criteriaId === c.id) && !d.is_resolved)}
 									<div class="criterion">
 										<div class="criterion-head">
 											<div>
 												<h3 class="criterion-name">{c.name}</h3>
 												<p class="criterion-weight">Weight: {c.weight}%</p>
+												{#if criteriaDev}
+													<div class="alert alert--warning alert--inline" style="margin-top: 0.5rem; font-size: 0.875rem; background: #fffbeb; color: #b45309; border: 1px solid #fef3c7; padding: 0.5rem; border-radius: 0.375rem; display: flex; align-items: center; gap: 0.5rem;">
+														<AlertCircle class="icon-sm" style="width: 1rem; height: 1rem;" />
+														<p style="margin: 0;">High Deviation Detected. Average score: <strong>{criteriaDev.average_score.toFixed(2)}</strong>.</p>
+													</div>
+												{/if}
 											</div>
 											<div class="score-input">
 												<label class="field-label">Score (0-10)</label>

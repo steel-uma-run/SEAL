@@ -43,7 +43,7 @@ public class SubmissionController implements SubmissionApi {
   }
 
   @Override
-  @PreAuthorize("hasAuthority('COORDINATOR')")
+  @PreAuthorize("hasAuthority('COORDINATOR') or hasRole('LECTURER')")
   public ResponseEntity<ScoreDeviationNotifDto[]> getScoreDeviations(
       @PathVariable(name = "submissionId") @NotNull UUID submissionId) {
 
