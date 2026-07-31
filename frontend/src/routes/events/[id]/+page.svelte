@@ -13,27 +13,47 @@
 	import iconGavel from "@ktibow/iconset-material-symbols/gavel"
 
 	const id = page.params.id
+	function getRoundStartEnd(round: any) {
+		const startIso = round.activeTime || round.active_time || round.startTime || round.start_time
+		if (!startIso) return { start: null, end: null }
+		const start = new Date(startIso)
+		if (isNaN(start.getTime())) return { start: null, end: null }
+
+		const submissionEndMs = start.getTime() + (round.activeDuration || round.active_duration || 0)
+		const gradingStartIso = round.gradingStartTime || round.grading_start_time
+		const gradingStartMs = gradingStartIso ? new Date(gradingStartIso).getTime() : submissionEndMs
+		const endMs = gradingStartMs + (round.gradingDuration || round.grading_duration || 0)
+		const end = new Date(endMs > start.getTime() ? endMs : submissionEndMs)
+
+		return { start, end }
+	}
+
 	const data = $derived.by(async () => {
 		const event = await getEvent({ path: { eventId: id! } })
 		const tracks = await getAllTracksOfEvent({ path: { eventId: id! } })
 		const rounds = await getRounds({ path: { eventId: id! } })
 
-		// the earliest time possible will be the start time (registration open time)
-		const startTime = new Date(event.data.start_time)
+		const regStartIso = event.data?.registration_start_time || event.data?.start_time
+		const startTime = regStartIso ? new Date(regStartIso) : undefined
+		const regDuration = event.data?.registration_duration || 0
+		const endTime = event.data?.end_time
+			? new Date(event.data.end_time)
+			: startTime
+				? new Date(startTime.getTime() + regDuration)
+				: undefined
 
-		// the latest time possible will be the last round's ending time
-		const endTime = rounds.data.at(-1) ? new Date(rounds.data.at(-1)!.end_time) : undefined
+		const now = Date.now()
+		const openForRegistration =
+			startTime && endTime ? now >= startTime.getTime() && now <= endTime.getTime() : false
 
 		return {
 			event: event.data,
 			tracks: tracks.data,
 			rounds: rounds.data,
 
-			openForRegistration:
-				Date.now() >= Date.parse(event.data.start_time) &&
-				Date.now() <= Date.parse(event.data.end_time),
-			startTime: startTime,
-			endTime: endTime
+			openForRegistration,
+			startTime,
+			endTime
 		}
 	})
 </script>
@@ -204,9 +224,11 @@
 				<div class="body">
 					{#each data.rounds as round}
 						{@const now = Date.now()}
+						{@const roundTimes = getRoundStartEnd(round)}
 						{@const active =
-							now >= new Date(round.start_time).getTime() &&
-							now <= new Date(round.end_time).getTime()}
+							roundTimes.start && roundTimes.end
+								? now >= roundTimes.start.getTime() && now <= roundTimes.end.getTime()
+								: false}
 
 						<div
 							style="display: flex; flex-direction: column; align-items: center; justify-content: center"
@@ -231,20 +253,24 @@
 							<p style="font-weight: bold; font-size: 1.1rem">{round.name}</p>
 							<p>{round.description}</p>
 
-							<p style="color: var(--md-sys-color-tertiary)">
-								{new Date(round.start_time).toLocaleString(undefined, {
-									month: "short",
-									day: "numeric",
-									hour: "numeric",
-									minute: "numeric"
-								})} -
-								{new Date(round.end_time).toLocaleString(undefined, {
-									month: "short",
-									day: "numeric",
-									hour: "numeric",
-									minute: "numeric"
-								})}
-							</p>
+							{#if roundTimes.start && roundTimes.end}
+								<p style="color: var(--md-sys-color-tertiary)">
+									{roundTimes.start.toLocaleString(undefined, {
+										month: "short",
+										day: "numeric",
+										hour: "numeric",
+										minute: "numeric"
+									})} -
+									{roundTimes.end.toLocaleString(undefined, {
+										month: "short",
+										day: "numeric",
+										hour: "numeric",
+										minute: "numeric"
+									})}
+								</p>
+							{:else}
+								<p style="color: var(--md-sys-color-tertiary)">Schedule TBD</p>
+							{/if}
 						</div>
 					{/each}
 				</div>

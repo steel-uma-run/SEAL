@@ -52,7 +52,7 @@
 					}
 				}
 			} catch (err) {
-				errorMessage = err as string
+				errorMessage = typeof err === "string" ? err : "Invalid password or email"
 			} finally {
 				debounce = false
 			}

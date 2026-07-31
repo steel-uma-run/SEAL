@@ -130,8 +130,8 @@
 			</div>
 
 			<div class="field">
-				<p class="label">Registration Duration (Milliseconds)</p>
-				<TextFieldOutlined required type="number" label="ms (e.g. 300000 = 5 min)" min="1" bind:value={registrationDurationMs} />
+				<p class="label">Registration Duration</p>
+				<TextFieldOutlined required type="number" min="1" bind:value={registrationDurationMs} />
 			</div>
 
 			<div class="field full-width description-box">

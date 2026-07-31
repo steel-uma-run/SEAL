@@ -1926,7 +1926,7 @@
 						></textarea>
 					</div>
 
-					<h4 class="modal-section-title">Timeline Configurations (in Milliseconds)</h4>
+					<h4 class="modal-section-title">Timeline Configurations</h4>
 					<div class="form-row">
 						<div class="form-group">
 							<label class="form-label" for="newRoundActiveMs">Active Duration (ms) *</label>
@@ -1939,12 +1939,6 @@
 								placeholder="e.g. 300000 (5 mins)"
 								required
 							/>
-							<span
-								class="help-text"
-								style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;"
-							>
-								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
-							</span>
 						</div>
 						<div class="form-group">
 							<label class="form-label" for="newRoundGradingMs">Grading Duration (ms) *</label>
@@ -1957,12 +1951,6 @@
 								placeholder="e.g. 300000 (5 mins)"
 								required
 							/>
-							<span
-								class="help-text"
-								style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;"
-							>
-								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
-							</span>
 						</div>
 					</div>
 					<div class="modal-actions">

@@ -56,8 +56,15 @@
 			}
 
 			if (activeTab === "completed") {
-				const end = new Date(event.end_time).getTime()
-				return event.status === "FINALIZED" && now > end
+				const startIso = event.registration_start_time || event.start_time
+				const startMs = startIso ? new Date(startIso).getTime() : 0
+				const duration = event.registration_duration || 0
+				const endMs = event.end_time
+					? new Date(event.end_time).getTime()
+					: startMs
+						? startMs + duration
+						: 0
+				return event.status === "FINALIZED" && endMs > 0 && now > endMs
 			}
 
 			return true
@@ -207,9 +214,17 @@
 				<div class="event-time">
 					<span class="time-label">Registration Window:</span>
 					<span class="time-val">
-						{new Date(event.start_time).toLocaleDateString()} - {new Date(
-							event.end_time
-						).toLocaleDateString()}
+						{#if event.registration_start_time || event.start_time}
+							{@const startMs = new Date(
+								event.registration_start_time || event.start_time
+							).getTime()}
+							{@const endMs = event.end_time
+								? new Date(event.end_time).getTime()
+								: startMs + (event.registration_duration || 0)}
+							{new Date(startMs).toLocaleDateString()} - {new Date(endMs).toLocaleDateString()}
+						{:else}
+							Not scheduled
+						{/if}
 					</span>
 				</div>
 				<div class="event-actions">
