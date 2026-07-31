@@ -200,8 +200,8 @@
 		for (const c of criteriaTemplate.criteria) {
 			const val = gradingData[c.id]?.value
 			const comment = gradingData[c.id]?.comment
-			// BR-47: Required documented reason if score is below 50
-			if (val !== null && val !== undefined && val < 50 && (!comment || comment.trim() === "")) {
+			// BR-47: Required documented reason if score is below 5
+			if (val !== null && val !== undefined && val < 5 && (!comment || comment.trim() === "")) {
 				return true
 			}
 		}
@@ -239,7 +239,7 @@
 		}
 
 		if (requiresDocumentedReason) {
-			errorMessage = "Please provide a comment (documented reason) for any score below 50."
+			errorMessage = "Please provide a comment (documented reason) for any score below 5."
 			return
 		}
 
@@ -518,8 +518,8 @@
 										<div>
 											<label class="field-label">
 												Comment / Feedback
-												{#if gradingData[c.id].value !== null && gradingData[c.id].value < 50}
-													<span class="field-required">(Required for scores below 50)</span>
+												{#if gradingData[c.id].value !== null && gradingData[c.id].value < 5}
+													<span class="field-required">(Required for scores below 5)</span>
 												{/if}
 											</label>
 											<textarea
