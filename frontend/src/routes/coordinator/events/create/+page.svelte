@@ -31,7 +31,7 @@
 	let semester: Season["semester"] = $state("SPRING")
 	let year = $state(new Date(Date.now()).getFullYear().toString())
 	let description = $state("")
-	let registrationDurationDays = $state(7)
+	let registrationDurationMs = $state(300000) // Default 300,000 ms (5 mins) for easy testing
 
 	let errors: Errors = $state({})
 
@@ -40,7 +40,7 @@
 		errors = {}
 
 		try {
-			if (registrationDurationDays <= 0) {
+			if (registrationDurationMs <= 0) {
 				errors.eventName = "Duration must be greater than 0"
 				return
 			}
@@ -73,7 +73,7 @@
 				seasonId = seasonResp.data.id
 			}
 
-			const durationMs = registrationDurationDays * 24 * 60 * 60 * 1000
+			const durationMs = Number(registrationDurationMs)
 
 			const eventResp = await createEvent({
 				body: {
@@ -130,8 +130,8 @@
 			</div>
 
 			<div class="field">
-				<p class="label">Registration Duration (Days)</p>
-				<TextFieldOutlined required type="number" label="" min="1" bind:value={registrationDurationDays} />
+				<p class="label">Registration Duration (Milliseconds)</p>
+				<TextFieldOutlined required type="number" label="ms (e.g. 300000 = 5 min)" min="1" bind:value={registrationDurationMs} />
 			</div>
 
 			<div class="field full-width description-box">

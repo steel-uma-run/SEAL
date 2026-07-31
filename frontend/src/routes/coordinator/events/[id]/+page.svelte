@@ -134,8 +134,8 @@
 	let showCreateRoundModal = $state(false)
 	let newRoundName = $state("")
 	let newRoundDescription = $state("")
-	let newRoundActiveDays = $state(7)
-	let newRoundGradingDays = $state(3)
+	let newRoundActiveMs = $state(300000) // Default 300,000 ms (5 mins) for easy testing
+	let newRoundGradingMs = $state(300000) // Default 300,000 ms (5 mins) for easy testing
 	let isCreatingRound = $state(false)
 	let createRoundMessage = $state("")
 	let createRoundError = $state(false)
@@ -435,8 +435,8 @@
 	function openCreateRoundModal() {
 		newRoundName = ""
 		newRoundDescription = ""
-		newRoundActiveDays = 7
-		newRoundGradingDays = 3
+		newRoundActiveMs = 300000
+		newRoundGradingMs = 300000
 		createRoundMessage = ""
 		createRoundError = false
 		showCreateRoundModal = true
@@ -637,8 +637,8 @@
 		if (
 			!newRoundName.trim() ||
 			!newRoundDescription.trim() ||
-			newRoundActiveDays <= 0 ||
-			newRoundGradingDays <= 0
+			newRoundActiveMs <= 0 ||
+			newRoundGradingMs <= 0
 		) {
 			createRoundMessage = "All fields are required and durations must be positive."
 			createRoundError = true
@@ -650,8 +650,8 @@
 		createRoundError = false
 
 		try {
-			const activeDurationMs = newRoundActiveDays * 24 * 60 * 60 * 1000
-			const gradingDurationMs = newRoundGradingDays * 24 * 60 * 60 * 1000
+			const activeDurationMs = Number(newRoundActiveMs)
+			const gradingDurationMs = Number(newRoundGradingMs)
 
 			const { response, data: roundData } = await createRound({
 				path: { eventId },
@@ -1867,29 +1867,37 @@
 						></textarea>
 					</div>
 
-					<h4 class="modal-section-title">Timeline Configurations</h4>
+					<h4 class="modal-section-title">Timeline Configurations (in Milliseconds)</h4>
 					<div class="form-row">
 						<div class="form-group">
-							<label class="form-label" for="newRoundActiveDays">Active Duration (Days) *</label>
+							<label class="form-label" for="newRoundActiveMs">Active Duration (ms) *</label>
 							<input
-								id="newRoundActiveDays"
+								id="newRoundActiveMs"
 								type="number"
 								min="1"
-								bind:value={newRoundActiveDays}
+								bind:value={newRoundActiveMs}
 								class="input-field"
+								placeholder="e.g. 300000 (5 mins)"
 								required
 							/>
+							<span class="help-text" style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;">
+								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
+							</span>
 						</div>
 						<div class="form-group">
-							<label class="form-label" for="newRoundGradingDays">Grading Duration (Days) *</label>
+							<label class="form-label" for="newRoundGradingMs">Grading Duration (ms) *</label>
 							<input
-								id="newRoundGradingDays"
+								id="newRoundGradingMs"
 								type="number"
 								min="1"
-								bind:value={newRoundGradingDays}
+								bind:value={newRoundGradingMs}
 								class="input-field"
+								placeholder="e.g. 300000 (5 mins)"
 								required
 							/>
+							<span class="help-text" style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;">
+								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
+							</span>
 						</div>
 					</div>
 					<div class="modal-actions">
