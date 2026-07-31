@@ -34,6 +34,8 @@ public interface HackathonEventService {
 
   void start(UUID eventId);
 
+  void startGrading(UUID eventId);
+
   byte[] exportTeamCertificate(UUID eventId, UUID teamId);
 
   String exportEventRankingCsv(UUID eventId);

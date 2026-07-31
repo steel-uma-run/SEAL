@@ -14,6 +14,7 @@
 		getRounds,
 		deleteRound,
 		startEvent,
+		startGrading,
 		advance,
 		updateTrack,
 		deleteTrack,
@@ -94,7 +95,7 @@
 				selectedTeamDetails = data
 				showTeamDetailsModal = true
 			} else {
-				alert(`Failed to get team info: ${error?.detail || error?.message || 'Unknown error'}`)
+				alert(`Failed to get team info: ${error?.detail || error?.message || "Unknown error"}`)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -106,13 +107,40 @@
 
 	// Event Rounds list
 	let eventRounds = $state<any[]>([])
+	let hasEventStarted = $derived(
+		eventRounds.some((r: any) => r.activeTime || r.active_time || r.startTime || r.start_time)
+	)
+	let canAdvanceRound = $derived(
+		hasEventStarted &&
+			eventRounds.some((r: any) => !(r.activeTime || r.active_time || r.startTime || r.start_time))
+	)
+	let canStartGrading = $derived(
+		Boolean(
+			currentActiveRound &&
+			!(currentActiveRound.gradingStartTime || currentActiveRound.grading_start_time)
+		)
+	)
+	let currentActiveRound = $derived.by(() => {
+		const startedRounds = eventRounds.filter(
+			(r: any) => r.activeTime || r.active_time || r.startTime || r.start_time
+		)
+		if (startedRounds.length === 0) return null
+		return startedRounds[startedRounds.length - 1]
+	})
+	let currentRoundPhase = $derived.by(() => {
+		if (!currentActiveRound) return null
+		if (currentActiveRound.gradingStartTime || currentActiveRound.grading_start_time) {
+			return "Grading Phase"
+		}
+		return "Submission Phase"
+	})
 
 	// Create Round Modal State
 	let showCreateRoundModal = $state(false)
 	let newRoundName = $state("")
 	let newRoundDescription = $state("")
-	let newRoundActiveDays = $state(7)
-	let newRoundGradingDays = $state(3)
+	let newRoundActiveMs = $state(300000) // Default 300,000 ms (5 mins) for easy testing
+	let newRoundGradingMs = $state(300000) // Default 300,000 ms (5 mins) for easy testing
 	let isCreatingRound = $state(false)
 	let createRoundMessage = $state("")
 	let createRoundError = $state(false)
@@ -412,8 +440,8 @@
 	function openCreateRoundModal() {
 		newRoundName = ""
 		newRoundDescription = ""
-		newRoundActiveDays = 7
-		newRoundGradingDays = 3
+		newRoundActiveMs = 300000
+		newRoundGradingMs = 300000
 		createRoundMessage = ""
 		createRoundError = false
 		showCreateRoundModal = true
@@ -614,8 +642,8 @@
 		if (
 			!newRoundName.trim() ||
 			!newRoundDescription.trim() ||
-			newRoundActiveDays <= 0 ||
-			newRoundGradingDays <= 0
+			newRoundActiveMs <= 0 ||
+			newRoundGradingMs <= 0
 		) {
 			createRoundMessage = "All fields are required and durations must be positive."
 			createRoundError = true
@@ -627,8 +655,8 @@
 		createRoundError = false
 
 		try {
-			const activeDurationMs = newRoundActiveDays * 24 * 60 * 60 * 1000;
-			const gradingDurationMs = newRoundGradingDays * 24 * 60 * 60 * 1000;
+			const activeDurationMs = Number(newRoundActiveMs)
+			const gradingDurationMs = Number(newRoundGradingMs)
 
 			const { response, data: roundData } = await createRound({
 				path: { eventId },
@@ -769,14 +797,38 @@
 
 	// Additional Coordinator Actions
 	async function handleStartEvent() {
-		if (!confirm("Are you sure you want to start this event?")) return
+		if (!confirm("Are you sure you want to start this event? This will activate Round 1.")) return
 		try {
 			const { response, error } = await startEvent({ path: { eventId }, throwOnError: false })
 			if (response?.ok) {
-				alert("Event started successfully!")
+				alert("Event started successfully! Round 1 is now active.")
 				await fetchEventDetails()
+				await loadEventRounds()
 			} else {
-				alert(`Failed to start event: ${error?.detail || response?.statusText}`)
+				alert(`Failed to start event: ${error?.detail || response?.statusText || "Unknown error"}`)
+			}
+		} catch (err: any) {
+			alert(`Error: ${err.message}`)
+		}
+	}
+
+	async function handleStartGrading() {
+		if (
+			!confirm(
+				"Are you sure you want to start grading for the current active round? Judges will now be able to grade submissions."
+			)
+		)
+			return
+		try {
+			const { response, error } = await startGrading({ path: { eventId }, throwOnError: false })
+			if (response?.ok) {
+				alert("Grading started successfully! Judges can now evaluate submissions.")
+				await fetchEventDetails()
+				await loadEventRounds()
+			} else {
+				alert(
+					`Failed to start grading: ${error?.detail || response?.statusText || "Unknown error"}`
+				)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -784,14 +836,22 @@
 	}
 
 	async function handleAdvanceRound() {
-		if (!confirm("Are you sure you want to advance to the next round?")) return
+		if (
+			!confirm(
+				"Are you sure you want to advance to the final round? Top-scoring teams will be selected and the next round will start."
+			)
+		)
+			return
 		try {
 			const { response, error } = await advance({ path: { eventId }, throwOnError: false })
 			if (response?.ok) {
-				alert("Event advanced successfully!")
+				alert("Event advanced successfully to the next round!")
 				await fetchEventDetails()
+				await loadEventRounds()
 			} else {
-				alert(`Failed to advance event: ${error?.detail || response?.statusText}`)
+				alert(
+					`Failed to advance event: ${error?.detail || response?.statusText || "Unknown error"}`
+				)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -806,7 +866,12 @@
 				alert("Round deleted successfully!")
 				await loadEventRounds()
 			} else {
-				alert(`Failed to delete round: ${error?.detail || response?.statusText}`)
+				const errorMsg =
+					error?.detail ||
+					error?.message ||
+					(response?.statusText ? response.statusText : null) ||
+					"An unexpected error occurred"
+				alert(`Failed to delete round: ${errorMsg}`)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -977,8 +1042,36 @@
 		<div class="content-wrapper">
 			<!-- Event Header Card -->
 			<div class="md3-card header-card">
-				<div class="header-status">
-					<span class="badge badge-primary">{event.status}</span>
+				<div
+					class="header-status"
+					style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;"
+				>
+					<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+						<span class="badge badge-primary">{event.status}</span>
+						{#if currentActiveRound}
+							<span class="badge badge-success" style="font-weight: 600; padding: 0.3rem 0.75rem;">
+								Active Round: {currentActiveRound.name} ({currentRoundPhase})
+							</span>
+						{/if}
+					</div>
+					<div
+						class="header-action-buttons"
+						style="display: flex; gap: 0.75rem; align-items: center;"
+					>
+						{#if !hasEventStarted && eventRounds.length > 0}
+							<button onclick={handleStartEvent} class="btn btn-filled">
+								Start Event / Round 1
+							</button>
+						{/if}
+						{#if canStartGrading}
+							<button onclick={handleStartGrading} class="btn btn-filled"> Start Grading </button>
+						{/if}
+						{#if canAdvanceRound}
+							<button onclick={handleAdvanceRound} class="btn btn-tonal">
+								Advance to Final Round
+							</button>
+						{/if}
+					</div>
 				</div>
 
 				<h1 class="event-title">{event.name}</h1>
@@ -1285,7 +1378,11 @@
 													{/if}
 												</td>
 												<td>
-													<button onclick={() => openTeamDetails(team.id)} class="btn-icon" aria-label="View Team Details">
+													<button
+														onclick={() => openTeamDetails(team.id)}
+														class="btn-icon"
+														aria-label="View Team Details"
+													>
 														<Eye class="icon-sm" />
 													</button>
 												</td>
@@ -1302,13 +1399,46 @@
 							</table>
 						</div>
 					{:else if activeTab === "rounds"}
-						{#if event.status?.toUpperCase() === "DRAFT"}
-							<div class="tab-top-actions">
-								<button onclick={openCreateRoundModal} class="btn btn-filled">
-									<Plus class="icon" /> Create Round
-								</button>
+						{#if currentActiveRound}
+							<div
+								class="alert alert-info"
+								style="margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;"
+							>
+								<div>
+									<strong>Current Event Round:</strong>
+									{currentActiveRound.name} —
+									<span style="font-weight: 500;">{currentRoundPhase}</span>
+								</div>
+								<span class="badge badge-success">Active</span>
 							</div>
 						{/if}
+						<div
+							class="tab-top-actions"
+							style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem;"
+						>
+							<div>
+								{#if event.status?.toUpperCase() === "DRAFT"}
+									<button onclick={openCreateRoundModal} class="btn btn-filled">
+										<Plus class="icon" /> Create Round
+									</button>
+								{/if}
+							</div>
+							<div style="display: flex; gap: 0.75rem;">
+								{#if !hasEventStarted && eventRounds.length > 0}
+									<button onclick={handleStartEvent} class="btn btn-filled"> Start Round 1 </button>
+								{/if}
+								{#if canStartGrading}
+									<button onclick={handleStartGrading} class="btn btn-filled">
+										Start Grading
+									</button>
+								{/if}
+								{#if canAdvanceRound}
+									<button onclick={handleAdvanceRound} class="btn btn-tonal">
+										Advance to Final Round
+									</button>
+								{/if}
+							</div>
+						</div>
 
 						{#if eventRounds.length > 0}
 							<div class="table-container">
@@ -1317,8 +1447,9 @@
 										<tr>
 											<th>Round Name</th>
 											<th>Description</th>
+											<th>Status</th>
 											<th>Start Time</th>
-											<th>End Time</th>
+											<th>Grading Time</th>
 											<th>Criteria</th>
 											{#if event.status?.toUpperCase() === "DRAFT"}
 												<th>Actions</th>
@@ -1329,13 +1460,38 @@
 										{#each eventRounds as round}
 											{@const roundCriteria =
 												round.criteria || round.criterias || round.criteriaList || []}
+											{@const isActive = round.activeTime || round.active_time}
+											{@const isGrading = round.gradingStartTime || round.grading_start_time}
 											<tr>
 												<td class="font-bold">{round.name}</td>
 												<td class="text-muted wrap-text">
 													{round.description}
 												</td>
-												<td>{formatDateTime(round.startTime || round.start_time)}</td>
-												<td>{formatDateTime(round.endTime || round.end_time)}</td>
+												<td>
+													{#if isGrading}
+														<span class="badge badge-warning">Grading Phase</span>
+													{:else if isActive}
+														<span class="badge badge-success">Active / Submissions</span>
+													{:else}
+														<span class="badge badge-surface">Upcoming</span>
+													{/if}
+												</td>
+												<td
+													>{formatDateTime(
+														round.activeTime ||
+															round.active_time ||
+															round.startTime ||
+															round.start_time
+													)}</td
+												>
+												<td
+													>{formatDateTime(
+														round.gradingStartTime ||
+															round.grading_start_time ||
+															round.endTime ||
+															round.end_time
+													)}</td
+												>
 												<td>
 													{#if roundCriteria.length > 0}
 														<div class="chip-group small vertical">
@@ -1746,55 +1902,69 @@
 							{createRoundMessage}
 						</div>
 					{/if}
+					<div class="form-group">
+						<label class="form-label" for="newRoundName">Round Name *</label>
+						<input
+							id="newRoundName"
+							type="text"
+							bind:value={newRoundName}
+							class="input-field"
+							required
+							placeholder="e.g. Preliminary Round"
+						/>
+					</div>
+
+					<div class="form-group full-width">
+						<label class="form-label" for="newRoundDesc">Description *</label>
+						<textarea
+							id="newRoundDesc"
+							bind:value={newRoundDescription}
+							class="input-field textarea"
+							rows="2"
+							required
+							placeholder="Short description of this round..."
+						></textarea>
+					</div>
+
+					<h4 class="modal-section-title">Timeline Configurations (in Milliseconds)</h4>
+					<div class="form-row">
 						<div class="form-group">
-							<label class="form-label" for="newRoundName">Round Name *</label>
+							<label class="form-label" for="newRoundActiveMs">Active Duration (ms) *</label>
 							<input
-								id="newRoundName"
-								type="text"
-								bind:value={newRoundName}
+								id="newRoundActiveMs"
+								type="number"
+								min="1"
+								bind:value={newRoundActiveMs}
 								class="input-field"
+								placeholder="e.g. 300000 (5 mins)"
 								required
-								placeholder="e.g. Preliminary Round"
 							/>
+							<span
+								class="help-text"
+								style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;"
+							>
+								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
+							</span>
 						</div>
-
-						<div class="form-group full-width">
-							<label class="form-label" for="newRoundDesc">Description *</label>
-							<textarea
-								id="newRoundDesc"
-								bind:value={newRoundDescription}
-								class="input-field textarea"
-								rows="2"
+						<div class="form-group">
+							<label class="form-label" for="newRoundGradingMs">Grading Duration (ms) *</label>
+							<input
+								id="newRoundGradingMs"
+								type="number"
+								min="1"
+								bind:value={newRoundGradingMs}
+								class="input-field"
+								placeholder="e.g. 300000 (5 mins)"
 								required
-								placeholder="Short description of this round..."
-							></textarea>
+							/>
+							<span
+								class="help-text"
+								style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;"
+							>
+								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
+							</span>
 						</div>
-
-						<h4 class="modal-section-title">Timeline Configurations</h4>
-						<div class="form-row">
-							<div class="form-group">
-								<label class="form-label" for="newRoundActiveDays">Active Duration (Days) *</label>
-								<input
-									id="newRoundActiveDays"
-									type="number"
-									min="1"
-									bind:value={newRoundActiveDays}
-									class="input-field"
-									required
-								/>
-							</div>
-							<div class="form-group">
-								<label class="form-label" for="newRoundGradingDays">Grading Duration (Days) *</label>
-								<input
-									id="newRoundGradingDays"
-									type="number"
-									min="1"
-									bind:value={newRoundGradingDays}
-									class="input-field"
-									required
-								/>
-							</div>
-						</div>
+					</div>
 					<div class="modal-actions">
 						<button
 							type="button"
@@ -2088,7 +2258,8 @@
 					<div class="form-group">
 						<label class="form-label">Status</label>
 						<span
-							class="badge {selectedTeamDetails.status === 'APPROVED' || selectedTeamDetails.status === 'ACTIVE'
+							class="badge {selectedTeamDetails.status === 'APPROVED' ||
+							selectedTeamDetails.status === 'ACTIVE'
 								? 'badge-success'
 								: selectedTeamDetails.status === 'PENDING'
 									? 'badge-warning'

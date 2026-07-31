@@ -85,6 +85,7 @@ public class RoundServiceImpl implements RoundService {
   }
 
   @Override
+  @Transactional
   public void deleteRound(UUID roundId) {
     Round round =
         roundRepository
@@ -96,6 +97,12 @@ public class RoundServiceImpl implements RoundService {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Cannot delete round. Event is not in DRAFT status.");
     }
+
+    // clear all criteria assigned to this round before deletion
+    for (Criteria criteria : round.getCriteria()) {
+      criteriaRepo.delete(criteria);
+    }
+    round.getCriteria().clear();
 
     roundRepository.delete(round);
   }

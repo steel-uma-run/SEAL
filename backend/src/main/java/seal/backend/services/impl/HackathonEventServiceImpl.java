@@ -316,8 +316,9 @@ public class HackathonEventServiceImpl implements HackathonEventService {
               .collect(Collectors.mapping(Map.Entry::getKey, Collectors.toList()))
               .reversed();
 
-      for (Team team : teams.subList(0, Math.min(2, topTeams.size()))) {
-        if (!topTeams.contains(team)) {
+      List<Team> advancingTeams = topTeams.subList(0, Math.min(2, topTeams.size()));
+      for (Team team : teams) {
+        if (!advancingTeams.contains(team)) {
           team.setEliminatedAtRound(activeRound);
         }
 
@@ -348,9 +349,38 @@ public class HackathonEventServiceImpl implements HackathonEventService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event has already started.");
     }
 
+    if (event.getRounds().isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Event does not have any rounds configured.");
+    }
+
     Round firstRound = event.getRounds().getFirst();
     firstRound.setActiveTime(OffsetDateTime.now());
     roundRepo.save(firstRound);
+  }
+
+  @Transactional
+  @Override
+  public void startGrading(UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event does not exist."));
+
+    Round roundToGrade =
+        event
+            .getRounds()
+            .stream()
+            .filter(r -> r.getActiveTime() != null && r.getGradingStartTime() == null)
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "No round currently available to start grading."));
+
+    roundToGrade.setGradingStartTime(OffsetDateTime.now());
+    roundRepo.save(roundToGrade);
   }
 
   @Override

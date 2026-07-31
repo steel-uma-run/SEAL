@@ -97,6 +97,9 @@
     "/events/{eventId}/start": {
       "$ref": "./openapi/paths/events/start.json"
     },
+    "/events/{eventId}/start-grading": {
+      "$ref": "./openapi/paths/events/start_grading.json"
+    },
     "/events/{eventId}/teams/{teamId}/certificate": {
       "$ref": "./openapi/paths/events/export_certificate.json"
     },

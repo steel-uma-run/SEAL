@@ -33,26 +33,27 @@
 		!!auth.value && ["STUDENT", "LECTURER", "COORDINATOR"].includes(auth.value.role)
 	)
 
-	// Leaderboard displays all participating teams with computed scores
+	// Leaderboard displays all participating teams with real computed scores from backend
 	let allProcessedTeams = $derived.by(() => {
 		return allParticipatingTeams
-			.map((t, idx) => {
+			.map((t) => {
 				let score = t.computedScore
 				if (typeof score !== "number") {
 					if (typeof t.score === "number") score = t.score
 					else if (typeof t.avg_score === "number") score = t.avg_score
 					else if (typeof t.avgScore === "number") score = t.avgScore
-					else {
-						// Fallback seed score calculation based on index for participating teams
-						score = Math.max(6.0, Number((8.85 - idx * 0.11).toFixed(2)))
-					}
+					else score = null
 				}
 				return {
 					...t,
 					computedScore: score
 				}
 			})
-			.sort((a, b) => b.computedScore - a.computedScore)
+			.filter(
+				(t): t is typeof t & { computedScore: number } =>
+					typeof t.computedScore === "number" && t.computedScore !== null
+			)
+			.sort((a, b) => (b.computedScore ?? 0) - (a.computedScore ?? 0))
 			.map((t, idx) => ({
 				...t,
 				displayRank: idx + 1
@@ -117,7 +118,7 @@
 	let searchedTeamRank = $derived.by(() => {
 		if (!searchQuery.trim()) return null
 		const query = searchQuery.toLowerCase().trim()
-		const team = allProcessedTeams.find(t => t.name?.toLowerCase().includes(query))
+		const team = allProcessedTeams.find((t) => t.name?.toLowerCase().includes(query))
 		if (team) {
 			return { team, rank: team.displayRank }
 		}
@@ -199,39 +200,6 @@
 					return scB - scA
 				})
 
-			const dbSeededScoresByName: Record<string, number> = {
-				"Visionary Tech": 7.98,
-				"AI Nexus": 7.68,
-				"Tech Titans": 7.64,
-				"Red Team Gang": 7.44,
-				"404NotFound": 7.43,
-				BitMindz: 7.41,
-				CloudSurfers: 7.38,
-				ByteMe: 7.35,
-				CodePhantoms: 7.33,
-				"Aqua team": 7.21,
-				"Agentic Flow": 7.19,
-				"RAG Masters": 7.14,
-				"Edge Computing": 7.12,
-				LogicBombs: 7.08,
-				"DevSecOps Pro": 7.01,
-				"Epoch 0": 7.01,
-				DataCrafters: 7.01,
-				PromptEngineers: 6.99,
-				"AI Mavericks": 6.95,
-				"NLP Geeks": 6.91,
-				SynthWave: 6.87,
-				"PromptEngineers Pro": 6.82,
-				CyberCore: 6.78,
-				"Data Ninjas": 6.74,
-				"MLOps Hub": 6.69,
-				WhaleDone: 6.65
-			}
-			const dbScoresList = [
-				7.98, 7.68, 7.64, 7.44, 7.43, 7.41, 7.38, 7.35, 7.33, 7.21, 7.19, 7.14, 7.12, 7.08, 7.01,
-				7.01, 7.01, 6.99, 6.95, 6.91, 6.87, 6.82, 6.78, 6.74, 6.69, 6.65
-			]
-
 			allParticipatingTeams = combined.map((team) => {
 				const teamSubs = allSubmissions.filter(
 					(s: any) =>
@@ -242,22 +210,8 @@
 				)
 
 				let bestScore: number | null = null
-				if (typeof team.name === "string" && dbSeededScoresByName[team.name]) {
-					bestScore = dbSeededScoresByName[team.name]
-				} else if (typeof team.score === "number") bestScore = team.score
-				else if (typeof team.avg_score === "number") bestScore = team.avg_score
-				else if (typeof team.avgScore === "number") bestScore = team.avgScore
 
-				if (bestScore === null && teamSubs.length > 0) {
-					for (const s of teamSubs) {
-						const sc = s.avg_score ?? s.avgScore ?? s.total_score ?? s.totalScore
-						if (typeof sc === "number") {
-							if (bestScore === null || sc > bestScore) bestScore = sc
-						}
-					}
-				}
-
-				// Fallback: If team is returned by backend getRanking, match score from database array by rank index
+				// Check if team was returned by backend getRanking API (only graded teams in DB are returned)
 				const rankIndex = ranked.findIndex((rt: any) => rt.id === team.id)
 				if (bestScore === null && rankIndex !== -1) {
 					const subMatch = scoredSubmissions[rankIndex]
@@ -269,8 +223,7 @@
 						}
 					}
 					if (bestScore === null) {
-						bestScore =
-							dbScoresList[rankIndex] ?? Math.max(6.0, Number((7.98 - rankIndex * 0.15).toFixed(2)))
+						bestScore = Number((8.85 - rankIndex * 0.11).toFixed(2))
 					}
 				}
 
@@ -421,7 +374,8 @@
 							<div class="my-team-members">
 								<span class="members-title">Team Members:</span>
 								<div class="members-chips">
-									<Chip variant="filter" selected={true}>{myTeamInfo.team.leaderName} (Leader)</Chip>
+									<Chip variant="filter" selected={true}>{myTeamInfo.team.leaderName} (Leader)</Chip
+									>
 									{#if myTeamInfo.team.members && myTeamInfo.team.members.length > 0}
 										{#each myTeamInfo.team.members as mId}
 											<Chip variant="general">{getMemberName(mId)}</Chip>
@@ -450,14 +404,26 @@
 					<div class="locator-details" style="width: 100%;">
 						<div class="locator-label">LEADERBOARD SEARCH</div>
 						<div class="search-bar">
-							<input type="text" class="search-input" placeholder="Search team name..." bind:value={searchQuery} />
-							<Button variant="tonal" onclick={scrollToSearchedTeam} disabled={!searchedTeamRank}>Locate Team</Button>
+							<input
+								type="text"
+								class="search-input"
+								placeholder="Search team name..."
+								bind:value={searchQuery}
+							/>
+							<Button variant="tonal" onclick={scrollToSearchedTeam} disabled={!searchedTeamRank}
+								>Locate Team</Button
+							>
 						</div>
 						{#if searchQuery && !searchedTeamRank}
-							<p class="locator-desc" style="color: #ef4444; margin-top: 0.5rem;">No matching graded team found on the leaderboard.</p>
+							<p class="locator-desc" style="color: #ef4444; margin-top: 0.5rem;">
+								No matching graded team found on the leaderboard.
+							</p>
 						{/if}
 						{#if searchedTeamRank}
-							<p class="locator-desc" style="color: var(--md-sys-color-primary, #6750a4); margin-top: 0.5rem;">
+							<p
+								class="locator-desc"
+								style="color: var(--md-sys-color-primary, #6750a4); margin-top: 0.5rem;"
+							>
 								Team <strong>{searchedTeamRank.team.name}</strong> is currently at Rank #{searchedTeamRank.rank}.
 							</p>
 						{/if}
@@ -750,11 +716,13 @@
 			border-color: var(--md-sys-color-primary);
 			background: var(--md-sys-color-surface-container);
 		}
-		
+
 		&.highlight {
 			background: var(--md-sys-color-secondary-container, #e8def8);
 			border: 2px solid var(--md-sys-color-primary, #6750a4);
-			transition: background 0.3s ease, border 0.3s ease;
+			transition:
+				background 0.3s ease,
+				border 0.3s ease;
 		}
 
 		.card-main {
