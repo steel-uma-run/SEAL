@@ -316,8 +316,9 @@ public class HackathonEventServiceImpl implements HackathonEventService {
               .collect(Collectors.mapping(Map.Entry::getKey, Collectors.toList()))
               .reversed();
 
-      for (Team team : teams.subList(0, Math.min(2, topTeams.size()))) {
-        if (!topTeams.contains(team)) {
+      List<Team> advancingTeams = topTeams.subList(0, Math.min(2, topTeams.size()));
+      for (Team team : teams) {
+        if (!advancingTeams.contains(team)) {
           team.setEliminatedAtRound(activeRound);
         }
 
@@ -346,6 +347,11 @@ public class HackathonEventServiceImpl implements HackathonEventService {
 
     if (event.hasStarted()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event has already started.");
+    }
+
+    if (event.getRounds().isEmpty()) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Event does not have any rounds configured.");
     }
 
     Round firstRound = event.getRounds().getFirst();

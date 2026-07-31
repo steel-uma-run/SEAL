@@ -106,6 +106,29 @@
 
 	// Event Rounds list
 	let eventRounds = $state<any[]>([])
+	let hasEventStarted = $derived(
+		eventRounds.some((r: any) => r.activeTime || r.active_time || r.startTime || r.start_time)
+	)
+	let canAdvanceRound = $derived(
+		hasEventStarted && eventRounds.some((r: any) => !(r.activeTime || r.active_time || r.startTime || r.start_time))
+	)
+	let canStartGrading = $derived(
+		Boolean(currentActiveRound && !(currentActiveRound.gradingStartTime || currentActiveRound.grading_start_time))
+	)
+	let currentActiveRound = $derived.by(() => {
+		const startedRounds = eventRounds.filter(
+			(r: any) => r.activeTime || r.active_time || r.startTime || r.start_time
+		)
+		if (startedRounds.length === 0) return null
+		return startedRounds[startedRounds.length - 1]
+	})
+	let currentRoundPhase = $derived.by(() => {
+		if (!currentActiveRound) return null
+		if (currentActiveRound.gradingStartTime || currentActiveRound.grading_start_time) {
+			return "Grading Phase"
+		}
+		return "Submission Phase"
+	})
 
 	// Create Round Modal State
 	let showCreateRoundModal = $state(false)
@@ -769,14 +792,15 @@
 
 	// Additional Coordinator Actions
 	async function handleStartEvent() {
-		if (!confirm("Are you sure you want to start this event?")) return
+		if (!confirm("Are you sure you want to start this event? This will activate Round 1.")) return
 		try {
 			const { response, error } = await startEvent({ path: { eventId }, throwOnError: false })
 			if (response?.ok) {
-				alert("Event started successfully!")
+				alert("Event started successfully! Round 1 is now active.")
 				await fetchEventDetails()
+				await loadEventRounds()
 			} else {
-				alert(`Failed to start event: ${error?.detail || response?.statusText}`)
+				alert(`Failed to start event: ${error?.detail || response?.statusText || "Unknown error"}`)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -784,14 +808,15 @@
 	}
 
 	async function handleAdvanceRound() {
-		if (!confirm("Are you sure you want to advance to the next round?")) return
+		if (!confirm("Are you sure you want to advance to the final round? Top-scoring teams will be selected and the next round will start.")) return
 		try {
 			const { response, error } = await advance({ path: { eventId }, throwOnError: false })
 			if (response?.ok) {
-				alert("Event advanced successfully!")
+				alert("Event advanced successfully to the next round!")
 				await fetchEventDetails()
+				await loadEventRounds()
 			} else {
-				alert(`Failed to advance event: ${error?.detail || response?.statusText}`)
+				alert(`Failed to advance event: ${error?.detail || response?.statusText || "Unknown error"}`)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -982,8 +1007,32 @@
 		<div class="content-wrapper">
 			<!-- Event Header Card -->
 			<div class="md3-card header-card">
-				<div class="header-status">
-					<span class="badge badge-primary">{event.status}</span>
+				<div class="header-status" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+					<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+						<span class="badge badge-primary">{event.status}</span>
+						{#if currentActiveRound}
+							<span class="badge badge-success" style="font-weight: 600; padding: 0.3rem 0.75rem;">
+								Active Round: {currentActiveRound.name} ({currentRoundPhase})
+							</span>
+						{/if}
+					</div>
+					<div class="header-action-buttons" style="display: flex; gap: 0.75rem; align-items: center;">
+						{#if !hasEventStarted && eventRounds.length > 0}
+							<button onclick={handleStartEvent} class="btn btn-filled">
+								Start Event / Round 1
+							</button>
+						{/if}
+						{#if canStartGrading}
+							<button onclick={handleStartGrading} class="btn btn-filled">
+								Start Grading
+							</button>
+						{/if}
+						{#if canAdvanceRound}
+							<button onclick={handleAdvanceRound} class="btn btn-tonal">
+								Advance to Final Round
+							</button>
+						{/if}
+					</div>
 				</div>
 
 				<h1 class="event-title">{event.name}</h1>
@@ -1311,13 +1360,40 @@
 							</table>
 						</div>
 					{:else if activeTab === "rounds"}
-						{#if event.status?.toUpperCase() === "DRAFT"}
-							<div class="tab-top-actions">
-								<button onclick={openCreateRoundModal} class="btn btn-filled">
-									<Plus class="icon" /> Create Round
-								</button>
+						{#if currentActiveRound}
+							<div class="alert alert-info" style="margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+								<div>
+									<strong>Current Event Round:</strong> {currentActiveRound.name} — <span style="font-weight: 500;">{currentRoundPhase}</span>
+								</div>
+								<span class="badge badge-success">Active</span>
 							</div>
 						{/if}
+						<div class="tab-top-actions" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+							<div>
+								{#if event.status?.toUpperCase() === "DRAFT"}
+									<button onclick={openCreateRoundModal} class="btn btn-filled">
+										<Plus class="icon" /> Create Round
+									</button>
+								{/if}
+							</div>
+							<div style="display: flex; gap: 0.75rem;">
+								{#if !hasEventStarted && eventRounds.length > 0}
+									<button onclick={handleStartEvent} class="btn btn-filled">
+										Start Round 1
+									</button>
+								{/if}
+								{#if canStartGrading}
+									<button onclick={handleStartGrading} class="btn btn-filled">
+										Start Grading
+									</button>
+								{/if}
+								{#if canAdvanceRound}
+									<button onclick={handleAdvanceRound} class="btn btn-tonal">
+										Advance to Final Round
+									</button>
+								{/if}
+							</div>
+						</div>
 
 						{#if eventRounds.length > 0}
 							<div class="table-container">
@@ -1326,8 +1402,9 @@
 										<tr>
 											<th>Round Name</th>
 											<th>Description</th>
+											<th>Status</th>
 											<th>Start Time</th>
-											<th>End Time</th>
+											<th>Grading Time</th>
 											<th>Criteria</th>
 											{#if event.status?.toUpperCase() === "DRAFT"}
 												<th>Actions</th>
@@ -1338,13 +1415,24 @@
 										{#each eventRounds as round}
 											{@const roundCriteria =
 												round.criteria || round.criterias || round.criteriaList || []}
+											{@const isActive = round.activeTime || round.active_time}
+											{@const isGrading = round.gradingStartTime || round.grading_start_time}
 											<tr>
 												<td class="font-bold">{round.name}</td>
 												<td class="text-muted wrap-text">
 													{round.description}
 												</td>
-												<td>{formatDateTime(round.startTime || round.start_time)}</td>
-												<td>{formatDateTime(round.endTime || round.end_time)}</td>
+												<td>
+													{#if isGrading}
+														<span class="badge badge-warning">Grading Phase</span>
+													{:else if isActive}
+														<span class="badge badge-success">Active / Submissions</span>
+													{:else}
+														<span class="badge badge-surface">Upcoming</span>
+													{/if}
+												</td>
+												<td>{formatDateTime(round.activeTime || round.active_time || round.startTime || round.start_time)}</td>
+												<td>{formatDateTime(round.gradingStartTime || round.grading_start_time || round.endTime || round.end_time)}</td>
 												<td>
 													{#if roundCriteria.length > 0}
 														<div class="chip-group small vertical">
