@@ -13,6 +13,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import seal.backend.entities.AuditLog;
 import seal.backend.entities.Coordinator;
 import seal.backend.entities.Criteria;
 import seal.backend.entities.CriteriaTemplate;
@@ -26,12 +27,14 @@ import seal.backend.entities.Submission;
 import seal.backend.entities.Team;
 import seal.backend.entities.TemplatedCriteria;
 import seal.backend.entities.Track;
+import seal.backend.entities.audit.GradingLog;
 import seal.backend.enums.EventStatus;
 import seal.backend.enums.Role;
 import seal.backend.enums.Semester;
 import seal.backend.enums.StudentStatus;
 import seal.backend.enums.StudentType;
 import seal.backend.enums.TeamStatus;
+import seal.backend.repositories.AuditLogRepository;
 import seal.backend.repositories.CriteriaRepository;
 import seal.backend.repositories.CriteriaTemplateRepository;
 import seal.backend.repositories.HackathonEventRepository;
@@ -65,6 +68,7 @@ public class DatabaseSeeder implements CommandLineRunner {
   private final TeamRepository teamRepo;
   private final SubmissionRepository submissionRepo;
   private final ScoreRepository scoreRepo;
+  private final AuditLogRepository<AuditLog> auditLogRepo;
   private final PasswordEncoder passwordEncoder;
 
   private final Random random =
@@ -511,60 +515,102 @@ public class DatabaseSeeder implements CommandLineRunner {
               targetRound);
       Submission savedSubmission = submissionRepo.save(submission);
 
-      // --- CHẤM ĐIỂM KỲ SPRING (Giữ nguyên) ---
+      // --- CHẤM ĐIỂM KỲ SPRING ---
       if (isSpringEvent) {
         if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
-          for (Criteria criteria : targetRound.getCriteria()) {
+          int judgeCount = 0;
+          for (Lecturer judge : teamTrack.getJudges()) {
+            if (judgeCount >= 3) break;
+
             float baseScore = 6.0f + random.nextInt(3);
-            int judgeCount = 0;
-            for (Lecturer judge : teamTrack.getJudges()) {
-              if (judgeCount >= 3) break;
+            for (Criteria criteria : targetRound.getCriteria()) {
               float judgeScore = baseScore + (random.nextBoolean() ? 0.5f : 0.0f);
               Score score = new Score(criteria, savedSubmission, judge, judgeScore);
               score.setComment("Đánh giá " + criteria.getName() + " đạt yêu cầu chuyên môn.");
               scoreRepo.save(score);
-              judgeCount++;
             }
+
+            // LƯU AUDIT LOG CHO HÀNH ĐỘNG CHẤM ĐIỂM CỦA GIÁM KHẢO
+            auditLogRepo.save(
+                GradingLog.builder()
+                    .actionTime(OffsetDateTime.now())
+                    .actor(judge)
+                    .submission(savedSubmission)
+                    .action("GRADED_SUBMISSION")
+                    .details("Giám khảo đã chấm điểm bài nộp của nhóm " + team.getName())
+                    .build());
+
+            judgeCount++;
           }
         }
       }
       // --- CHẤM ĐIỂM KỲ SUMMER ---
       else {
-        // 1. Xử lý riêng cho team Slothub (Chỉ 2 giám khảo chấm điểm 8.0 & 8.5, chừa slot cho Demo)
+        // 1. Xử lý riêng cho team Slothub (Chỉ 2 giám khảo chấm, chừa slot cho Demo)
         if (team.getName().equals("Slothub")) {
           if (teamTrack != null && teamTrack.getJudges().size() >= 2) {
+
+            // Giám khảo 1
+            Lecturer judge1 = teamTrack.getJudges().get(0);
             for (Criteria criteria : targetRound.getCriteria()) {
-              Lecturer judge1 = teamTrack.getJudges().get(0);
               Score score1 = new Score(criteria, savedSubmission, judge1, 8.0f);
               score1.setComment("Giải pháp rất tốt, đáp ứng đúng yêu cầu của hệ thống RAG.");
               scoreRepo.save(score1);
+            }
+            auditLogRepo.save(
+                GradingLog.builder()
+                    .actionTime(OffsetDateTime.now())
+                    .actor(judge1)
+                    .submission(savedSubmission)
+                    .action("GRADED_SUBMISSION")
+                    .details("Giám khảo đã chấm điểm bài nộp của nhóm Slothub")
+                    .build());
 
-              Lecturer judge2 = teamTrack.getJudges().get(1);
+            // Giám khảo 2
+            Lecturer judge2 = teamTrack.getJudges().get(1);
+            for (Criteria criteria : targetRound.getCriteria()) {
               Score score2 = new Score(criteria, savedSubmission, judge2, 8.5f);
               score2.setComment("Kiến trúc Agentic RAG khá ổn định và có tính ứng dụng cao.");
               scoreRepo.save(score2);
             }
+            auditLogRepo.save(
+                GradingLog.builder()
+                    .actionTime(OffsetDateTime.now())
+                    .actor(judge2)
+                    .submission(savedSubmission)
+                    .action("GRADED_SUBMISSION")
+                    .details("Giám khảo đã chấm điểm bài nộp của nhóm Slothub.")
+                    .build());
           }
         }
-        // 2. 8 team còn lại: Chấm full 3 giám khảo với điểm dao động 6.5 -> 9.0
+        // 2. 8 team còn lại
         else {
           if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
-            for (Criteria criteria : targetRound.getCriteria()) {
-              // Điểm nền dao động từ 6.5 đến 8.0
+            int judgeCount = 0;
+            for (Lecturer judge : teamTrack.getJudges()) {
+              if (judgeCount >= 3) break;
+
               float baseScore = 6.5f + (random.nextInt(4) * 0.5f);
-              int judgeCount = 0;
-              for (Lecturer judge : teamTrack.getJudges()) {
-                if (judgeCount >= 3) break;
-                // Giám khảo lệch nhau tối đa 0.0, 0.5 hoặc 1.0 (An toàn tuyệt đối, không văng lỗi
-                // Deviation Alert >= 2.0)
+              for (Criteria criteria : targetRound.getCriteria()) {
                 float judgeScore = baseScore + (random.nextInt(3) * 0.5f);
                 if (judgeScore > 10.0f) judgeScore = 10.0f;
 
                 Score score = new Score(criteria, savedSubmission, judge, judgeScore);
                 score.setComment("Phần " + criteria.getName() + " triển khai tốt, sát thực tế.");
                 scoreRepo.save(score);
-                judgeCount++;
               }
+
+              // LƯU AUDIT LOG
+              auditLogRepo.save(
+                  GradingLog.builder()
+                      .actionTime(OffsetDateTime.now())
+                      .actor(judge)
+                      .submission(savedSubmission)
+                      .action("GRADED_SUBMISSION")
+                      .details("Giám khảo đã chấm điểm bài nộp của nhóm " + team.getName())
+                      .build());
+
+              judgeCount++;
             }
           }
         }
