@@ -40,6 +40,14 @@ public class AccountController implements AccountsApi {
 
   @Override
   @PreAuthorize("hasRole('COORDINATOR')")
+  public ResponseEntity<Void> deleteAccount(
+      @PathVariable(name = "accountId") @NotNull UUID accountId) {
+    accountService.deleteUser(accountId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  @PreAuthorize("hasRole('COORDINATOR')")
   public ResponseEntity<StudentDto[]> getUnapprovedStudents() {
     return ResponseEntity.ok(accountService.getUnapprovedStudents());
   }
