@@ -206,23 +206,15 @@ public class DatabaseSeeder implements CommandLineRunner {
     // eventSummer));
 
     // --- ROUNDS SUMMER DEMO ---
-    // Nộp bài (Active): 2 phút | Chấm điểm (Grading): 5 phút
+    // Nộp bài (Active): 5 phút | Chấm điểm (Grading): 5 phút
     Round rdSum1 =
         roundRepo.save(
             new Round(
-                "Round 1",
-                "Vòng loại",
-                Duration.ofMinutes(10),
-                Duration.ofMinutes(7),
-                eventSummer));
+                "Round 1", "Vòng loại", Duration.ofMinutes(5), Duration.ofMinutes(5), eventSummer));
     Round rdSum2 =
         roundRepo.save(
             new Round(
-                "Round 2",
-                "Chung kết",
-                Duration.ofMinutes(10),
-                Duration.ofMinutes(7),
-                eventSummer));
+                "Round 2", "Chung kết", Duration.ofMinutes(5), Duration.ofMinutes(5), eventSummer));
 
     // ==========================================
     // 3. TẠO TIÊU CHÍ (CRITERIA)
@@ -444,35 +436,55 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     // ==========================================
-    // 8. TẠO SUBMISSION VÀ SCORE (SPRING: TẤT CẢ, SUMMER: DEMO 5 BÀI)
+    // 8. TẠO SUBMISSION VÀ SCORE (SPRING: TẤT CẢ | SUMMER: 9 BÀI - MỖI TRACK 3 BÀI)
     // ==========================================
-    log.info("Bat dau tao du lieu Submission cho Spring (Tat ca) va Summer (Demo 5 bai)...");
+    log.info("Bat dau tao du lieu Submission cho Spring (Tat ca) va Summer (Moi track 3 bai)...");
 
     List<Team> allTeams = teamRepo.findAll();
-    int summerSubmissionCount = 0;
+
+    // Khởi tạo biến đếm bài nộp cho từng Track của kỳ Summer
+    int sumTrackACount = 0;
+    int sumTrackBCount = 0;
+    int sumTrackCCount = 0;
 
     for (Team team : allTeams) {
       boolean isSpringEvent = team.getHackathonEvent().getId().equals(eventSpring.getId());
+      Track teamTrack = team.getTrack();
 
-      // Logic giới hạn: Chỉ tạo 5 bài nộp cho kỳ Summer
+      // Lọc số lượng bài nộp cho kỳ Summer (Đảm bảo đúng 9 bài, mỗi Track 3 bài)
       if (!isSpringEvent) {
-        if (summerSubmissionCount >= 5) {
+        boolean shouldSubmit = false;
+        if (team.getName().equals("Slothub")) {
+          shouldSubmit = true;
+          sumTrackACount++; // Slothub mặc định nằm ở Track A
+        } else if (teamTrack != null) {
+          if (teamTrack.getId().equals(trSumA.getId()) && sumTrackACount < 3) {
+            shouldSubmit = true;
+            sumTrackACount++;
+          } else if (teamTrack.getId().equals(trSumB.getId()) && sumTrackBCount < 3) {
+            shouldSubmit = true;
+            sumTrackBCount++;
+          } else if (teamTrack.getId().equals(trSumC.getId()) && sumTrackCCount < 3) {
+            shouldSubmit = true;
+            sumTrackCCount++;
+          }
+        }
+
+        // Nếu không thuộc danh sách 9 team được chọn thì bỏ qua
+        if (!shouldSubmit) {
           continue;
         }
-        summerSubmissionCount++;
       }
 
       Round targetRound = isSpringEvent ? rdSpring1 : rdSum1;
 
-      // Đảm bảo targetRound đã được set activeTime trước đó để tránh lỗi NullPointerException
       if (targetRound.getActiveTime() == null) {
         targetRound.setActiveTime(OffsetDateTime.now());
       }
 
-      // Thời gian nộp bài phải nằm giữa submissionStartTime (07h15) và submissionEndTime (10h00) ->
-      // Khoảng 165 phút
+      // Rút ngắn Submit Time xuống random trong vòng 60 giây để vừa vặn với 5 phút của Demo
       OffsetDateTime roundTime = targetRound.getActiveTime();
-      OffsetDateTime submitTime = roundTime.plusMinutes(random.nextInt(165));
+      OffsetDateTime submitTime = roundTime.plusSeconds(random.nextInt(60));
 
       String slug = team.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
       String submissionTitle = "Giải pháp " + team.getName() + ": " + team.getDescription();
@@ -499,48 +511,61 @@ public class DatabaseSeeder implements CommandLineRunner {
               targetRound);
       Submission savedSubmission = submissionRepo.save(submission);
 
-      // --- CHẤM ĐIỂM (CHỈ DÀNH CHO KỲ SPRING) ---
+      // --- CHẤM ĐIỂM KỲ SPRING (Giữ nguyên) ---
       if (isSpringEvent) {
-        Track teamTrack = team.getTrack();
-
         if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
-
           for (Criteria criteria : targetRound.getCriteria()) {
-            // Sinh 1 điểm gốc (từ 6.0 đến 8.0) cho Tiêu chí này của Team này
             float baseScore = 6.0f + random.nextInt(3);
-
             int judgeCount = 0;
             for (Lecturer judge : teamTrack.getJudges()) {
-              // Chỉ lấy 3 giám khảo đầu tiên
               if (judgeCount >= 3) break;
-
-              // Các giám khảo sẽ cho điểm lệch nhau tối đa 0.5 (vd: 7.0 và 7.5)
               float judgeScore = baseScore + (random.nextBoolean() ? 0.5f : 0.0f);
-
               Score score = new Score(criteria, savedSubmission, judge, judgeScore);
               score.setComment("Đánh giá " + criteria.getName() + " đạt yêu cầu chuyên môn.");
               scoreRepo.save(score);
-
               judgeCount++;
             }
           }
         }
-      } // --- CHẤM ĐIỂM DEMO CHO SLOTHUB (KỲ SUMMER) ---
-      else if (team.getName().equals("Slothub")) {
-        Track teamTrack = team.getTrack();
-        if (teamTrack != null && teamTrack.getJudges().size() >= 2) {
-          for (Criteria criteria : targetRound.getCriteria()) {
-            // Giám khảo 1 (Lê Hoàng Nam - namlh@seal.edu.vn) cho điểm 8.0
-            Lecturer judge1 = teamTrack.getJudges().get(0);
-            Score score1 = new Score(criteria, savedSubmission, judge1, 8.0f);
-            score1.setComment("Giải pháp rất tốt, đáp ứng đúng yêu cầu của hệ thống RAG.");
-            scoreRepo.save(score1);
+      }
+      // --- CHẤM ĐIỂM KỲ SUMMER ---
+      else {
+        // 1. Xử lý riêng cho team Slothub (Chỉ 2 giám khảo chấm điểm 8.0 & 8.5, chừa slot cho Demo)
+        if (team.getName().equals("Slothub")) {
+          if (teamTrack != null && teamTrack.getJudges().size() >= 2) {
+            for (Criteria criteria : targetRound.getCriteria()) {
+              Lecturer judge1 = teamTrack.getJudges().get(0);
+              Score score1 = new Score(criteria, savedSubmission, judge1, 8.0f);
+              score1.setComment("Giải pháp rất tốt, đáp ứng đúng yêu cầu của hệ thống RAG.");
+              scoreRepo.save(score1);
 
-            // Giám khảo 2 (Trần Thanh Mai - maitt@seal.edu.vn) cho điểm 8.5
-            Lecturer judge2 = teamTrack.getJudges().get(1);
-            Score score2 = new Score(criteria, savedSubmission, judge2, 8.5f);
-            score2.setComment("Kiến trúc Agentic RAG khá ổn định và có tính ứng dụng cao.");
-            scoreRepo.save(score2);
+              Lecturer judge2 = teamTrack.getJudges().get(1);
+              Score score2 = new Score(criteria, savedSubmission, judge2, 8.5f);
+              score2.setComment("Kiến trúc Agentic RAG khá ổn định và có tính ứng dụng cao.");
+              scoreRepo.save(score2);
+            }
+          }
+        }
+        // 2. 8 team còn lại: Chấm full 3 giám khảo với điểm dao động 6.5 -> 9.0
+        else {
+          if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
+            for (Criteria criteria : targetRound.getCriteria()) {
+              // Điểm nền dao động từ 6.5 đến 8.0
+              float baseScore = 6.5f + (random.nextInt(4) * 0.5f);
+              int judgeCount = 0;
+              for (Lecturer judge : teamTrack.getJudges()) {
+                if (judgeCount >= 3) break;
+                // Giám khảo lệch nhau tối đa 0.0, 0.5 hoặc 1.0 (An toàn tuyệt đối, không văng lỗi
+                // Deviation Alert >= 2.0)
+                float judgeScore = baseScore + (random.nextInt(3) * 0.5f);
+                if (judgeScore > 10.0f) judgeScore = 10.0f;
+
+                Score score = new Score(criteria, savedSubmission, judge, judgeScore);
+                score.setComment("Phần " + criteria.getName() + " triển khai tốt, sát thực tế.");
+                scoreRepo.save(score);
+                judgeCount++;
+              }
+            }
           }
         }
       }
