@@ -111,10 +111,14 @@
 		eventRounds.some((r: any) => r.activeTime || r.active_time || r.startTime || r.start_time)
 	)
 	let canAdvanceRound = $derived(
-		hasEventStarted && eventRounds.some((r: any) => !(r.activeTime || r.active_time || r.startTime || r.start_time))
+		hasEventStarted &&
+			eventRounds.some((r: any) => !(r.activeTime || r.active_time || r.startTime || r.start_time))
 	)
 	let canStartGrading = $derived(
-		Boolean(currentActiveRound && !(currentActiveRound.gradingStartTime || currentActiveRound.grading_start_time))
+		Boolean(
+			currentActiveRound &&
+			!(currentActiveRound.gradingStartTime || currentActiveRound.grading_start_time)
+		)
 	)
 	let currentActiveRound = $derived.by(() => {
 		const startedRounds = eventRounds.filter(
@@ -809,7 +813,12 @@
 	}
 
 	async function handleStartGrading() {
-		if (!confirm("Are you sure you want to start grading for the current active round? Judges will now be able to grade submissions.")) return
+		if (
+			!confirm(
+				"Are you sure you want to start grading for the current active round? Judges will now be able to grade submissions."
+			)
+		)
+			return
 		try {
 			const { response, error } = await startGrading({ path: { eventId }, throwOnError: false })
 			if (response?.ok) {
@@ -817,7 +826,9 @@
 				await fetchEventDetails()
 				await loadEventRounds()
 			} else {
-				alert(`Failed to start grading: ${error?.detail || response?.statusText || "Unknown error"}`)
+				alert(
+					`Failed to start grading: ${error?.detail || response?.statusText || "Unknown error"}`
+				)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -825,7 +836,12 @@
 	}
 
 	async function handleAdvanceRound() {
-		if (!confirm("Are you sure you want to advance to the final round? Top-scoring teams will be selected and the next round will start.")) return
+		if (
+			!confirm(
+				"Are you sure you want to advance to the final round? Top-scoring teams will be selected and the next round will start."
+			)
+		)
+			return
 		try {
 			const { response, error } = await advance({ path: { eventId }, throwOnError: false })
 			if (response?.ok) {
@@ -833,7 +849,9 @@
 				await fetchEventDetails()
 				await loadEventRounds()
 			} else {
-				alert(`Failed to advance event: ${error?.detail || response?.statusText || "Unknown error"}`)
+				alert(
+					`Failed to advance event: ${error?.detail || response?.statusText || "Unknown error"}`
+				)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -1024,7 +1042,10 @@
 		<div class="content-wrapper">
 			<!-- Event Header Card -->
 			<div class="md3-card header-card">
-				<div class="header-status" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+				<div
+					class="header-status"
+					style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;"
+				>
 					<div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
 						<span class="badge badge-primary">{event.status}</span>
 						{#if currentActiveRound}
@@ -1033,16 +1054,17 @@
 							</span>
 						{/if}
 					</div>
-					<div class="header-action-buttons" style="display: flex; gap: 0.75rem; align-items: center;">
+					<div
+						class="header-action-buttons"
+						style="display: flex; gap: 0.75rem; align-items: center;"
+					>
 						{#if !hasEventStarted && eventRounds.length > 0}
 							<button onclick={handleStartEvent} class="btn btn-filled">
 								Start Event / Round 1
 							</button>
 						{/if}
 						{#if canStartGrading}
-							<button onclick={handleStartGrading} class="btn btn-filled">
-								Start Grading
-							</button>
+							<button onclick={handleStartGrading} class="btn btn-filled"> Start Grading </button>
 						{/if}
 						{#if canAdvanceRound}
 							<button onclick={handleAdvanceRound} class="btn btn-tonal">
@@ -1378,14 +1400,22 @@
 						</div>
 					{:else if activeTab === "rounds"}
 						{#if currentActiveRound}
-							<div class="alert alert-info" style="margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+							<div
+								class="alert alert-info"
+								style="margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;"
+							>
 								<div>
-									<strong>Current Event Round:</strong> {currentActiveRound.name} — <span style="font-weight: 500;">{currentRoundPhase}</span>
+									<strong>Current Event Round:</strong>
+									{currentActiveRound.name} —
+									<span style="font-weight: 500;">{currentRoundPhase}</span>
 								</div>
 								<span class="badge badge-success">Active</span>
 							</div>
 						{/if}
-						<div class="tab-top-actions" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+						<div
+							class="tab-top-actions"
+							style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem;"
+						>
 							<div>
 								{#if event.status?.toUpperCase() === "DRAFT"}
 									<button onclick={openCreateRoundModal} class="btn btn-filled">
@@ -1395,9 +1425,7 @@
 							</div>
 							<div style="display: flex; gap: 0.75rem;">
 								{#if !hasEventStarted && eventRounds.length > 0}
-									<button onclick={handleStartEvent} class="btn btn-filled">
-										Start Round 1
-									</button>
+									<button onclick={handleStartEvent} class="btn btn-filled"> Start Round 1 </button>
 								{/if}
 								{#if canStartGrading}
 									<button onclick={handleStartGrading} class="btn btn-filled">
@@ -1448,8 +1476,22 @@
 														<span class="badge badge-surface">Upcoming</span>
 													{/if}
 												</td>
-												<td>{formatDateTime(round.activeTime || round.active_time || round.startTime || round.start_time)}</td>
-												<td>{formatDateTime(round.gradingStartTime || round.grading_start_time || round.endTime || round.end_time)}</td>
+												<td
+													>{formatDateTime(
+														round.activeTime ||
+															round.active_time ||
+															round.startTime ||
+															round.start_time
+													)}</td
+												>
+												<td
+													>{formatDateTime(
+														round.gradingStartTime ||
+															round.grading_start_time ||
+															round.endTime ||
+															round.end_time
+													)}</td
+												>
 												<td>
 													{#if roundCriteria.length > 0}
 														<div class="chip-group small vertical">
@@ -1897,7 +1939,10 @@
 								placeholder="e.g. 300000 (5 mins)"
 								required
 							/>
-							<span class="help-text" style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;">
+							<span
+								class="help-text"
+								style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;"
+							>
 								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
 							</span>
 						</div>
@@ -1912,7 +1957,10 @@
 								placeholder="e.g. 300000 (5 mins)"
 								required
 							/>
-							<span class="help-text" style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;">
+							<span
+								class="help-text"
+								style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;"
+							>
 								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
 							</span>
 						</div>

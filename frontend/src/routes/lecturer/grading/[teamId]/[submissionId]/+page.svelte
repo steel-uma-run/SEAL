@@ -441,15 +441,33 @@
 											<strong>High Deviation Detected</strong>
 										</div>
 										<p style="font-size: 0.875rem; margin: 0.5rem 0;">
-											Your score: <strong>{dev.judge_score}</strong> | Average score: <strong>{dev.average_score.toFixed(2)}</strong>
+											Your score: <strong>{dev.judge_score}</strong> | Average score:
+											<strong>{dev.average_score.toFixed(2)}</strong>
 										</p>
-										<div class="deviation-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-direction: column;">
-											<button onclick={() => handleAcceptDeviation(dev.id)} class="btn-submit" style="background: var(--md-sys-color-primary, #6750a4);">
+										<div
+											class="deviation-actions"
+											style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-direction: column;"
+										>
+											<button
+												onclick={() => handleAcceptDeviation(dev.id)}
+												class="btn-submit"
+												style="background: var(--md-sys-color-primary, #6750a4);"
+											>
 												Accept & Regrade
 											</button>
 											<div style="display: flex; gap: 0.5rem;">
-												<input type="text" bind:value={rejectReason} placeholder="Reason for rejecting..." class="input" style="flex: 1;" />
-												<button onclick={() => handleRejectDeviation(dev.id)} class="btn-submit" style="background: #ef4444; width: auto;">
+												<input
+													type="text"
+													bind:value={rejectReason}
+													placeholder="Reason for rejecting..."
+													class="input"
+													style="flex: 1;"
+												/>
+												<button
+													onclick={() => handleRejectDeviation(dev.id)}
+													class="btn-submit"
+													style="background: #ef4444; width: auto;"
+												>
 													Reject
 												</button>
 											</div>
