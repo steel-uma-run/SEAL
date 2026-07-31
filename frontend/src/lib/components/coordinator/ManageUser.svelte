@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte"
-	import { getAllAccounts, approveAccount } from "$lib/api"
+	import { getAllAccounts, approveAccount, createLecturer } from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
 	import {
 		Users,
@@ -145,7 +145,7 @@
 		showAddModal = true
 	}
 
-	function handleAddUser(e: Event) {
+	async function handleAddUser(e: Event) {
 		e.preventDefault()
 
 		if (!formName.trim() || !formEmail.trim()) {
@@ -153,23 +153,48 @@
 			return
 		}
 
-		if (users.some((u) => u.email.toLowerCase() === formEmail.toLowerCase())) {
-			showNotification("Email already registered.", "error")
-			return
-		}
+		if (formRole === "LECTURER") {
+			try {
+				const { response, error } = await createLecturer({
+					body: {
+						email: formEmail.trim(),
+						name: formName.trim()
+					},
+					throwOnError: false
+				})
 
-		const newId = String(100000 + users.length + 1)
-		const newUser = {
-			id: newId,
-			name: formName,
-			email: formEmail,
-			role: formRole,
-			status: formRole === "STUDENT" ? formStatus : "ACTIVE"
-		}
+				if (response?.ok) {
+					showNotification("Lecturer created successfully!")
+					showAddModal = false
+					await loadUsers()
+				} else {
+					showNotification(`Failed to create lecturer: ${error?.detail || response?.statusText}`, "error")
+				}
+			} catch (err: any) {
+				showNotification(`Error: ${err.message}`, "error")
+			}
+		} else {
+			// For students or others, this form just mocks creation because 
+			// the platform expects students to self-register via Google OAuth etc.
+			// The original mock logic is retained below for student mockup testing.
+			if (users.some((u) => u.email.toLowerCase() === formEmail.toLowerCase())) {
+				showNotification("Email already registered.", "error")
+				return
+			}
 
-		users = [...users, newUser]
-		showAddModal = false
-		showNotification("User created successfully!")
+			const newId = String(100000 + users.length + 1)
+			const newUser = {
+				id: newId,
+				name: formName,
+				email: formEmail,
+				role: formRole,
+				status: formRole === "STUDENT" ? formStatus : "ACTIVE"
+			}
+
+			users = [...users, newUser]
+			showAddModal = false
+			showNotification("Mock user created successfully!")
+		}
 	}
 
 	function openEditModal(user: any) {

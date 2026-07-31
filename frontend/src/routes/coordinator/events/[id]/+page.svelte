@@ -12,15 +12,19 @@
 		getAllTracksOfEvent,
 		createRound,
 		getRounds,
+		deleteRound,
+		startEvent,
+		advance,
 		updateTrack,
 		deleteTrack,
 		getAllCriteriaTemplates,
 		createCriteriaTemplate,
 		assignCriteria,
-		exportEventRanking
+		exportEventRanking,
+		getTeamInfo
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark, Download } from "@lucide/svelte"
+	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark, Download, Eye } from "@lucide/svelte"
 	import Leaderboard from "../../../events/[id]/Leaderboard.svelte"
 
 	// Stub: updateRoundCriteria is not yet in the generated SDK
@@ -76,7 +80,26 @@
 	let editTrackDescription = $state("")
 	let selectedMentorsForEditTrack = $state<string[]>([])
 	let selectedJudgesForEditTrack = $state<string[]>([])
+	let editTrackSelectedJudges = $state<string[]>([])
 	let selectedTeamsForEditTrack = $state<string[]>([])
+
+	// Team Details Modal
+	let showTeamDetailsModal = $state(false)
+	let selectedTeamDetails = $state<any>(null)
+
+	async function openTeamDetails(teamId: string) {
+		try {
+			const { data, error } = await getTeamInfo({ path: { teamId }, throwOnError: false })
+			if (data) {
+				selectedTeamDetails = data
+				showTeamDetailsModal = true
+			} else {
+				alert(`Failed to get team info: ${error?.detail || error?.message || 'Unknown error'}`)
+			}
+		} catch (err: any) {
+			alert(`Error: ${err.message}`)
+		}
+	}
 	let isSavingEditTrack = $state(false)
 	let editTrackMessage = $state("")
 	let editTrackError = $state(false)
@@ -88,12 +111,8 @@
 	let showCreateRoundModal = $state(false)
 	let newRoundName = $state("")
 	let newRoundDescription = $state("")
-	let newRoundStartTime = $state("")
-	let newRoundEndTime = $state("")
-	let newRoundSubmissionStartTime = $state("")
-	let newRoundSubmissionEndTime = $state("")
-	let newRoundGradingStartTime = $state("")
-	let newRoundGradingEndTime = $state("")
+	let newRoundActiveDays = $state(7)
+	let newRoundGradingDays = $state(3)
 	let isCreatingRound = $state(false)
 	let createRoundMessage = $state("")
 	let createRoundError = $state(false)
@@ -393,12 +412,8 @@
 	function openCreateRoundModal() {
 		newRoundName = ""
 		newRoundDescription = ""
-		newRoundStartTime = ""
-		newRoundEndTime = ""
-		newRoundSubmissionStartTime = ""
-		newRoundSubmissionEndTime = ""
-		newRoundGradingStartTime = ""
-		newRoundGradingEndTime = ""
+		newRoundActiveDays = 7
+		newRoundGradingDays = 3
 		createRoundMessage = ""
 		createRoundError = false
 		showCreateRoundModal = true
@@ -599,59 +614,12 @@
 		if (
 			!newRoundName.trim() ||
 			!newRoundDescription.trim() ||
-			!newRoundStartTime ||
-			!newRoundEndTime ||
-			!newRoundSubmissionStartTime ||
-			!newRoundSubmissionEndTime ||
-			!newRoundGradingStartTime ||
-			!newRoundGradingEndTime
+			newRoundActiveDays <= 0 ||
+			newRoundGradingDays <= 0
 		) {
-			createRoundMessage = "All fields are required."
+			createRoundMessage = "All fields are required and durations must be positive."
 			createRoundError = true
 			return
-		}
-
-		const start = new Date(newRoundStartTime)
-		const end = new Date(newRoundEndTime)
-		const subStart = new Date(newRoundSubmissionStartTime)
-		const subEnd = new Date(newRoundSubmissionEndTime)
-		const gradStart = new Date(newRoundGradingStartTime)
-		const gradEnd = new Date(newRoundGradingEndTime)
-
-		if (start >= end) {
-			createRoundMessage = "Start time must be before end time."
-			createRoundError = true
-			return
-		}
-		if (end >= subStart) {
-			createRoundMessage = "End time must be before submission start time."
-			createRoundError = true
-			return
-		}
-		if (subStart >= subEnd) {
-			createRoundMessage = "Submission start time must be before submission end time."
-			createRoundError = true
-			return
-		}
-		if (subEnd >= gradStart) {
-			createRoundMessage = "Submission end time must be before grading start time."
-			createRoundError = true
-			return
-		}
-		if (gradStart >= gradEnd) {
-			createRoundMessage = "Grading start time must be before grading end time."
-			createRoundError = true
-			return
-		}
-
-		// Verify within event dates
-		if (event) {
-			const eventEnd = new Date(event.endTime || event.end_time)
-			if (start <= eventEnd) {
-				createRoundMessage = "Round timeframe must start after the registration period ends."
-				createRoundError = true
-				return
-			}
 		}
 
 		isCreatingRound = true
@@ -659,17 +627,16 @@
 		createRoundError = false
 
 		try {
+			const activeDurationMs = newRoundActiveDays * 24 * 60 * 60 * 1000;
+			const gradingDurationMs = newRoundGradingDays * 24 * 60 * 60 * 1000;
+
 			const { response, data: roundData } = await createRound({
 				path: { eventId },
 				body: {
 					name: newRoundName.trim(),
 					description: newRoundDescription.trim(),
-					start_time: start.toISOString(),
-					end_time: end.toISOString(),
-					submission_start_time: subStart.toISOString(),
-					submission_end_time: subEnd.toISOString(),
-					grading_start_time: gradStart.toISOString(),
-					grading_end_time: gradEnd.toISOString()
+					active_duration: activeDurationMs,
+					grading_duration: gradingDurationMs
 				},
 				throwOnError: false
 			})
@@ -799,6 +766,54 @@
 		editTrackError = false
 		showEditTrackModal = true
 	}
+
+	// Additional Coordinator Actions
+	async function handleStartEvent() {
+		if (!confirm("Are you sure you want to start this event?")) return
+		try {
+			const { response, error } = await startEvent({ path: { eventId }, throwOnError: false })
+			if (response?.ok) {
+				alert("Event started successfully!")
+				await fetchEventDetails()
+			} else {
+				alert(`Failed to start event: ${error?.detail || response?.statusText}`)
+			}
+		} catch (err: any) {
+			alert(`Error: ${err.message}`)
+		}
+	}
+
+	async function handleAdvanceRound() {
+		if (!confirm("Are you sure you want to advance to the next round?")) return
+		try {
+			const { response, error } = await advance({ path: { eventId }, throwOnError: false })
+			if (response?.ok) {
+				alert("Event advanced successfully!")
+				await fetchEventDetails()
+			} else {
+				alert(`Failed to advance event: ${error?.detail || response?.statusText}`)
+			}
+		} catch (err: any) {
+			alert(`Error: ${err.message}`)
+		}
+	}
+
+	async function handleDeleteRound(roundId: string) {
+		if (!confirm("Are you sure you want to delete this round?")) return
+		try {
+			const { response, error } = await deleteRound({ path: { roundId }, throwOnError: false })
+			if (response?.ok) {
+				alert("Round deleted successfully!")
+				await loadEventRounds()
+			} else {
+				alert(`Failed to delete round: ${error?.detail || response?.statusText}`)
+			}
+		} catch (err: any) {
+			alert(`Error: ${err.message}`)
+		}
+	}
+
+	// END Component script
 
 	async function handleUpdateTrack(e: Event) {
 		e.preventDefault()
@@ -1201,6 +1216,7 @@
 										<th>Track</th>
 										<th>Mentor</th>
 										<th>Judges</th>
+										<th>Actions</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -1268,6 +1284,11 @@
 														<span class="empty-text">Unassigned</span>
 													{/if}
 												</td>
+												<td>
+													<button onclick={() => openTeamDetails(team.id)} class="btn-icon" aria-label="View Team Details">
+														<Eye class="icon-sm" />
+													</button>
+												</td>
 											</tr>
 										{/each}
 									{:else}
@@ -1310,7 +1331,6 @@
 												round.criteria || round.criterias || round.criteriaList || []}
 											<tr>
 												<td class="font-bold">{round.name}</td>
-												<!-- CẬP NHẬT Ở ĐÂY: Thêm class truncate-text và title -->
 												<td class="text-muted wrap-text">
 													{round.description}
 												</td>
@@ -1349,6 +1369,13 @@
 																	Edit Details
 																</button>
 															{/if}
+															<button
+																onclick={() => handleDeleteRound(round.id)}
+																class="btn-icon danger"
+																title="Delete Round"
+															>
+																<Trash2 class="icon-sm" />
+															</button>
 														</div>
 													</td>
 												{/if}
@@ -1719,49 +1746,55 @@
 							{createRoundMessage}
 						</div>
 					{/if}
-					<div class="form-group">
-						<label>Round Name *</label>
-						<input type="text" bind:value={newRoundName} placeholder="Enter round name" required />
-					</div>
-					<div class="form-group">
-						<label>Description *</label>
-						<textarea
-							bind:value={newRoundDescription}
-							placeholder="Enter round instructions"
-							rows="3"
-							required
-						></textarea>
-					</div>
-					<div class="form-row">
 						<div class="form-group">
-							<label>Start Time *</label>
-							<input type="datetime-local" bind:value={newRoundStartTime} required />
+							<label class="form-label" for="newRoundName">Round Name *</label>
+							<input
+								id="newRoundName"
+								type="text"
+								bind:value={newRoundName}
+								class="input-field"
+								required
+								placeholder="e.g. Preliminary Round"
+							/>
 						</div>
-						<div class="form-group">
-							<label>End Time *</label>
-							<input type="datetime-local" bind:value={newRoundEndTime} required />
+
+						<div class="form-group full-width">
+							<label class="form-label" for="newRoundDesc">Description *</label>
+							<textarea
+								id="newRoundDesc"
+								bind:value={newRoundDescription}
+								class="input-field textarea"
+								rows="2"
+								required
+								placeholder="Short description of this round..."
+							></textarea>
 						</div>
-					</div>
-					<div class="form-row">
-						<div class="form-group">
-							<label>Submission Start Time *</label>
-							<input type="datetime-local" bind:value={newRoundSubmissionStartTime} required />
+
+						<h4 class="modal-section-title">Timeline Configurations</h4>
+						<div class="form-row">
+							<div class="form-group">
+								<label class="form-label" for="newRoundActiveDays">Active Duration (Days) *</label>
+								<input
+									id="newRoundActiveDays"
+									type="number"
+									min="1"
+									bind:value={newRoundActiveDays}
+									class="input-field"
+									required
+								/>
+							</div>
+							<div class="form-group">
+								<label class="form-label" for="newRoundGradingDays">Grading Duration (Days) *</label>
+								<input
+									id="newRoundGradingDays"
+									type="number"
+									min="1"
+									bind:value={newRoundGradingDays}
+									class="input-field"
+									required
+								/>
+							</div>
 						</div>
-						<div class="form-group">
-							<label>Submission End Time *</label>
-							<input type="datetime-local" bind:value={newRoundSubmissionEndTime} required />
-						</div>
-					</div>
-					<div class="form-row">
-						<div class="form-group">
-							<label>Grading Start Time *</label>
-							<input type="datetime-local" bind:value={newRoundGradingStartTime} required />
-						</div>
-						<div class="form-group">
-							<label>Grading End Time *</label>
-							<input type="datetime-local" bind:value={newRoundGradingEndTime} required />
-						</div>
-					</div>
 					<div class="modal-actions">
 						<button
 							type="button"
@@ -2037,6 +2070,72 @@
 						</button>
 					</div>
 				</form>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Team Details Modal -->
+	{#if showTeamDetailsModal && selectedTeamDetails}
+		<div class="modal-overlay">
+			<div class="modal-surface">
+				<div class="modal-header">
+					<h3>Team Details: {selectedTeamDetails.name}</h3>
+					<button onclick={() => (showTeamDetailsModal = false)} class="btn-icon">
+						<X class="icon" />
+					</button>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<label class="form-label">Status</label>
+						<span
+							class="badge {selectedTeamDetails.status === 'APPROVED' || selectedTeamDetails.status === 'ACTIVE'
+								? 'badge-success'
+								: selectedTeamDetails.status === 'PENDING'
+									? 'badge-warning'
+									: 'badge-error'}"
+						>
+							{selectedTeamDetails.status}
+						</span>
+					</div>
+					<div class="form-group">
+						<label class="form-label">Members ({selectedTeamDetails.members?.length || 0})</label>
+						<div class="table-container">
+							<table class="data-table">
+								<thead>
+									<tr>
+										<th>Name</th>
+										<th>Role</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each selectedTeamDetails.members || [] as memberId}
+										<tr>
+											<td>{getStudentName(memberId)}</td>
+											<td>
+												{#if memberId === selectedTeamDetails.leader_id}
+													<span class="badge badge-primary">Leader</span>
+												{:else}
+													<span class="badge badge-default">Member</span>
+												{/if}
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					</div>
+					{#if selectedTeamDetails.eliminated_at_round}
+						<div class="form-group" style="margin-top: 1rem;">
+							<label class="form-label text-error">Eliminated At</label>
+							<p>{selectedTeamDetails.eliminated_at_round.name}</p>
+						</div>
+					{/if}
+				</div>
+				<div class="modal-actions">
+					<button type="button" class="btn btn-text" onclick={() => (showTeamDetailsModal = false)}>
+						Close
+					</button>
+				</div>
 			</div>
 		</div>
 	{/if}

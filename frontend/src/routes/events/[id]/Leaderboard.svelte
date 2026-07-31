@@ -107,6 +107,34 @@
 			const el = document.getElementById(`team-card-${myTeamInfo?.team.id}`)
 			if (el) {
 				el.scrollIntoView({ behavior: "smooth", block: "center" })
+				el.classList.add("highlight")
+				setTimeout(() => el.classList.remove("highlight"), 2000)
+			}
+		}, 100)
+	}
+
+	let searchQuery = $state("")
+	let searchedTeamRank = $derived.by(() => {
+		if (!searchQuery.trim()) return null
+		const query = searchQuery.toLowerCase().trim()
+		const team = allProcessedTeams.find(t => t.name?.toLowerCase().includes(query))
+		if (team) {
+			return { team, rank: team.displayRank }
+		}
+		return null
+	})
+
+	function scrollToSearchedTeam() {
+		if (!searchedTeamRank) return
+		if (searchedTeamRank.rank > 10 && filterMode === "TOP_10") {
+			filterMode = "ALL"
+		}
+		setTimeout(() => {
+			const el = document.getElementById(`team-card-${searchedTeamRank.team.id}`)
+			if (el) {
+				el.scrollIntoView({ behavior: "smooth", block: "center" })
+				el.classList.add("highlight")
+				setTimeout(() => el.classList.remove("highlight"), 2000)
 			}
 		}, 100)
 	}
@@ -375,46 +403,68 @@
 		{/if}
 	</p>
 
-	<!-- Personal Locator Widget (Flat Design, No Icons) -->
+	<!-- Personal/Search Locator Widget -->
 	{#if isAuthorizedUser && !isLoading}
-		<div class="locator-widget">
-			<div class="locator-content">
-				<div class="locator-details">
-					{#if myTeamInfo}
-						<div class="locator-label">YOUR TEAM POSITION</div>
-						<div class="locator-title">
-							<span class="rank-badge">#{myTeamInfo.rank}</span>
-							<h4>{myTeamInfo.team.name}</h4>
-							<span class="score-text">
-								• Score: {myTeamInfo.team.computedScore.toFixed(2)}
-							</span>
-						</div>
-						<div class="my-team-members">
-							<span class="members-title">Team Members:</span>
-							<div class="members-chips">
-								<Chip variant="filter" selected={true}>{myTeamInfo.team.leaderName} (Leader)</Chip>
-								{#if myTeamInfo.team.members && myTeamInfo.team.members.length > 0}
-									{#each myTeamInfo.team.members as mId}
-										<Chip variant="general">{getMemberName(mId)}</Chip>
-									{/each}
-								{/if}
+		{#if auth.value?.role === "STUDENT"}
+			<div class="locator-widget">
+				<div class="locator-content">
+					<div class="locator-details">
+						{#if myTeamInfo}
+							<div class="locator-label">YOUR TEAM POSITION</div>
+							<div class="locator-title">
+								<span class="rank-badge">#{myTeamInfo.rank}</span>
+								<h4>{myTeamInfo.team.name}</h4>
+								<span class="score-text">
+									• Score: {myTeamInfo.team.computedScore.toFixed(2)}
+								</span>
 							</div>
+							<div class="my-team-members">
+								<span class="members-title">Team Members:</span>
+								<div class="members-chips">
+									<Chip variant="filter" selected={true}>{myTeamInfo.team.leaderName} (Leader)</Chip>
+									{#if myTeamInfo.team.members && myTeamInfo.team.members.length > 0}
+										{#each myTeamInfo.team.members as mId}
+											<Chip variant="general">{getMemberName(mId)}</Chip>
+										{/each}
+									{/if}
+								</div>
+							</div>
+						{:else}
+							<div class="locator-label">LEADERBOARD LOCATOR</div>
+							<p class="locator-desc">
+								No graded team associated with your account found on this event's leaderboard.
+							</p>
+						{/if}
+					</div>
+				</div>
+
+				{#if myTeamInfo}
+					<div class="locator-action">
+						<Button variant="tonal" onclick={scrollToMyTeam}>Locate My Team</Button>
+					</div>
+				{/if}
+			</div>
+		{:else if auth.value?.role === "COORDINATOR" || auth.value?.role === "LECTURER"}
+			<div class="locator-widget">
+				<div class="locator-content" style="width: 100%;">
+					<div class="locator-details" style="width: 100%;">
+						<div class="locator-label">LEADERBOARD SEARCH</div>
+						<div class="search-bar">
+							<input type="text" class="search-input" placeholder="Search team name..." bind:value={searchQuery} />
+							<Button variant="tonal" onclick={scrollToSearchedTeam} disabled={!searchedTeamRank}>Locate Team</Button>
 						</div>
-					{:else}
-						<div class="locator-label">LEADERBOARD LOCATOR</div>
-						<p class="locator-desc">
-							No graded team associated with your account found on this event's leaderboard.
-						</p>
-					{/if}
+						{#if searchQuery && !searchedTeamRank}
+							<p class="locator-desc" style="color: #ef4444; margin-top: 0.5rem;">No matching graded team found on the leaderboard.</p>
+						{/if}
+						{#if searchedTeamRank}
+							<p class="locator-desc" style="color: var(--md-sys-color-primary, #6750a4); margin-top: 0.5rem;">
+								Team <strong>{searchedTeamRank.team.name}</strong> is currently at Rank #{searchedTeamRank.rank}.
+							</p>
+						{/if}
+					</div>
 				</div>
 			</div>
-
-			{#if myTeamInfo}
-				<div class="locator-action">
-					<Button variant="tonal" onclick={scrollToMyTeam}>Locate My Team</Button>
-				</div>
-			{/if}
-		</div>
+		{/if}
 	{/if}
 
 	<!-- Leaderboard List (Flat Design, Medals for Top 1, 2, 3) -->
@@ -653,8 +703,30 @@
 
 				.locator-desc {
 					margin: 0;
-					font-size: 0.9rem;
-					opacity: 70%;
+					font-size: 0.875rem;
+					color: var(--md-sys-color-on-surface-variant, #49454f);
+				}
+
+				.search-bar {
+					display: flex;
+					gap: 1rem;
+					margin-top: 0.5rem;
+					align-items: center;
+
+					.search-input {
+						flex: 1;
+						padding: 0.5rem 1rem;
+						border-radius: 0.5rem;
+						border: 1px solid var(--md-sys-color-outline, #79747e);
+						background: var(--md-sys-color-surface, #fdf8fd);
+						color: var(--md-sys-color-on-surface, #1d1b20);
+						outline: none;
+						transition: border-color 0.2s;
+
+						&:focus {
+							border-color: var(--md-sys-color-primary, #6750a4);
+						}
+					}
 				}
 			}
 		}
@@ -677,6 +749,12 @@
 		&.my-team {
 			border-color: var(--md-sys-color-primary);
 			background: var(--md-sys-color-surface-container);
+		}
+		
+		&.highlight {
+			background: var(--md-sys-color-secondary-container, #e8def8);
+			border: 2px solid var(--md-sys-color-primary, #6750a4);
+			transition: background 0.3s ease, border 0.3s ease;
 		}
 
 		.card-main {
