@@ -58,14 +58,6 @@ public class AccountServiceImpl implements AccountService {
     return unapproved.stream().map(student -> student.toDto()).toArray(StudentDto[]::new);
   }
 
-  public void deleteUser(UUID userId) {
-    if (!userRepo.existsById(userId)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User does not exist");
-    }
-    userRepo.deleteById(userId);
-    return;
-  }
-
   @Override
   public Object createLecturer(CreateLecturerRequestDto request) {
     if (userRepo.findByEmail(request.email()).isPresent()) {
