@@ -54,7 +54,8 @@ public class SubmissionController implements SubmissionApi {
   @Override
   @PreAuthorize("hasRole('LECTURER')")
   public ResponseEntity<Void> acceptDeviation(
-      @PathVariable UUID submissionId, @PathVariable UUID notifId) {
+      @PathVariable(name = "submissionId") @NotNull UUID submissionId,
+      @PathVariable(name = "notifId") @NotNull UUID notifId) {
     submissionService.acceptDeviation(submissionId, notifId);
     return ResponseEntity.ok().build();
   }
@@ -62,9 +63,9 @@ public class SubmissionController implements SubmissionApi {
   @Override
   @PreAuthorize("hasRole('LECTURER')")
   public ResponseEntity<Void> rejectDeviation(
-      @PathVariable UUID submissionId,
-      @PathVariable UUID notifId,
-      @RequestBody @Valid RequestRegradePayloadDto body) {
+      @PathVariable(name = "submissionId") @NotNull UUID submissionId,
+      @PathVariable(name = "notifId") @NotNull UUID notifId,
+      @RequestBody @Valid @NotNull RequestRegradePayloadDto body) {
     submissionService.rejectDeviation(submissionId, notifId, body.reason());
     return ResponseEntity.ok().build();
   }
