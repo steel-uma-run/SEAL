@@ -125,9 +125,6 @@
     "/accounts/{accountId}/approve": {
       "$ref": "./openapi/paths/accounts/approve.json"
     },
-    "/accounts/{accountId}/delete": {
-      "$ref": "./openapi/paths/accounts/delete.json"
-    },
     "/accounts/unapproved": {
       "$ref": "./openapi/paths/accounts/unapproved.json"
     },

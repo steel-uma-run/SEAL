@@ -12,6 +12,4 @@ public interface AccountService {
   public StudentDto[] getUnapprovedStudents();
 
   public Object createLecturer(CreateLecturerRequestDto request);
-
-  public void deleteUser(UUID id);
 }
