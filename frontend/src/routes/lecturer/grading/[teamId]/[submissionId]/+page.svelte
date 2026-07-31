@@ -14,7 +14,10 @@
 	import {
 		getAllCriteriaTemplates,
 		gradeSubmission,
-		getAllSubmissions,
+		getSubmissionById,
+		getScoreDeviations,
+		acceptDeviation,
+		rejectDeviation,
 		getSelfProfile,
 		getRounds
 	} from "$lib/api"
@@ -33,6 +36,8 @@
 	let criteriaTemplate: any = $state(null)
 	let submission: any = $state(null)
 	let hasGraded = $state(false)
+	let deviations: any[] = $state([])
+	let rejectReason = $state("")
 
 	// Form state: map criteria_id -> { value: number, comment: string }
 	let gradingData: Record<string, { value: number | null; comment: string }> = $state({})
@@ -59,26 +64,33 @@
 		currentEventId: string
 	) {
 		try {
-			// Fetch the submission based on teamId
-			const { data: submissions, error: submissionsError } = await getAllSubmissions({
-				path: { teamId: currentTeamId },
+			// Fetch the submission directly by ID
+			const { data: fetchedSubmission, error: submissionError } = await getSubmissionById({
+				path: { submissionId: currentSubmissionId },
 				throwOnError: false
 			})
 
-			if (submissionsError) {
-				errorMessage = `Failed to load submissions: ${submissionsError?.message || JSON.stringify(submissionsError)}`
+			if (submissionError) {
+				errorMessage = `Failed to load submission: ${submissionError?.message || JSON.stringify(submissionError)}`
 				isLoading = false
 				return
 			}
 
-			if (submissions) {
-				submission = submissions.find((s: any) => s.id === currentSubmissionId)
-			}
+			submission = fetchedSubmission
 
 			if (!submission) {
 				errorMessage = "Submission not found or you don't have access."
 				isLoading = false
 				return
+			}
+
+			// Fetch deviations
+			const { data: fetchedDeviations } = await getScoreDeviations({
+				path: { submissionId: currentSubmissionId },
+				throwOnError: false
+			})
+			if (fetchedDeviations) {
+				deviations = fetchedDeviations
 			}
 
 			// Fetch criteria from the rounds of this event
@@ -150,13 +162,13 @@
 		}
 	}
 
-	// Calculate total score based on weights (only count valid scores between 0 and 100)
+	// Calculate total score based on weights (only count valid scores between 0 and 10)
 	let totalScore = $derived.by(() => {
 		if (!criteriaTemplate || !criteriaTemplate.criteria) return 0
 		let total = 0
 		for (const c of criteriaTemplate.criteria) {
 			const val = gradingData[c.id]?.value
-			if (val !== null && val !== undefined && !isNaN(val) && val >= 0 && val <= 100) {
+			if (val !== null && val !== undefined && !isNaN(val) && val >= 0 && val <= 10) {
 				total += (val * (c.weight || 0)) / 100
 			}
 		}
@@ -170,10 +182,10 @@
 			return
 		}
 		const val = Number(input.value)
-		if (isNaN(val) || val < 0 || val > 100) {
+		if (isNaN(val) || val < 0 || val > 10) {
 			gradingData[criteriaId].value = null
 			input.value = ""
-			errorMessage = "Score must be between 0 and 100. Invalid value was cleared."
+			errorMessage = "Score must be between 0 and 10. Invalid value was cleared."
 		} else {
 			gradingData[criteriaId].value = val
 			if (errorMessage && errorMessage.includes("between 0 and 10")) {
@@ -201,7 +213,7 @@
 		if (!criteriaTemplate || !criteriaTemplate.criteria) return false
 		for (const c of criteriaTemplate.criteria) {
 			const val = gradingData[c.id]?.value
-			if (val !== null && val !== undefined && (val < 0 || val > 100)) {
+			if (val !== null && val !== undefined && (val < 0 || val > 10)) {
 				return true
 			}
 		}
@@ -220,8 +232,8 @@
 				errorMessage = `Please enter a valid score for ${c.name}`
 				return
 			}
-			if (grade.value < 0 || grade.value > 100) {
-				errorMessage = `Score for ${c.name} must be between 0 and 100.`
+			if (grade.value < 0 || grade.value > 10) {
+				errorMessage = `Score for ${c.name} must be between 0 and 10.`
 				return
 			}
 		}
@@ -250,6 +262,9 @@
 			if (response?.ok) {
 				successMessage = "Submission graded successfully!"
 				hasGraded = true
+				if (eventId) {
+					await loadData(teamId, submissionId, eventId)
+				}
 			} else {
 				const errorDetails = error || (await response?.json().catch(() => null))
 				errorMessage = `Failed to submit grades: ${errorDetails?.detail || errorDetails?.message || response?.statusText}`
@@ -259,6 +274,53 @@
 			errorMessage = error.message || "An unexpected error occurred."
 		} finally {
 			isSubmitting = false
+		}
+	}
+
+	async function handleAcceptDeviation(notifId: string) {
+		if (!confirm("Are you sure you want to accept this deviation and regrade?")) return
+		try {
+			const { response, error } = await acceptDeviation({
+				path: { submissionId, notifId },
+				throwOnError: false
+			})
+			if (response?.ok) {
+				alert("Deviation accepted. You can now regrade the submission.")
+				hasGraded = false
+				if (eventId) {
+					await loadData(teamId, submissionId, eventId)
+				}
+			} else {
+				alert(`Failed to accept deviation: ${error?.detail || response?.statusText}`)
+			}
+		} catch (err: any) {
+			alert(`Error: ${err.message}`)
+		}
+	}
+
+	async function handleRejectDeviation(notifId: string) {
+		if (!rejectReason.trim()) {
+			alert("Please enter a reason for rejecting the deviation.")
+			return
+		}
+		if (!confirm("Are you sure you want to reject this deviation?")) return
+		try {
+			const { response, error } = await rejectDeviation({
+				path: { submissionId, notifId },
+				body: { reason: rejectReason.trim() },
+				throwOnError: false
+			})
+			if (response?.ok) {
+				alert("Deviation rejected successfully.")
+				rejectReason = ""
+				if (eventId) {
+					await loadData(teamId, submissionId, eventId)
+				}
+			} else {
+				alert(`Failed to reject deviation: ${error?.detail || response?.statusText}`)
+			}
+		} catch (err: any) {
+			alert(`Error: ${err.message}`)
 		}
 	}
 </script>
@@ -283,8 +345,8 @@
 		{#if criteriaTemplate}
 			<div class="score-box">
 				<p class="score-label">Total Score</p>
-				<p class="score-value" class:pass={totalScore >= 50} class:fail={totalScore < 50}>
-					{totalScore.toFixed(2)}<span class="score-max">/100</span>
+				<p class="score-value" class:pass={totalScore >= 5} class:fail={totalScore < 5}>
+					{totalScore.toFixed(2)}<span class="score-max">/10</span>
 				</p>
 			</div>
 		{/if}
@@ -364,6 +426,40 @@
 						</div>
 					{/if}
 				</div>
+
+				<!-- Deviations Section -->
+				{#if deviations.length > 0}
+					<div class="card" style="margin-top: 1.5rem">
+						<h2 class="card-title">Score Deviations</h2>
+						<p class="card-desc">Your score deviates significantly from other judges.</p>
+						<div class="deviations-list">
+							{#each deviations as dev}
+								{#if !dev.is_resolved}
+									<div class="deviation-card">
+										<div class="deviation-header">
+											<AlertCircle class="icon-sm text-warning" style="color: #f59e0b;" />
+											<strong>High Deviation Detected</strong>
+										</div>
+										<p style="font-size: 0.875rem; margin: 0.5rem 0;">
+											Your score: <strong>{dev.judge_score}</strong> | Average score: <strong>{dev.average_score.toFixed(2)}</strong>
+										</p>
+										<div class="deviation-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-direction: column;">
+											<button onclick={() => handleAcceptDeviation(dev.id)} class="btn-submit" style="background: var(--md-sys-color-primary, #6750a4);">
+												Accept & Regrade
+											</button>
+											<div style="display: flex; gap: 0.5rem;">
+												<input type="text" bind:value={rejectReason} placeholder="Reason for rejecting..." class="input" style="flex: 1;" />
+												<button onclick={() => handleRejectDeviation(dev.id)} class="btn-submit" style="background: #ef4444; width: auto;">
+													Reject
+												</button>
+											</div>
+										</div>
+									</div>
+								{/if}
+							{/each}
+						</div>
+					</div>
+				{/if}
 			</div>
 
 			<!-- RIGHT COLUMN: Grading Form -->
@@ -396,26 +492,26 @@
 												<p class="criterion-weight">Weight: {c.weight}%</p>
 											</div>
 											<div class="score-input">
-												<label class="field-label">Score (0-100)</label>
+												<label class="field-label">Score (0-10)</label>
 												<input
 													type="number"
 													min="0"
-													max="100"
-													step="1"
+													max="10"
+													step="0.5"
 													value={gradingData[c.id].value ?? ""}
 													oninput={(e) => handleScoreInput(c.id, e)}
 													onchange={(e) => handleScoreInput(c.id, e)}
 													class="input {gradingData[c.id].value !== null &&
 													gradingData[c.id].value !== undefined &&
-													(gradingData[c.id].value < 0 || gradingData[c.id].value > 100)
+													(gradingData[c.id].value < 0 || gradingData[c.id].value > 10)
 														? 'input--error'
 														: ''}"
-													placeholder="e.g. 85"
+													placeholder="e.g. 8.5"
 													required
 													disabled={hasGraded}
 												/>
-												{#if gradingData[c.id].value !== null && gradingData[c.id].value !== undefined && (gradingData[c.id].value < 0 || gradingData[c.id].value > 100)}
-													<p class="field-error-text">Score must be between 0 and 100</p>
+												{#if gradingData[c.id].value !== null && gradingData[c.id].value !== undefined && (gradingData[c.id].value < 0 || gradingData[c.id].value > 10)}
+													<p class="field-error-text">Score must be between 0 and 10</p>
 												{/if}
 											</div>
 										</div>

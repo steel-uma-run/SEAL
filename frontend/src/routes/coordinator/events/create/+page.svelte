@@ -31,8 +31,7 @@
 	let semester: Season["semester"] = $state("SPRING")
 	let year = $state(new Date(Date.now()).getFullYear().toString())
 	let description = $state("")
-	let registrationStartTime: Date | undefined = $state(undefined)
-	let registrationEndTime: Date | undefined = $state(undefined)
+	let registrationDurationDays = $state(7)
 
 	let errors: Errors = $state({})
 
@@ -41,17 +40,8 @@
 		errors = {}
 
 		try {
-			if (registrationStartTime === undefined) {
-				errors.startTime = "Select a time"
-				return
-			}
-			if (registrationEndTime === undefined) {
-				errors.endTime = "Select a time"
-				return
-			}
-			if (registrationStartTime >= registrationEndTime) {
-				errors.startTime = "Start time cannot be after end time"
-				errors.endTime = errors.startTime
+			if (registrationDurationDays <= 0) {
+				errors.eventName = "Duration must be greater than 0"
 				return
 			}
 			if (name.trim().length <= 0) {
@@ -83,7 +73,7 @@
 				seasonId = seasonResp.data.id
 			}
 
-			const durationMs = registrationEndTime.getTime() - registrationStartTime.getTime()
+			const durationMs = registrationDurationDays * 24 * 60 * 60 * 1000
 
 			const eventResp = await createEvent({
 				body: {
@@ -140,23 +130,8 @@
 			</div>
 
 			<div class="field">
-				<p class="label">Registration start</p>
-				<div class="input-wrapper">
-					<DateTimePicker bind:value={registrationStartTime} />
-				</div>
-				{#if errors.startTime}
-					<span class="error">{errors.startTime}</span>
-				{/if}
-			</div>
-
-			<div class="field">
-				<p class="label">Registration end</p>
-				<div class="input-wrapper">
-					<DateTimePicker bind:value={registrationEndTime} />
-				</div>
-				{#if errors.endTime}
-					<span class="error">{errors.endTime}</span>
-				{/if}
+				<p class="label">Registration Duration (Days)</p>
+				<TextFieldOutlined required type="number" label="" min="1" bind:value={registrationDurationDays} />
 			</div>
 
 			<div class="field full-width description-box">

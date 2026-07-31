@@ -13,6 +13,7 @@
 	import iconSettings from "@ktibow/iconset-material-symbols/settings"
 	import iconAssignmentReturn from "@ktibow/iconset-material-symbols/assignment-return"
 	import iconLogout from "@ktibow/iconset-material-symbols/logout"
+	import iconHistory from "@ktibow/iconset-material-symbols/history"
 	import { auth, token } from "$lib/auth.svelte"
 	import { goto } from "$app/navigation"
 
@@ -40,6 +41,8 @@
 		<NavigationRailItem label="Users" icon={iconPerson} href="/coordinator/users" />
 
 		<NavigationRailItem label="Criteria" icon={iconRubric} href="/coordinator/templates" />
+
+		<NavigationRailItem label="Audit Logs" icon={iconHistory} href="/coordinator/auditlogs" />
 	{:else if role == "STUDENT"}
 		<NavigationRailItem label="Dashboard" icon={iconHome} href="/student" />
 
