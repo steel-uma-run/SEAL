@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import { theme } from "$lib/theme.svelte"
-	import { FileText, ArrowLeft, CheckCircle, Clock } from "@lucide/svelte"
+	import { FileText, ArrowLeft, CheckCircle, Clock, AlertTriangle } from "@lucide/svelte"
 	import {
 		getSelfProfile,
 		getAllSeasons,
@@ -10,7 +10,8 @@
 		getAllTeamsOfEvents,
 		getAllSubmissions,
 		getAllCriteriaTemplates,
-		getRounds
+		getRounds,
+		getScoreDeviations
 	} from "$lib/api"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
 
@@ -150,7 +151,7 @@
 										})
 
 										if (submissions) {
-											submissions.forEach((sub: any) => {
+											for (const sub of submissions) {
 												const hasGraded =
 													sub.scores &&
 													sub.scores.some(
@@ -158,13 +159,32 @@
 															s.lecturer_id === lecturerProfile?.id ||
 															s.lecturerId === lecturerProfile?.id
 													)
+
+												let needsRegrade = false;
+												if (hasGraded) {
+													const { data: subDevs } = await getScoreDeviations({ path: { submissionId: sub.id }, throwOnError: false });
+													if (subDevs && subDevs.length > 0) {
+														const myTotalDevs = subDevs.filter((d: any) => {
+															const isMyDev = d.lecturer_id === lecturerProfile.id || d.lecturerId === lecturerProfile.id;
+															const isTotalScore = d.criteria_id === null || d.criteriaId === null || d.criteria_id === undefined || d.criteriaId === undefined;
+															return isMyDev && isTotalScore;
+														});
+														const hasPending = myTotalDevs.some((d: any) => !d.status || d.status === "PENDING");
+														const hasAccepted = myTotalDevs.some((d: any) => d.status === "ACCEPTED");
+														// Only show "Needs Regrade" if there are pending deviations
+														// AND the lecturer hasn't already accepted & regraded
+														needsRegrade = hasPending && !hasAccepted;
+													}
+												}
+
 												trackSubmissions.push({
 													...sub,
 													status: hasGraded ? "GRADED" : "PENDING",
+													needsRegrade,
 													team_name: team.name,
 													team_id: team.id
 												})
-											})
+											}
 										}
 									}
 								}
@@ -277,7 +297,11 @@
 										<div class="team-card">
 											<div class="sub-header">
 												<h4 class="team-name">{sub.team_name}</h4>
-												{#if sub.status === "GRADED"}
+												{#if sub.needsRegrade}
+													<span class="status-badge pending">
+														<AlertTriangle class="w-3 h-3" style="display:inline;" /> Needs Regrade
+													</span>
+												{:else if sub.status === "GRADED"}
 													<span class="status-badge approved">
 														<CheckCircle class="w-3 h-3" style="display:inline;" />
 														{getLecturerScore(sub, lecturerProfile?.id) !== null

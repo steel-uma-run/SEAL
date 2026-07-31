@@ -16,6 +16,7 @@ import seal.backend.services.SubmissionService;
 import seal.backend.services.TeamService;
 import seal.openapi.api.TeamsApi;
 import seal.openapi.model.CreateTeamRequestPayloadDto;
+import seal.openapi.model.DisqualifyTeamRequestDto;
 import seal.openapi.model.SubmissionDto;
 import seal.openapi.model.TeamDto;
 
@@ -61,5 +62,14 @@ public class TeamController implements TeamsApi {
   @Override
   public ResponseEntity<TeamDto> getTeamInfo(@PathVariable(name = "teamId") @NotNull UUID teamId) {
     return ResponseEntity.ok(teamService.getTeamInfo(teamId));
+  }
+
+  @Override
+  @PreAuthorize("hasRole('COORDINATOR')")
+  public ResponseEntity<Void> disqualifyTeam(
+      @PathVariable(name = "teamId") @NotNull UUID teamId,
+      @RequestBody @Valid @NotNull DisqualifyTeamRequestDto body) {
+    teamService.disqualifyTeam(teamId, body.reason());
+    return ResponseEntity.noContent().build();
   }
 }

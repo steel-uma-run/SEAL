@@ -29,7 +29,7 @@
 				})
 
 				if (!resp.response.ok) {
-					throw (resp.data as unknown as LoginError).detail
+					throw resp.data
 				}
 
 				token.value = resp.data.token
@@ -52,7 +52,7 @@
 					}
 				}
 			} catch (err) {
-				errorMessage = typeof err === "string" ? err : "Invalid password or email"
+				errorMessage = (err as LoginError).detail
 			} finally {
 				debounce = false
 			}

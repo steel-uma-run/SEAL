@@ -44,19 +44,20 @@ public class JwtFilter extends OncePerRequestFilter {
           new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
       SecurityContextHolder.getContext().setAuthentication(auth);
-      filterChain.doFilter(request, response);
     } catch (UsernameNotFoundException ex) {
       ProblemDetail problemDetail =
-          ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+          ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
 
-      response.setStatus(HttpStatus.BAD_REQUEST.value());
+      response.setStatus(HttpStatus.UNAUTHORIZED.value());
       response.getWriter().write(objMapper.writeValueAsString(problemDetail));
     } catch (Exception ex) {
       ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
       logger.error(ex);
 
-      response.setStatus(HttpStatus.BAD_REQUEST.value());
+      response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
       response.getWriter().write(objMapper.writeValueAsString(problemDetail));
     }
+
+    filterChain.doFilter(request, response);
   }
 }

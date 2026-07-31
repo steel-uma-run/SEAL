@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -69,7 +70,11 @@ public class AuthServiceImpl implements AuthService {
     UsernamePasswordAuthenticationToken token =
         new UsernamePasswordAuthenticationToken(request.email(), request.password());
 
-    authenticationManager.authenticate(token);
+    try {
+      authenticationManager.authenticate(token);
+    } catch (AuthenticationException ex) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
 
     String jwt = JwtService.sign(request.email());
     Optional<User> maybeUser = userRepository.findByEmail(request.email());

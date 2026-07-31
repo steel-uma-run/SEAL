@@ -27,6 +27,9 @@
     "eliminated_at_round": {
       "$ref": "./Round.json"
     },
+    "disqualify_reason": {
+      "type": "string"
+    },
     "track_id": {
       "type": "string",
       "format": "uuid"

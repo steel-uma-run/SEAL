@@ -313,6 +313,19 @@ public class SubmissionServiceImpl implements SubmissionService {
     scoreRepo.saveAll(newScores);
     submissionRepo.save(submission);
     checkScoreDeviation(submission);
+
+    // Lưu Audit Log khi chấm bài thực tế
+    GradingLog gradingLog =
+        GradingLog.builder()
+            .actionTime(OffsetDateTime.now())
+            .actor(actor)
+            .submission(submission)
+            .action("GRADED_SUBMISSION")
+            .details(
+                "Giám khảo đã chấm điểm bài nộp của nhóm "
+                    + submission.getSubmitterTeam().getName())
+            .build();
+    auditLogRepo.save(gradingLog);
   }
 
   @Override
