@@ -166,6 +166,13 @@ public class HackathonEventController implements EventsApi {
   }
 
   @Override
+  @PreAuthorize("hasRole('COORDINATOR')")
+  public ResponseEntity<Void> startGrading(@PathVariable(name = "eventId") @NotNull UUID eventId) {
+    eventService.startGrading(eventId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Override
   @PreAuthorize("isAuthenticated()")
   public ResponseEntity<String> exportCertificate(
       @PathVariable(name = "eventId") @NotNull UUID eventId,

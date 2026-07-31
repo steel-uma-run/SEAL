@@ -359,6 +359,30 @@ public class HackathonEventServiceImpl implements HackathonEventService {
     roundRepo.save(firstRound);
   }
 
+  @Transactional
+  @Override
+  public void startGrading(UUID eventId) {
+    HackathonEvent event =
+        hackathonEventRepository
+            .findById(eventId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event does not exist."));
+
+    Round roundToGrade =
+        event
+            .getRounds()
+            .stream()
+            .filter(r -> r.getActiveTime() != null && r.getGradingStartTime() == null)
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "No round currently available to start grading."));
+
+    roundToGrade.setGradingStartTime(OffsetDateTime.now());
+    roundRepo.save(roundToGrade);
+  }
+
   @Override
   public byte[] exportTeamCertificate(UUID eventId, UUID teamId) {
     HackathonEvent event =

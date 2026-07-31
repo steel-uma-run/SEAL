@@ -14,6 +14,7 @@
 		getRounds,
 		deleteRound,
 		startEvent,
+		startGrading,
 		advance,
 		updateTrack,
 		deleteTrack,
@@ -801,6 +802,22 @@
 				await loadEventRounds()
 			} else {
 				alert(`Failed to start event: ${error?.detail || response?.statusText || "Unknown error"}`)
+			}
+		} catch (err: any) {
+			alert(`Error: ${err.message}`)
+		}
+	}
+
+	async function handleStartGrading() {
+		if (!confirm("Are you sure you want to start grading for the current active round? Judges will now be able to grade submissions.")) return
+		try {
+			const { response, error } = await startGrading({ path: { eventId }, throwOnError: false })
+			if (response?.ok) {
+				alert("Grading started successfully! Judges can now evaluate submissions.")
+				await fetchEventDetails()
+				await loadEventRounds()
+			} else {
+				alert(`Failed to start grading: ${error?.detail || response?.statusText || "Unknown error"}`)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)

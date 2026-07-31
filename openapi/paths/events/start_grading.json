@@ -1,0 +1,23 @@
+{
+  "parameters": [
+    {
+      "name": "eventId",
+      "in": "path",
+      "required": true,
+      "schema": { "type": "string", "format": "uuid" }
+    }
+  ],
+  "post": {
+    "tags": ["events"],
+    "operationId": "start_grading",
+    "summary": "Starts the grading phase for the active round of the event",
+    "responses": {
+      "204": {
+        "description": "Grading phase started successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}
