@@ -6,6 +6,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -442,179 +443,365 @@ public class DatabaseSeeder implements CommandLineRunner {
     }
 
     // ==========================================
-    // 8. TẠO SUBMISSION VÀ SCORE (SPRING: TẤT CẢ | SUMMER: 9 BÀI - MỖI TRACK 3 BÀI)
+    // 8. KHỞI TẠO EVENT SUMMER SECOND (BẢN DEMO VÒNG 2)
     // ==========================================
-    log.info("Bat dau tao du lieu Submission cho Spring (Tat ca) va Summer (Moi track 3 bai)...");
+    HackathonEvent eventSummerSecond =
+        new HackathonEvent(
+            "SEAL Hackathon Summer 2026 Second",
+            "AI Agents - Final Demo Edition",
+            Duration.ofDays(7),
+            EventStatus.FINALIZED,
+            summerSeason,
+            prizeStructure);
+    eventSummerSecond.setTeamsLimit(30);
+    eventSummerSecond.setRegistrationStartTime(regStartSummer);
+    eventRepo.save(eventSummerSecond);
 
-    List<Team> allTeams = teamRepo.findAll();
+    Track trSum2A = trackRepo.save(new Track("AI Infrastructure", "Hạ tầng", eventSummerSecond));
+    Track trSum2B =
+        trackRepo.save(new Track("Data Pipeline & Security", "Dữ liệu", eventSummerSecond));
+    Track trSum2C =
+        trackRepo.save(new Track("Smart UI/UX & Edge AI", "Giao diện", eventSummerSecond));
+    Track[] summer2Tracks = {trSum2A, trSum2B, trSum2C};
 
-    // Khởi tạo biến đếm bài nộp cho từng Track của kỳ Summer
-    int sumTrackACount = 0;
-    int sumTrackBCount = 0;
-    int sumTrackCCount = 0;
+    Round rdSum2R1 =
+        roundRepo.save(
+            new Round(
+                "Round 1",
+                "Vòng loại",
+                Duration.ofMinutes(5),
+                Duration.ofMinutes(5),
+                eventSummerSecond));
+    Round rdSum2R2 =
+        roundRepo.save(
+            new Round(
+                "Round 2",
+                "Chung kết",
+                Duration.ofMinutes(5),
+                Duration.ofMinutes(5),
+                eventSummerSecond));
 
-    for (Team team : allTeams) {
-      boolean isSpringEvent = team.getHackathonEvent().getId().equals(eventSpring.getId());
-      Track teamTrack = team.getTrack();
+    rdSum2R1.setActiveTime(OffsetDateTime.now().minusHours(2));
+    rdSum2R1.setGradingStartTime(OffsetDateTime.now().minusHours(1));
+    roundRepo.save(rdSum2R1);
 
-      // Lọc số lượng bài nộp cho kỳ Summer (Đảm bảo đúng 9 bài, mỗi Track 3 bài)
-      if (!isSpringEvent) {
-        boolean shouldSubmit = false;
-        if (team.getName().equals("Slothub")) {
-          shouldSubmit = true;
-          sumTrackACount++; // Slothub mặc định nằm ở Track A
-        } else if (teamTrack != null) {
-          if (teamTrack.getId().equals(trSumA.getId()) && sumTrackACount < 3) {
-            shouldSubmit = true;
-            sumTrackACount++;
-          } else if (teamTrack.getId().equals(trSumB.getId()) && sumTrackBCount < 3) {
-            shouldSubmit = true;
-            sumTrackBCount++;
-          } else if (teamTrack.getId().equals(trSumC.getId()) && sumTrackCCount < 3) {
-            shouldSubmit = true;
-            sumTrackCCount++;
-          }
-        }
+    rdSum2R2.setActiveTime(OffsetDateTime.now().minusMinutes(10));
+    rdSum2R2.setGradingStartTime(OffsetDateTime.now().minusMinutes(5));
+    roundRepo.save(rdSum2R2);
 
-        // Nếu không thuộc danh sách 9 team được chọn thì bỏ qua
-        if (!shouldSubmit) {
-          continue;
-        }
-      }
+    for (TemplatedCriteria tc : v1Criterias)
+      rdSum2R1
+          .getCriteria()
+          .add(new Criteria(tc.getName(), tc.getDescription(), tc.getWeight(), rdSum2R1));
+    criteriaRepo.saveAll(rdSum2R1.getCriteria());
 
-      Round targetRound = isSpringEvent ? rdSpring1 : rdSum1;
+    for (TemplatedCriteria tc : v2Criterias)
+      rdSum2R2
+          .getCriteria()
+          .add(new Criteria(tc.getName(), tc.getDescription(), tc.getWeight(), rdSum2R2));
+    criteriaRepo.saveAll(rdSum2R2.getCriteria());
+    roundRepo.saveAll(Arrays.asList(rdSum2R1, rdSum2R2));
 
-      if (targetRound.getActiveTime() == null) {
-        targetRound.setActiveTime(OffsetDateTime.now());
-      }
+    assignMentorAndJudges(trSum2A, Arrays.asList(lNam, lMai, lBao), Arrays.asList(lNgoc, lSon));
+    assignMentorAndJudges(trSum2B, Arrays.asList(lNgoc, lSon, lDung), Arrays.asList(lAnh, lHuong));
+    assignMentorAndJudges(trSum2C, Arrays.asList(lAnh, lHuong, lTrang), Arrays.asList(lNam, lDung));
 
-      // Rút ngắn Submit Time xuống random trong vòng 60 giây để vừa vặn với 5 phút của Demo
-      OffsetDateTime roundTime = targetRound.getActiveTime();
-      OffsetDateTime submitTime = roundTime.plusSeconds(random.nextInt(60));
+    createTeam(
+        "Slothub",
+        "Hệ thống Agentic RAG tối ưu hóa truy xuất dữ liệu bệnh án điện tử",
+        eventSummerSecond,
+        trSum2A,
+        sXuan,
+        sTrung,
+        sTriet,
+        sDien);
+    for (int i = 0; i < 24; i++) {
+      createTeam(
+          profTeamNames[i],
+          "Dự án AI",
+          eventSummerSecond,
+          summer2Tracks[i % 3],
+          generateRealisticStudent(globalStudentCounter++, defaultPwd),
+          generateRealisticStudent(globalStudentCounter++, defaultPwd));
+    }
 
-      String slug = team.getName().toLowerCase().replaceAll("[^a-z0-9]", "-");
-      String submissionTitle = "Giải pháp " + team.getName() + ": " + team.getDescription();
-      String submissionDesc =
-          "Dự án hoàn thiện. Tài liệu chi tiết bao gồm mã nguồn, video demo sản phẩm và slide trình"
-              + " bày kiến trúc hệ thống.";
+    // ==========================================
+    // 9. XỬ LÝ SUBMISSION, CHẤM ĐIỂM & THĂNG VÒNG (CHO CẢ 3 SỰ KIỆN)
+    // ==========================================
+    log.info("Bat dau xu ly Submission, Cham diem va Thang vong...");
 
-      String githubLink = "https://github.com/seal-hackathon-2026/" + slug;
-      String ytLink =
-          "https://youtube.com/watch?v=" + java.util.UUID.randomUUID().toString().substring(0, 8);
-      String slideLink =
-          "https://docs.google.com/presentation/d/"
-              + java.util.UUID.randomUUID().toString().substring(0, 15);
+    // --- 9.1. XỬ LÝ KỲ SPRING 2026 (TOP 2 VÀO VÒNG CHUNG KẾT) ---
+    for (Track track : springTracks) {
+      List<Team> teamsInTrack = teamRepo.findAllByTrackId(track.getId());
+      Map<Team, Double> teamScoresR1 = new java.util.HashMap<>();
 
-      Submission submission =
-          new Submission(
-              submitTime,
-              submissionTitle,
-              submissionDesc,
-              githubLink,
-              ytLink,
-              slideLink,
-              team,
-              targetRound);
-      Submission savedSubmission = submissionRepo.save(submission);
+      for (Team team : teamsInTrack) {
+        Submission subR1 =
+            submissionRepo.save(
+                new Submission(
+                    rdSpring1.getActiveTime().plusMinutes(2),
+                    "Giải pháp V1 - " + team.getName(),
+                    "Nội dung V1",
+                    "https://github.com/seal/" + team.getName().toLowerCase(),
+                    "https://youtube.com",
+                    "https://docs.google.com",
+                    team,
+                    rdSpring1));
 
-      // --- CHẤM ĐIỂM KỲ SPRING ---
-      if (isSpringEvent) {
-        if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
-          int judgeCount = 0;
-          for (Lecturer judge : teamTrack.getJudges()) {
-            if (judgeCount >= 3) break;
-
+        double totalScoreR1 = 0;
+        int jCount = 0;
+        if (!track.getJudges().isEmpty()) {
+          for (Lecturer judge : track.getJudges()) {
+            if (jCount >= 3) break;
             float baseScore = 6.0f + random.nextInt(3);
-            for (Criteria criteria : targetRound.getCriteria()) {
-              float judgeScore = baseScore + (random.nextBoolean() ? 0.5f : 0.0f);
-              Score score = new Score(criteria, savedSubmission, judge, judgeScore);
-              score.setComment("Đánh giá " + criteria.getName() + " đạt yêu cầu chuyên môn.");
-              scoreRepo.save(score);
+            for (Criteria c : rdSpring1.getCriteria()) {
+              float jScore = baseScore + (random.nextBoolean() ? 0.5f : 0.0f);
+              scoreRepo.save(new Score(c, subR1, judge, jScore));
+              totalScoreR1 += (jScore * c.getWeight() / 100.0);
             }
-
-            // LƯU AUDIT LOG CHO HÀNH ĐỘNG CHẤM ĐIỂM CỦA GIÁM KHẢO
             auditLogRepo.save(
                 GradingLog.builder()
                     .actionTime(OffsetDateTime.now())
                     .actor(judge)
-                    .submission(savedSubmission)
+                    .submission(subR1)
                     .action("GRADED_SUBMISSION")
-                    .details("Giám khảo đã chấm điểm bài nộp của nhóm " + team.getName())
+                    .details("Chấm Vòng 1: " + team.getName())
                     .build());
-
-            judgeCount++;
+            jCount++;
           }
+        }
+        teamScoresR1.put(team, jCount > 0 ? totalScoreR1 / jCount : 0.0);
+      }
+
+      List<Team> sortedTeams =
+          teamsInTrack.stream()
+              .sorted((t1, t2) -> Double.compare(teamScoresR1.get(t2), teamScoresR1.get(t1)))
+              .toList();
+      for (int i = 0; i < sortedTeams.size(); i++) {
+        Team team = sortedTeams.get(i); // Đã bỏ từ khóa 'Team' ở vòng lặp ngoài nên không bị trùng
+        if (i < 2) {
+          Submission subR2 =
+              submissionRepo.save(
+                  new Submission(
+                      rdSpring2.getActiveTime().plusMinutes(2),
+                      "Giải pháp Chung Kết - " + team.getName(),
+                      "Nội dung V2",
+                      "https://github.com/seal/" + team.getName().toLowerCase(),
+                      "https://youtube.com",
+                      "https://docs.google.com",
+                      team,
+                      rdSpring2));
+          int jCount2 = 0;
+          for (Lecturer judge : track.getJudges()) {
+            if (jCount2 >= 3) break;
+            float baseR2 = 7.5f + (random.nextInt(2) * 0.5f);
+            for (Criteria c : rdSpring2.getCriteria())
+              scoreRepo.save(new Score(c, subR2, judge, baseR2));
+            auditLogRepo.save(
+                GradingLog.builder()
+                    .actionTime(OffsetDateTime.now())
+                    .actor(judge)
+                    .submission(subR2)
+                    .action("GRADED_SUBMISSION")
+                    .details("Chấm Vòng 2: " + team.getName())
+                    .build());
+            jCount2++;
+          }
+        } else {
+          team.setEliminatedAtRound(rdSpring1);
+          teamRepo.save(team);
         }
       }
-      // --- CHẤM ĐIỂM KỲ SUMMER ---
-      else {
-        // 1. Xử lý riêng cho team Slothub (Chỉ 2 giám khảo chấm, chừa slot cho Demo)
-        if (team.getName().equals("Slothub")) {
-          if (teamTrack != null && teamTrack.getJudges().size() >= 2) {
+    }
 
-            // Giám khảo 1
-            Lecturer judge1 = teamTrack.getJudges().get(0);
-            for (Criteria criteria : targetRound.getCriteria()) {
-              Score score1 = new Score(criteria, savedSubmission, judge1, 8.0f);
-              score1.setComment("Giải pháp rất tốt, đáp ứng đúng yêu cầu của hệ thống RAG.");
-              scoreRepo.save(score1);
+    // --- 9.2. XỬ LÝ KỲ SUMMER GỐC (GIỮ NGUYÊN DEMO 9 ĐỘI CŨ) ---
+    List<Team> summer1Teams = teamRepo.findByHackathonEventId(eventSummer.getId());
+    int sumTrA = 0, sumTrB = 0, sumTrC = 0;
+
+    if (rdSum1.getActiveTime() == null) {
+      rdSum1.setActiveTime(OffsetDateTime.now());
+      roundRepo.save(rdSum1);
+    }
+
+    for (Team team : summer1Teams) {
+      Track teamTrack = team.getTrack();
+      boolean shouldSubmit = false;
+      if (team.getName().equals("Slothub")) {
+        shouldSubmit = true;
+        sumTrA++;
+      } else if (teamTrack != null) {
+        if (teamTrack.getId().equals(trSumA.getId()) && sumTrA < 3) {
+          shouldSubmit = true;
+          sumTrA++;
+        } else if (teamTrack.getId().equals(trSumB.getId()) && sumTrB < 3) {
+          shouldSubmit = true;
+          sumTrB++;
+        } else if (teamTrack.getId().equals(trSumC.getId()) && sumTrC < 3) {
+          shouldSubmit = true;
+          sumTrC++;
+        }
+      }
+      if (!shouldSubmit) continue;
+
+      Submission subR1 =
+          submissionRepo.save(
+              new Submission(
+                  rdSum1.getActiveTime().plusMinutes(2),
+                  "Giải pháp - " + team.getName(),
+                  "Demo V1",
+                  "https://github.com",
+                  "https://youtube.com",
+                  "https://docs.google.com",
+                  team,
+                  rdSum1));
+
+      if (team.getName().equals("Slothub")
+          && teamTrack != null
+          && teamTrack.getJudges().size() >= 2) {
+        Lecturer j1 = teamTrack.getJudges().get(0), j2 = teamTrack.getJudges().get(1);
+        for (Criteria c : rdSum1.getCriteria()) {
+          scoreRepo.save(new Score(c, subR1, j1, 8.0f));
+          scoreRepo.save(new Score(c, subR1, j2, 8.5f));
+        }
+        auditLogRepo.save(
+            GradingLog.builder()
+                .actionTime(OffsetDateTime.now())
+                .actor(j1)
+                .submission(subR1)
+                .action("GRADED_SUBMISSION")
+                .details("Chấm Slothub")
+                .build());
+        auditLogRepo.save(
+            GradingLog.builder()
+                .actionTime(OffsetDateTime.now())
+                .actor(j2)
+                .submission(subR1)
+                .action("GRADED_SUBMISSION")
+                .details("Chấm Slothub")
+                .build());
+      } else if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
+        int jC = 0;
+        for (Lecturer judge : teamTrack.getJudges()) {
+          if (jC >= 3) break;
+          for (Criteria c : rdSum1.getCriteria())
+            scoreRepo.save(new Score(c, subR1, judge, 6.5f + random.nextInt(3) * 0.5f));
+          auditLogRepo.save(
+              GradingLog.builder()
+                  .actionTime(OffsetDateTime.now())
+                  .actor(judge)
+                  .submission(subR1)
+                  .action("GRADED_SUBMISSION")
+                  .details("Chấm Vòng 1: " + team.getName())
+                  .build());
+          jC++;
+        }
+      }
+    }
+
+    // --- 9.3. XỬ LÝ KỲ SUMMER SECOND (TOP 2 VÀO VÒNG 2 + DEMO SLOTHUB R2) ---
+    for (Track track : summer2Tracks) {
+      List<Team> teamsInTrack = teamRepo.findAllByTrackId(track.getId());
+      Map<Team, Double> teamScoresR1 = new java.util.HashMap<>();
+
+      for (Team team : teamsInTrack) {
+        Submission subR1 =
+            submissionRepo.save(
+                new Submission(
+                    rdSum2R1.getActiveTime().plusMinutes(2),
+                    "Giải pháp V1 - " + team.getName(),
+                    "Nội dung V1",
+                    "https://github.com",
+                    "https://youtube.com",
+                    "https://docs.google.com",
+                    team,
+                    rdSum2R1));
+
+        double totalScoreR1 = 0;
+        int jCount = 0;
+        if (!track.getJudges().isEmpty()) {
+          for (Lecturer judge : track.getJudges()) {
+            if (jCount >= 3) break;
+            float baseScore = 7.0f + (random.nextInt(3) * 0.5f);
+            for (Criteria c : rdSum2R1.getCriteria()) {
+              scoreRepo.save(new Score(c, subR1, judge, baseScore));
+              totalScoreR1 += (baseScore * c.getWeight() / 100.0);
             }
             auditLogRepo.save(
                 GradingLog.builder()
                     .actionTime(OffsetDateTime.now())
-                    .actor(judge1)
-                    .submission(savedSubmission)
+                    .actor(judge)
+                    .submission(subR1)
                     .action("GRADED_SUBMISSION")
-                    .details("Giám khảo đã chấm điểm bài nộp của nhóm Slothub")
+                    .details("Chấm Vòng 1: " + team.getName())
                     .build());
-
-            // Giám khảo 2
-            Lecturer judge2 = teamTrack.getJudges().get(1);
-            for (Criteria criteria : targetRound.getCriteria()) {
-              Score score2 = new Score(criteria, savedSubmission, judge2, 8.5f);
-              score2.setComment("Kiến trúc Agentic RAG khá ổn định và có tính ứng dụng cao.");
-              scoreRepo.save(score2);
-            }
-            auditLogRepo.save(
-                GradingLog.builder()
-                    .actionTime(OffsetDateTime.now())
-                    .actor(judge2)
-                    .submission(savedSubmission)
-                    .action("GRADED_SUBMISSION")
-                    .details("Giám khảo đã chấm điểm bài nộp của nhóm Slothub.")
-                    .build());
+            jCount++;
           }
         }
-        // 2. 8 team còn lại
-        else {
-          if (teamTrack != null && !teamTrack.getJudges().isEmpty()) {
-            int judgeCount = 0;
-            for (Lecturer judge : teamTrack.getJudges()) {
-              if (judgeCount >= 3) break;
+        teamScoresR1.put(team, jCount > 0 ? totalScoreR1 / jCount : 0.0);
+      }
 
-              float baseScore = 6.5f + (random.nextInt(4) * 0.5f);
-              for (Criteria criteria : targetRound.getCriteria()) {
-                float judgeScore = baseScore + (random.nextInt(3) * 0.5f);
-                if (judgeScore > 10.0f) judgeScore = 10.0f;
+      List<Team> sortedTeams =
+          teamsInTrack.stream()
+              .sorted((t1, t2) -> Double.compare(teamScoresR1.get(t2), teamScoresR1.get(t1)))
+              .toList();
+      for (int i = 0; i < sortedTeams.size(); i++) {
+        Team team = sortedTeams.get(i); // Đã sửa triệt để lỗi trùng biến
+        if (i < 2) {
+          Submission subR2 =
+              submissionRepo.save(
+                  new Submission(
+                      rdSum2R2.getActiveTime().plusMinutes(2),
+                      "Giải pháp Chung Kết - " + team.getName(),
+                      "Nội dung V2",
+                      "https://github.com",
+                      "https://youtube.com",
+                      "https://docs.google.com",
+                      team,
+                      rdSum2R2));
 
-                Score score = new Score(criteria, savedSubmission, judge, judgeScore);
-                score.setComment("Phần " + criteria.getName() + " triển khai tốt, sát thực tế.");
-                scoreRepo.save(score);
-              }
-
-              // LƯU AUDIT LOG
+          if (team.getName().equals("Slothub") && track.getJudges().size() >= 2) {
+            Lecturer j1 = track.getJudges().get(0), j2 = track.getJudges().get(1);
+            for (Criteria c : rdSum2R2.getCriteria()) {
+              scoreRepo.save(new Score(c, subR2, j1, 8.5f));
+              scoreRepo.save(new Score(c, subR2, j2, 9.0f));
+            }
+            auditLogRepo.save(
+                GradingLog.builder()
+                    .actionTime(OffsetDateTime.now())
+                    .actor(j1)
+                    .submission(subR2)
+                    .action("GRADED_SUBMISSION")
+                    .details("Chấm Vòng 2 Slothub")
+                    .build());
+            auditLogRepo.save(
+                GradingLog.builder()
+                    .actionTime(OffsetDateTime.now())
+                    .actor(j2)
+                    .submission(subR2)
+                    .action("GRADED_SUBMISSION")
+                    .details("Chấm Vòng 2 Slothub")
+                    .build());
+          } else {
+            int jCount2 = 0;
+            for (Lecturer judge : track.getJudges()) {
+              if (jCount2 >= 3) break;
+              float baseR2 = 7.5f + (random.nextInt(3) * 0.5f);
+              for (Criteria c : rdSum2R2.getCriteria())
+                scoreRepo.save(new Score(c, subR2, judge, baseR2));
               auditLogRepo.save(
                   GradingLog.builder()
                       .actionTime(OffsetDateTime.now())
                       .actor(judge)
-                      .submission(savedSubmission)
+                      .submission(subR2)
                       .action("GRADED_SUBMISSION")
-                      .details("Giám khảo đã chấm điểm bài nộp của nhóm " + team.getName())
+                      .details("Chấm Vòng 2: " + team.getName())
                       .build());
-
-              judgeCount++;
+              jCount2++;
             }
           }
+        } else {
+          team.setEliminatedAtRound(rdSum2R1);
+          teamRepo.save(team);
         }
       }
     }
