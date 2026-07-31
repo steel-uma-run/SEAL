@@ -94,7 +94,7 @@
 				selectedTeamDetails = data
 				showTeamDetailsModal = true
 			} else {
-				alert(`Failed to get team info: ${error?.detail || error?.message || 'Unknown error'}`)
+				alert(`Failed to get team info: ${error?.detail || error?.message || "Unknown error"}`)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -627,8 +627,8 @@
 		createRoundError = false
 
 		try {
-			const activeDurationMs = newRoundActiveDays * 24 * 60 * 60 * 1000;
-			const gradingDurationMs = newRoundGradingDays * 24 * 60 * 60 * 1000;
+			const activeDurationMs = newRoundActiveDays * 24 * 60 * 60 * 1000
+			const gradingDurationMs = newRoundGradingDays * 24 * 60 * 60 * 1000
 
 			const { response, data: roundData } = await createRound({
 				path: { eventId },
@@ -806,7 +806,12 @@
 				alert("Round deleted successfully!")
 				await loadEventRounds()
 			} else {
-				alert(`Failed to delete round: ${error?.detail || response?.statusText}`)
+				const errorMsg =
+					error?.detail ||
+					error?.message ||
+					(response?.statusText ? response.statusText : null) ||
+					"An unexpected error occurred"
+				alert(`Failed to delete round: ${errorMsg}`)
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
@@ -1285,7 +1290,11 @@
 													{/if}
 												</td>
 												<td>
-													<button onclick={() => openTeamDetails(team.id)} class="btn-icon" aria-label="View Team Details">
+													<button
+														onclick={() => openTeamDetails(team.id)}
+														class="btn-icon"
+														aria-label="View Team Details"
+													>
 														<Eye class="icon-sm" />
 													</button>
 												</td>
@@ -1746,55 +1755,55 @@
 							{createRoundMessage}
 						</div>
 					{/if}
+					<div class="form-group">
+						<label class="form-label" for="newRoundName">Round Name *</label>
+						<input
+							id="newRoundName"
+							type="text"
+							bind:value={newRoundName}
+							class="input-field"
+							required
+							placeholder="e.g. Preliminary Round"
+						/>
+					</div>
+
+					<div class="form-group full-width">
+						<label class="form-label" for="newRoundDesc">Description *</label>
+						<textarea
+							id="newRoundDesc"
+							bind:value={newRoundDescription}
+							class="input-field textarea"
+							rows="2"
+							required
+							placeholder="Short description of this round..."
+						></textarea>
+					</div>
+
+					<h4 class="modal-section-title">Timeline Configurations</h4>
+					<div class="form-row">
 						<div class="form-group">
-							<label class="form-label" for="newRoundName">Round Name *</label>
+							<label class="form-label" for="newRoundActiveDays">Active Duration (Days) *</label>
 							<input
-								id="newRoundName"
-								type="text"
-								bind:value={newRoundName}
+								id="newRoundActiveDays"
+								type="number"
+								min="1"
+								bind:value={newRoundActiveDays}
 								class="input-field"
 								required
-								placeholder="e.g. Preliminary Round"
 							/>
 						</div>
-
-						<div class="form-group full-width">
-							<label class="form-label" for="newRoundDesc">Description *</label>
-							<textarea
-								id="newRoundDesc"
-								bind:value={newRoundDescription}
-								class="input-field textarea"
-								rows="2"
+						<div class="form-group">
+							<label class="form-label" for="newRoundGradingDays">Grading Duration (Days) *</label>
+							<input
+								id="newRoundGradingDays"
+								type="number"
+								min="1"
+								bind:value={newRoundGradingDays}
+								class="input-field"
 								required
-								placeholder="Short description of this round..."
-							></textarea>
+							/>
 						</div>
-
-						<h4 class="modal-section-title">Timeline Configurations</h4>
-						<div class="form-row">
-							<div class="form-group">
-								<label class="form-label" for="newRoundActiveDays">Active Duration (Days) *</label>
-								<input
-									id="newRoundActiveDays"
-									type="number"
-									min="1"
-									bind:value={newRoundActiveDays}
-									class="input-field"
-									required
-								/>
-							</div>
-							<div class="form-group">
-								<label class="form-label" for="newRoundGradingDays">Grading Duration (Days) *</label>
-								<input
-									id="newRoundGradingDays"
-									type="number"
-									min="1"
-									bind:value={newRoundGradingDays}
-									class="input-field"
-									required
-								/>
-							</div>
-						</div>
+					</div>
 					<div class="modal-actions">
 						<button
 							type="button"
@@ -2088,7 +2097,8 @@
 					<div class="form-group">
 						<label class="form-label">Status</label>
 						<span
-							class="badge {selectedTeamDetails.status === 'APPROVED' || selectedTeamDetails.status === 'ACTIVE'
+							class="badge {selectedTeamDetails.status === 'APPROVED' ||
+							selectedTeamDetails.status === 'ACTIVE'
 								? 'badge-success'
 								: selectedTeamDetails.status === 'PENDING'
 									? 'badge-warning'
