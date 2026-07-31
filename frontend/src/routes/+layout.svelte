@@ -33,6 +33,8 @@
 		return str
 	})
 
+	client.setConfig({ baseUrl: "http://localhost:8080/api/v0" })
+
 	client.interceptors.request.use((request) => {
 		if (typeof window !== "undefined") {
 			const url = new URL(request.url)

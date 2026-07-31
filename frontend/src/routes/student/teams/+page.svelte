@@ -642,10 +642,8 @@
 						<!-- Export Certificate Button -->
 						<button
 							class="btn btn--cert btn--sm"
-							disabled={!isTeamRanked || isExportingCert}
-							title={isTeamRanked
-								? "Download your team certificate"
-								: "Certificate is only available for ranked (graded) teams"}
+							disabled={isExportingCert}
+							title="Download your team certificate"
 							onclick={handleExportCertificate}
 						>
 							{#if isExportingCert}
@@ -672,7 +670,7 @@
 										d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
 									/>
 								</svg>
-								{isTeamRanked ? "🏆 Export Certificate" : "🔒 Certificate Locked"}
+								🏆 Export Certificate
 							{/if}
 						</button>
 						{#if certExportMessage}
@@ -1479,20 +1477,20 @@
 			align-items: center;
 			gap: 0.4rem;
 			padding: 0.375rem 1rem;
-			border-radius: 0.5rem;
+			border-radius: 0.375rem;
 			font-size: 0.875rem;
 			font-weight: 700;
 			cursor: pointer;
 			border: none;
 			transition: all 0.2s ease;
-			background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-			color: #7c3500;
-			box-shadow: 0 2px 8px rgba(253, 160, 133, 0.4);
+			background: #f97316;
+			color: #ffffff;
+			box-shadow: none;
 
 			&:hover:not(:disabled) {
-				background: linear-gradient(135deg, #f5c842 0%, #fb7a5a 100%);
-				transform: translateY(-1px);
-				box-shadow: 0 4px 12px rgba(253, 160, 133, 0.5);
+				background: #ea580c;
+				transform: none;
+				box-shadow: none;
 			}
 
 			&:disabled {
