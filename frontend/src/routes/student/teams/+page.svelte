@@ -555,8 +555,25 @@
 													<span class="status-badge approved">
 														<CheckCircle class="w-3 h-3" style="display:inline;" /> APPROVED
 													</span>
+												{:else if item.team.status === "BANNED"}
+													<span
+														class="status-badge rejected"
+														title={item.team.disqualify_reason || item.team.disqualifyReason || ""}
+													>
+														<XCircle class="w-3 h-3" style="display:inline;" /> DISQUALIFIED
+													</span>
 												{/if}
 											</div>
+
+											{#if item.team.status === "BANNED" && (item.team.disqualify_reason || item.team.disqualifyReason)}
+												<div
+													class="alert alert-error"
+													style="margin: 0.5rem 0; font-size: 0.85rem; padding: 0.5rem 0.75rem; border-radius: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);"
+												>
+													<strong>Disqualification Reason:</strong>
+													{item.team.disqualify_reason || item.team.disqualifyReason}
+												</div>
+											{/if}
 
 											<div class="submission-area">
 												<h4 class="submission-label">TEAM INFO</h4>

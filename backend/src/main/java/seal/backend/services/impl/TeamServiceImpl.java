@@ -231,7 +231,7 @@ public class TeamServiceImpl implements TeamService {
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
 
-    if (team.isTeamValid()) {
+    if (!team.isTeamValid()) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Team is not valid, cannot disqualify.");
     }

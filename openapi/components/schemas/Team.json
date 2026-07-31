@@ -11,7 +11,7 @@
     },
     "status": {
       "type": "string",
-      "enum": ["PENDING", "APPROVED"]
+      "enum": ["PENDING", "APPROVED", "BANNED"]
     },
     "members": {
       "type": "array",
