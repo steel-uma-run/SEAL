@@ -6,10 +6,11 @@
 		getAllTeamsOfEvents,
 		getInterestedParticipants,
 		getSubmissionsByEvent,
-		exportEventRanking
+		exportEventRanking,
+		exportCertificate
 	} from "$lib/api"
 	import { Button, Chip } from "m3-svelte"
-	import { Trophy, Download } from "@lucide/svelte"
+	import { Trophy, Download, Award } from "@lucide/svelte"
 
 	interface Props {
 		eventId?: string
@@ -278,8 +279,8 @@
 			}
 
 			if (csvText) {
-				const cleanCsvText = csvText.replace(/^\uFEFF/, "");
-                const blob = new Blob(["\uFEFF", cleanCsvText], { type: "text/csv;charset=utf-8;" })
+				const cleanCsvText = csvText.replace(/^\uFEFF/, "")
+				const blob = new Blob(["\uFEFF", cleanCsvText], { type: "text/csv;charset=utf-8;" })
 				const url = URL.createObjectURL(blob)
 				const link = document.createElement("a")
 				link.href = url
@@ -297,6 +298,41 @@
 			alert("An error occurred while exporting CSV.")
 		} finally {
 			isExportingCsv = false
+		}
+	}
+
+	let exportingCertTeamId = $state<string | null>(null)
+
+	async function handleExportTeamCertificate(teamId: string, teamName: string) {
+		if (!eventId || !teamId) return
+		exportingCertTeamId = teamId
+		try {
+			const { data: base64, response: res } = await exportCertificate({
+				path: { eventId, teamId } as any,
+				throwOnError: false
+			})
+
+			if (res?.ok && base64) {
+				const binary = atob(base64 as string)
+				const bytes = new Uint8Array(binary.length)
+				for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+				const blob = new Blob([bytes], { type: "image/png" })
+				const url = URL.createObjectURL(blob)
+				const a = document.createElement("a")
+				a.href = url
+				a.download = `Certificate_${teamName || teamId}.png`
+				document.body.appendChild(a)
+				a.click()
+				document.body.removeChild(a)
+				URL.revokeObjectURL(url)
+			} else {
+				alert("Certificate is not available for this team.")
+			}
+		} catch (err: any) {
+			console.error("Certificate export error:", err)
+			alert(`Failed to export certificate: ${err?.message || "Unknown error"}`)
+		} finally {
+			exportingCertTeamId = null
 		}
 	}
 
@@ -506,6 +542,18 @@
 								<span class="score-label">Score</span>
 								<span class="score-val">{team.computedScore.toFixed(2)}</span>
 							</div>
+							<button
+								type="button"
+								class="btn-export-cert"
+								disabled={exportingCertTeamId === team.id}
+								onclick={() => handleExportTeamCertificate(team.id, team.name)}
+								title="Export certificate for {team.name}"
+							>
+								<Award size={15} />
+								<span
+									>{exportingCertTeamId === team.id ? "Exporting..." : "Export certificate"}</span
+								>
+							</button>
 						</div>
 					</div>
 				</div>
@@ -824,6 +872,14 @@
 
 			.score-col {
 				padding-top: 0.15rem;
+				display: flex;
+				flex-direction: column;
+				align-items: flex-end;
+
+				@media (max-width: 768px) {
+					align-items: flex-start;
+					margin-top: 0.5rem;
+				}
 
 				.score-box {
 					display: flex;
@@ -843,6 +899,35 @@
 						font-size: 1.25rem;
 						font-weight: bold;
 						color: var(--md-sys-color-primary);
+					}
+				}
+
+				.btn-export-cert {
+					display: inline-flex;
+					align-items: center;
+					gap: 0.35rem;
+					padding: 0.35rem 0.75rem;
+					border-radius: 999px;
+					font-size: 0.8rem;
+					font-weight: 600;
+					border: 1px solid var(--md-sys-color-outline-variant, #c9c5d0);
+					background-color: var(--md-sys-color-surface-container, #f3edf7);
+					color: var(--md-sys-color-on-surface, #1d1b20);
+					cursor: pointer;
+					transition: all 0.2s ease;
+					margin-top: 0.5rem;
+					white-space: nowrap;
+
+					&:hover:not(:disabled) {
+						background-color: var(--md-sys-color-primary-container, #eaddff);
+						color: var(--md-sys-color-on-primary-container, #21005d);
+						border-color: var(--md-sys-color-primary, #6750a4);
+						transform: translateY(-1px);
+					}
+
+					&:disabled {
+						opacity: 0.5;
+						cursor: not-allowed;
 					}
 				}
 			}
