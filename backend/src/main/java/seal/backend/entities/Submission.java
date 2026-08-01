@@ -95,6 +95,7 @@ public class Submission {
 
     return new SubmissionDto(
         getId(),
+        getRound().getId(),
         getTitle(),
         getDescription(),
         getGithubLink(),

@@ -2,6 +2,7 @@
   "type": "object",
   "required": [
     "id",
+    "round_id",
     "title",
     "description",
     "github_link",
@@ -12,6 +13,10 @@
   ],
   "properties": {
     "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "round_id": {
       "type": "string",
       "format": "uuid"
     },

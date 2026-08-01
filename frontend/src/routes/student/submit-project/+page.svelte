@@ -559,14 +559,15 @@
 												{score.criteria_name || "Criteria"}
 											</span>
 											<span class="submit-page__score-value">
-												{score.value}/100
+												{score.value}/10
 											</span>
 										</div>
 									{/each}
 									<div class="submit-page__score-total">
 										<span class="submit-page__score-total-label">Total Average</span>
 										<span class="submit-page__score-total-value">
-											{(sub.avg_score || 0).toFixed(2)}/100
+											{(sub.avg_score || 0).toFixed(2)}/10
+											
 										</span>
 									</div>
 								</div>
