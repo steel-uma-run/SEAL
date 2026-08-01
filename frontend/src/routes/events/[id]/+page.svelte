@@ -169,10 +169,6 @@
 		<section class="tracks">
 			<div class="title">
 				<h2>Tracks</h2>
-
-				{#if auth.value?.role == "COORDINATOR"}
-					<Button variant="tonal">New track</Button>
-				{/if}
 			</div>
 
 			{#if tracks.length <= 0}
@@ -212,10 +208,6 @@
 		<section class="rounds">
 			<div class="title">
 				<h2>Rounds</h2>
-
-				{#if auth.value?.role == "COORDINATOR"}
-					<Button variant="tonal">New round</Button>
-				{/if}
 			</div>
 
 			{#if tracks.length <= 0}
