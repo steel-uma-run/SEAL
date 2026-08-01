@@ -248,4 +248,46 @@ public class TeamServiceImpl implements TeamService {
 
     teamRepository.save(team);
   }
+
+  @Transactional
+  @Override
+  public void transferLeadership(UUID teamId, UUID studentId) {
+    Team team =
+        teamRepository
+            .findById(teamId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Team not found."));
+
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    Student teamLeader =
+        studentRepository
+            .findByEmail(auth.getName())
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Only a team leader can transfer leadership."));
+
+    if (!team.getLeader().getId().equals(teamLeader.getId())) {
+      throw new ResponseStatusException(
+          HttpStatus.UNAUTHORIZED, "Only a team leader can transfer leadership.");
+    }
+
+    OffsetDateTime now = OffsetDateTime.now();
+    HackathonEvent event = team.getHackathonEvent();
+    if (event.getRegistrationStartTime() == null
+        || event.getRegistrationStartTime().plus(event.getRegistrationDuration()).isBefore(now)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Can only transfer leadership during registration window.");
+    }
+
+    Student student =
+        studentRepository
+            .findById(studentId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found."));
+
+    team.setLeader(student);
+
+    teamRepository.save(team);
+  }
 }
