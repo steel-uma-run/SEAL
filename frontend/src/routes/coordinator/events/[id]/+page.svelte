@@ -1170,18 +1170,7 @@
 					</div>
 				{/if}
 
-				<div class="event-time-info">
-					<div class="time-item">
-						<Clock class="icon text-primary" />
-						<span
-							><strong>Start:</strong> {formatDateTime(event.startTime || event.start_time)}</span
-						>
-					</div>
-					<div class="time-item">
-						<Clock class="icon text-error" />
-						<span><strong>End:</strong> {formatDateTime(event.endTime || event.end_time)}</span>
-					</div>
-				</div>
+
 			</div>
 
 			<!-- Event Tracks and Experts Management Card -->
