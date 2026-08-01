@@ -478,7 +478,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Round 2",
                 "Chung kết",
                 Duration.ofMinutes(5),
-                Duration.ofMinutes(5),
+                Duration.ofMinutes(10),
                 eventSummerSecond));
 
     rdSum2R1.setActiveTime(OffsetDateTime.now().minusHours(2));
@@ -720,22 +720,66 @@ public class DatabaseSeeder implements CommandLineRunner {
         double totalScoreR1 = 0;
         int jCount = 0;
         if (!track.getJudges().isEmpty()) {
-          for (Lecturer judge : track.getJudges()) {
-            if (jCount >= 3) break;
-            float baseScore = 7.0f + (random.nextInt(3) * 0.5f);
+
+          if (team.getName().equals("Slothub") && track.getJudges().size() >= 3) {
+            Lecturer j1 = track.getJudges().get(0);
+            Lecturer j2 = track.getJudges().get(1);
+            Lecturer j3 = track.getJudges().get(2); // Thầy Bảo (Cố tình cho chấm lệch ở Vòng 1)
+
             for (Criteria c : rdSum2R1.getCriteria()) {
-              scoreRepo.save(new Score(c, subR1, judge, baseScore));
-              totalScoreR1 += (baseScore * c.getWeight() / 100.0);
+              scoreRepo.save(new Score(c, subR1, j1, 9.5f)); // Điểm cao
+              scoreRepo.save(new Score(c, subR1, j2, 9.0f)); // Điểm cao
+              scoreRepo.save(new Score(c, subR1, j3, 4.0f)); // ĐIỂM CỰC THẤP -> TẠO LỆCH ĐIỂM!
+
+              totalScoreR1 += ((9.5f + 9.0f + 4.0f) * c.getWeight() / 100.0);
             }
+
             auditLogRepo.save(
                 GradingLog.builder()
                     .actionTime(OffsetDateTime.now())
-                    .actor(judge)
+                    .actor(j1)
                     .submission(subR1)
                     .action("GRADED_SUBMISSION")
-                    .details("Chấm Vòng 1: " + team.getName())
+                    .details("Chấm Vòng 1 Slothub")
                     .build());
-            jCount++;
+            auditLogRepo.save(
+                GradingLog.builder()
+                    .actionTime(OffsetDateTime.now())
+                    .actor(j2)
+                    .submission(subR1)
+                    .action("GRADED_SUBMISSION")
+                    .details("Chấm Vòng 1 Slothub")
+                    .build());
+            auditLogRepo.save(
+                GradingLog.builder()
+                    .actionTime(OffsetDateTime.now())
+                    .actor(j3)
+                    .submission(subR1)
+                    .action("GRADED_SUBMISSION")
+                    .details("Chấm Vòng 1 Slothub")
+                    .build());
+
+            jCount = 3;
+          } else {
+            // Chấm random bình thường cho các team khác
+            // (Hạ baseScore xuống 5.0 - 6.5 để đảm bảo điểm không thể vượt qua Slothub)
+            for (Lecturer judge : track.getJudges()) {
+              if (jCount >= 3) break;
+              float baseScore = 5.0f + (random.nextInt(4) * 0.5f);
+              for (Criteria c : rdSum2R1.getCriteria()) {
+                scoreRepo.save(new Score(c, subR1, judge, baseScore));
+                totalScoreR1 += (baseScore * c.getWeight() / 100.0);
+              }
+              auditLogRepo.save(
+                  GradingLog.builder()
+                      .actionTime(OffsetDateTime.now())
+                      .actor(judge)
+                      .submission(subR1)
+                      .action("GRADED_SUBMISSION")
+                      .details("Chấm Vòng 1: " + team.getName())
+                      .build());
+              jCount++;
+            }
           }
         }
         teamScoresR1.put(team, jCount > 0 ? totalScoreR1 / jCount : 0.0);
@@ -746,7 +790,7 @@ public class DatabaseSeeder implements CommandLineRunner {
               .sorted((t1, t2) -> Double.compare(teamScoresR1.get(t2), teamScoresR1.get(t1)))
               .toList();
       for (int i = 0; i < sortedTeams.size(); i++) {
-        Team team = sortedTeams.get(i); // Đã sửa triệt để lỗi trùng biến
+        Team team = sortedTeams.get(i);
         if (i < 2) {
           Submission subR2 =
               submissionRepo.save(
