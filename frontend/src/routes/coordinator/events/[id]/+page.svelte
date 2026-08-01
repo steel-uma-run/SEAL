@@ -26,7 +26,18 @@
 		disqualifyTeam
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark, Download, Eye, Ban } from "@lucide/svelte"
+	import {
+		ArrowLeft,
+		Clock,
+		X,
+		Plus,
+		Trash2,
+		Bookmark,
+		Download,
+		Eye,
+		Ban,
+		Trophy
+	} from "@lucide/svelte"
 	import Leaderboard from "../../../events/[id]/Leaderboard.svelte"
 
 	// Stub: updateRoundCriteria is not yet in the generated SDK
@@ -1126,6 +1137,25 @@
 
 				<h1 class="event-title">{event.name}</h1>
 				<p class="event-desc">{event.description || "No description provided."}</p>
+
+				{#if event.prize || event.price}
+					<div class="event-prize-info">
+						<div class="prize-title-row">
+							<Trophy
+								class="icon"
+								style="width: 18px; height: 18px; color: var(--md-sys-color-primary);"
+							/>
+							<span>Prize Pool</span>
+						</div>
+						<div class="prize-content">
+							{#each ((event.prize || event.price) ?? "").split("\n") as line}
+								{#if line.trim()}
+									<p>{line}</p>
+								{/if}
+							{/each}
+						</div>
+					</div>
+				{/if}
 
 				{#if eventTracks.length > 0}
 					<div class="event-tracks-info">
@@ -2519,6 +2549,35 @@
 			margin: 0 0 1.5rem 0;
 			max-width: 800px;
 			opacity: 0.9;
+		}
+
+		.event-prize-info {
+			margin: 0 0 1.5rem 0;
+			padding: 0.85rem 1.25rem;
+			background: rgba(255, 255, 255, 0.45);
+			border: 1px solid rgba(0, 0, 0, 0.08);
+			border-radius: 0.75rem;
+
+			.prize-title-row {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-size: 0.85rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
+				color: var(--md-sys-color-primary);
+				margin-bottom: 0.35rem;
+			}
+
+			.prize-content {
+				p {
+					margin: 0.2rem 0;
+					font-size: 0.9rem;
+					line-height: 1.5;
+					color: var(--md-sys-color-on-primary-container);
+				}
+			}
 		}
 
 		.event-tracks-info {

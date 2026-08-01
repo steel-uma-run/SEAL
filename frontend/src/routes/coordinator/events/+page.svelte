@@ -291,7 +291,7 @@
 
 				<div class="field">
 					<label for="event-prize-input">Prize Pool *</label>
-					<TextFieldOutlined id="event-prize-input" required bind:value={editPrize} />
+					<TextFieldOutlinedMultiline id="event-prize-input" required bind:value={editPrize} />
 				</div>
 
 				<div class="field">

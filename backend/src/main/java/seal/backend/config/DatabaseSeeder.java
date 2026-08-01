@@ -522,6 +522,7 @@ public class DatabaseSeeder implements CommandLineRunner {
           eventSummerSecond,
           summer2Tracks[i % 3],
           generateRealisticStudent(globalStudentCounter++, defaultPwd),
+          generateRealisticStudent(globalStudentCounter++, defaultPwd),
           generateRealisticStudent(globalStudentCounter++, defaultPwd));
     }
 
