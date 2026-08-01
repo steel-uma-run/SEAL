@@ -87,8 +87,19 @@ public class HackathonEvent {
   // "Active round" is the round that has been started most recently.
   public Optional<Round> getActiveRound() {
     return rounds.stream()
-        .filter(round -> round.getGradingStartTime() != null)
-        .sorted((a, b) -> b.getGradingStartTime().compareTo(a.getGradingStartTime()))
+        .filter(round -> round.getGradingStartTime() != null || round.getActiveTime() != null)
+        .sorted(
+            (a, b) -> {
+              if (a.getActiveTime() != null && b.getActiveTime() != null) {
+                return b.getActiveTime().compareTo(a.getActiveTime());
+              }
+
+              if (a.getGradingStartTime() != null && b.getGradingStartTime() != null) {
+                return b.getGradingStartTime().compareTo(a.getGradingStartTime());
+              }
+
+              return 0;
+            })
         .findFirst();
   }
 
