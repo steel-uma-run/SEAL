@@ -478,7 +478,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 "Round 2",
                 "Chung kết",
                 Duration.ofMinutes(5),
-                Duration.ofMinutes(10),
+                Duration.ofMinutes(22),
                 eventSummerSecond));
 
     rdSum2R1.setActiveTime(OffsetDateTime.now().minusHours(2));
@@ -486,7 +486,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     roundRepo.save(rdSum2R1);
 
     rdSum2R2.setActiveTime(OffsetDateTime.now().minusMinutes(10));
-    rdSum2R2.setGradingStartTime(OffsetDateTime.now().minusMinutes(5));
+    rdSum2R2.setGradingStartTime(OffsetDateTime.now().minusMinutes(2));
     roundRepo.save(rdSum2R2);
 
     for (TemplatedCriteria tc : v1Criterias)
