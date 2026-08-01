@@ -1,17 +1,10 @@
 <script lang="ts">
 	import { onMount } from "svelte"
 	import KaomojiError from "$lib/components/KaomojiError.svelte"
-	import {
-		Button,
-		Tabs,
-		TextFieldOutlined,
-		TextFieldOutlinedMultiline,
-		SelectOutlined
-	} from "m3-svelte"
+	import { Button, Tabs, TextFieldOutlined, TextFieldOutlinedMultiline } from "m3-svelte"
 	import { ChevronLeft, ChevronRight, Pencil, X } from "@lucide/svelte"
 	import { getAllSeasons, getEventsInSeason, updateEvent, finalizeEvent } from "$lib/api"
 	import { getCurrentSeasonInfo } from "$lib/utils/seasons"
-	import DateTimePicker from "$lib/components/DateTimePicker.svelte"
 
 	let seasons = $state<any[]>([])
 	let events = $state<any[]>([])
@@ -63,8 +56,15 @@
 			}
 
 			if (activeTab === "completed") {
-				const end = new Date(event.end_time).getTime()
-				return event.status === "FINALIZED" && now > end
+				const startIso = event.registration_start_time || event.start_time
+				const startMs = startIso ? new Date(startIso).getTime() : 0
+				const duration = event.registration_duration || 0
+				const endMs = event.end_time
+					? new Date(event.end_time).getTime()
+					: startMs
+						? startMs + duration
+						: 0
+				return event.status === "FINALIZED" && endMs > 0 && now > endMs
 			}
 
 			return true
@@ -89,10 +89,8 @@
 	let editName = $state("")
 	let editDescription = $state("")
 	let editPrize = $state("")
-	let editStartTime = $state<Date | undefined>(undefined)
-	let editEndTime = $state<Date | undefined>(undefined)
-	let editStatus = $state<"DRAFT" | "FINALIZED">("DRAFT")
 	let isSaving = $state(false)
+	let isFinalizing = $state(false)
 	let modalError = $state("")
 
 	function openEditModal(event: any) {
@@ -100,9 +98,6 @@
 		editName = event.name
 		editDescription = event.description
 		editPrize = event.prize || ""
-		editStartTime = event.start_time ? new Date(event.start_time) : undefined
-		editEndTime = event.end_time ? new Date(event.end_time) : undefined
-		editStatus = event.status
 		modalError = ""
 		showEditModal = true
 	}
@@ -113,31 +108,18 @@
 		modalError = ""
 
 		try {
-			if (!editStartTime || !editEndTime) {
-				modalError = "Please select start and end dates."
-				isSaving = false
-				return
-			}
-			if (editStartTime >= editEndTime) {
-				modalError = "Start time must be before end time."
-				isSaving = false
-				return
-			}
 			if (editName.trim().length === 0) {
 				modalError = "Event name cannot be empty."
 				isSaving = false
 				return
 			}
 
-			// 1. Update event details
 			const updateResp = await updateEvent({
 				path: { eventId: editingEventId },
 				body: {
 					name: editName,
 					description: editDescription,
-					prize: editPrize,
-					start_time: editStartTime.toISOString(),
-					end_time: editEndTime.toISOString()
+					prize: editPrize
 				},
 				throwOnError: false
 			})
@@ -146,18 +128,6 @@
 				throw new Error(updateResp.data?.detail || "Failed to update event details.")
 			}
 
-			// 2. Finalize event if selected
-			if (editStatus === "FINALIZED") {
-				const finalizeResp = await finalizeEvent({
-					path: { eventId: editingEventId },
-					throwOnError: false
-				})
-				if (!finalizeResp.response?.ok) {
-					throw new Error(finalizeResp.data?.detail || "Failed to finalize event.")
-				}
-			}
-
-			// Reload data & close modal
 			await loadData()
 			showEditModal = false
 		} catch (err: any) {
@@ -165,6 +135,30 @@
 			modalError = err.message || "An unexpected error occurred."
 		} finally {
 			isSaving = false
+		}
+	}
+
+	async function handleFinalizeEvent() {
+		if (!editingEventId) return
+		isFinalizing = true
+		modalError = ""
+
+		try {
+			const finalizeResp = await finalizeEvent({
+				path: { eventId: editingEventId },
+				throwOnError: false
+			})
+			if (!finalizeResp.response?.ok) {
+				throw new Error(finalizeResp.data?.detail || "Failed to finalize event.")
+			}
+
+			await loadData()
+			showEditModal = false
+		} catch (err: any) {
+			console.error("Error finalizing event:", err)
+			modalError = err.message || "An unexpected error occurred."
+		} finally {
+			isFinalizing = false
 		}
 	}
 
@@ -220,9 +214,17 @@
 				<div class="event-time">
 					<span class="time-label">Registration Window:</span>
 					<span class="time-val">
-						{new Date(event.start_time).toLocaleDateString()} - {new Date(
-							event.end_time
-						).toLocaleDateString()}
+						{#if event.registration_start_time || event.start_time}
+							{@const startMs = new Date(
+								event.registration_start_time || event.start_time
+							).getTime()}
+							{@const endMs = event.end_time
+								? new Date(event.end_time).getTime()
+								: startMs + (event.registration_duration || 0)}
+							{new Date(startMs).toLocaleDateString()} - {new Date(endMs).toLocaleDateString()}
+						{:else}
+							Not scheduled
+						{/if}
 					</span>
 				</div>
 				<div class="event-actions">
@@ -289,34 +291,7 @@
 
 				<div class="field">
 					<label for="event-prize-input">Prize Pool *</label>
-					<TextFieldOutlined id="event-prize-input" required bind:value={editPrize} />
-				</div>
-
-				<div class="field">
-					<label for="event-start-input">Registration Start *</label>
-					<div class="date-picker-container">
-						<DateTimePicker bind:value={editStartTime} />
-					</div>
-				</div>
-
-				<div class="field">
-					<label for="event-end-input">Registration End *</label>
-					<div class="date-picker-container">
-						<DateTimePicker bind:value={editEndTime} />
-					</div>
-				</div>
-
-				<div class="field">
-					<label for="event-status-input">Status *</label>
-					<SelectOutlined
-						id="event-status-input"
-						label=""
-						options={[
-							{ text: "Draft", value: "DRAFT" },
-							{ text: "Finalized (Publish Event)", value: "FINALIZED" }
-						]}
-						bind:value={editStatus}
-					/>
+					<TextFieldOutlinedMultiline id="event-prize-input" required bind:value={editPrize} />
 				</div>
 
 				<div class="field">
@@ -325,10 +300,18 @@
 				</div>
 
 				<div class="modal-actions">
+					<Button
+						type="button"
+						variant="tonal"
+						disabled={isFinalizing || isSaving}
+						onclick={handleFinalizeEvent}
+					>
+						{#if isFinalizing}Finalizing...{:else}Finalize Event{/if}
+					</Button>
 					<Button type="button" variant="text" onclick={() => (showEditModal = false)}
 						>Cancel</Button
 					>
-					<Button type="submit" disabled={isSaving}>
+					<Button type="submit" disabled={isSaving || isFinalizing}>
 						{#if isSaving}Saving...{:else}Save Changes{/if}
 					</Button>
 				</div>

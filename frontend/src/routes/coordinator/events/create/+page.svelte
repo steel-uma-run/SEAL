@@ -107,11 +107,6 @@
 			</div>
 
 			<div class="field">
-				<p class="label">Prize pool</p>
-				<TextFieldOutlined required minlength={1} label="" bind:value={prize} />
-			</div>
-
-			<div class="field">
 				<p class="label">Semester</p>
 				<SelectOutlined
 					label={""}
@@ -130,8 +125,13 @@
 			</div>
 
 			<div class="field">
-				<p class="label">Registration Duration (Milliseconds)</p>
-				<TextFieldOutlined required type="number" label="ms (e.g. 300000 = 5 min)" min="1" bind:value={registrationDurationMs} />
+				<p class="label">Registration Duration (ms)</p>
+				<TextFieldOutlined required type="number" min="1" bind:value={registrationDurationMs} />
+			</div>
+
+			<div class="field full-width description-box">
+				<p class="label">Prize pool</p>
+				<TextFieldOutlinedMultiline required minlength={1} label="" bind:value={prize} />
 			</div>
 
 			<div class="field full-width description-box">

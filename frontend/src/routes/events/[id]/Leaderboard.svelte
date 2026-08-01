@@ -6,10 +6,11 @@
 		getAllTeamsOfEvents,
 		getInterestedParticipants,
 		getSubmissionsByEvent,
-		exportEventRanking
+		exportEventRanking,
+		exportCertificate
 	} from "$lib/api"
 	import { Button, Chip } from "m3-svelte"
-	import { Trophy, Download } from "@lucide/svelte"
+	import { Trophy, Download, Award, Lock, Eye } from "@lucide/svelte"
 
 	interface Props {
 		eventId?: string
@@ -25,12 +26,44 @@
 	let allParticipatingTeams = $state<any[]>([])
 	let participantsList = $state<any[]>([])
 
-	// Filter mode: "TOP_10" or "ALL"
-	let filterMode = $state<"TOP_10" | "ALL">("ALL")
-
 	// Reactive check if logged in user has authorized role
 	let isAuthorizedUser = $derived(
 		!!auth.value && ["STUDENT", "LECTURER", "COORDINATOR"].includes(auth.value.role)
+	)
+
+	// Check if all scoring rounds are completed
+	let areAllRoundsComplete = $derived.by(() => {
+		if (event?.status === "COMPLETED" || event?.status === "FINISHED") return true
+
+		if (rounds && rounds.length > 0) {
+			const now = Date.now()
+			return rounds.every((round: any) => {
+				if (round.status === "COMPLETED" || round.status === "FINISHED" || round.isCompleted)
+					return true
+				const startIso =
+					round.activeTime || round.active_time || round.startTime || round.start_time
+				if (!startIso) return false
+				const start = new Date(startIso)
+				if (isNaN(start.getTime())) return false
+
+				const submissionEndMs =
+					start.getTime() + (round.activeDuration || round.active_duration || 0)
+				const gradingStartIso = round.gradingStartTime || round.grading_start_time
+				const gradingStartMs = gradingStartIso
+					? new Date(gradingStartIso).getTime()
+					: submissionEndMs
+				const endMs = gradingStartMs + (round.gradingDuration || round.grading_duration || 0)
+				const end = endMs > start.getTime() ? endMs : submissionEndMs
+
+				return now >= end
+			})
+		}
+		return true
+	})
+
+	// Check if current user can view the leaderboard (Coordinators & Lecturers get live preview access)
+	let canViewLeaderboard = $derived(
+		areAllRoundsComplete || (!!auth.value && ["COORDINATOR", "LECTURER"].includes(auth.value.role))
 	)
 
 	// Leaderboard displays all participating teams with real computed scores from backend
@@ -91,19 +124,11 @@
 		return null
 	})
 
-	// Displayed teams based on filterMode and auth
-	let displayedTeams = $derived.by(() => {
-		if (filterMode === "TOP_10") {
-			return allProcessedTeams.slice(0, 10)
-		}
-		return allProcessedTeams
-	})
+	// Displayed teams (all finalist / graded teams)
+	let displayedTeams = $derived(allProcessedTeams)
 
 	function scrollToMyTeam() {
 		if (!myTeamInfo || myTeamInfo.rank === null) return
-		if (myTeamInfo.rank > 10 && filterMode === "TOP_10") {
-			filterMode = "ALL"
-		}
 		setTimeout(() => {
 			const el = document.getElementById(`team-card-${myTeamInfo?.team.id}`)
 			if (el) {
@@ -127,9 +152,6 @@
 
 	function scrollToSearchedTeam() {
 		if (!searchedTeamRank) return
-		if (searchedTeamRank.rank > 10 && filterMode === "TOP_10") {
-			filterMode = "ALL"
-		}
 		setTimeout(() => {
 			const el = document.getElementById(`team-card-${searchedTeamRank.team.id}`)
 			if (el) {
@@ -278,8 +300,8 @@
 			}
 
 			if (csvText) {
-				const cleanCsvText = csvText.replace(/^\uFEFF/, "");
-                const blob = new Blob(["\uFEFF", cleanCsvText], { type: "text/csv;charset=utf-8;" })
+				const cleanCsvText = csvText.replace(/^\uFEFF/, "")
+				const blob = new Blob(["\uFEFF", cleanCsvText], { type: "text/csv;charset=utf-8;" })
 				const url = URL.createObjectURL(blob)
 				const link = document.createElement("a")
 				link.href = url
@@ -297,6 +319,41 @@
 			alert("An error occurred while exporting CSV.")
 		} finally {
 			isExportingCsv = false
+		}
+	}
+
+	let exportingCertTeamId = $state<string | null>(null)
+
+	async function handleExportTeamCertificate(teamId: string, teamName: string) {
+		if (!eventId || !teamId) return
+		exportingCertTeamId = teamId
+		try {
+			const { data: base64, response: res } = await exportCertificate({
+				path: { eventId, teamId } as any,
+				throwOnError: false
+			})
+
+			if (res?.ok && base64) {
+				const binary = atob(base64 as string)
+				const bytes = new Uint8Array(binary.length)
+				for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+				const blob = new Blob([bytes], { type: "image/png" })
+				const url = URL.createObjectURL(blob)
+				const a = document.createElement("a")
+				a.href = url
+				a.download = `Certificate_${teamName || teamId}.png`
+				document.body.appendChild(a)
+				a.click()
+				document.body.removeChild(a)
+				URL.revokeObjectURL(url)
+			} else {
+				alert("Certificate is not available for this team.")
+			}
+		} catch (err: any) {
+			console.error("Certificate export error:", err)
+			alert(`Failed to export certificate: ${err?.message || "Unknown error"}`)
+		} finally {
+			exportingCertTeamId = null
 		}
 	}
 
@@ -327,35 +384,25 @@
 					{isExportingCsv ? "Exporting..." : "Export CSV"}
 				</button>
 			{/if}
-
-			{#if isAuthorizedUser && allProcessedTeams.length > 0}
-				<div class="toggle-group">
-					<button
-						type="button"
-						class:active={filterMode === "TOP_10"}
-						onclick={() => (filterMode = "TOP_10")}
-					>
-						Top 10
-					</button>
-					<button
-						type="button"
-						class:active={filterMode === "ALL"}
-						onclick={() => (filterMode = "ALL")}
-					>
-						All Graded ({allProcessedTeams.length})
-					</button>
-				</div>
-			{/if}
 		</div>
 	</div>
 
 	<p class="subtitle">
 		{#if !isAuthorizedUser}
-			Showing Top 10 Graded Teams • Log in to view all rankings and your team position
+			Showing Finalist Rankings • Log in to view details and your team position
+		{:else if !canViewLeaderboard}
+			Leaderboard is currently locked during active evaluation rounds.
 		{:else}
-			Showing {filterMode === "TOP_10" ? "Top 10" : "All"} Graded Teams ({displayedTeams.length} of {allProcessedTeams.length})
+			Showing Finalist Teams ({displayedTeams.length} Teams)
 		{/if}
 	</p>
+
+	{#if !areAllRoundsComplete && isAuthorizedUser && auth.value?.role !== "STUDENT"}
+		<div class="preview-badge">
+			<Eye size={16} />
+			<span>Coordinator Live Preview — Round evaluations are currently in progress</span>
+		</div>
+	{/if}
 
 	<!-- Personal/Search Locator Widget -->
 	{#if isAuthorizedUser && !isLoading}
@@ -444,6 +491,17 @@
 			<p>{errorMessage}</p>
 			<Button variant="tonal" onclick={fetchLeaderboardData}>Retry</Button>
 		</div>
+	{:else if !canViewLeaderboard}
+		<div class="empty-state locked-state">
+			<Lock
+				size={40}
+				style="color: var(--md-sys-color-primary, #0061a4); margin-bottom: 0.25rem;"
+			/>
+			<p style="font-weight: bold; font-size: 1.1rem; opacity: 100%;">Leaderboard Locked</p>
+			<p style="max-width: 450px; margin-top: 0.25rem;">
+				Rankings will be revealed once both rounds of evaluation and scoring are completed.
+			</p>
+		</div>
 	{:else if displayedTeams.length === 0}
 		<div class="empty-state">
 			<p style="font-weight: bold;">No Graded Teams On Leaderboard Yet</p>
@@ -506,6 +564,18 @@
 								<span class="score-label">Score</span>
 								<span class="score-val">{team.computedScore.toFixed(2)}</span>
 							</div>
+							<button
+								type="button"
+								class="btn-export-cert"
+								disabled={exportingCertTeamId === team.id}
+								onclick={() => handleExportTeamCertificate(team.id, team.name)}
+								title="Export certificate for {team.name}"
+							>
+								<Award size={15} />
+								<span
+									>{exportingCertTeamId === team.id ? "Exporting..." : "Export certificate"}</span
+								>
+							</button>
 						</div>
 					</div>
 				</div>
@@ -824,6 +894,14 @@
 
 			.score-col {
 				padding-top: 0.15rem;
+				display: flex;
+				flex-direction: column;
+				align-items: flex-end;
+
+				@media (max-width: 768px) {
+					align-items: flex-start;
+					margin-top: 0.5rem;
+				}
 
 				.score-box {
 					display: flex;
@@ -843,6 +921,35 @@
 						font-size: 1.25rem;
 						font-weight: bold;
 						color: var(--md-sys-color-primary);
+					}
+				}
+
+				.btn-export-cert {
+					display: inline-flex;
+					align-items: center;
+					gap: 0.35rem;
+					padding: 0.35rem 0.75rem;
+					border-radius: 999px;
+					font-size: 0.8rem;
+					font-weight: 600;
+					border: 1px solid var(--md-sys-color-outline-variant, #c9c5d0);
+					background-color: var(--md-sys-color-surface-container, #f3edf7);
+					color: var(--md-sys-color-on-surface, #1d1b20);
+					cursor: pointer;
+					transition: all 0.2s ease;
+					margin-top: 0.5rem;
+					white-space: nowrap;
+
+					&:hover:not(:disabled) {
+						background-color: var(--md-sys-color-primary-container, #eaddff);
+						color: var(--md-sys-color-on-primary-container, #21005d);
+						border-color: var(--md-sys-color-primary, #6750a4);
+						transform: translateY(-1px);
+					}
+
+					&:disabled {
+						opacity: 0.5;
+						cursor: not-allowed;
 					}
 				}
 			}
@@ -867,5 +974,22 @@
 		p {
 			margin: 0;
 		}
+	}
+
+	.preview-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		background-color: var(--md-sys-color-tertiary-container, #ffd8e4);
+		color: var(--md-sys-color-on-tertiary-container, #31111d);
+		font-size: 0.85rem;
+		font-weight: 600;
+	}
+
+	.locked-state {
+		border: 1px dashed var(--md-sys-color-primary, #0061a4);
+		background: var(--md-sys-color-surface-container-low);
 	}
 </style>

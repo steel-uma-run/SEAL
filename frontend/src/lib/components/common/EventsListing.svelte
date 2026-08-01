@@ -52,17 +52,21 @@
 
 	function isEventInTab(event: any, tab: "current" | "upcoming" | "past"): boolean {
 		const now = Date.now()
-		const start = new Date(event.start_time).getTime()
-		const end = new Date(event.end_time).getTime()
+		const startIso = event.registration_start_time || event.start_time
+		const start = startIso ? new Date(startIso).getTime() : 0
+		const duration = event.registration_duration || 0
+		const end = event.end_time ? new Date(event.end_time).getTime() : start ? start + duration : 0
 
 		if (tab === "current") {
 			return (
-				(now >= start && now <= end) || event.status === "ACTIVE" || event.status === "FINALIZED"
+				(start > 0 && now >= start && now <= end) ||
+				event.status === "ACTIVE" ||
+				event.status === "FINALIZED"
 			)
 		} else if (tab === "upcoming") {
-			return start > now || event.status === "DRAFT" || event.status === "PENDING"
+			return (start > 0 && start > now) || event.status === "DRAFT" || event.status === "PENDING"
 		} else if (tab === "past") {
-			return end < now || event.status === "COMPLETED" || event.status === "ARCHIVED"
+			return (end > 0 && end < now) || event.status === "COMPLETED" || event.status === "ARCHIVED"
 		}
 		return true
 	}

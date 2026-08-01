@@ -33,11 +33,30 @@
 		return events
 	})
 
+	function getEventEndMs(eventData: any): number {
+		const startIso = eventData.registration_start_time || eventData.start_time
+		const startMs = startIso ? new Date(startIso).getTime() : 0
+		const duration = eventData.registration_duration || 0
+		return eventData.end_time
+			? new Date(eventData.end_time).getTime()
+			: startMs
+				? startMs + duration
+				: 0
+	}
+
+	function getEventStartMs(eventData: any): number {
+		const startIso = eventData.registration_start_time || eventData.start_time
+		return startIso ? new Date(startIso).getTime() : 0
+	}
+
 	const pastSeasonsList = $derived.by(async () => {
 		const seasons = await allSeasons
 		const now = Date.now()
 		return seasons.filter((seasonData) => {
-			return seasonData.events.some((eventData) => new Date(eventData.end_time).getTime() < now)
+			return seasonData.events.some((eventData) => {
+				const endMs = getEventEndMs(eventData)
+				return endMs > 0 && endMs < now
+			})
 		})
 	})
 
@@ -60,7 +79,8 @@
 				const seasons = (await allSeasons)
 					.map((seasonData) => {
 						const filteredEvents = seasonData.events.filter((eventData) => {
-							return new Date(eventData.end_time).getTime() < now
+							const endMs = getEventEndMs(eventData)
+							return endMs > 0 && endMs < now
 						})
 						return {
 							...seasonData,
@@ -79,7 +99,8 @@
 				return (await allSeasons)
 					.map((seasonData) => {
 						const filteredEvents = seasonData.events.filter((eventData) => {
-							return new Date(eventData.start_time).getTime() > now
+							const startMs = getEventStartMs(eventData)
+							return startMs > 0 && startMs > now
 						})
 						return {
 							...seasonData,

@@ -22,10 +22,22 @@
 		createCriteriaTemplate,
 		assignCriteria,
 		exportEventRanking,
-		getTeamInfo
+		getTeamInfo,
+		disqualifyTeam
 	} from "$lib/api"
 	import { theme } from "$lib/theme.svelte"
-	import { ArrowLeft, Clock, X, Plus, Trash2, Bookmark, Download, Eye } from "@lucide/svelte"
+	import {
+		ArrowLeft,
+		Clock,
+		X,
+		Plus,
+		Trash2,
+		Bookmark,
+		Download,
+		Eye,
+		Ban,
+		Trophy
+	} from "@lucide/svelte"
 	import Leaderboard from "../../../events/[id]/Leaderboard.svelte"
 
 	// Stub: updateRoundCriteria is not yet in the generated SDK
@@ -99,6 +111,55 @@
 			}
 		} catch (err: any) {
 			alert(`Error: ${err.message}`)
+		}
+	}
+
+	// Disqualify Team Modal State
+	let showDisqualifyModal = $state(false)
+	let selectedTeamToDisqualify = $state<any>(null)
+	let disqualifyReasonInput = $state("")
+	let isDisqualifyingTeam = $state(false)
+	let disqualifyTeamMessage = $state("")
+	let disqualifyTeamError = $state(false)
+
+	function openDisqualifyModal(team: any) {
+		selectedTeamToDisqualify = team
+		disqualifyReasonInput = ""
+		disqualifyTeamMessage = ""
+		disqualifyTeamError = false
+		showDisqualifyModal = true
+	}
+
+	async function handleDisqualifyTeam(e: SubmitEvent) {
+		e.preventDefault()
+		if (!selectedTeamToDisqualify) return
+		if (!disqualifyReasonInput.trim()) {
+			disqualifyTeamError = true
+			disqualifyTeamMessage = "Disqualification reason is required."
+			return
+		}
+		isDisqualifyingTeam = true
+		disqualifyTeamMessage = ""
+		disqualifyTeamError = false
+		try {
+			const { response, error: err } = await disqualifyTeam({
+				path: { teamId: selectedTeamToDisqualify.id },
+				body: { reason: disqualifyReasonInput.trim() },
+				throwOnError: false
+			})
+			if (response?.ok || response?.status === 204) {
+				showDisqualifyModal = false
+				await fetchEventDetails()
+			} else {
+				disqualifyTeamError = true
+				disqualifyTeamMessage =
+					(err as any)?.detail || (err as any)?.message || "Failed to disqualify team."
+			}
+		} catch (err: any) {
+			disqualifyTeamError = true
+			disqualifyTeamMessage = err.message || "An unexpected error occurred."
+		} finally {
+			isDisqualifyingTeam = false
 		}
 	}
 	let isSavingEditTrack = $state(false)
@@ -1077,6 +1138,25 @@
 				<h1 class="event-title">{event.name}</h1>
 				<p class="event-desc">{event.description || "No description provided."}</p>
 
+				{#if event.prize || event.price}
+					<div class="event-prize-info">
+						<div class="prize-title-row">
+							<Trophy
+								class="icon"
+								style="width: 18px; height: 18px; color: var(--md-sys-color-primary);"
+							/>
+							<span>Prize Pool</span>
+						</div>
+						<div class="prize-content">
+							{#each ((event.prize || event.price) ?? "").split("\n") as line}
+								{#if line.trim()}
+									<p>{line}</p>
+								{/if}
+							{/each}
+						</div>
+					</div>
+				{/if}
+
 				{#if eventTracks.length > 0}
 					<div class="event-tracks-info">
 						<span class="info-label">Tracks:</span>
@@ -1342,8 +1422,9 @@
 															: team.status === 'PENDING'
 																? 'badge-warning'
 																: 'badge-error'}"
+														title={team.disqualify_reason || team.disqualifyReason || ""}
 													>
-														{team.status}
+														{team.status === "BANNED" ? "DISQUALIFIED" : team.status}
 													</span>
 												</td>
 												<td>
@@ -1378,13 +1459,27 @@
 													{/if}
 												</td>
 												<td>
-													<button
-														onclick={() => openTeamDetails(team.id)}
-														class="btn-icon"
-														aria-label="View Team Details"
-													>
-														<Eye class="icon-sm" />
-													</button>
+													<div style="display: flex; gap: 0.5rem; align-items: center;">
+														<button
+															onclick={() => openTeamDetails(team.id)}
+															class="btn-icon"
+															aria-label="View Team Details"
+															title="View Team Details"
+														>
+															<Eye class="icon-sm" />
+														</button>
+														{#if team.status !== "BANNED" && team.teamStatus !== "BANNED"}
+															<button
+																onclick={() => openDisqualifyModal(team)}
+																class="btn-icon btn-icon-danger"
+																aria-label="Disqualify Team"
+																title="Disqualify Team"
+																style="color: var(--md-sys-color-error, #ba1a1a);"
+															>
+																<Ban class="icon-sm" />
+															</button>
+														{/if}
+													</div>
 												</td>
 											</tr>
 										{/each}
@@ -1926,7 +2021,7 @@
 						></textarea>
 					</div>
 
-					<h4 class="modal-section-title">Timeline Configurations (in Milliseconds)</h4>
+					<h4 class="modal-section-title">Timeline Configurations</h4>
 					<div class="form-row">
 						<div class="form-group">
 							<label class="form-label" for="newRoundActiveMs">Active Duration (ms) *</label>
@@ -1939,12 +2034,6 @@
 								placeholder="e.g. 300000 (5 mins)"
 								required
 							/>
-							<span
-								class="help-text"
-								style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;"
-							>
-								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
-							</span>
 						</div>
 						<div class="form-group">
 							<label class="form-label" for="newRoundGradingMs">Grading Duration (ms) *</label>
@@ -1957,12 +2046,6 @@
 								placeholder="e.g. 300000 (5 mins)"
 								required
 							/>
-							<span
-								class="help-text"
-								style="font-size: 0.75rem; color: var(--md-sys-color-outline); margin-top: 0.25rem;"
-							>
-								e.g., 60000 (1 min), 300000 (5 mins), 86400000 (1 day)
-							</span>
 						</div>
 					</div>
 					<div class="modal-actions">
@@ -2301,12 +2384,95 @@
 							<p>{selectedTeamDetails.eliminated_at_round.name}</p>
 						</div>
 					{/if}
+					{#if selectedTeamDetails.disqualify_reason || selectedTeamDetails.disqualifyReason}
+						<div class="form-group" style="margin-top: 1rem;">
+							<label class="form-label text-error">Disqualification Reason</label>
+							<p class="text-error" style="font-weight: 500;">
+								{selectedTeamDetails.disqualify_reason || selectedTeamDetails.disqualifyReason}
+							</p>
+						</div>
+					{/if}
 				</div>
 				<div class="modal-actions">
 					<button type="button" class="btn btn-text" onclick={() => (showTeamDetailsModal = false)}>
 						Close
 					</button>
 				</div>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Disqualify Team Modal -->
+	{#if showDisqualifyModal && selectedTeamToDisqualify}
+		<div class="modal-overlay">
+			<div class="modal-surface" style="max-width: 520px;">
+				<div
+					class="modal-header"
+					style="border-bottom: 1px solid var(--md-sys-color-outline-variant, #ccc); padding-bottom: 0.75rem;"
+				>
+					<h3
+						style="color: var(--md-sys-color-error, #ba1a1a); display: flex; align-items: center; gap: 0.5rem; margin: 0;"
+					>
+						<Ban class="icon" style="width: 22px; height: 22px;" /> Disqualify Team
+					</h3>
+					<button onclick={() => (showDisqualifyModal = false)} class="btn-icon">
+						<X class="icon" />
+					</button>
+				</div>
+				<form onsubmit={handleDisqualifyTeam} class="modal-form" style="margin-top: 1rem;">
+					{#if disqualifyTeamMessage}
+						<div
+							class="alert {disqualifyTeamError ? 'alert-error' : 'alert-success'}"
+							style="margin-bottom: 1rem;"
+						>
+							{disqualifyTeamMessage}
+						</div>
+					{/if}
+
+					<div
+						class="alert alert-warning"
+						style="margin-bottom: 1rem; font-size: 0.88rem; line-height: 1.4;"
+					>
+						<strong>Warning:</strong> Disqualifying <strong>{selectedTeamToDisqualify.name}</strong>
+						will set their status to <strong>BANNED</strong>, eliminate them from active round
+						progression, exclude them from leaderboards, and block further submissions.
+					</div>
+
+					<div class="form-group">
+						<label class="form-label" for="disqualifyReasonInput"
+							>Reason for Disqualification *</label
+						>
+						<textarea
+							id="disqualifyReasonInput"
+							bind:value={disqualifyReasonInput}
+							class="input-field textarea"
+							rows="3"
+							required
+							placeholder="State the reason (e.g. Code plagiarism, Rule violation...)"
+						></textarea>
+					</div>
+
+					<div
+						class="modal-actions"
+						style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;"
+					>
+						<button
+							type="button"
+							onclick={() => (showDisqualifyModal = false)}
+							class="btn btn-text"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							disabled={isDisqualifyingTeam || !disqualifyReasonInput.trim()}
+							class="btn btn-filled"
+							style="background-color: var(--md-sys-color-error, #ba1a1a); color: white; border: none;"
+						>
+							{isDisqualifyingTeam ? "Disqualifying..." : "Confirm Disqualification"}
+						</button>
+					</div>
+				</form>
 			</div>
 		</div>
 	{/if}
@@ -2383,6 +2549,35 @@
 			margin: 0 0 1.5rem 0;
 			max-width: 800px;
 			opacity: 0.9;
+		}
+
+		.event-prize-info {
+			margin: 0 0 1.5rem 0;
+			padding: 0.85rem 1.25rem;
+			background: rgba(255, 255, 255, 0.45);
+			border: 1px solid rgba(0, 0, 0, 0.08);
+			border-radius: 0.75rem;
+
+			.prize-title-row {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-size: 0.85rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
+				color: var(--md-sys-color-primary);
+				margin-bottom: 0.35rem;
+			}
+
+			.prize-content {
+				p {
+					margin: 0.2rem 0;
+					font-size: 0.9rem;
+					line-height: 1.5;
+					color: var(--md-sys-color-on-primary-container);
+				}
+			}
 		}
 
 		.event-tracks-info {
