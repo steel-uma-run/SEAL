@@ -14,4 +14,6 @@ public interface TeamService {
   TeamDto getTeamInfo(UUID teamId);
 
   void disqualifyTeam(UUID teamId, String disqualifyReason);
+
+  void transferLeadership(UUID teamId, UUID studentId);
 }
