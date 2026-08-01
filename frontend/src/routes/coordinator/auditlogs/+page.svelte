@@ -33,12 +33,13 @@
 	function getLogType(log: any) {
 		if ('approved_student_email' in log) return "ACCOUNT_APPROVED"
 		if ('banned_student_email' in log) return "ACCOUNT_BANNED"
-		if ('submission_id' in log && !('criteria_id' in log) && !('comment' in log)) return "SUBMISSION_CREATED" // Just guessing structure
-		if ('comment' in log) return "GRADING" // GradingLogDto
+		if ('details' in log || log.action === 'GRADED_SUBMISSION') return "GRADING"
+		if ('submission_id' in log) return "SUBMISSION_CREATED"
 		return "SYSTEM_EVENT"
 	}
 
 	function getLogDetails(log: any) {
+		if ('details' in log && log.details) return log.details
 		if ('approved_student_email' in log) return `Approved account for ${log.approved_student_email}`
 		if ('banned_student_email' in log) return `Banned account for ${log.banned_student_email}`
 		if ('submission_id' in log) return `Action on submission ${log.submission_id}`
