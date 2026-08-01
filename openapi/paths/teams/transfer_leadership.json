@@ -1,0 +1,37 @@
+{
+  "parameters": [
+    {
+      "name": "teamId",
+      "description": "ID of the team",
+      "in": "path",
+      "required": true,
+      "schema": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
+  ],
+  "post": {
+    "tags": ["teams"],
+    "operationId": "transfer_leadership",
+    "summary": "Transfer leadership to a different student",
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/TransferLeadershipRequest.json"
+          }
+        }
+      }
+    },
+    "responses": {
+      "204": {
+        "description": "Leadership transferred successfully"
+      },
+      "4XX": {
+        "$ref": "../../responses/ClientErrorResponse.json"
+      }
+    }
+  }
+}

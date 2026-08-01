@@ -19,6 +19,7 @@ import seal.openapi.model.CreateTeamRequestPayloadDto;
 import seal.openapi.model.DisqualifyTeamRequestDto;
 import seal.openapi.model.SubmissionDto;
 import seal.openapi.model.TeamDto;
+import seal.openapi.model.TransferLeadershipRequestDto;
 
 @RestController
 @RequiredArgsConstructor
@@ -70,6 +71,15 @@ public class TeamController implements TeamsApi {
       @PathVariable(name = "teamId") @NotNull UUID teamId,
       @RequestBody @Valid @NotNull DisqualifyTeamRequestDto body) {
     teamService.disqualifyTeam(teamId, body.reason());
+    return ResponseEntity.noContent().build();
+  }
+
+  @PreAuthorize("hasRole('STUDENT')")
+  @Override
+  public ResponseEntity<Void> transferLeadership(
+      @PathVariable(name = "teamId") @NotNull UUID teamId,
+      @RequestBody @Valid @NotNull TransferLeadershipRequestDto body) {
+    teamService.transferLeadership(teamId, body.studentId());
     return ResponseEntity.noContent().build();
   }
 }

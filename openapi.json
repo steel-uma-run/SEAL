@@ -40,6 +40,9 @@
     "/teams/{teamId}/submissions": {
       "$ref": "./openapi/paths/teams/get_submissions.json"
     },
+    "/teams/{teamId}/transfer-leadership": {
+      "$ref": "./openapi/paths/teams/transfer_leadership.json"
+    },
 
     "/invites": {
       "$ref": "./openapi/paths/invites/get_all.json"
