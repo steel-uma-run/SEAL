@@ -102,14 +102,32 @@
 			let activeTemplates = null
 
 			if (rounds && rounds.length > 0) {
-				// Get criteria from the latest round (or active round)
-				const round = rounds[rounds.length - 1]
+				// Try to get criteria from the submission's round
+				let round = rounds[rounds.length - 1] // default to latest
+				
+				if (fetchedSubmission.round_id || fetchedSubmission.roundId) {
+					const submissionRoundId = fetchedSubmission.round_id || fetchedSubmission.roundId
+					const matchedRound = rounds.find((r: any) => r.id === submissionRoundId)
+					if (matchedRound) {
+						round = matchedRound
+					}
+				} else if (fetchedSubmission.scores && fetchedSubmission.scores.length > 0) {
+					// Fallback for older data without round_id
+					const criteriaId = fetchedSubmission.scores[0].criteria_id || fetchedSubmission.scores[0].criteriaId
+					const matchedRound = rounds.find((r: any) => 
+						r.criteria && r.criteria.some((c: any) => c.id === criteriaId)
+					)
+					if (matchedRound) {
+						round = matchedRound
+					}
+				}
+
 				if (round.criteria && round.criteria.length > 0) {
 					activeTemplates = [
 						{
 							id: round.id,
 							name: "Round Criteria",
-							description: "Criteria for the current round",
+							description: `Criteria for ${round.name || 'the current round'}`,
 							criteria: round.criteria
 						}
 					]
