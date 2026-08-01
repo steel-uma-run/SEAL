@@ -150,47 +150,47 @@
 											throwOnError: false
 										})
 
-										if (submissions) {
-											for (const sub of submissions) {
-												const hasGraded =
-													sub.scores &&
-													sub.scores.some(
-														(s: any) =>
-															s.lecturer_id === lecturerProfile?.id ||
-															s.lecturerId === lecturerProfile?.id
-													)
+										if (submissions && submissions.length > 0) {
+											// Sort submissions to get the latest one
+											submissions.sort((a: any, b: any) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
+											const sub = submissions[0] // Only take the latest submission
+											
+											const hasGraded =
+												sub.scores &&
+												sub.scores.some(
+													(s: any) =>
+														s.lecturer_id === lecturerProfile?.id ||
+														s.lecturerId === lecturerProfile?.id
+												)
 
-												let needsRegrade = false;
-												if (hasGraded) {
-													const { data: subDevs } = await getScoreDeviations({ path: { submissionId: sub.id }, throwOnError: false });
-													if (subDevs && subDevs.length > 0) {
-														const myTotalDevs = subDevs.filter((d: any) => {
-															const isMyDev = d.lecturer_id === lecturerProfile.id || d.lecturerId === lecturerProfile.id;
-															const isTotalScore = d.criteria_id === null || d.criteriaId === null || d.criteria_id === undefined || d.criteriaId === undefined;
-															return isMyDev && isTotalScore;
-														});
-														const hasPending = myTotalDevs.some((d: any) => !d.status || d.status === "PENDING");
-														const hasAccepted = myTotalDevs.some((d: any) => d.status === "ACCEPTED");
-														// Only show "Needs Regrade" if there are pending deviations
-														// AND the lecturer hasn't already accepted & regraded
-														needsRegrade = hasPending && !hasAccepted;
-													}
+											let needsRegrade = false;
+											if (hasGraded) {
+												const { data: subDevs } = await getScoreDeviations({ path: { submissionId: sub.id }, throwOnError: false });
+												if (subDevs && subDevs.length > 0) {
+													const myTotalDevs = subDevs.filter((d: any) => {
+														const isMyDev = d.lecturer_id === lecturerProfile.id || d.lecturerId === lecturerProfile.id;
+														const isTotalScore = d.criteria_id === null || d.criteriaId === null || d.criteria_id === undefined || d.criteriaId === undefined;
+														return isMyDev && isTotalScore;
+													});
+													const hasPending = myTotalDevs.some((d: any) => !d.status || d.status === "PENDING");
+													const hasAccepted = myTotalDevs.some((d: any) => d.status === "ACCEPTED");
+													needsRegrade = hasPending && !hasAccepted;
 												}
-
-												trackSubmissions.push({
-													...sub,
-													status: hasGraded ? "GRADED" : "PENDING",
-													needsRegrade,
-													team_name: team.name,
-													team_id: team.id
-												})
 											}
+
+											trackSubmissions.push({
+												...sub,
+												status: hasGraded ? "GRADED" : "PENDING",
+												needsRegrade,
+												team_name: team.name,
+												team_id: team.id
+											})
 										}
 									}
 								}
 
 								trackSubmissions.sort(
-									(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+									(a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
 								)
 
 								tempTracks.push({
@@ -303,10 +303,7 @@
 													</span>
 												{:else if sub.status === "GRADED"}
 													<span class="status-badge approved">
-														<CheckCircle class="w-3 h-3" style="display:inline;" />
-														{getLecturerScore(sub, lecturerProfile?.id) !== null
-															? getLecturerScore(sub, lecturerProfile?.id) + "/10"
-															: "Graded"}
+														<CheckCircle class="w-3 h-3" style="display:inline;" /> Graded
 													</span>
 												{:else}
 													<span class="status-badge pending">
